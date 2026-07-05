@@ -1,4 +1,0 @@
-"""
-Persistence Package.
-"""
-

@@ -1,104 +1,185 @@
-# Screener Fundamentalista B3 - Ações, FIIs e FIAGROs
+# Radar Fundamentalista B3
 
-Um sistema completo e automatizado de análise, triagem (*screening*) e visualização fundamentalista de ativos negociados na bolsa brasileira (B3). O projeto utiliza dados históricos e correntes para avaliar a saúde financeira, precificação e qualidade dos ativos com base em teorias consagradas de investimentos (Graham e Bazin) e scorecards quantitativos.
+[![Pipeline Status](https://github.com/jucelinoss/radar_fundamentalista_b3/actions/workflows/daily-pipeline.yml/badge.svg?branch=main)](https://github.com/jucelinoss/radar_fundamentalista_b3/actions/workflows/daily-pipeline.yml)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://python.org)
+[![Code size](https://img.shields.io/github/languages/code-size/jucelinoss/radar_fundamentalista_b3)]()
 
----
+Sistema automatizado de análise fundamentalista para **ações, FIIs e FIAGROs** da B3. Gera um dashboard web estático com scorecards quantitativos (Graham, Bazin), gráficos interativos e suporte PWA — tudo atualizado diariamente via GitHub Actions.
 
-## 🖥️ Demonstração Visual e Funcionalidades
-
-O sistema compila todas as análises em um **Dashboard Web Premium** (com suporte a temas claro/escuro persistente e responsividade móvel completa) que oferece:
-
-1. **Triagem de Ações por Índices (IBOV, IDIV, SMLL)**:
-   * Badges de índice sob cada ticker indicando filiação.
-   * Seletor de índice dinâmico (visível apenas na aba "Ações") que atua em cruzamento com a barra de pesquisas de texto.
-
-2. **Pontuação Fundamentalista Customizada (Score de 0 a 5)**:
-   * **Ações**: Baseado em dividend yield (Bazin >= 6%), P/L Graham, P/VP Graham, ROE de qualidade e margem de segurança do Valor Justo de Graham.
-   * **FIIs & FIAGROs**: Baseado em múltiplos P/VP na zona ideal, faixa limite de preço, dividend yields anuais mínimos/excelentes e recorrência de distribuição de rendimentos.
-
-3. **Gráficos de Histórico Interativos (1 a 10 Anos)**:
-   * Clique em qualquer ativo da tabela para abrir o modal de histórico e visualizar gráficos interativos de **Preço**, **P/L** (apenas ações), **P/VP** e **Dividend Yield** no período selecionado (1A, 2A, 3A, 5A ou 10A).
-   * Os gráficos e textos se adaptam automaticamente à mudança de tema do dashboard.
-
-4. **Análise Setorial Dinâmica (Drill-down)**:
-   * Uma aba exclusiva para análise setorial mostrando médias ponderadas de Score, DY e P/L.
-   * Clique em qualquer setor para abrir um modal contendo as empresas correspondentes ordenadas por Score (qualidade) e Dividend Yield (filtro de boa opção). Clicar na empresa a partir deste modal redireciona instantaneamente para o seu modal de histórico individual.
+📊 **Dashboard:** [`https://jucelinoss.github.io/radar_fundamentalista_b3/`](https://jucelinoss.github.io/radar_fundamentalista_b3/)
 
 ---
 
-## 🛠️ Arquitetura do Sistema
+## Funcionalidades
 
-O projeto adota uma arquitetura enxuta dividida em quatro componentes principais:
+- **249 ativos monitorados:** 91 ações, 120 FIIs, 38 FIAGROs
+- **Scorecards 0-5:** Graham (valor justo), Bazin (preço teto), P/L, P/VP, ROE, margem de segurança
+- **Gráficos interativos:** Preço, P/L, P/VP, Dividend Yield (1A a 10A) com Chart.js
+- **Filtros por índice:** IBOV, IDIV, SMLL — badges e seletor dinâmico
+- **Análise setorial:** Médias ponderadas por setor com drill-down
+- **Tema claro/escuro:** Persistente com `prefers-color-scheme`
+- **PWA:** Instalável como aplicativo, funciona offline (caching do service worker)
+- **Export:** CSV por categoria + JSON completo + Top Picks (formato otimizado para IA)
+- **Deploy automático:** GitHub Actions diário, deploy condicional (só se dados mudaram)
+
+---
+
+## Estrutura do Projeto
 
 ```
+radar_fundamentalista_b3/
+├── .github/workflows/
+│   └── daily-pipeline.yml     # CI/CD: testes → ingestão → deploy
+├── config/
+│   ├── tickers.json           # Lista mestra de tickers + config pipeline
+│   └── indices.json           # Mapeamento ticker → índice B3
 ├── data/
-│   └── investments.db        # Banco SQLite contendo dados de ativos e JSON de históricos
+│   ├── investments.db         # SQLite (stocks, fiis, fiagros, pipeline_log)
+│   ├── ticker_mappings.json   # Renomeações/delistings de tickers
+│   ├── export_stocks.csv      # Export ações
+│   ├── export_fiis.csv        # Export FIIs
+│   ├── export_fiagros.csv     # Export FIAGROs
+│   ├── export_ativos.json     # Export completo JSON
+│   ├── export_top_picks.json  # Top picks formato IA
+│   ├── status.json            # Status em tempo real (para web UI)
+│   └── failed_tickers.log     # Log de falhas de ingestão
+├── docs/
+│   ├── ARCHITECTURE.md        # Documentação da arquitetura
+│   └── architecture.html      # Diagrama visual interativo
+├── icons/
+│   └── icon.svg               # Ícone PWA
+├── scripts/
+│   ├── analyze_top_picks.py   # CLI: analisar top picks
+│   └── query_top_assets.py    # CLI: consultar ativos
 ├── src/
-│   ├── database.py           # Gerenciamento de conexão, esquemas e inserções SQLite
-│   ├── analyzer.py           # Regras analíticas fundamentalistas (Graham, Bazin e Scorecards)
-│   ├── ingestion.py          # Script de coleta paralela/lote usando yfinance e tratamento de dados
-│   ├── generator.py          # Script Python que processa o banco e renderiza o HTML usando Jinja2
-│   └── templates/
-│       └── dashboard_template.html  # Template estático HTML + CSS + JS (Chart.js)
-├── dashboard.html            # Interface web compilada gerada pelo generator.py
-└── requirements.txt          # Dependências do projeto
+│   ├── __init__.py            # Marcador de pacote
+│   ├── analyzer.py            # Motor de análise (Graham, Bazin, score)
+│   ├── database.py            # Persistência SQLite
+│   ├── exporter.py            # Export CSV/JSON/Top Picks
+│   ├── generator.py           # Geração do dashboard HTML
+│   ├── ingestion.py           # Ingestão paralela de dados
+│   ├── pipeline.py            # Orquestrador CLI
+│   ├── server.py              # Servidor HTTP local
+│   ├── sources.py             # Fontes de dados (brapi.dev + yfinance)
+│   ├── templates/
+│   │   ├── dashboard_template.html  # Template Jinja2 (1.953 linhas)
+│   │   └── pwa/manifest.json        # Manifest PWA
+│   └── tests/
+│       ├── conftest.py         # Fixtures compartilhadas
+│       ├── test_analyzer.py    # 36 testes: analyzer
+│       ├── test_sources.py     # 27 testes: sources (mockados)
+│       ├── test_pipeline_integration.py  # 42 testes: pipeline
+│       ├── test_integration_sources.py   # 6 testes: brapi.dev live
+│       └── utils.py            # Helpers de mock
+├── dashboard.html             # Dashboard gerado (~7.900 linhas)
+├── manifest.json              # Manifest PWA (raiz)
+├── service-worker.js          # Service Worker PWA
+├── pyproject.toml             # Config do pacote Python (v2.1.0)
+├── requirements.txt           # Dependências
+├── PRD.md                     # Documento de requisitos
+├── CHANGELOG.md               # Histórico de versões
+├── CONTRIBUTING.md            # Guia de contribuição
+└── .env.example               # Template de variáveis de ambiente
 ```
 
 ---
 
-## 📊 Critérios de Pontuação (Scorecard 0-5)
+## Stack Tecnológica
 
-### Ações (Base Graham & Bazin)
-1. **Dividend Yield >= 6%** (Critério de Décio Bazin para renda passiva).
-2. **P/L (Preço/Lucro) <= 15** (Critério de Benjamin Graham para liquidez e valuation).
-3. **P/VP (Preço/Valor Patrimonial) <= 1.5** (Critério de Benjamin Graham para ativos descontados).
-4. **ROE (Return on Equity) >= 10%** (Filtro de eficiência e rentabilidade corporativa).
-5. **Margem de Segurança de Graham** (Preço Atual < Valor Justo de Graham: $V_i = \sqrt{22.5 \times LPA \times VPA}$).
+| Componente | Tecnologia |
+|-----------|-----------|
+| **Linguagem** | Python 3.12 |
+| **Fontes de dados** | brapi.dev API (primário) + yfinance (fallback) |
+| **Banco de dados** | SQLite |
+| **Template** | Jinja2 |
+| **Gráficos** | Chart.js (CDN) |
+| **Export** | CSV, JSON |
+| **Testes** | pytest + pytest-mock (121 testes) |
+| **CI/CD** | GitHub Actions |
+| **Hospedagem** | GitHub Pages |
+| **PWA** | Service Worker + Manifest |
+
+---
+
+## Como Executar Localmente
+
+```bash
+# 1. Clone
+git clone https://github.com/jucelinoss/radar_fundamentalista_b3.git
+cd radar_fundamentalista_b3
+
+# 2. Ambiente virtual
+python -m venv .venv
+source .venv/bin/activate      # Linux/macOS
+.venv\Scripts\Activate.ps1     # Windows
+
+# 3. Dependências
+pip install -r requirements.txt
+
+# 4. Ingestão de dados
+python src/ingestion.py        # ou: python src/pipeline.py
+
+# 5. Gerar dashboard
+python src/generator.py        # ou: python src/pipeline.py --generate-only
+
+# 6. Servidor local (opcional)
+python src/server.py           # http://localhost:8585
+
+# Opção: pipeline completo
+python src/pipeline.py
+```
+
+---
+
+## Critérios de Pontuação (Scorecard 0-5)
+
+### Ações
+1. **Dividend Yield ≥ 6%** (critério Bazin)
+2. **P/L ≤ 15** (Graham)
+3. **P/VP ≤ 1.5** (Graham)
+4. **ROE ≥ 10%**
+5. **Margem de segurança de Graham** (preço atual < √(22.5 × LPA × VPA))
 
 ### FIIs e FIAGROs
-1. **P/VP Ideal** ($0.85 \le \text{P/VP} \le 1.05$) - Evita distorções de fundos em apuros e ágios abusivos.
-2. **Preço Limite** ($\text{P/VP} \le 1.15$) - Margem de segurança de valuation de tijolo/crédito.
-3. **Dividend Yield Anual >= 8%** (Retorno de rendimentos mínimo recomendado).
-4. **Dividend Yield Anual >= 10%** (Indicador de alta performance de distribuição).
-5. **Distribuição Ativa** (Rendimento anual estimado > R$ 0.00).
+1. **P/VP ideal** (0.85 ≤ P/VP ≤ 1.05)
+2. **Preço limite** (P/VP ≤ 1.15)
+3. **DY anual ≥ 8%**
+4. **DY anual ≥ 10%** (alta performance)
+5. **Distribuição ativa** (dividendo anual estimado > R$ 0)
 
 ---
 
-## 🚀 Como Executar o Projeto
+## Arquitetura
 
-### Pré-requisitos
-* Python 3.10 ou superior.
+Para uma visão detalhada da arquitetura, fluxo de dados e CI/CD:
 
-### Passo 1: Instalar as Dependências
-Crie um ambiente virtual e instale os pacotes necessários especificados no `requirements.txt`:
-```powershell
-# Criação do ambiente virtual
-python -m venv .venv
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Documentação textual
+- [`docs/architecture.html`](docs/architecture.html) — Diagrama interativo com Mermaid
+- [`PRD.md`](PRD.md) — Documento de requisitos do produto
 
-# Ativação (Windows PowerShell)
-.\.venv\Scripts\Activate.ps1
+---
 
-# Instalação de dependências
-pip install -r requirements.txt
+## Testes
+
+```bash
+# Todos os testes (exceto rede)
+python -m pytest src/tests/ -v
+
+# Com testes de rede (brapi.dev, yfinance)
+python -m pytest src/tests/ -v --run-network
+
+# Apenas um arquivo
+python -m pytest src/tests/test_analyzer.py -v
+
+# Cobertura
+python -m pytest src/tests/ --cov=src
 ```
 
-### Passo 2: Executar a Ingestão de Dados (Ingestion)
-O script de ingestão irá inicializar o banco de dados SQLite e carregar as cotações, múltiplos e histórico de 10 anos via Yahoo Finance para os 143 ativos monitorados (97 ações, 32 FIIs e 14 FIAGROs):
-```powershell
-python src/ingestion.py
-```
-*Nota: A ingestão leva em torno de 2.5 a 3 minutos para respeitar a limitação de requisições do yfinance (`time.sleep(1)` entre ativos).*
+**86 testes unitários** passam sem dependência de rede. **35 testes de integração** exigem `--run-network`.
 
-### Passo 3: Gerar o Dashboard
-Compile os dados salvos no banco SQLite no arquivo estático de visualização:
-```powershell
-python src/generator.py
-```
+---
 
-### Passo 4: Visualizar no Navegador
-Abra o arquivo `dashboard.html` gerado na raiz do projeto diretamente no seu navegador de preferência ou suba um servidor HTTP local para melhor visualização dos gráficos dinâmicos:
-```powershell
-# Iniciar servidor local
-python -m http.server 8000
-```
-Acesse no seu navegador: `http://localhost:8000/dashboard.html`
+## Licença
+
+MIT

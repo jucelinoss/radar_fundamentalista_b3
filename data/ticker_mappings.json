@@ -6,7 +6,8 @@
     "CRFB3": "Carrefour Brasil fechou capital em 30/05/2025. Agora negociado via BDR CAFR31 (investidores qualificados).",
     "JBSS3": "JBS migrou para dual listing em 06/06/2025. Agora BDR JBSS32 na B3 + JBS na NYSE.",
     "DXCO3": "Duratex renomeada para Dexco em 2021 (DTEX3→DXCO3). Ticker OK, mas yfinance retorna trailingPE='Infinity'.",
-    "ROCA11": "Novo FIAGRO do Grupo Ceres lançado em 03/2026. Ainda sem dados fundamentalistas nas APIs."
+    "ROCA11": "Novo FIAGRO do Grupo Ceres lançado em 03/2026. Ainda sem dados fundamentalistas nas APIs.",
+    "ISAE3": "ISAE3 (ON) nao e monitorado ativamente — apenas ISAE4 (PN) esta em tickers.json. Mapping TRPL3→ISAE3 mantido para documentacao historica."
   },
   "ARZZ3.SA": "AZZA3.SA",
   "ELET3.SA": "AXIA3.SA",

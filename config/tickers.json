@@ -2,11 +2,11 @@
   "_meta": {
     "description": "Tickers monitorados - indices B3 (IBOV, IDIV, SMLL, IFIX, FIAGRO)",
     "version": "3.0",
-    "updated_at": "2026-07-04",
+    "updated_at": "2026-07-05",
     "source": "brapi.dev + indices.json"
   },
   "stocks": {
-    "count": 95,
+    "count": 91,
     "tickers": [
       "ABCB4.SA",
       "ABEV3.SA",
@@ -24,7 +24,6 @@
       "BEEF3.SA",
       "BPAC11.SA",
       "BRAP4.SA",
-      "BRFS3.SA",
       "BRKM5.SA",
       "BRSR6.SA",
       "CEAB3.SA",
@@ -33,8 +32,7 @@
       "CMIN3.SA",
       "CPFE3.SA",
       "CPLE3.SA",
-      "CPLE6.SA",
-      "CRFB3.SA",
+
       "CSAN3.SA",
       "CSMG3.SA",
       "CSNA3.SA",
@@ -58,7 +56,6 @@
       "IRBR3.SA",
       "ITSA4.SA",
       "ITUB4.SA",
-      "JBSS3.SA",
       "JHSF3.SA",
       "KEPL3.SA",
       "KLBN11.SA",
@@ -67,7 +64,7 @@
       "MDIA3.SA",
       "MGLU3.SA",
       "MOTV3.SA",
-      "MRFG3.SA",
+      "MBRF3.SA",
       "MRVE3.SA",
       "MULT3.SA",
       "NATU3.SA",
@@ -92,7 +89,7 @@
       "TEND3.SA",
       "TIMS3.SA",
       "TOTS3.SA",
-      "TRPL4.SA",
+      "ISAE4.SA",
       "TUPY3.SA",
       "UNIP6.SA",
       "USIM5.SA",

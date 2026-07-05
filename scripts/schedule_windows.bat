@@ -22,7 +22,7 @@ if not exist "%PYTHON_EXE%" (
 )
 
 set "PIPELINE_SCRIPT=%~dp0..\src\pipeline.py"
-set "TASK_NAME=B3ScreenerPipeline"
+set "TASK_NAME=RadarFundamentalistaPipeline"
 
 echo Python:    %PYTHON_EXE%
 echo Script:    %PIPELINE_SCRIPT%
