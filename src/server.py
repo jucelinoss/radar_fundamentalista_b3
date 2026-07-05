@@ -17,6 +17,7 @@ import os
 import socketserver
 import sys
 import threading
+import time
 
 # Ensure src/ is in path
 SRC_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -181,6 +182,34 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             self.wfile.write(json.dumps({"status": "idle", "message": "Status resetado com sucesso"}).encode("utf-8"))
+            return
+
+        # ── Direct export file paths (used by GitHub Pages) ─────
+        DIRECT_EXPORTS = {
+            "/export_stocks.csv":    "data/export_stocks.csv",
+            "/export_fiis.csv":      "data/export_fiis.csv",
+            "/export_fiagros.csv":   "data/export_fiagros.csv",
+            "/export_ativos.json":   "data/export_ativos.json",
+            "/export_top_picks.json": "data/export_top_picks.json",
+        }
+        if self.path in DIRECT_EXPORTS:
+            abspath = os.path.join(PROJECT_ROOT, DIRECT_EXPORTS[self.path])
+            if os.path.exists(abspath):
+                with open(abspath, "rb") as f:
+                    data = f.read()
+                mime = "application/json" if self.path.endswith(".json") else "text/csv"
+                self.send_response(200)
+                self.send_header("Content-Type", mime)
+                self.send_header("Content-Length", str(len(data)))
+                self.send_header("Content-Disposition", f'attachment; filename="{os.path.basename(abspath)}"')
+                self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+                self.end_headers()
+                self.wfile.write(data)
+                return
+            self.send_response(404)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": "Export file not found"}).encode("utf-8"))
             return
 
         # ── Static files ─────────────────────────────────────────
