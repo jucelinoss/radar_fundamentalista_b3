@@ -4,14 +4,7 @@ Unit tests for the analyzer module (Graham, Bazin, scorecard calculations).
 Run with:  python -m pytest src/tests/test_analyzer.py -v
 Or:        python -m pytest src/tests/ -v
 """
-import sys
-import os
 import math
-
-# Ensure src/ is in path
-SRC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-if SRC_DIR not in sys.path:
-    sys.path.insert(0, SRC_DIR)
 
 from analyzer import (
     calculate_graham_price,

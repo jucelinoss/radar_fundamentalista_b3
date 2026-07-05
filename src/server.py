@@ -14,17 +14,18 @@ import os
 import socketserver
 import sys
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+PROJECT_ROOT: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 logging.basicConfig(
     level=logging.INFO,
     format="[%(asctime)s] %(levelname)s %(message)s",
     datefmt="%H:%M:%S",
 )
-logger = logging.getLogger("server")
+logger: logging.Logger = logging.getLogger("server")
 
 # ── Alias map: short public URL → relative file path ─────────────
-DIRECT_EXPORTS = {
+DIRECT_EXPORTS: dict[str, str] = {
     "/export_stocks.csv":    "data/export_stocks.csv",
     "/export_fiis.csv":      "data/export_fiis.csv",
     "/export_fiagros.csv":   "data/export_fiagros.csv",
@@ -36,14 +37,14 @@ DIRECT_EXPORTS = {
 class Handler(http.server.SimpleHTTPRequestHandler):
     """Serves static files with export aliases."""
 
-    def do_GET(self):
+    def do_GET(self) -> None:
         # Serve export files at short paths (e.g. /export_stocks.csv)
         if self.path in DIRECT_EXPORTS:
-            abspath = os.path.join(PROJECT_ROOT, DIRECT_EXPORTS[self.path])
+            abspath: str = os.path.join(PROJECT_ROOT, DIRECT_EXPORTS[self.path])
             if os.path.exists(abspath):
                 with open(abspath, "rb") as f:
-                    data = f.read()
-                mime = "application/json" if self.path.endswith(".json") else "text/csv"
+                    data: bytes = f.read()
+                mime: str = "application/json" if self.path.endswith(".json") else "text/csv"
                 self.send_response(200)
                 self.send_header("Content-Type", mime)
                 self.send_header("Content-Length", str(len(data)))
@@ -61,11 +62,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         # Everything else → static file server
         super().do_GET()
 
-    def log_message(self, fmt, *args):
+    def log_message(self, fmt: str, *args) -> None:
         logger.info(f"{self.client_address[0]} — {fmt % args}")
 
 
-def run_server(port=8000):
+def run_server(port: int = 8000) -> None:
     """Start the HTTP server."""
     os.chdir(PROJECT_ROOT)
     socketserver.ThreadingTCPServer.allow_reuse_address = True
@@ -82,5 +83,5 @@ def run_server(port=8000):
 
 
 if __name__ == "__main__":
-    port = int(sys.argv[1]) if len(sys.argv) > 1 else 8000
+    port: int = int(sys.argv[1]) if len(sys.argv) > 1 else 8000
     run_server(port=port)

@@ -23,21 +23,15 @@ import sys
 import time
 from datetime import datetime, timedelta
 
-# Ensure src/ is in path
-SRC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-if SRC_DIR not in sys.path:
-    sys.path.insert(0, SRC_DIR)
-
 import pytest
 
-# ---------------------------------------------------------------------------
+# Path to src/ (used for locating config/data files)
+SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 # Markers
-# ---------------------------------------------------------------------------
 network = pytest.mark.network
 slow = pytest.mark.slow
 
-# ---------------------------------------------------------------------------
-# Tickers known to have good yfinance data (used for integration tests)
 # ---------------------------------------------------------------------------
 KNOWN_GOOD_STOCK = "PETR4.SA"        # Petrobras — large cap, very stable data
 KNOWN_GOOD_STOCK_BASE = "PETR4"      # Without .SA suffix

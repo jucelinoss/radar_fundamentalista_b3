@@ -3,12 +3,14 @@
 # Runs the complete data pipeline (ingestion + dashboard generation)
 # every weekday at 8:00 AM BRT (11:00 UTC).
 #
-# The generated dashboard is deployed to GitHub Pages automatically.
-# Access: https://SEU_USUARIO.github.io/investor/
+# The generated dashboard is deployed to GitHub Pages automatically,
+# but ONLY when the data actually changes (avoids unnecessary deployments).
 #
 # Required secrets (Settings > Secrets and variables > Actions):
 #   BRAPI_TOKEN: seu token do brapi.dev (https://brapi.dev/dashboard)
 #   (opcional - sem token usa yfinance como fallback)
+#
+# On pipeline failure, a GitHub Issue is automatically created.
 
 name: Daily B3 Pipeline
 
@@ -21,6 +23,7 @@ permissions:
   contents: write
   pages: write
   id-token: write
+  issues: write               # Para criar issue em caso de falha
 
 concurrency:
   group: pages
@@ -31,6 +34,8 @@ jobs:
     name: Data Ingestion + Dashboard
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      changed: ${{ steps.check-changes.outputs.changed }}
 
     steps:
       - name: Checkout repository
@@ -53,18 +58,17 @@ jobs:
       - name: Ensure data directory exists
         run: mkdir -p data
 
-      - name: Restore database cache
-        id: db-cache
+      - name: Restore database cache (keyed on tickers.json hash)
         id: db-cache
         uses: actions/cache@v4
         with:
           path: data/investments.db
-          key: b3-db-${{ github.ref_name }}-${{ github.run_id }}
+          key: b3-db-${{ hashFiles('config/tickers.json') }}
           restore-keys: |
-            b3-db-${{ github.ref_name }}-
             b3-db-
 
       - name: Run full pipeline (incremental)
+        id: pipeline-run
         run: python src/pipeline.py --max-age-hours 24
         env:
           PYTHONUNBUFFERED: 1
@@ -75,7 +79,20 @@ jobs:
         env:
           BRAPI_TOKEN: ${{ secrets.BRAPI_TOKEN || '' }}
 
-      - name: Prepare Pages artifact
+      - name: Check if deployable files changed
+        id: check-changes
+        run: |
+          # Check if dashboard.html (the main deployable) differs from HEAD
+          if git diff --exit-code --quiet HEAD -- dashboard.html 2>/dev/null; then
+            echo "No changes detected in dashboard.html — skipping deployment"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Data changed — will deploy"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Prepare Pages artifact (only if data changed)
+        if: steps.check-changes.outputs.changed == 'true'
         run: |
           mkdir -p _site
           # Dashboard
@@ -87,26 +104,50 @@ jobs:
           # Export files
           cp data/export_*.csv data/export_*.json _site/ 2>/dev/null || true
 
-      - name: Upload Pages artifact
+      - name: Upload Pages artifact (only if data changed)
+        if: steps.check-changes.outputs.changed == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: _site
 
       - name: Summary
         run: |
-          echo "## ✅ Pipeline Results" >> $GITHUB_STEP_SUMMARY
+          echo "## Pipeline Results" >> $GITHUB_STEP_SUMMARY
           echo "- Date: $(date)" >> $GITHUB_STEP_SUMMARY
           echo "- Duration: pipeline completed" >> $GITHUB_STEP_SUMMARY
+          echo "- Deploy triggered: ${{ steps.check-changes.outputs.changed }}" >> $GITHUB_STEP_SUMMARY
           if ls data/failed_tickers.log 2>/dev/null; then
-            echo "### ❌ Failed Tickers" >> $GITHUB_STEP_SUMMARY
+            echo "### Failed Tickers" >> $GITHUB_STEP_SUMMARY
             cat data/failed_tickers.log >> $GITHUB_STEP_SUMMARY || true
           else
-            echo "- All tickers ingested successfully ✅" >> $GITHUB_STEP_SUMMARY
+            echo "- All tickers ingested successfully" >> $GITHUB_STEP_SUMMARY
           fi
+
+      - name: Create failure issue
+        if: failure() && github.ref_name == 'main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create \
+            --title "Pipeline falhou em $(date +'%Y-%m-%d %H:%M')" \
+            --label "bug" \
+            --body "A execução automática do pipeline falhou.
+
+          - **Workflow**: [${{ github.workflow }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          - **Branch**: ${{ github.ref_name }}
+          - **Data**: $(date)
+
+          Detalhes do erro:
+          \`\`\`
+          ${{ steps.pipeline-run.outcome == 'failure' && 'Pipeline run step failed' || 'Unknown error' }}
+          \`\`\`
+
+          Verifique os logs da execução para mais detalhes."
 
   deploy:
     name: Deploy to GitHub Pages
     needs: pipeline
+    if: needs.pipeline.result == 'success' && (needs.pipeline.outputs.changed == 'true' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     environment:
       name: github-pages

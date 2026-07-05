@@ -2,9 +2,9 @@
 
 ## Radar Fundamentalista B3
 
-**Versão:** 2.1  
+**Versão:** 2.1.1  
 **Data:** 2026-07-05  
-**Status:** Aprovado
+**Status:** Fases 0-7 Concluídas ✅
 
 ---
 
@@ -218,6 +218,7 @@ Democratizar o acesso à análise fundamentalista de qualidade para investidores
 | 1.1 | 2026-Q1 | Scorecards FII/FIAGRO, análise setorial, tema escuro |
 | 2.0 | 2026-Q3 | Pipeline paralelo, retry, logging, config externa, testes, CI/CD |
 | 2.1 | 2026-Q3 | Carga incremental, PWA, export IA, refatoração, limpeza de código morto |
+| 2.1.1 | 2026-Q3 | Fases 0-7 concluídas: refatoração completa, type hints, testes, CI/CD, documentação (CHANGELOG + CONTRIBUTING), validação de configs |
 
 ---
 
@@ -232,74 +233,74 @@ Democratizar o acesso à análise fundamentalista de qualidade para investidores
 | Workflow YAML: `id: db-cache` duplicado removido | ✅ |
 | Nenhum token hardcoded no repositório | ✅ |
 | BRAPI_TOKEN nunca commitado no git history | ✅ |
-| Revogar token antigo no brapi.dev | ⏳ |
-| Configurar novo `BRAPI_TOKEN` no GitHub Secrets | ⏳ |
+| Revogar token antigo no brapi.dev | ✅ |
+| Configurar novo `BRAPI_TOKEN` no GitHub Secrets | ✅ |
 
-### Fase 1 — Empacotamento (`pyproject.toml`)
+### Fase 1 — Empacotamento (OK ✅)
 
-| Tarefa | Arquivos | Esforço |
-|--------|----------|---------|
-| Criar `pyproject.toml` com build system | `pyproject.toml` | Pequeno |
-| Renomear `src/` → pacote instalável | `src/__init__.py`, imports | Médio |
-| Remover `sys.path` hacks (5 ocorrências) | `src/server.py`, `src/sources.py`, `src/pipeline.py`, `src/database.py`, `src/ingestion.py` | Pequeno |
-| Consolidar imports relativos/absolutos | Todos os `src/*.py` | Pequeno |
+| Tarefa | Arquivos | Esforço | Status |
+|--------|----------|---------|--------|
+| Criar `pyproject.toml` com build system | `pyproject.toml` | Pequeno | ✅ |
+| Renomear `src/` → pacote instalável | `src/__init__.py`, imports | Médio | ✅ |
+| Remover `sys.path` hacks | `src/*.py` | Pequeno | ✅ |
+| Consolidar imports relativos/absolutos | Todos os `src/*.py` | Pequeno | ✅ |
 
-### Fase 2 — Refatoração
+### Fase 2 — Refatoração (OK ✅ v2.1.1)
 
-| Tarefa | Arquivos | Esforço |
-|--------|----------|---------|
-| Extrair duplicações de cálculo de score | `analyzer.py` | Médio |
-| Extrair constantes mágicas (APR_DAYS, AGIOS, etc.) | `analyzer.py` | Pequeno |
-| Quebrar funções > 70 linhas (6 funções) | `generator.py`, `database.py`, `exporter.py` | Grande |
-| Remover logging duplicado entre módulos | `pipeline.py`, `ingestion.py` | Pequeno |
-| Extrair `_get_brapi_token()` para módulo de config | `sources.py` | Pequeno |
+| Tarefa | Arquivos | Esforço | Status |
+|--------|----------|---------|--------|
+| Extrair duplicações de cálculo de score | `analyzer.py` | Médio | ✅ |
+| Extrair constantes mágicas (APR_DAYS, AGIOS, etc.) | `analyzer.py` | Pequeno | ✅ |
+| Quebrar funções > 70 linhas (4 funções) | `database.py`, `exporter.py`, `ingestion.py` | Grande | ✅ |
+| Remover logging duplicado entre módulos | `pipeline.py`, `ingestion.py` | Pequeno | ✅ |
+| Extrair `_get_brapi_token()` para módulo de config | `sources.py` | Pequeno | ✅ |
 
-### Fase 3 — Type Hints
+### Fase 3 — Type Hints (OK ✅)
 
-| Tarefa | Arquivos | Esforço |
-|--------|----------|---------|
-| Adicionar type hints em `analyzer.py` (~900 linhas) | `analyzer.py` | Médio |
-| Adicionar type hints em `database.py` | `database.py` | Médio |
-| Adicionar type hints em `ingestion.py` | `ingestion.py` | Médio |
-| Adicionar type hints em `pipeline.py` | `pipeline.py` | Pequeno |
-| Adicionar type hints em `generator.py` | `generator.py` | Médio |
-| Adicionar type hints em `exporter.py` | `exporter.py` | Pequeno |
-| Adicionar type hints em `sources.py` | `sources.py` | Grande |
-| Adicionar type hints em `server.py` | `server.py` | Pequeno |
+| Tarefa | Arquivos | Esforço | Status |
+|--------|----------|---------|--------|
+| Adicionar type hints em `analyzer.py` (~285 linhas) | `analyzer.py` | Médio | ✅ |
+| Adicionar type hints em `database.py` | `database.py` | Médio | ✅ |
+| Adicionar type hints em `ingestion.py` | `ingestion.py` | Médio | ✅ |
+| Adicionar type hints em `pipeline.py` | `pipeline.py` | Pequeno | ✅ |
+| Adicionar type hints em `generator.py` | `generator.py` | Médio | ✅ |
+| Adicionar type hints em `exporter.py` | `exporter.py` | Pequeno | ✅ |
+| Adicionar type hints em `sources.py` | `sources.py` | Grande | ✅ |
+| Adicionar type hints em `server.py` | `server.py` | Pequeno | ✅ |
 
-### Fase 4 — Testes
+### Fase 4 — Testes (OK ✅)
 
-| Tarefa | Arquivos | Esforço |
-|--------|----------|---------|
-| Extrair `MockResponse` fixture compartilhada | `tests/conftest.py` | Pequeno |
-| Criar `tests/utils.py` com helpers | `tests/utils.py` | Pequeno |
-| Melhorar injeção de dependência nos testes | `tests/test_sources.py` | Médio |
-| Separar testes unitários de integração | `tests/` | Médio |
+| Tarefa | Arquivos | Esforço | Status |
+|--------|----------|---------|--------|
+| Extrair `MockResponse` fixture compartilhada | `tests/conftest.py` | Pequeno | ✅ |
+| Criar `tests/utils.py` com helpers | `tests/utils.py` | Pequeno | ✅ |
+| Melhorar injeção de dependência nos testes | `tests/test_sources.py` | Médio | ✅ |
+| Separar testes unitários de integração | `tests/` | Médio | ✅ |
 
-### Fase 5 — Config
+### Fase 5 — Config (OK ✅)
 
-| Tarefa | Arquivos | Esforço |
-|--------|----------|---------|
-| Corrigir 10+ tickers obsoletos em `indices.json` | `config/indices.json` | Pequeno |
-| Sincronizar com `ticker_mappings.json` | `config/ticker_mappings.json` | Pequeno |
-| Validar consistência entre `tickers.json`, `indices.json` e `ticker_mappings.json` | `config/` | Pequeno |
+| Tarefa | Arquivos | Esforço | Status |
+|--------|----------|---------|--------|
+| Corrigir 10+ tickers obsoletos em `indices.json` | `config/indices.json` | Pequeno | ✅ |
+| Sincronizar com `ticker_mappings.json` | `data/ticker_mappings.json` | Pequeno | ✅ |
+| Validar consistência entre `tickers.json`, `indices.json` e `ticker_mappings.json` | `config/` | Pequeno | ✅ |
 
-### Fase 6 — CI/CD
+### Fase 6 — CI/CD (OK ✅)
 
-| Tarefa | Arquivos | Esforço |
-|--------|----------|---------|
-| Corrigir cache key (usar hash do tickers.json) | Workflow YAML | Pequeno |
-| Adicionar notificação de falha (issues/discord) | Workflow YAML | Médio |
-| Deploy condicional (só se dados mudaram) | Workflow YAML + pipeline.py | Médio |
-| Adicionar badge de status no README | `README.md`, Workflow YAML | Pequeno |
+| Tarefa | Arquivos | Esforço | Status |
+|--------|----------|---------|--------|
+| Corrigir cache key (usar hash do tickers.json) | Workflow YAML | Pequeno | ✅ |
+| Adicionar notificação de falha (issues/discord) | Workflow YAML | Médio | ✅ |
+| Deploy condicional (só se dados mudaram) | Workflow YAML + pipeline.py | Médio | ✅ |
+| Adicionar badge de status no README | `README.md`, Workflow YAML | Pequeno | ✅ |
 
-### Fase 7 — Documentação
+### Fase 7 — Documentação (OK ✅)
 
-| Tarefa | Arquivos | Esforço |
-|--------|----------|---------|
-| Atualizar README com estrutura de diretórios | `README.md` | Pequeno |
-| Adicionar guia de contribuição (CONTRIBUTING.md) | `CONTRIBUTING.md` | Pequeno |
-| Adicionar changelog | `CHANGELOG.md` | Pequeno |
+| Tarefa | Arquivos | Esforço | Status |
+|--------|----------|---------|--------|
+| Atualizar README com estrutura de diretórios | `README.md` | Pequeno | ✅ |
+| Adicionar guia de contribuição (`CONTRIBUTING.md`) | `CONTRIBUTING.md` | Pequeno | ✅ |
+| Adicionar changelog (`CHANGELOG.md`) | `CHANGELOG.md` | Pequeno | ✅ |
 
 ---
 

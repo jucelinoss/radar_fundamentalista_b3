@@ -24,22 +24,19 @@ import logging
 import os
 import sys
 from datetime import datetime
-
-# Ensure src/ in path
-SRC_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.dirname(SRC_DIR)
-if SRC_DIR not in sys.path:
-    sys.path.insert(0, SRC_DIR)
+from typing import Any
 
 import database
 
-logger = logging.getLogger("exporter")
+PROJECT_ROOT: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+logger: logging.Logger = logging.getLogger("exporter")
 
 # ---------------------------------------------------------------------------
 # Percentage formatter
 # ---------------------------------------------------------------------------
 
-def pct(value, decimals=2):
+
+def pct(value: float | int | None, decimals: int = 2) -> str:
     """Format a decimal ratio as a percentage string (e.g., 0.1234 → '12.34%')."""
     if value is None:
         return ""
@@ -49,7 +46,7 @@ def pct(value, decimals=2):
         return ""
 
 
-def fmt_currency(value):
+def fmt_currency(value: float | int | None) -> str:
     """Format a number as BRL currency string."""
     if value is None:
         return ""
@@ -63,7 +60,8 @@ def fmt_currency(value):
 # Data loaders
 # ---------------------------------------------------------------------------
 
-def load_all_assets():
+
+def load_all_assets() -> dict[str, list[dict[str, Any]]]:
     """Load all assets from the database, grouped by type."""
     return {
         "stocks": database.get_all_stocks(),
@@ -76,103 +74,79 @@ def load_all_assets():
 # CSV Export
 # ---------------------------------------------------------------------------
 
-def export_csv(output_dir=None):
-    """Export all assets as CSV files (one per type + a combined file)."""
-    if output_dir is None:
-        output_dir = os.path.join(PROJECT_ROOT, "data")
-    os.makedirs(output_dir, exist_ok=True)
 
-    assets = load_all_assets()
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    exported = []
-
-    # ── Stocks CSV ──────────────────────────────────────────────────
-    stock_fields = [
-        ("ticker", "Ticker"),
-        ("name", "Nome"),
-        ("sector", "Setor"),
-        ("price", "Preço"),
-        ("pe_ratio", "P/L"),
-        ("pb_ratio", "P/VP"),
-        ("dividend_yield", "Dividend Yield"),
-        ("roe", "ROE"),
-        ("eps", "LPA"),
-        ("book_value", "VPA"),
-        ("graham_price", "Preço Justo Graham"),
-        ("bazin_price", "Preço Teto Bazin"),
+def _write_stock_csv(output_dir: str, stocks: list[dict[str, Any]], timestamp: str) -> str:
+    """Write stocks CSV with full fundamentalist fields."""
+    fields: list[tuple[str, str]] = [
+        ("ticker", "Ticker"), ("name", "Nome"), ("sector", "Setor"),
+        ("price", "Preço"), ("pe_ratio", "P/L"), ("pb_ratio", "P/VP"),
+        ("dividend_yield", "Dividend Yield"), ("roe", "ROE"),
+        ("eps", "LPA"), ("book_value", "VPA"),
+        ("graham_price", "Preço Justo Graham"), ("bazin_price", "Preço Teto Bazin"),
         ("score", "Score (0-5)"),
     ]
-
-    stock_path = os.path.join(output_dir, "export_stocks.csv")
-    with open(stock_path, "w", newline="", encoding="utf-8") as f:
+    path: str = os.path.join(output_dir, "export_stocks.csv")
+    with open(path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow([h for _, h in stock_fields])
-        writer.writerow(["# Exportado em:", timestamp, "", "", "", "", "", "", "", "", "", "", ""])
-        for s in assets["stocks"]:
+        writer.writerow([h for _, h in fields])
+        writer.writerow(["# Exportado em:", timestamp] + [""] * (len(fields) - 2))
+        for s in stocks:
             writer.writerow([
                 s.get("ticker", "").replace(".SA", ""),
-                s.get("name", ""),
-                s.get("sector", ""),
+                s.get("name", ""), s.get("sector", ""),
                 fmt_currency(s.get("price")),
                 round(s["pe_ratio"], 2) if s.get("pe_ratio") else "",
                 round(s["pb_ratio"], 2) if s.get("pb_ratio") else "",
-                pct(s.get("dividend_yield")),
-                pct(s.get("roe")),
+                pct(s.get("dividend_yield")), pct(s.get("roe")),
                 round(s["eps"], 2) if s.get("eps") else "",
                 round(s["book_value"], 2) if s.get("book_value") else "",
                 fmt_currency(s.get("graham_price")),
                 fmt_currency(s.get("bazin_price")),
                 round(s["score"], 1) if s.get("score") is not None else "",
             ])
-    exported.append(("stocks", stock_path, len(assets["stocks"])))
-    logger.info(f"  ✅ Stocks CSV: {stock_path} ({len(assets['stocks'])} ativos)")
+    logger.info(f"  Stocks CSV: {path} ({len(stocks)} ativos)")
+    return path
 
-    # ── FIIs CSV ────────────────────────────────────────────────────
-    fii_fields = [
-        ("ticker", "Ticker"),
-        ("name", "Nome"),
-        ("price", "Preço"),
-        ("pb_ratio", "P/VP"),
-        ("dividend_yield", "Dividend Yield"),
-        ("dividend_rate", "Dividendo Mensal Est."),
-        ("score", "Score (0-5)"),
+
+def _write_reit_csv(output_dir: str, assets: list[dict[str, Any]], asset_type: str, timestamp: str) -> str:
+    """Write FII/FIAGRO CSV with REIT-specific fields."""
+    fields: list[tuple[str, str]] = [
+        ("ticker", "Ticker"), ("name", "Nome"), ("price", "Preço"),
+        ("pb_ratio", "P/VP"), ("dividend_yield", "Dividend Yield"),
+        ("dividend_rate", "Dividendo Mensal Est."), ("score", "Score (0-5)"),
     ]
-
-    fii_path = os.path.join(output_dir, "export_fiis.csv")
-    with open(fii_path, "w", newline="", encoding="utf-8") as f:
+    path: str = os.path.join(output_dir, f"export_{asset_type}.csv")
+    with open(path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow([h for _, h in fii_fields])
-        for fii in assets["fiis"]:
+        writer.writerow([h for _, h in fields])
+        for item in assets:
             writer.writerow([
-                fii.get("ticker", "").replace(".SA", ""),
-                fii.get("name", ""),
-                fmt_currency(fii.get("price")),
-                round(fii["pb_ratio"], 2) if fii.get("pb_ratio") else "",
-                pct(fii.get("dividend_yield")),
-                fmt_currency(fii.get("dividend_rate")),
-                round(fii["score"], 1) if fii.get("score") is not None else "",
+                item.get("ticker", "").replace(".SA", ""),
+                item.get("name", ""),
+                fmt_currency(item.get("price")),
+                round(item["pb_ratio"], 2) if item.get("pb_ratio") else "",
+                pct(item.get("dividend_yield")),
+                fmt_currency(item.get("dividend_rate")),
+                round(item["score"], 1) if item.get("score") is not None else "",
             ])
-    exported.append(("fiis", fii_path, len(assets["fiis"])))
-    logger.info(f"  ✅ FIIs CSV: {fii_path} ({len(assets['fiis'])} ativos)")
+    logger.info(f"  {asset_type.upper()} CSV: {path} ({len(assets)} ativos)")
+    return path
 
-    # ── FIAGROs CSV ─────────────────────────────────────────────────
-    fiagro_path = os.path.join(output_dir, "export_fiagros.csv")
-    with open(fiagro_path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow([h for _, h in fii_fields])
-        for a in assets["fiagros"]:
-            writer.writerow([
-                a.get("ticker", "").replace(".SA", ""),
-                a.get("name", ""),
-                fmt_currency(a.get("price")),
-                round(a["pb_ratio"], 2) if a.get("pb_ratio") else "",
-                pct(a.get("dividend_yield")),
-                fmt_currency(a.get("dividend_rate")),
-                round(a["score"], 1) if a.get("score") is not None else "",
-            ])
-    exported.append(("fiagros", fiagro_path, len(assets["fiagros"])))
-    logger.info(f"  ✅ FIAGROs CSV: {fiagro_path} ({len(assets['fiagros'])} ativos)")
 
+def export_csv(output_dir: str | None = None) -> list[tuple[str, str, int]]:
+    """Export all assets as CSV files (one per type + a combined file)."""
+    if output_dir is None:
+        output_dir = os.path.join(PROJECT_ROOT, "data")
+    os.makedirs(output_dir, exist_ok=True)
+
+    assets: dict[str, list[dict[str, Any]]] = load_all_assets()
+    timestamp: str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    exported: list[tuple[str, str, int]] = [
+        ("stocks", _write_stock_csv(output_dir, assets["stocks"], timestamp), len(assets["stocks"])),
+        ("fiis", _write_reit_csv(output_dir, assets["fiis"], "fiis", timestamp), len(assets["fiis"])),
+        ("fiagros", _write_reit_csv(output_dir, assets["fiagros"], "fiagros", timestamp), len(assets["fiagros"])),
+    ]
     return exported
 
 
@@ -180,13 +154,14 @@ def export_csv(output_dir=None):
 # JSON Export
 # ---------------------------------------------------------------------------
 
-def export_json(output_dir=None):
+
+def export_json(output_dir: str | None = None) -> str:
     """Export all assets as a single structured JSON file."""
     if output_dir is None:
         output_dir = os.path.join(PROJECT_ROOT, "data")
     os.makedirs(output_dir, exist_ok=True)
 
-    assets = load_all_assets()
+    assets: dict[str, list[dict[str, Any]]] = load_all_assets()
 
     # Clean tickers (remove .SA suffix)
     for group in assets.values():
@@ -194,7 +169,7 @@ def export_json(output_dir=None):
             if item.get("ticker"):
                 item["ticker"] = item["ticker"].replace(".SA", "")
 
-    output = {
+    output: dict[str, Any] = {
         "meta": {
             "exported_at": datetime.now().isoformat(),
             "source": "Radar Fundamentalista B3",
@@ -212,11 +187,11 @@ def export_json(output_dir=None):
         "fiagros": assets["fiagros"],
     }
 
-    path = os.path.join(output_dir, "export_ativos.json")
+    path: str = os.path.join(output_dir, "export_ativos.json")
     with open(path, "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
 
-    logger.info(f"  ✅ JSON export: {path} ({output['summary']['total_assets']} ativos)")
+    logger.info(f"  JSON export: {path} ({output['summary']['total_assets']} ativos)")
     return path
 
 
@@ -224,18 +199,45 @@ def export_json(output_dir=None):
 # Top Picks Export
 # ---------------------------------------------------------------------------
 
-def export_top_picks(output_dir=None):
+
+def _build_top_picks_list(
+    assets: list[dict[str, Any]],
+    *extra_fields: str,
+) -> list[dict[str, Any]]:
+    """Build a top-10 list for a given asset type, sorted by score descending.
+
+    Each entry includes common fields (ticker, name, price, pb_ratio, dividend_yield_pct, score)
+    plus any extra fields specified.
+    """
+    sorted_assets: list[dict[str, Any]] = sorted(
+        assets, key=lambda x: x.get("score") or 0, reverse=True
+    )
+    result: list[dict[str, Any]] = []
+    for item in sorted_assets[:10]:
+        entry: dict[str, Any] = {
+            "ticker": item.get("ticker", "").replace(".SA", ""),
+            "name": item.get("name", ""),
+            "price": item.get("price"),
+            "pb_ratio": round(item["pb_ratio"], 2) if item.get("pb_ratio") else None,
+            "dividend_yield_pct": round(item["dividend_yield"] * 100, 2) if item.get("dividend_yield") else None,
+            "score": round(item["score"], 1) if item.get("score") is not None else None,
+        }
+        for field in extra_fields:
+            entry[field] = item.get(field)
+        result.append(entry)
+    return result
+
+
+def export_top_picks(output_dir: str | None = None) -> str:
     """Export top-rated assets for portfolio analysis with AI."""
     if output_dir is None:
         output_dir = os.path.join(PROJECT_ROOT, "data")
     os.makedirs(output_dir, exist_ok=True)
 
-    assets = load_all_assets()
+    assets: dict[str, list[dict[str, Any]]] = load_all_assets()
 
-    # Top stocks by score (top 10)
-    stocks_sorted = sorted(assets["stocks"], key=lambda x: x["score"] or 0, reverse=True)
-    top_stocks = []
-    for s in stocks_sorted[:10]:
+    top_stocks: list[dict[str, Any]] = []
+    for s in sorted(assets["stocks"], key=lambda x: x.get("score") or 0, reverse=True)[:10]:
         top_stocks.append({
             "ticker": s.get("ticker", "").replace(".SA", ""),
             "name": s.get("name", ""),
@@ -252,35 +254,10 @@ def export_top_picks(output_dir=None):
                 if s.get("graham_price") and s.get("price") and s["graham_price"] > 0 else None,
         })
 
-    # Top FIIs by score (top 10)
-    fiis_sorted = sorted(assets["fiis"], key=lambda x: x["score"] or 0, reverse=True)
-    top_fiis = []
-    for f in fiis_sorted[:10]:
-        top_fiis.append({
-            "ticker": f.get("ticker", "").replace(".SA", ""),
-            "name": f.get("name", ""),
-            "price": f.get("price"),
-            "pb_ratio": round(f["pb_ratio"], 2) if f.get("pb_ratio") else None,
-            "dividend_yield_pct": round(f["dividend_yield"] * 100, 2) if f.get("dividend_yield") else None,
-            "dividend_rate": f.get("dividend_rate"),
-            "score": round(f["score"], 1) if f.get("score") is not None else None,
-        })
+    top_fiis: list[dict[str, Any]] = _build_top_picks_list(assets["fiis"], "dividend_rate")
+    top_fiagros: list[dict[str, Any]] = _build_top_picks_list(assets["fiagros"], "dividend_rate")
 
-    # Top FIAGROs by score (top 10)
-    fiagros_sorted = sorted(assets["fiagros"], key=lambda x: x["score"] or 0, reverse=True)
-    top_fiagros = []
-    for a in fiagros_sorted[:10]:
-        top_fiagros.append({
-            "ticker": a.get("ticker", "").replace(".SA", ""),
-            "name": a.get("name", ""),
-            "price": a.get("price"),
-            "pb_ratio": round(a["pb_ratio"], 2) if a.get("pb_ratio") else None,
-            "dividend_yield_pct": round(a["dividend_yield"] * 100, 2) if a.get("dividend_yield") else None,
-            "dividend_rate": a.get("dividend_rate"),
-            "score": round(a["score"], 1) if a.get("score") is not None else None,
-        })
-
-    output = {
+    output: dict[str, Any] = {
         "meta": {
             "exported_at": datetime.now().isoformat(),
             "source": "Radar Fundamentalista B3 - Top Picks",
@@ -288,7 +265,7 @@ def export_top_picks(output_dir=None):
             "suggested_prompt": (
                 "Analise minha carteira de investimentos comparando com estes top picks. "
                 "Para cada ativo da minha carteira, sugira se devo manter, aumentar, reduzir ou vender, "
-                "considerando os scores fundamentalistas, DY, P/L, P/VP, ROE e margem de segurança de Graham."
+                "considerando os scores fundamentalistas, DY, P/L, P/VP, ROE e margem de seguranca de Graham."
             ),
         },
         "top_stocks": top_stocks,
@@ -296,11 +273,11 @@ def export_top_picks(output_dir=None):
         "top_fiagros": top_fiagros,
     }
 
-    path = os.path.join(output_dir, "export_top_picks.json")
+    path: str = os.path.join(output_dir, "export_top_picks.json")
     with open(path, "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
 
-    logger.info(f"  ✅ Top picks JSON: {path}")
+    logger.info(f"  Top picks JSON: {path}")
     return path
 
 
@@ -308,7 +285,8 @@ def export_top_picks(output_dir=None):
 # CLI
 # ---------------------------------------------------------------------------
 
-def main():
+
+def main() -> None:
     parser = argparse.ArgumentParser(
         description="Export Radar Fundamentalista B3 data for AI/portfolio analysis",
     )
@@ -323,11 +301,11 @@ def main():
     logger.setLevel(logging.INFO)
     logger.addHandler(logging.StreamHandler(sys.stdout))
 
-    logger.info("📤 EXPORTANDO DADOS DO RADAR")
+    logger.info("EXPORTANDO DADOS DO RADAR")
     logger.info("=" * 50)
 
-    do_csv = args.format in ("csv", "all")
-    do_json = args.format in ("json", "all")
+    do_csv: bool = args.format in ("csv", "all")
+    do_json: bool = args.format in ("json", "all")
 
     if do_csv:
         logger.info("Exporting CSV...")
@@ -342,7 +320,7 @@ def main():
         export_top_picks(args.output_dir)
 
     logger.info("=" * 50)
-    logger.info("✅ Export complete!")
+    logger.info("Export complete!")
 
 
 if __name__ == "__main__":
