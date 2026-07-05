@@ -4,6 +4,10 @@
 .venv/
 venv/
 
+# TLS certificates (local HTTPS testing)
+server.crt
+server.key
+
 # Python
 __pycache__/
 *.py[cod]
@@ -17,12 +21,18 @@ data/status.json
 data/failed_tickers.log
 data/*.log
 
-# Generated output
+# Generated output (root level)
 dashboard.html
+/manifest.json
+/service-worker.js
+/_headers
 data/export_*.csv
 data/export_*.json
-brapi_mvp/index.html
-hgbrasil_mvp/index.html
+_site/
+
+# Session / conversation logs (AI exports)
+*.session.md
+*_conversa*
 
 # IDE
 .vscode/

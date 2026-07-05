@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Pipeline Orchestrator — B3 Fundamentalist Screener
+Pipeline Orchestrator — Radar Fundamentalista B3
 
 Unified entry point for data ingestion and dashboard generation.
 Supports:
@@ -73,13 +73,13 @@ def _reset_status_file():
 # ---------------------------------------------------------------------------
 # Core pipeline steps
 # ---------------------------------------------------------------------------
-def run_ingestion():
+def run_ingestion(max_age_hours=6, force=False):
     """Execute the data ingestion pipeline."""
     import ingestion
     logger.info("=" * 60)
     logger.info("  STEP 1/2: DATA INGESTION")
     logger.info("=" * 60)
-    result = ingestion.run_full_ingestion()
+    result = ingestion.run_full_ingestion(max_age_hours=max_age_hours, force=force)
     logger.info(f"Ingestion result: {result}")
     return result
 
@@ -95,7 +95,7 @@ def run_generator():
     return True
 
 
-def run_full_pipeline():
+def run_full_pipeline(max_age_hours=6, force=False):
     """Run ingestion followed by dashboard generation."""
     # Reset any stale status before starting
     _reset_status_file()
@@ -106,7 +106,7 @@ def run_full_pipeline():
     logger.info(f"    Platform: {sys.platform}")
 
     try:
-        result = run_ingestion()
+        result = run_ingestion(max_age_hours=max_age_hours, force=force)
         if result["ok"] > 0 or result["fail"] == 0:
             run_generator()
         else:
@@ -127,7 +127,7 @@ def setup_windows_schedule():
     """Register a daily Windows scheduled task (schtasks)."""
     python_exe = sys.executable
     pipeline_script = os.path.join(SRC_DIR, "pipeline.py")
-    task_name = "B3ScreenerPipeline"
+    task_name = "RadarFundamentalistaPipeline"
 
     # Run daily at 8:00 AM (weekdays), with 1 hour window
     cmd = [
@@ -223,11 +223,11 @@ def show_report():
 # ---------------------------------------------------------------------------
 # Daemon mode (for containerized / always-on environments)
 # ---------------------------------------------------------------------------
-def run_daemon(interval_hours=24):
+def run_daemon(interval_hours=24, max_age_hours=6):
     """Run the pipeline in a loop, sleeping `interval_hours` between runs."""
     logger.info(f"🔁 Daemon mode: running every {interval_hours}h")
     while True:
-        run_full_pipeline()
+        run_full_pipeline(max_age_hours=max_age_hours)
         next_run = datetime.now().timestamp() + interval_hours * 3600
         next_str = datetime.fromtimestamp(next_run).strftime("%Y-%m-%d %H:%M:%S")
         logger.info(f"😴 Sleeping {interval_hours}h until {next_str}...")
@@ -239,7 +239,7 @@ def run_daemon(interval_hours=24):
 # ---------------------------------------------------------------------------
 def main():
     parser = argparse.ArgumentParser(
-        description="B3 Fundamentalist Screener — Data Pipeline Orchestrator",
+        description="Radar Fundamentalista B3 — Pipeline Orchestrator",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
@@ -287,6 +287,14 @@ def main():
         "--reset-status", action="store_true",
         help="Reset stuck pipeline status (when dashboard shows 'running' forever)"
     )
+    parser.add_argument(
+        "--max-age-hours", type=int, default=6,
+        help="Skip tickers updated within this many hours (default: 6). Use 0 to fetch all."
+    )
+    parser.add_argument(
+        "--force", action="store_true",
+        help="Ignore staleness, fetch ALL tickers (same as --max-age-hours 0)"
+    )
 
     args = parser.parse_args()
 
@@ -303,14 +311,14 @@ def main():
     elif args.schedule:
         setup_schedule()
     elif args.daemon:
-        run_daemon(interval_hours=args.interval)
+        run_daemon(interval_hours=args.interval, max_age_hours=args.max_age_hours)
     elif args.ingest_only:
         run_ingestion()
     elif args.generate_only:
         run_generator()
     elif args.export_all or args.export_csv or args.export_json or args.export_top_picks:
         from exporter import export_csv, export_json, export_top_picks
-        logger.info("📤 EXPORTING SCREENER DATA")
+        logger.info("📤 EXPORTANDO DADOS DO RADAR")
         if args.export_all or args.export_csv:
             export_csv()
         if args.export_all or args.export_json:
@@ -319,8 +327,10 @@ def main():
             export_top_picks()
         logger.info("✅ Export complete")
     else:
-        # Default: full pipeline
-        success = run_full_pipeline()
+        # Default: full pipeline with incremental loading
+        max_age = args.max_age_hours
+        force = args.force or max_age <= 0
+        success = run_full_pipeline(max_age_hours=max_age, force=force)
         sys.exit(0 if success else 1)
 
 

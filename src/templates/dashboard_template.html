@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Radar Fundamentalista B3</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e3a5f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icons/icon.svg">
     <!-- Google Fonts: Inter & Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -90,31 +95,43 @@
                 radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.04) 0%, transparent 40%);
         }
 
-        #theme-toggle-btn, #help-toggle-btn {
+        .action-btn {
             background: var(--card-bg);
-            border: 1px solid var(--card-border);
+            border: 1.5px solid var(--text-secondary);
             color: var(--text-primary);
             padding: 0.5rem 1rem;
             border-radius: 20px;
             font-weight: 600;
             cursor: pointer;
             transition: var(--transition);
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 0.5rem;
             outline: none;
             font-family: 'Outfit', sans-serif;
+            backdrop-filter: blur(6px);
+            text-decoration: none;
+            font-size: inherit;
+            line-height: inherit;
         }
-
-        #theme-toggle-btn:hover, #help-toggle-btn:hover {
+        .action-btn:hover {
+            background: color-mix(in srgb, var(--primary) 15%, var(--card-bg));
             border-color: var(--primary);
             transform: translateY(-1px);
             box-shadow: 0 4px 12px var(--primary-glow);
         }
-
-        #theme-toggle-btn:active, #help-toggle-btn:active {
+        .action-btn:active {
             transform: translateY(0);
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
         }
+        .action-btn:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+
 
         h1, h2, h3, .font-outfit {
             font-family: 'Outfit', sans-serif;
@@ -153,11 +170,11 @@
         body.pdf-export #pdf-temp-header {
             display: block !important;
         }
-        body.pdf-export #refresh-btn,
         body.pdf-export #export-btn,
         body.pdf-export #help-toggle-btn,
         body.pdf-export #theme-toggle-btn,
-        body.pdf-export .timestamp {
+        body.pdf-export .timestamp,
+        body.pdf-export .disclaimer {
             display: none !important;
         }
         body.pdf-export .controls-row {
@@ -216,6 +233,15 @@
             border: 1px solid var(--card-border);
         }
 
+        .disclaimer {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            opacity: 0.7;
+            max-width: 280px;
+            line-height: 1.3;
+            text-align: right;
+        }
+
         /* Tabs & Controls */
         .controls-row {
             display: flex;
@@ -237,7 +263,7 @@
 
         .tab-btn {
             background: transparent;
-            border: none;
+            border: 1.5px solid transparent;
             color: var(--text-secondary);
             padding: 0.6rem 1.5rem;
             font-size: 0.95rem;
@@ -250,11 +276,13 @@
 
         .tab-btn:hover {
             color: var(--text-primary);
+            border-color: var(--text-secondary);
         }
 
         .tab-btn.active {
             background: var(--primary);
             color: white;
+            border-color: var(--primary);
             box-shadow: 0 4px 12px var(--primary-glow);
         }
 
@@ -493,8 +521,8 @@
         }
 
         .range-btn {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--card-border);
+            background: var(--card-bg);
+            border: 1.5px solid var(--text-secondary);
             color: var(--text-secondary);
             padding: 0.35rem 0.75rem;
             font-size: 0.8rem;
@@ -508,19 +536,8 @@
 
         .range-btn:hover {
             color: var(--text-primary);
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.15);
-        }
-
-        body.light-theme .range-btn {
-            background: rgba(15, 23, 42, 0.03);
-            border-color: var(--card-border);
-            color: var(--text-secondary);
-        }
-
-        body.light-theme .range-btn:hover {
-            color: var(--text-primary);
-            background: rgba(15, 23, 42, 0.08);
+            border-color: var(--primary);
+            background: color-mix(in srgb, var(--primary) 10%, var(--card-bg));
         }
 
         .range-btn.active {
@@ -720,49 +737,6 @@
             font-weight: 700;
         }
 
-        #refresh-btn {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            color: var(--text-primary);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            outline: none;
-            font-family: 'Outfit', sans-serif;
-        }
-
-        #refresh-btn:hover {
-            border-color: var(--accent-gold);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px var(--accent-gold-glow);
-        }
-
-        #refresh-btn:active {
-            transform: translateY(0);
-        }
-
-        #refresh-btn.loading {
-            cursor: not-allowed;
-            opacity: 0.75;
-            border-color: var(--accent-gold);
-            box-shadow: 0 4px 12px var(--accent-gold-glow);
-        }
-        
-        #refresh-btn.loading #refresh-icon {
-            display: inline-block;
-            animation: spin 1.5s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
     </style>
 </head>
 <body>
@@ -784,7 +758,7 @@
         <div style="display: flex; align-items: center; gap: 1rem;">
 
             <div style="position: relative; display: inline-block;">
-                <button id="export-btn" onclick="toggleExportMenu()" style="background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-primary); padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 0.5rem; outline: none; font-family: 'Outfit', sans-serif;">
+                <button id="export-btn" onclick="toggleExportMenu()" class="action-btn">
                     <span>📥</span>
                     <span>Exportar</span>
                 </button>
@@ -802,16 +776,19 @@
                     <a href="export_top_picks.json" download style="display: block; padding: 0.5rem 0.75rem; color: var(--accent-gold); text-decoration: none; border-radius: 8px; font-size: 0.9rem; transition: var(--transition);" onmouseover="this.style.background='var(--table-hover)'" onmouseout="this.style.background='transparent'">🤖 Top Picks JSON (pronto pra IA)</a>
                 </div>
             </div>
-            <button id="help-toggle-btn" onclick="openHelpModal()">
+            <button id="help-toggle-btn" onclick="openHelpModal()" class="action-btn">
                 <span>💡</span>
                 <span>Como Funciona?</span>
             </button>
-            <button id="theme-toggle-btn" onclick="toggleTheme()">
+            <button id="theme-toggle-btn" onclick="toggleTheme()" class="action-btn">
                 <span id="theme-toggle-icon">🌙</span>
                 <span>Tema</span>
             </button>
             <div class="timestamp">
                 Atualizado em: {{ timestamp }}
+            </div>
+            <div class="disclaimer">
+                ⚠️ Não é recomendação de investimento. Dados coletados via APIs públicas B3 + regras de análise fundamentalista (Graham, Bazin).
             </div>
         </div>
     </header>
@@ -854,7 +831,7 @@
         {% if top_fiagros %}
         <div class="summary-card card-fii">
             <div class="card-title">
-                <span>Top FIAGROs (Menores P/VP & Bons Yields)</span>
+                <span>Top FIAGROs (Maiores Dividend Yields)</span>
                 <span class="badge badge-green">Agronegócio</span>
             </div>
             <ul class="top-list">
@@ -1152,7 +1129,7 @@
             <span class="close-btn" onclick="closeHelpModal()">&times;</span>
             <div class="modal-header" style="margin-bottom: 1.5rem;">
                 <h2 class="font-outfit" style="font-size: 2.2rem; background: linear-gradient(135deg, #60a5fa 0%, #34d399 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Guia Metodológico</h2>
-                <p>Entenda as fórmulas e critérios fundamentalistas utilizados neste Screener</p>
+                <p>Entenda as fórmulas e critérios fundamentalistas utilizados neste Radar</p>
             </div>
             
             <div class="help-section" style="margin-bottom: 2rem;">
@@ -1853,7 +1830,7 @@
         if (sectorVal !== 'all') filterInfo.push('Setor: ' + sectorVal);
         const filterStr = filterInfo.length ? ' &mdash; ' + filterInfo.join(', ') : '';
         const tabName = currentTab === 'stocks' ? 'acoes' : currentTab === 'fiis' ? 'fiis' : currentTab === 'fiagros' ? 'fiagros' : 'setores';
-        const pdfFilename = `screener-b3-${tabName}${scoreVal !== 'all' ? '-score' + scoreVal : ''}-${now.toISOString().slice(0, 10)}.pdf`;
+        const pdfFilename = `radar-b3-${tabName}${scoreVal !== 'all' ? '-score' + scoreVal : ''}-${now.toISOString().slice(0, 10)}.pdf`;
 
         const pdfHeader = document.createElement('div');
         pdfHeader.id = 'pdf-temp-header';
@@ -1888,7 +1865,7 @@
         if (logoP) { logoP.style.margin = '0'; logoP.style.fontSize = '9px'; logoP.style.lineHeight = '1.1'; }
 
         // Esconder botões
-        document.querySelectorAll('#refresh-btn, #export-btn, #help-toggle-btn, #theme-toggle-btn, .timestamp').forEach(el => {
+        document.querySelectorAll('#export-btn, #help-toggle-btn, #theme-toggle-btn, .timestamp').forEach(el => {
             if (el) el.style.display = 'none';
         });
 
@@ -1911,7 +1888,7 @@
             if (headerEl) { headerEl.style.margin = ''; headerEl.style.padding = ''; headerEl.style.borderBottomWidth = ''; }
             if (logoH1) { logoH1.style.margin = ''; logoH1.style.fontSize = ''; logoH1.style.lineHeight = ''; }
             if (logoP) { logoP.style.margin = ''; logoP.style.fontSize = ''; logoP.style.lineHeight = ''; }
-            document.querySelectorAll('#refresh-btn, #export-btn, #help-toggle-btn, #theme-toggle-btn, .timestamp').forEach(el => {
+            document.querySelectorAll('#export-btn, #help-toggle-btn, #theme-toggle-btn, .timestamp').forEach(el => {
                 if (el) el.style.display = '';
             });
             document.body.classList.remove('pdf-export');
@@ -1925,7 +1902,7 @@
             if (headerEl) { headerEl.style.margin = ''; headerEl.style.padding = ''; headerEl.style.borderBottomWidth = ''; }
             if (logoH1) { logoH1.style.margin = ''; logoH1.style.fontSize = ''; logoH1.style.lineHeight = ''; }
             if (logoP) { logoP.style.margin = ''; logoP.style.fontSize = ''; logoP.style.lineHeight = ''; }
-            document.querySelectorAll('#refresh-btn, #export-btn, #help-toggle-btn, #theme-toggle-btn, .timestamp').forEach(el => {
+            document.querySelectorAll('#export-btn, #help-toggle-btn, #theme-toggle-btn, .timestamp').forEach(el => {
                 if (el) el.style.display = '';
             });
             document.body.classList.remove('pdf-export');
@@ -1958,6 +1935,17 @@
         if (event.target === document.getElementById('help-modal')) {
             closeHelpModal();
         }
+    }
+</script>
+
+<!-- Service Worker: enable PWA offline support -->
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(() => console.log('SW registered'))
+                .catch((err) => console.log('SW registration failed:', err));
+        });
     }
 </script>
 

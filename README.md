@@ -1,4 +1,4 @@
-# Screener Fundamentalista B3 - Ações, FIIs e FIAGROs
+# Radar Fundamentalista B3 - Ações, FIIs e FIAGROs
 
 Um sistema completo e automatizado de análise, triagem (*screening*) e visualização fundamentalista de ativos negociados na bolsa brasileira (B3). O projeto utiliza dados históricos e correntes para avaliar a saúde financeira, precificação e qualidade dos ativos com base em teorias consagradas de investimentos (Graham e Bazin) e scorecards quantitativos.
 

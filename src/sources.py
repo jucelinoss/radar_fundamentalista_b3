@@ -100,7 +100,7 @@ class BrapiClient:
 
     @property
     def _headers(self):
-        headers = {"User-Agent": "B3-Screener/2.0"}
+        headers = {"User-Agent": "Radar-Fundamentalista-B3/2.0"}
         if self.token:
             headers["Authorization"] = f"Bearer {self.token}"
         return headers

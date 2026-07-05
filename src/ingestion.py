@@ -1,5 +1,5 @@
 """
-Data ingestion pipeline for the B3 Fundamentalist Screener.
+Data ingestion pipeline for the Radar Fundamentalista B3.
 
 Fetches asset data from Yahoo Finance (yfinance), computes fundamentalist
 metrics via analyzer.py, and persists results to SQLite via database.py.
@@ -331,13 +331,18 @@ def ingest_batch(tickers, asset_type, mappings, config, tracker):
 # ---------------------------------------------------------------------------
 # Main orchestration
 # ---------------------------------------------------------------------------
-def run_full_ingestion():
+def run_full_ingestion(max_age_hours=6, force=False):
     """
     Run the complete ingestion pipeline:
-      1. Load config & mappings
-      2. Initialize DB
-      3. Ingest stocks, FIIs, FIAGROs in parallel batches
-      4. Log results
+       1. Load config & mappings
+       2. Initialize DB
+       3. Filter to stale tickers (unless force)
+       4. Ingest stocks, FIIs, FIAGROs in parallel batches
+       5. Log results
+
+    Parameters:
+        max_age_hours: Skip tickers updated within this many hours (default 6)
+        force: If True, ignores staleness and fetches ALL tickers
     """
     logger.info("=" * 60)
     logger.info("  INGESTION PIPELINE v2 — INICIANDO")
@@ -346,18 +351,32 @@ def run_full_ingestion():
     config = load_config()
     mappings = load_ticker_mappings()
 
-    stocks_tickers = config.get("stocks", {}).get("tickers", [])
-    fiis_tickers = config.get("fiis", {}).get("tickers", [])
-    fiagros_tickers = config.get("fiagros", {}).get("tickers", [])
+    # Initialize database first (creates tables if needed)
+    logger.info("Initializing database...")
+    database.init_db()
+
+    all_stocks = config.get("stocks", {}).get("tickers", [])
+    all_fiis = config.get("fiis", {}).get("tickers", [])
+    all_fiagros = config.get("fiagros", {}).get("tickers", [])
+    total_all = len(all_stocks) + len(all_fiis) + len(all_fiagros)
+
+    # Filter to stale tickers only (unless force)
+    if force or max_age_hours <= 0:
+        stocks_tickers, fiis_tickers, fiagros_tickers = all_stocks, all_fiis, all_fiagros
+        skipped = 0
+        logger.info("  🔄 Forçando refresh de TODOS os tickers")
+    else:
+        stocks_tickers = database.get_stale_tickers(all_stocks, "stocks", max_age_hours)
+        fiis_tickers = database.get_stale_tickers(all_fiis, "fiis", max_age_hours)
+        fiagros_tickers = database.get_stale_tickers(all_fiagros, "fiagros", max_age_hours)
+        skipped = total_all - (len(stocks_tickers) + len(fiis_tickers) + len(fiagros_tickers))
+        logger.info(f"  ⏭️  Pulando {skipped} tickers atualizados há <{max_age_hours}h")
+    
     total = len(stocks_tickers) + len(fiis_tickers) + len(fiagros_tickers)
 
     tracker = ProgressTracker(total=total)
     start_time = time.time()
     started_at = datetime.now().isoformat()
-
-    # Initialize database
-    logger.info("Initializing database...")
-    database.init_db()
 
     # Clear failed tickers log from previous run
     if os.path.exists(FAILED_LOG_FILE):

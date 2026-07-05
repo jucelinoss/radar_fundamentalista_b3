@@ -1,4 +1,0 @@
-"""
-Domain Package.
-"""
-

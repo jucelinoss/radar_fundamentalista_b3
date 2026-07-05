@@ -1,16 +1,16 @@
 # PRD — Product Requirements Document
 
-## Screener Fundamentalista B3
+## Radar Fundamentalista B3
 
-**Versão:** 2.0  
-**Data:** 2026-07-04  
+**Versão:** 2.1  
+**Data:** 2026-07-05  
 **Status:** Aprovado
 
 ---
 
 ## 1. Resumo Executivo
 
-Sistema automatizado de análise, triagem (screening) e visualização fundamentalista de ativos negociados na bolsa brasileira (B3). O projeto avalia a saúde financeira, precificação e qualidade de **97 ações**, **32 FIIs** e **14 FIAGROs** com base nas teorias de Benjamin Graham (value investing) e Décio Bazin (dividendos), exibindo os resultados em um dashboard web estático.
+Sistema automatizado de análise, triagem (screening) e visualização fundamentalista de ativos negociados na bolsa brasileira (B3). O projeto avalia a saúde financeira, precificação e qualidade de **91 ações**, **122 FIIs** e **38 FIAGROs** com base nas teorias de Benjamin Graham (value investing) e Décio Bazin (dividendos), exibindo os resultados em um dashboard web estático com suporte a PWA (instalável e offline).
 
 ---
 
@@ -42,7 +42,7 @@ Democratizar o acesso à análise fundamentalista de qualidade para investidores
 
 ## 4. Funcionalidades
 
-### 4.1 MVP Atual (v2.0)
+### 4.1 MVP Atual (v2.1)
 
 | Funcionalidade | Prioridade | Status |
 |---|---|---|
@@ -50,23 +50,27 @@ Democratizar o acesso à análise fundamentalista de qualidade para investidores
 | **Scorecard quantitativo** (0-5) para ações (Graham/Bazin) | P0 | ✅ |
 | **Scorecard quantitativo** (0-5) para FIIs e FIAGROs | P0 | ✅ |
 | **Dashboard web estático** com tabelas, filtros e gráficos | P0 | ✅ |
+| **Carga incremental** (apenas tickers desatualizados) | P0 | ✅ |
+| **Pipeline paralelo** com retry e logging | P0 | ✅ |
+| **Export CSV/JSON** para análise externa / IA | P1 | ✅ |
 | **Gráficos interativos** de histórico (preço, P/L, P/VP, DY) | P1 | ✅ |
 | **Análise setorial** com drill-down | P1 | ✅ |
 | **Índices de mercado** (IBOV, IDIV, SMLL) por ticker | P1 | ✅ |
-| **Pipeline paralelo** com retry e logging | P0 | ✅ (v2.0) |
-| **Refresh via API** (POST /api/refresh) | P1 | ✅ |
 | **Tema claro/escuro** persistente | P2 | ✅ |
 | **Responsividade mobile** | P2 | ✅ |
+| **PWA** (instalável, offline, service worker) | P2 | ✅ |
+| **CI/CD** (GitHub Actions + Pages) | P0 | ✅ |
+| **Testes unitários** (121 testes, 100% passando) | P1 | ✅ |
 
 ### 4.2 Futuro (Roadmap)
 
 | Funcionalidade | Prioridade | Previsão |
 |---|---|---|
 | Comparação lado a lado de ativos | P2 | Q3 2026 |
-| Exportar para CSV/Excel | P2 | Q3 2026 |
 | Alertas de preço (e-mail/telegram) | P2 | Q4 2026 |
 | Backtesting de scorecard | P3 | Q4 2026 |
 | Dados fundamentalistas via BRAPI (fallback) | P3 | 2027 |
+| Notificações de atualização do dashboard | P3 | 2027 |
 
 ---
 
@@ -169,8 +173,6 @@ Democratizar o acesso à análise fundamentalista de qualidade para investidores
 | **Schedule Local (Windows)** | Task Scheduler diário 08:00 |
 | **Schedule Local (Linux/Mac)** | Cron diário 08:00 |
 | **Cloud (GitHub Actions)** | Workflow diário 08:00 BRT |
-| **Via Dashboard** | Clique no botão "Atualizar Dados" |
-| **API** | `POST /api/refresh` |
 
 ### 8.2 Etapas do Pipeline
 
@@ -215,6 +217,7 @@ Democratizar o acesso à análise fundamentalista de qualidade para investidores
 | 1.0 | 2025-Q4 | MVP inicial: ingestão sequencial, dashboard estático |
 | 1.1 | 2026-Q1 | Scorecards FII/FIAGRO, análise setorial, tema escuro |
 | 2.0 | 2026-Q3 | Pipeline paralelo, retry, logging, config externa, testes, CI/CD |
+| 2.1 | 2026-Q3 | Carga incremental, PWA, export IA, refatoração, limpeza de código morto |
 
 ---
 

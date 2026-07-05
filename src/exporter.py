@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Data Exporter — B3 Fundamentalist Screener
+Data Exporter — Radar Fundamentalista B3
 
 Generates CSV and JSON exports of all screened assets and top picks
 for use in external analysis (AI, spreadsheets, portfolio tools).
@@ -197,7 +197,7 @@ def export_json(output_dir=None):
     output = {
         "meta": {
             "exported_at": datetime.now().isoformat(),
-            "source": "Screener Fundamentalista B3",
+            "source": "Radar Fundamentalista B3",
             "version": "2.0",
             "description": "Dados fundamentalistas de ativos da B3 - pronto para analise com IA",
         },
@@ -283,7 +283,7 @@ def export_top_picks(output_dir=None):
     output = {
         "meta": {
             "exported_at": datetime.now().isoformat(),
-            "source": "Screener Fundamentalista B3 - Top Picks",
+            "source": "Radar Fundamentalista B3 - Top Picks",
             "description": "Melhores ativos por score fundamentalista. Pronto para alimentar IA com sua carteira.",
             "suggested_prompt": (
                 "Analise minha carteira de investimentos comparando com estes top picks. "
@@ -310,7 +310,7 @@ def export_top_picks(output_dir=None):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Export B3 Screener data for AI/portfolio analysis",
+        description="Export Radar Fundamentalista B3 data for AI/portfolio analysis",
     )
     parser.add_argument("--format", choices=["csv", "json", "all"], default="all",
                         help="Export format (default: all)")
@@ -323,7 +323,7 @@ def main():
     logger.setLevel(logging.INFO)
     logger.addHandler(logging.StreamHandler(sys.stdout))
 
-    logger.info("📤 EXPORTING SCREENER DATA")
+    logger.info("📤 EXPORTANDO DADOS DO RADAR")
     logger.info("=" * 50)
 
     do_csv = args.format in ("csv", "all")

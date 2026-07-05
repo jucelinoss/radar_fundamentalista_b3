@@ -1,5 +1,5 @@
 """
-Dashboard generator for the B3 Fundamentalist Screener.
+Dashboard generator for the Radar Fundamentalista B3.
 
 Reads data from SQLite (via database.py), computes sector aggregations
 and top picks, then renders the Jinja2 template to produce dashboard.html.
@@ -174,6 +174,55 @@ def generate_dashboard():
 
     logger.info(f"Dashboard generated: {output_path} "
                 f"({len(html_output)} bytes, {len(stocks) + len(fiis) + len(fiagros)} ativos)")
+
+    # Copy PWA assets to project root
+    _copy_pwa_assets(PROJECT_ROOT)
+    # Copy GitHub Pages config files (_headers, _redirects)
+    _copy_pages_config(PROJECT_ROOT)
+
+
+def _copy_pwa_assets(dest):
+    """Copy PWA files (manifest, SW, icons) to the destination directory."""
+    pwa_src = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates", "pwa")
+    icon_src = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "icons")
+
+    for file in ("manifest.json", "service-worker.js"):
+        src = os.path.join(pwa_src, file)
+        dst = os.path.join(dest, file)
+        if os.path.exists(src):
+            with open(src, "r", encoding="utf-8") as f:
+                content = f.read()
+            with open(dst, "w", encoding="utf-8") as f:
+                f.write(content)
+
+    # Copy icons directory (read before write to avoid self-truncation)
+    icon_dst = os.path.join(dest, "icons")
+    os.makedirs(icon_dst, exist_ok=True)
+    if os.path.exists(icon_src):
+        for f in os.listdir(icon_src):
+            src_path = os.path.join(icon_src, f)
+            dst_path = os.path.join(icon_dst, f)
+            if os.path.isfile(src_path) and src_path != dst_path:
+                with open(src_path, "rb") as fin:
+                    data = fin.read()
+                with open(dst_path, "wb") as fout:
+                    fout.write(data)
+
+    logger.info(f"PWA assets copied to {dest}")
+
+
+def _copy_pages_config(dest):
+    """Copy GitHub Pages config files (_headers, _redirects)."""
+    src_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
+    for file in ("_headers",):
+        src = os.path.join(src_dir, file)
+        dst = os.path.join(dest, file)
+        if os.path.exists(src):
+            with open(src, "r", encoding="utf-8") as f:
+                content = f.read()
+            with open(dst, "w", encoding="utf-8") as f:
+                f.write(content)
+            logger.info(f"Pages config copied: {file}")
 
 
 # ---------------------------------------------------------------------------

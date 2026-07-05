@@ -1,11 +1,11 @@
 """
-Database persistence layer for the B3 Fundamentalist Screener.
+Database persistence layer for the Radar Fundamentalista B3.
 Provides context-managed SQLite connections, schema initialization, and CRUD operations.
 """
 import sqlite3
 import os
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 
 DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "investments.db")
 
@@ -233,6 +233,45 @@ def log_pipeline_run(started_at, finished_at, duration, stats, status):
             stats.get('fiagros_ok', 0), stats.get('fiagros_fail', 0),
             status
         ))
+
+
+# ---------------------------------------------------------------------------
+# Incremental refresh helpers
+# ---------------------------------------------------------------------------
+
+VALID_TABLES = {"stocks", "fiis", "fiagros"}
+
+def get_stale_tickers(ticker_list, table_name, max_age_hours=6):
+    """
+    From a list of ticker symbols, return only those that need refreshing.
+
+    A ticker is 'stale' (needs refresh) if:
+    - It has never been fetched (updated_at IS NULL), OR
+    - It was last updated more than `max_age_hours` ago.
+
+    A ticker is 'fresh' (skip) if its updated_at is within max_age_hours.
+    """
+    if not ticker_list:
+        return []
+
+    if table_name not in VALID_TABLES:
+        raise ValueError(f"Invalid table: {table_name}")
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        placeholders = ','.join(['?'] * len(ticker_list))
+        threshold = (datetime.now() - timedelta(hours=max_age_hours)).isoformat()
+
+        cursor.execute(f"""
+            SELECT ticker FROM {table_name}
+            WHERE ticker IN ({placeholders})
+              AND updated_at IS NOT NULL
+              AND updated_at > ?
+        """, [*ticker_list, threshold])
+        fresh_tickers = {row[0] for row in cursor.fetchall()}
+
+    stale = [t for t in ticker_list if t not in fresh_tickers]
+    return stale
 
 
 def get_last_update_timestamp():
