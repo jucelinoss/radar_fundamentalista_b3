@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,12 +13,14 @@
     <!-- Google Fonts: Inter & Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <!-- Chart.js for Historical charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- html2pdf.js for PDF export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
+
     <style>
         :root {
             --bg-color: #0b0f19;
@@ -35,7 +38,7 @@
             --table-header: rgba(15, 22, 38, 0.9);
             --table-hover: rgba(255, 255, 255, 0.02);
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            
+
             --modal-bg: rgba(22, 30, 49, 0.95);
             --modal-overlay: rgba(10, 14, 23, 0.85);
             --modal-shadow: rgba(0, 0, 0, 0.5);
@@ -60,7 +63,7 @@
             --danger: #dc2626;
             --table-header: rgba(241, 245, 249, 0.95);
             --table-hover: rgba(15, 23, 42, 0.02);
-            
+
             --modal-bg: rgba(255, 255, 255, 0.98);
             --modal-overlay: rgba(15, 23, 42, 0.6);
             --modal-shadow: rgba(15, 23, 42, 0.15);
@@ -82,7 +85,7 @@
             color: var(--text-primary);
             min-height: 100vh;
             padding: 2rem 1.5rem;
-            background-image: 
+            background-image:
                 radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
                 radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 40%);
             background-attachment: fixed;
@@ -90,7 +93,7 @@
         }
 
         body.light-theme {
-            background-image: 
+            background-image:
                 radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.04) 0%, transparent 40%),
                 radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.04) 0%, transparent 40%);
         }
@@ -114,18 +117,21 @@
             font-size: inherit;
             line-height: inherit;
         }
+
         .action-btn:hover {
             background: color-mix(in srgb, var(--primary) 15%, var(--card-bg));
             border-color: var(--primary);
             transform: translateY(-1px);
             box-shadow: 0 4px 12px var(--primary-glow);
         }
+
         .action-btn:active {
             transform: translateY(0);
             background: var(--primary);
             color: white;
             border-color: var(--primary);
         }
+
         .action-btn:focus-visible {
             outline: 2px solid var(--primary);
             outline-offset: 2px;
@@ -133,7 +139,10 @@
 
 
 
-        h1, h2, h3, .font-outfit {
+        h1,
+        h2,
+        h3,
+        .font-outfit {
             font-family: 'Outfit', sans-serif;
         }
 
@@ -143,33 +152,42 @@
         }
 
         /* PDF export: remove ALL excess whitespace */
-        @page { margin: 0; }
+        @page {
+            margin: 0;
+        }
+
         body.pdf-export {
             padding: 0 !important;
             margin: 0 !important;
         }
+
         body.pdf-export .container {
             padding-top: 0 !important;
             margin-top: 0 !important;
         }
+
         body.pdf-export header {
             margin: 0 0 0.25rem 0 !important;
             padding: 0.25rem 0 !important;
             border-bottom-width: 1px;
         }
+
         body.pdf-export .logo-area h1 {
             font-size: 1rem !important;
             line-height: 1.2 !important;
             margin: 0 !important;
         }
+
         body.pdf-export .logo-area p {
             font-size: 0.65rem !important;
             line-height: 1.2 !important;
             margin: 0 !important;
         }
+
         body.pdf-export #pdf-temp-header {
             display: block !important;
         }
+
         body.pdf-export #export-btn,
         body.pdf-export #help-toggle-btn,
         body.pdf-export #theme-toggle-btn,
@@ -177,26 +195,37 @@
         body.pdf-export .disclaimer {
             display: none !important;
         }
+
         body.pdf-export .controls-row {
             margin-bottom: 0.2rem !important;
         }
+
         body.pdf-export .tab-bar {
             margin-bottom: 0.2rem !important;
         }
+
         body.pdf-export table {
             font-size: 0.6rem !important;
         }
+
         body.pdf-export th,
         body.pdf-export td {
             padding: 0.2rem 0.35rem !important;
         }
+
         body.pdf-export .score-badge {
             font-size: 0.55rem !important;
             padding: 0.1rem 0.3rem !important;
             min-width: 1rem !important;
         }
+
         body.pdf-export .card {
             padding: 0.5rem !important;
+        }
+
+        body.pdf-export .table-container {
+            overflow: visible !important;
+            overflow-x: visible !important;
         }
 
         header {
@@ -240,6 +269,19 @@
             max-width: 280px;
             line-height: 1.3;
             text-align: right;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .controls-filters {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
         }
 
         /* Tabs & Controls */
@@ -345,8 +387,13 @@
             height: 4px;
         }
 
-        .card-stock::before { background: linear-gradient(90deg, var(--primary) 0%, #60a5fa 100%); }
-        .card-fii::before { background: linear-gradient(90deg, var(--accent-green) 0%, #34d399 100%); }
+        .card-stock::before {
+            background: linear-gradient(90deg, var(--primary) 0%, #60a5fa 100%);
+        }
+
+        .card-fii::before {
+            background: linear-gradient(90deg, var(--accent-green) 0%, #34d399 100%);
+        }
 
         .summary-card:hover {
             transform: translateY(-4px);
@@ -414,7 +461,8 @@
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: 16px;
-            overflow: hidden;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
             backdrop-filter: blur(10px);
             margin-bottom: 2rem;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
@@ -437,6 +485,7 @@
             cursor: pointer;
             user-select: none;
             transition: var(--transition);
+            white-space: nowrap;
         }
 
         th:hover {
@@ -449,6 +498,7 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.04);
             color: var(--text-secondary);
             font-weight: 500;
+            white-space: nowrap;
         }
 
         tr:last-child td {
@@ -467,9 +517,10 @@
         }
 
         .name-col {
+            min-width: 120px;
             max-width: 220px;
             overflow-wrap: break-word;
-            word-break: break-word;
+            word-break: keep-all;
             white-space: normal;
             line-height: 1.3;
         }
@@ -503,12 +554,38 @@
             font-family: 'Outfit', sans-serif;
         }
 
-        .score-5 { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
-        .score-4 { background: rgba(16, 185, 129, 0.1); color: var(--accent-green); }
-        .score-3 { background: rgba(245, 158, 11, 0.1); color: var(--accent-gold); }
-        .score-2 { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
-        .score-1 { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
-        .score-0 { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+        .score-5 {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+        }
+
+        .score-4 {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent-green);
+        }
+
+        .score-3 {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--accent-gold);
+        }
+
+        .score-2 {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .score-1 {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .score-0 {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
 
         .hidden {
             display: none !important;
@@ -555,20 +632,35 @@
             text-transform: uppercase;
             display: inline-block;
         }
+
         .index-pill.ibov {
             background: rgba(59, 130, 246, 0.15);
             color: #60a5fa;
             border: 1px solid rgba(59, 130, 246, 0.25);
         }
+
         .index-pill.idiv {
             background: rgba(16, 185, 129, 0.15);
-            color: #34d399;
+            color: #32a179;
             border: 1px solid rgba(16, 185, 129, 0.25);
         }
+
         .index-pill.smll {
             background: rgba(245, 158, 11, 0.15);
             color: #fbbf24;
             border: 1px solid rgba(245, 158, 11, 0.25);
+        }
+
+        .index-pill.iee {
+            background: rgba(6, 182, 212, 0.15);
+            color: #22d3ee;
+            border: 1px solid rgba(6, 182, 212, 0.25);
+        }
+
+        .index-pill.ifnc {
+            background: rgba(139, 92, 246, 0.15);
+            color: #a78bfa;
+            border: 1px solid rgba(139, 92, 246, 0.25);
         }
 
         .filter-select {
@@ -583,12 +675,116 @@
             font-family: 'Outfit', sans-serif;
             transition: var(--transition);
         }
+
         .filter-select:hover {
             border-color: var(--primary);
             box-shadow: 0 4px 12px var(--primary-glow);
         }
+
         .filter-select.hidden {
             display: none !important;
+        }
+
+        .score-range-filter {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            padding: 0.35rem 0.75rem;
+            border-radius: 10px;
+            transition: var(--transition);
+        }
+
+        .score-range-filter:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .score-range-filter.hidden {
+            display: none !important;
+        }
+
+        .filter-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .score-buttons {
+            display: flex;
+            gap: 0.3rem;
+        }
+
+        .score-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 0.85rem;
+            font-family: 'Outfit', sans-serif;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.85;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+        }
+
+        .score-btn.score-5 {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-green);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .score-btn.score-4 {
+            background: rgba(16, 185, 129, 0.08);
+            color: var(--accent-green);
+            border-color: rgba(16, 185, 129, 0.15);
+        }
+
+        .score-btn.score-3 {
+            background: rgba(245, 158, 11, 0.08);
+            color: var(--accent-gold);
+            border-color: rgba(245, 158, 11, 0.15);
+        }
+
+        .score-btn.score-2 {
+            background: rgba(239, 68, 68, 0.08);
+            color: var(--danger);
+            border-color: rgba(239, 68, 68, 0.15);
+        }
+
+        .score-btn.score-1 {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .score-btn.score-0 {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .score-btn:hover {
+            transform: scale(1.1);
+            opacity: 1;
+        }
+
+        .score-buttons.filtering .score-btn {
+            opacity: 0.35;
+        }
+
+        .score-buttons.filtering .score-btn.active {
+            opacity: 1;
+            transform: scale(1.1);
+            border-color: currentColor !important;
+            box-shadow: 0 0 10px currentColor;
         }
 
         /* Responsive styling */
@@ -603,20 +799,82 @@
                 gap: 1rem;
             }
 
+            .logo-area h1 {
+                font-size: 1.8rem;
+            }
+
+            .header-actions {
+                flex-wrap: wrap;
+                width: 100%;
+                gap: 0.5rem;
+            }
+
+            .header-actions>* {
+                flex: 1 1 auto;
+            }
+
+            .disclaimer {
+                text-align: left;
+                max-width: 100%;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
             .controls-row {
                 flex-direction: column;
                 align-items: stretch;
             }
 
+            .controls-filters {
+                flex-direction: column;
+                align-items: stretch;
+                width: 100%;
+                gap: 0.75rem;
+            }
+
+            .filter-select {
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .score-range-filter {
+                width: 100%;
+                box-sizing: border-box;
+                justify-content: space-between;
+                padding: 0.5rem 0.75rem;
+            }
+
+            .search-container {
+                width: 100%;
+            }
+
             .search-input {
                 width: 100%;
+                box-sizing: border-box;
+            }
+
+            .tabs {
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+            }
+
+            .tab-btn {
+                padding: 0.5rem 0.5rem;
+                font-size: 0.8rem;
+                flex: 1;
+                text-align: center;
             }
 
             table {
                 font-size: 0.8rem;
             }
 
-            th, td {
+            th,
+            td {
                 padding: 0.75rem 0.5rem;
             }
         }
@@ -641,7 +899,7 @@
             align-items: center;
             transition: var(--transition);
         }
-        
+
         .modal-content {
             background: var(--modal-bg);
             border: 1px solid var(--card-border);
@@ -654,12 +912,19 @@
             animation: modalFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             transition: background 0.3s ease, box-shadow 0.3s ease;
         }
-        
+
         @keyframes modalFadeIn {
-            from { transform: scale(0.95); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+            from {
+                transform: scale(0.95);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
-        
+
         .close-btn {
             position: absolute;
             right: 1.5rem;
@@ -669,35 +934,36 @@
             color: var(--text-secondary);
             transition: var(--transition);
         }
-        
+
         .close-btn:hover {
             color: var(--text-primary);
         }
-        
+
         .modal-header h2 {
             font-size: 2.5rem;
             font-weight: 800;
             color: var(--text-primary);
             margin-bottom: 0.2rem;
         }
-        
+
         .modal-header p {
             color: var(--text-secondary);
             font-size: 1.1rem;
             margin-bottom: 1.5rem;
         }
-        
+
         .modal-body-grid {
             display: grid;
             grid-template-columns: 1fr 1.2fr;
             gap: 2rem;
         }
-        
+
         @media (max-width: 768px) {
             .modal-body-grid {
                 grid-template-columns: 1fr;
                 gap: 1.5rem;
             }
+
             .modal-content {
                 padding: 1.5rem;
                 margin-top: 2rem;
@@ -705,7 +971,7 @@
                 overflow-y: auto;
             }
         }
-        
+
         .section-subtitle {
             font-size: 1.2rem;
             font-weight: 700;
@@ -714,13 +980,13 @@
             margin-bottom: 1rem;
             transition: border-color 0.3s ease;
         }
-        
+
         .breakdown-list {
             display: flex;
             flex-direction: column;
             gap: 0.75rem;
         }
-        
+
         .breakdown-item {
             display: flex;
             align-items: center;
@@ -732,687 +998,838 @@
             font-size: 0.9rem;
             transition: background 0.3s ease, border-color 0.3s ease;
         }
-        
+
         .breakdown-check {
             font-weight: 700;
         }
 
+        .export-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.5rem;
+            background: var(--modal-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 0.5rem;
+            min-width: 230px;
+            box-shadow: 0 10px 30px var(--modal-shadow);
+            z-index: 50;
+            backdrop-filter: blur(10px);
+        }
+
+        @media (max-width: 768px) {
+            .export-menu {
+                left: 0;
+                right: auto;
+            }
+        }
     </style>
 </head>
+
 <body>
-<script>
-    (function() {
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'light') {
-            document.body.classList.add('light-theme');
-        }
-    })();
-</script>
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-theme');
+            }
+        })();
+    </script>
 
-<div class="container">
-    <header>
-        <div class="logo-area">
-            <h1>Radar Fundamentalista B3</h1>
-            <p>Análise automatizada baseada em Graham, Bazin e Indicadores de Saúde Financeira</p>
-        </div>
-        <div style="display: flex; align-items: center; gap: 1rem;">
+    <div class="container">
+        <header>
+            <div class="logo-area">
+                <h1>Radar Fundamentalista B3</h1>
+                <p>Análise automatizada baseada em Graham, Bazin e Indicadores de Saúde Financeira</p>
+            </div>
+            <div class="header-actions">
 
-            <div style="position: relative; display: inline-block;">
-                <button id="export-btn" onclick="toggleExportMenu()" class="action-btn">
-                    <span>📥</span>
-                    <span>Exportar</span>
+                <div style="position: relative; display: inline-block;">
+                    <button id="export-btn" onclick="toggleExportMenu()" class="action-btn">
+                        <span>📥</span>
+                        <span>Exportar</span>
+                    </button>
+                    <div id="export-menu" class="export-menu" style="display: none;">
+                        <div
+                            style="padding: 0.4rem 0.75rem; font-size: 0.75rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                            Dados Brutos</div>
+                        <a href="export_stocks.csv" download
+                            style="display: block; padding: 0.5rem 0.75rem; color: var(--text-primary); text-decoration: none; border-radius: 8px; font-size: 0.9rem; transition: var(--transition);"
+                            onmouseover="this.style.background='var(--table-hover)'"
+                            onmouseout="this.style.background='transparent'">📊 CSV - Ações</a>
+                        <a href="export_ativos.json" download
+                            style="display: block; padding: 0.5rem 0.75rem; color: var(--text-primary); text-decoration: none; border-radius: 8px; font-size: 0.9rem; transition: var(--transition);"
+                            onmouseover="this.style.background='var(--table-hover)'"
+                            onmouseout="this.style.background='transparent'">📋 JSON - Todos os Ativos</a>
+                        <a href="export_fiis.csv" download
+                            style="display: block; padding: 0.5rem 0.75rem; color: var(--text-primary); text-decoration: none; border-radius: 8px; font-size: 0.9rem; transition: var(--transition);"
+                            onmouseover="this.style.background='var(--table-hover)'"
+                            onmouseout="this.style.background='transparent'">🏢 CSV - FIIs</a>
+                        <a href="export_fiagros.csv" download
+                            style="display: block; padding: 0.5rem 0.75rem; color: var(--text-primary); text-decoration: none; border-radius: 8px; font-size: 0.9rem; transition: var(--transition);"
+                            onmouseover="this.style.background='var(--table-hover)'"
+                            onmouseout="this.style.background='transparent'">🌱 CSV - FIAGROs</a>
+                        <div style="height: 1px; background: var(--card-border); margin: 0.25rem 0;"></div>
+                        <div
+                            style="padding: 0.4rem 0.75rem; font-size: 0.75rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                            Relatório</div>
+                        <a href="#" onclick="exportPDF(); return false;"
+                            style="display: block; padding: 0.5rem 0.75rem; color: var(--text-primary); text-decoration: none; border-radius: 8px; font-size: 0.9rem; transition: var(--transition);"
+                            onmouseover="this.style.background='var(--table-hover)'"
+                            onmouseout="this.style.background='transparent'">📄 PDF - <span id="pdf-label">Ações</span>
+                            (aba atual)</a>
+                        <div style="height: 1px; background: var(--card-border); margin: 0.25rem 0;"></div>
+                        <div
+                            style="padding: 0.4rem 0.75rem; font-size: 0.75rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                            Para IA</div>
+                        <a href="export_top_picks.json" download
+                            style="display: block; padding: 0.5rem 0.75rem; color: var(--accent-gold); text-decoration: none; border-radius: 8px; font-size: 0.9rem; transition: var(--transition);"
+                            onmouseover="this.style.background='var(--table-hover)'"
+                            onmouseout="this.style.background='transparent'">🤖 Top Picks JSON (pronto pra IA)</a>
+                    </div>
+                </div>
+                <button id="help-toggle-btn" onclick="openHelpModal()" class="action-btn">
+                    <span>💡</span>
+                    <span>Como Funciona?</span>
                 </button>
-                <div id="export-menu" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 0.5rem; background: var(--modal-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 0.5rem; min-width: 200px; box-shadow: 0 10px 30px var(--modal-shadow); z-index: 50;">
-                    <div style="padding: 0.4rem 0.75rem; font-size: 0.75rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Dados Brutos</div>
-                    <a href="export_stocks.csv" download style="display: block; padding: 0.5rem 0.75rem; color: var(--text-primary); text-decoration: none; border-radius: 8px; font-size: 0.9rem; transition: var(--transition);" onmouseover="this.style.background='var(--table-hover)'" onmouseout="this.style.background='transparent'">📊 CSV - Ações</a>
-                    <a href="export_ativos.json" download style="display: block; padding: 0.5rem 0.75rem; color: var(--text-primary); text-decoration: none; border-radius: 8px; font-size: 0.9rem; transition: var(--transition);" onmouseover="this.style.background='var(--table-hover)'" onmouseout="this.style.background='transparent'">📋 JSON - Todos os Ativos</a>
-                    <a href="export_fiis.csv" download style="display: block; padding: 0.5rem 0.75rem; color: var(--text-primary); text-decoration: none; border-radius: 8px; font-size: 0.9rem; transition: var(--transition);" onmouseover="this.style.background='var(--table-hover)'" onmouseout="this.style.background='transparent'">🏢 CSV - FIIs</a>
-                    <a href="export_fiagros.csv" download style="display: block; padding: 0.5rem 0.75rem; color: var(--text-primary); text-decoration: none; border-radius: 8px; font-size: 0.9rem; transition: var(--transition);" onmouseover="this.style.background='var(--table-hover)'" onmouseout="this.style.background='transparent'">🌱 CSV - FIAGROs</a>
-                    <div style="height: 1px; background: var(--card-border); margin: 0.25rem 0;"></div>
-                    <div style="padding: 0.4rem 0.75rem; font-size: 0.75rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Relatório</div>
-                    <a href="#" onclick="exportPDF(); return false;" style="display: block; padding: 0.5rem 0.75rem; color: var(--text-primary); text-decoration: none; border-radius: 8px; font-size: 0.9rem; transition: var(--transition);" onmouseover="this.style.background='var(--table-hover)'" onmouseout="this.style.background='transparent'">📄 PDF - <span id="pdf-label">Ações</span> (aba atual)</a>
-                    <div style="height: 1px; background: var(--card-border); margin: 0.25rem 0;"></div>
-                    <div style="padding: 0.4rem 0.75rem; font-size: 0.75rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Para IA</div>
-                    <a href="export_top_picks.json" download style="display: block; padding: 0.5rem 0.75rem; color: var(--accent-gold); text-decoration: none; border-radius: 8px; font-size: 0.9rem; transition: var(--transition);" onmouseover="this.style.background='var(--table-hover)'" onmouseout="this.style.background='transparent'">🤖 Top Picks JSON (pronto pra IA)</a>
+                <button id="theme-toggle-btn" onclick="toggleTheme()" class="action-btn">
+                    <span id="theme-toggle-icon">🌙</span>
+                    <span>Tema</span>
+                </button>
+                <div class="timestamp">
+                    Atualizado em: {{ timestamp }}
+                </div>
+                <div class="disclaimer">
+                    ⚠️ Não é recomendação de investimento. Dados coletados via APIs públicas B3 + regras de análise
+                    fundamentalista (Graham, Bazin).
                 </div>
             </div>
-            <button id="help-toggle-btn" onclick="openHelpModal()" class="action-btn">
-                <span>💡</span>
-                <span>Como Funciona?</span>
-            </button>
-            <button id="theme-toggle-btn" onclick="toggleTheme()" class="action-btn">
-                <span id="theme-toggle-icon">🌙</span>
-                <span>Tema</span>
-            </button>
-            <div class="timestamp">
-                Atualizado em: {{ timestamp }}
+        </header>
+
+        <!-- Summary Cards Section -->
+        <div class="summary-grid">
+            <!-- Stock Summary -->
+            <div class="summary-card card-stock">
+                <div class="card-title">
+                    <span>Top Ações (Maiores Scores)</span>
+                    <span class="badge badge-gold">Value Investing</span>
+                </div>
+                <ul class="top-list">
+                    {% for stock in top_stocks %}
+                    <li class="top-item">
+                        <span class="top-ticker">{{ stock.ticker }}</span>
+                        <span class="top-val positive">Score: {{ stock.score }}/5</span>
+                    </li>
+                    {% endfor %}
+                </ul>
             </div>
-            <div class="disclaimer">
-                ⚠️ Não é recomendação de investimento. Dados coletados via APIs públicas B3 + regras de análise fundamentalista (Graham, Bazin).
+
+            <!-- FII Summary -->
+            <div class="summary-card card-fii">
+                <div class="card-title">
+                    <span>Top FIIs (Menores P/VP & Bons Yields)</span>
+                    <span class="badge badge-green">Imobiliário</span>
+                </div>
+                <ul class="top-list">
+                    {% for fii in top_fiis %}
+                    <li class="top-item">
+                        <span class="top-ticker">{{ fii.ticker }}</span>
+                        <span class="top-val positive">DY: {{ "%.2f"|format(fii.dividend_yield * 100) }}% | P/VP: {{
+                            "%.2f"|format(fii.pb_ratio) }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
             </div>
-        </div>
-    </header>
 
-    <!-- Summary Cards Section -->
-    <div class="summary-grid">
-        <!-- Stock Summary -->
-        <div class="summary-card card-stock">
-            <div class="card-title">
-                <span>Top Ações (Maiores Scores)</span>
-                <span class="badge badge-gold">Value Investing</span>
+            <!-- FIAGRO Summary -->
+            {% if top_fiagros %}
+            <div class="summary-card card-fii">
+                <div class="card-title">
+                    <span>Top FIAGROs (Maiores Dividend Yields)</span>
+                    <span class="badge badge-green">Agronegócio</span>
+                </div>
+                <ul class="top-list">
+                    {% for fiagro in top_fiagros %}
+                    <li class="top-item">
+                        <span class="top-ticker">{{ fiagro.ticker }}</span>
+                        <span class="top-val positive">DY: {{ "%.2f"|format(fiagro.dividend_yield * 100) if
+                            fiagro.dividend_yield else '0.00' }}% | P/VP: {{ "%.2f"|format(fiagro.pb_ratio) if
+                            fiagro.pb_ratio else 'N/A' }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
             </div>
-            <ul class="top-list">
-                {% for stock in top_stocks %}
-                <li class="top-item">
-                    <span class="top-ticker">{{ stock.ticker }}</span>
-                    <span class="top-val positive">Score: {{ stock.score }}/5</span>
-                </li>
-                {% endfor %}
-            </ul>
+            {% endif %}
         </div>
 
-        <!-- FII Summary -->
-        <div class="summary-card card-fii">
-            <div class="card-title">
-                <span>Top FIIs (Menores P/VP & Bons Yields)</span>
-                <span class="badge badge-green">Imobiliário</span>
+        <!-- Controls Row -->
+        <div class="controls-row">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('stocks')">Ações</button>
+                <button class="tab-btn" onclick="switchTab('fiis')">Fundos Imobiliários (FIIs)</button>
+                <button class="tab-btn" onclick="switchTab('fiagros')">FIAGROs</button>
+                <button class="tab-btn" onclick="switchTab('sectors')">Análise Setorial</button>
             </div>
-            <ul class="top-list">
-                {% for fii in top_fiis %}
-                <li class="top-item">
-                    <span class="top-ticker">{{ fii.ticker }}</span>
-                    <span class="top-val positive">DY: {{ "%.2f"|format(fii.dividend_yield * 100) }}% | P/VP: {{ "%.2f"|format(fii.pb_ratio) }}</span>
-                </li>
-                {% endfor %}
-            </ul>
-        </div>
 
-        <!-- FIAGRO Summary -->
-        {% if top_fiagros %}
-        <div class="summary-card card-fii">
-            <div class="card-title">
-                <span>Top FIAGROs (Maiores Dividend Yields)</span>
-                <span class="badge badge-green">Agronegócio</span>
-            </div>
-            <ul class="top-list">
-                {% for fiagro in top_fiagros %}
-                <li class="top-item">
-                    <span class="top-ticker">{{ fiagro.ticker }}</span>
-                    <span class="top-val positive">DY: {{ "%.2f"|format(fiagro.dividend_yield * 100) if fiagro.dividend_yield else '0.00' }}% | P/VP: {{ "%.2f"|format(fiagro.pb_ratio) if fiagro.pb_ratio else 'N/A' }}</span>
-                </li>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
-    </div>
+            <div class="controls-filters">
+                <select id="index-filter" onchange="filterTable()" class="filter-select">
+                    <option value="all">Todos os Índices</option>
+                    <option value="IBOV">Índice IBOV</option>
+                    <option value="IDIV">Índice IDIV</option>
+                    <option value="SMLL">Índice SMLL</option>
+                    <option value="IEE">Índice IEE (Elétricas)</option>
+                    <option value="IFNC">Índice IFNC (Financeiro)</option>
+                </select>
 
-    <!-- Controls Row -->
-    <div class="controls-row">
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('stocks')">Ações</button>
-            <button class="tab-btn" onclick="switchTab('fiis')">Fundos Imobiliários (FIIs)</button>
-            <button class="tab-btn" onclick="switchTab('fiagros')">FIAGROs</button>
-            <button class="tab-btn" onclick="switchTab('sectors')">Análise Setorial</button>
-        </div>
-        
-        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
-            <select id="index-filter" onchange="filterTable()" class="filter-select">
-                <option value="all">Todos os Índices</option>
-                <option value="IBOV">Índice IBOV</option>
-                <option value="IDIV">Índice IDIV</option>
-                <option value="SMLL">Índice SMLL</option>
-            </select>
+                <select id="sector-filter" onchange="filterTable()" class="filter-select">
+                    <option value="all">Todos os Setores</option>
+                    {% for sector in unique_sectors %}
+                    <option value="{{ sector }}">{{ sector }}</option>
+                    {% endfor %}
+                </select>
 
-            <select id="sector-filter" onchange="filterTable()" class="filter-select">
-                <option value="all">Todos os Setores</option>
-                {% for sector in unique_sectors %}
-                <option value="{{ sector }}">{{ sector }}</option>
-                {% endfor %}
-            </select>
+                <div id="score-filter" class="score-range-filter">
+                    <span class="filter-label">Score:</span>
+                    <div class="score-buttons">
+                        <button class="score-btn score-0" onclick="toggleScoreFilter(0)" data-score="0">0</button>
+                        <button class="score-btn score-1" onclick="toggleScoreFilter(1)" data-score="1">1</button>
+                        <button class="score-btn score-2" onclick="toggleScoreFilter(2)" data-score="2">2</button>
+                        <button class="score-btn score-3" onclick="toggleScoreFilter(3)" data-score="3">3</button>
+                        <button class="score-btn score-4" onclick="toggleScoreFilter(4)" data-score="4">4</button>
+                        <button class="score-btn score-5" onclick="toggleScoreFilter(5)" data-score="5">5</button>
+                    </div>
+                </div>
 
-            <select id="score-filter" onchange="filterTable()" class="filter-select">
-                <option value="all">Qualidade: Todos</option>
-                <option value="3">Qualidade: Score ≥ 3</option>
-                <option value="4">Qualidade: Score ≥ 4</option>
-            </select>
+                <select id="discount-filter" onchange="filterTable()" class="filter-select">
+                    <option value="all">Preço: Todos</option>
+                    <option value="discounted">Preço: Com Desconto</option>
+                </select>
 
-            <select id="discount-filter" onchange="filterTable()" class="filter-select">
-                <option value="all">Preço: Todos</option>
-                <option value="discounted">Preço: Com Desconto</option>
-            </select>
-            
-            <div class="search-container">
-                <span class="search-icon">🔍</span>
-                <input type="text" id="search-bar" class="search-input" placeholder="Buscar ativo..." onkeyup="filterTable()">
+                <div class="search-container">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="search-bar" class="search-input" placeholder="Buscar ativo..."
+                        onkeyup="filterTable()">
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Stocks Panel -->
-    <div id="panel-stocks" class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th onclick="sortTable('stocks', 0)">Ticker</th>
-                    <th onclick="sortTable('stocks', 1)">Nome</th>
-                    <th onclick="sortTable('stocks', 2)">Setor</th>
-                    <th onclick="sortTable('stocks', 3)">Preço Atual</th>
-                    <th onclick="sortTable('stocks', 4)">P/L</th>
-                    <th onclick="sortTable('stocks', 5)">P/VP</th>
-                    <th onclick="sortTable('stocks', 6)">Div. Yield</th>
-                    <th onclick="sortTable('stocks', 7)">ROE</th>
-                    <th onclick="sortTable('stocks', 8)">Teto Bazin</th>
-                    <th onclick="sortTable('stocks', 9)">Justo Graham</th>
-                    <th onclick="sortTable('stocks', 10)">Score</th>
-                </tr>
-            </thead>
-            <tbody id="stocks-tbody">
-                {% for stock in stocks %}
-                <tr onclick="openDetailModal('{{ stock.ticker }}', 'stock')" data-ticker="{{ stock.ticker }}" data-name="{{ stock.name }}" data-sector="{{ stock.sector }}" data-indices="{{ stock.indices | join(',') }}" data-price="{{ stock.price if stock.price else '0' }}" data-pe="{{ stock.pe_ratio if stock.pe_ratio else 'null' }}" data-pb="{{ stock.pb_ratio if stock.pb_ratio else 'null' }}" data-dy="{{ stock.dividend_yield if stock.dividend_yield else '0' }}" data-roe="{{ stock.roe if stock.roe else 'null' }}" data-bazin="{{ stock.bazin_price if stock.bazin_price else '0' }}" data-graham="{{ stock.graham_price if stock.graham_price else '0' }}" data-score="{{ stock.score if stock.score else '0' }}" data-eps="{{ stock.eps if stock.eps else 'null' }}" data-vpa="{{ stock.book_value if stock.book_value else 'null' }}" data-history='{{ stock.history_json | safe if stock.history_json else "[]" }}'>
-                    <td class="ticker-col">
-                        {{ stock.ticker }}
-                        <div style="display: flex; gap: 0.2rem; margin-top: 0.25rem;">
-                            {% for index in stock.indices %}
-                            <span class="index-pill {{ index | lower }}">{{ index }}</span>
-                            {% endfor %}
+        <!-- Stocks Panel -->
+        <div id="panel-stocks" class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th onclick="sortTable('stocks', 0)">Ticker</th>
+                        <th onclick="sortTable('stocks', 1)">Nome</th>
+                        <th onclick="sortTable('stocks', 2)">Setor</th>
+                        <th onclick="sortTable('stocks', 3)">Preço Atual</th>
+                        <th onclick="sortTable('stocks', 4)">P/L</th>
+                        <th onclick="sortTable('stocks', 5)">P/VP</th>
+                        <th onclick="sortTable('stocks', 6)">Div. Yield</th>
+                        <th onclick="sortTable('stocks', 7)">ROE</th>
+                        <th onclick="sortTable('stocks', 8)">Teto Bazin</th>
+                        <th onclick="sortTable('stocks', 9)">Justo Graham</th>
+                        <th onclick="sortTable('stocks', 10)">Score</th>
+                    </tr>
+                </thead>
+                <tbody id="stocks-tbody">
+                    {% for stock in stocks %}
+                    <tr onclick="openDetailModal('{{ stock.ticker }}', 'stock')" data-ticker="{{ stock.ticker }}"
+                        data-name="{{ stock.name }}" data-sector="{{ stock.sector }}"
+                        data-indices="{{ stock.indices | join(',') }}"
+                        data-price="{{ stock.price if stock.price else '0' }}"
+                        data-pe="{{ stock.pe_ratio if stock.pe_ratio else 'null' }}"
+                        data-pb="{{ stock.pb_ratio if stock.pb_ratio else 'null' }}"
+                        data-dy="{{ stock.dividend_yield if stock.dividend_yield else '0' }}"
+                        data-roe="{{ stock.roe if stock.roe else 'null' }}"
+                        data-bazin="{{ stock.bazin_price if stock.bazin_price else '0' }}"
+                        data-graham="{{ stock.graham_price if stock.graham_price else '0' }}"
+                        data-score="{{ stock.score if stock.score else '0' }}"
+                        data-eps="{{ stock.eps if stock.eps else 'null' }}"
+                        data-vpa="{{ stock.book_value if stock.book_value else 'null' }}"
+                        data-history='{{ stock.history_json | safe if stock.history_json else "[]" }}'>
+                        <td class="ticker-col">
+                            {{ stock.ticker }}
+                            <div style="display: flex; gap: 0.2rem; margin-top: 0.25rem;">
+                                {% for index in stock.indices %}
+                                <span class="index-pill {{ index | lower }}">{{ index }}</span>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td class="name-col">{{ stock.name }}</td>
+                        <td>{{ stock.sector }}</td>
+                        <td class="metric-highlight">R$ {{ "%.2f"|format(stock.price) if stock.price else 'N/A' }}</td>
+                        <td
+                            class="{{ 'positive' if stock.pe_ratio and stock.pe_ratio > 0 and stock.pe_ratio <= 15 else 'warning' }}">
+                            {{ "%.2f"|format(stock.pe_ratio) if stock.pe_ratio else 'N/A' }}
+                        </td>
+                        <td
+                            class="{{ 'positive' if stock.pb_ratio and stock.pb_ratio > 0 and stock.pb_ratio <= 1.5 else 'warning' }}">
+                            {{ "%.2f"|format(stock.pb_ratio) if stock.pb_ratio else 'N/A' }}
+                        </td>
+                        <td
+                            class="{{ 'positive' if stock.dividend_yield and stock.dividend_yield >= 0.06 else 'negative' }}">
+                            {{ "%.2f"|format(stock.dividend_yield * 100) if stock.dividend_yield else '0.00' }}%
+                        </td>
+                        <td class="{{ 'positive' if stock.roe and stock.roe >= 0.10 else 'negative' }}">
+                            {{ "%.2f"|format(stock.roe * 100) if stock.roe else 'N/A' }}%
+                        </td>
+                        <td
+                            class="metric-highlight {{ 'positive' if stock.price and stock.bazin_price and stock.price < stock.bazin_price else '' }}">
+                            R$ {{ "%.2f"|format(stock.bazin_price) if stock.bazin_price else 'N/A' }}
+                        </td>
+                        <td
+                            class="metric-highlight {{ 'positive' if stock.price and stock.graham_price and stock.price < stock.graham_price else '' }}">
+                            R$ {{ "%.2f"|format(stock.graham_price) if stock.graham_price else 'N/A' }}
+                        </td>
+                        <td>
+                            <span class="score-pill score-{{ stock.score }}">{{ stock.score }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- FIIs Panel -->
+        <div id="panel-fiis" class="table-container hidden">
+            <table>
+                <thead>
+                    <tr>
+                        <th onclick="sortTable('fiis', 0)">Ticker</th>
+                        <th onclick="sortTable('fiis', 1)">Nome</th>
+                        <th onclick="sortTable('fiis', 2)">Preço Atual</th>
+                        <th onclick="sortTable('fiis', 3)">P/VP</th>
+                        <th onclick="sortTable('fiis', 4)">Div. Yield</th>
+                        <th onclick="sortTable('fiis', 5)">Dividendo Anual</th>
+                        <th onclick="sortTable('fiis', 6)">Score</th>
+                    </tr>
+                </thead>
+                <tbody id="fiis-tbody">
+                    {% for fii in fiis %}
+                    <tr onclick="openDetailModal('{{ fii.ticker }}', 'fii')" data-ticker="{{ fii.ticker }}"
+                        data-name="{{ fii.name }}" data-price="{{ fii.price if fii.price else '0' }}"
+                        data-pb="{{ fii.pb_ratio if fii.pb_ratio else 'null' }}"
+                        data-dy="{{ fii.dividend_yield if fii.dividend_yield else '0' }}"
+                        data-rate="{{ fii.dividend_rate if fii.dividend_rate else '0' }}"
+                        data-score="{{ fii.score if fii.score else '0' }}"
+                        data-history='{{ fii.history_json | safe if fii.history_json else "[]" }}'>
+                        <td class="ticker-col">{{ fii.ticker }}</td>
+                        <td class="name-col">{{ fii.name }}</td>
+                        <td class="metric-highlight">R$ {{ "%.2f"|format(fii.price) if fii.price else 'N/A' }}</td>
+                        <td
+                            class="{{ 'positive' if fii.pb_ratio and fii.pb_ratio >= 0.8 and fii.pb_ratio <= 1.05 else 'warning' }}">
+                            {{ "%.2f"|format(fii.pb_ratio) if fii.pb_ratio else 'N/A' }}
+                        </td>
+                        <td
+                            class="{{ 'positive' if fii.dividend_yield and fii.dividend_yield >= 0.08 else 'warning' }}">
+                            {{ "%.2f"|format(fii.dividend_yield * 100) if fii.dividend_yield else '0.00' }}%
+                        </td>
+                        <td class="metric-highlight">R$ {{ "%.2f"|format(fii.dividend_rate) if fii.dividend_rate else
+                            '0.00' }}</td>
+                        <td>
+                            <span class="score-pill score-{{ fii.score if fii.score else 0 }}">{{ fii.score if fii.score
+                                else 0 }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- FIAGROs Panel -->
+        <div id="panel-fiagros" class="table-container hidden">
+            <table>
+                <thead>
+                    <tr>
+                        <th onclick="sortTable('fiagros', 0)">Ticker</th>
+                        <th onclick="sortTable('fiagros', 1)">Nome</th>
+                        <th onclick="sortTable('fiagros', 2)">Preço Atual</th>
+                        <th onclick="sortTable('fiagros', 3)">P/VP</th>
+                        <th onclick="sortTable('fiagros', 4)">Div. Yield</th>
+                        <th onclick="sortTable('fiagros', 5)">Dividendo Anual</th>
+                        <th onclick="sortTable('fiagros', 6)">Score</th>
+                    </tr>
+                </thead>
+                <tbody id="fiagros-tbody">
+                    {% for fiagro in fiagros %}
+                    <tr onclick="openDetailModal('{{ fiagro.ticker }}', 'fiagro')" data-ticker="{{ fiagro.ticker }}"
+                        data-name="{{ fiagro.name }}" data-price="{{ fiagro.price if fiagro.price else '0' }}"
+                        data-pb="{{ fiagro.pb_ratio if fiagro.pb_ratio else 'null' }}"
+                        data-dy="{{ fiagro.dividend_yield if fiagro.dividend_yield else '0' }}"
+                        data-rate="{{ fiagro.dividend_rate if fiagro.dividend_rate else '0' }}"
+                        data-score="{{ fiagro.score if fiagro.score else '0' }}"
+                        data-history='{{ fiagro.history_json | safe if fiagro.history_json else "[]" }}'>
+                        <td class="ticker-col">{{ fiagro.ticker }}</td>
+                        <td class="name-col">{{ fiagro.name }}</td>
+                        <td class="metric-highlight">R$ {{ "%.2f"|format(fiagro.price) if fiagro.price else 'N/A' }}
+                        </td>
+                        <td
+                            class="{{ 'positive' if fiagro.pb_ratio and fiagro.pb_ratio >= 0.8 and fiagro.pb_ratio <= 1.05 else 'warning' }}">
+                            {{ "%.2f"|format(fiagro.pb_ratio) if fiagro.pb_ratio else 'N/A' }}
+                        </td>
+                        <td
+                            class="{{ 'positive' if fiagro.dividend_yield and fiagro.dividend_yield >= 0.08 else 'warning' }}">
+                            {{ "%.2f"|format(fiagro.dividend_yield * 100) if fiagro.dividend_yield else '0.00' }}%
+                        </td>
+                        <td class="metric-highlight">R$ {{ "%.2f"|format(fiagro.dividend_rate) if fiagro.dividend_rate
+                            else '0.00' }}</td>
+                        <td>
+                            <span class="score-pill score-{{ fiagro.score if fiagro.score else 0 }}">{{ fiagro.score if
+                                fiagro.score else 0 }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Sector Analysis Panel -->
+        <div id="panel-sectors" class="table-container hidden">
+            <table>
+                <thead>
+                    <tr>
+                        <th onclick="sortTable('sectors', 0)">Setor</th>
+                        <th onclick="sortTable('sectors', 1)">Nº Empresas</th>
+                        <th onclick="sortTable('sectors', 2)">Score Médio</th>
+                        <th onclick="sortTable('sectors', 3)">Div. Yield Médio</th>
+                        <th onclick="sortTable('sectors', 4)">P/L Médio</th>
+                    </tr>
+                </thead>
+                <tbody id="sectors-tbody">
+                    {% for sector in sectors_summary %}
+                    <tr onclick="openSectorDetailModal('{{ sector.name }}')" style="cursor: pointer;">
+                        <td class="ticker-col">{{ sector.name }}</td>
+                        <td class="metric-highlight">{{ sector.count }}</td>
+                        <td>
+                            <span class="score-pill score-{{ sector.avg_score | int }}">{{ sector.avg_score }}</span>
+                        </td>
+                        <td class="positive">{{ sector.avg_dy }}%</td>
+                        <td class="metric-highlight">{{ sector.avg_pe if sector.avg_pe else 'N/A' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Sector Detail Modal -->
+        <div id="sector-detail-modal" class="modal hidden" onclick="closeSectorModalOnOutsideClick(event)">
+            <div class="modal-content" style="max-width: 900px;">
+                <span class="close-btn" onclick="closeSectorDetailModal()">&times;</span>
+                <div class="modal-header">
+                    <h2 id="sector-modal-name" class="font-outfit">SETOR</h2>
+                    <p>Empresas classificadas neste setor (ordenadas por maior pontuação)</p>
+                </div>
+
+                <div class="table-container"
+                    style="box-shadow: none; margin-bottom: 0; background: transparent; border: none; max-height: 400px; overflow-y: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ticker</th>
+                                <th>Nome</th>
+                                <th>Preço</th>
+                                <th>P/L</th>
+                                <th>P/VP</th>
+                                <th>Div. Yield</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sector-modal-tbody">
+                            <!-- Dynamically populated -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Detail -->
+        <div id="detail-modal" class="modal hidden" onclick="closeModalOnOutsideClick(event)">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeDetailModal()">&times;</span>
+                <div class="modal-header">
+                    <h2 id="modal-ticker" class="font-outfit">TICKER</h2>
+                    <p id="modal-name">Nome da Empresa</p>
+                </div>
+
+                <div class="modal-body-grid">
+                    <!-- Left Column: Details & Score breakdown -->
+                    <div class="modal-details-col">
+                        <h3 class="font-outfit section-subtitle">Análise Fundamentalista</h3>
+                        <div id="modal-score-badge-container" style="margin: 0.5rem 0 1rem 0;"></div>
+
+                        <div id="modal-scorecard-breakdown" class="breakdown-list">
+                            <!-- Dynamically populated checklist -->
                         </div>
-                    </td>
-                    <td class="name-col">{{ stock.name }}</td>
-                    <td>{{ stock.sector }}</td>
-                    <td class="metric-highlight">R$ {{ "%.2f"|format(stock.price) if stock.price else 'N/A' }}</td>
-                    <td class="{{ 'positive' if stock.pe_ratio and stock.pe_ratio > 0 and stock.pe_ratio <= 15 else 'warning' }}">
-                        {{ "%.2f"|format(stock.pe_ratio) if stock.pe_ratio else 'N/A' }}
-                    </td>
-                    <td class="{{ 'positive' if stock.pb_ratio and stock.pb_ratio > 0 and stock.pb_ratio <= 1.5 else 'warning' }}">
-                        {{ "%.2f"|format(stock.pb_ratio) if stock.pb_ratio else 'N/A' }}
-                    </td>
-                    <td class="{{ 'positive' if stock.dividend_yield and stock.dividend_yield >= 0.06 else 'negative' }}">
-                        {{ "%.2f"|format(stock.dividend_yield * 100) if stock.dividend_yield else '0.00' }}%
-                    </td>
-                    <td class="{{ 'positive' if stock.roe and stock.roe >= 0.10 else 'negative' }}">
-                        {{ "%.2f"|format(stock.roe * 100) if stock.roe else 'N/A' }}%
-                    </td>
-                    <td class="metric-highlight {{ 'positive' if stock.price and stock.bazin_price and stock.price < stock.bazin_price else '' }}">
-                        R$ {{ "%.2f"|format(stock.bazin_price) if stock.bazin_price else 'N/A' }}
-                    </td>
-                    <td class="metric-highlight {{ 'positive' if stock.price and stock.graham_price and stock.price < stock.graham_price else '' }}">
-                        R$ {{ "%.2f"|format(stock.graham_price) if stock.graham_price else 'N/A' }}
-                    </td>
-                    <td>
-                        <span class="score-pill score-{{ stock.score }}">{{ stock.score }}</span>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+                    </div>
 
-    <!-- FIIs Panel -->
-    <div id="panel-fiis" class="table-container hidden">
-        <table>
-            <thead>
-                <tr>
-                    <th onclick="sortTable('fiis', 0)">Ticker</th>
-                    <th onclick="sortTable('fiis', 1)">Nome</th>
-                    <th onclick="sortTable('fiis', 2)">Preço Atual</th>
-                    <th onclick="sortTable('fiis', 3)">P/VP</th>
-                    <th onclick="sortTable('fiis', 4)">Div. Yield</th>
-                    <th onclick="sortTable('fiis', 5)">Dividendo Anual</th>
-                    <th onclick="sortTable('fiis', 6)">Score</th>
-                </tr>
-            </thead>
-            <tbody id="fiis-tbody">
-                {% for fii in fiis %}
-                <tr onclick="openDetailModal('{{ fii.ticker }}', 'fii')" data-ticker="{{ fii.ticker }}" data-name="{{ fii.name }}" data-price="{{ fii.price if fii.price else '0' }}" data-pb="{{ fii.pb_ratio if fii.pb_ratio else 'null' }}" data-dy="{{ fii.dividend_yield if fii.dividend_yield else '0' }}" data-rate="{{ fii.dividend_rate if fii.dividend_rate else '0' }}" data-score="{{ fii.score if fii.score else '0' }}" data-history='{{ fii.history_json | safe if fii.history_json else "[]" }}'>
-                    <td class="ticker-col">{{ fii.ticker }}</td>
-                    <td class="name-col">{{ fii.name }}</td>
-                    <td class="metric-highlight">R$ {{ "%.2f"|format(fii.price) if fii.price else 'N/A' }}</td>
-                    <td class="{{ 'positive' if fii.pb_ratio and fii.pb_ratio >= 0.8 and fii.pb_ratio <= 1.05 else 'warning' }}">
-                        {{ "%.2f"|format(fii.pb_ratio) if fii.pb_ratio else 'N/A' }}
-                    </td>
-                    <td class="{{ 'positive' if fii.dividend_yield and fii.dividend_yield >= 0.08 else 'warning' }}">
-                        {{ "%.2f"|format(fii.dividend_yield * 100) if fii.dividend_yield else '0.00' }}%
-                    </td>
-                    <td class="metric-highlight">R$ {{ "%.2f"|format(fii.dividend_rate) if fii.dividend_rate else '0.00' }}</td>
-                    <td>
-                        <span class="score-pill score-{{ fii.score if fii.score else 0 }}">{{ fii.score if fii.score else 0 }}</span>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <!-- FIAGROs Panel -->
-    <div id="panel-fiagros" class="table-container hidden">
-        <table>
-            <thead>
-                <tr>
-                    <th onclick="sortTable('fiagros', 0)">Ticker</th>
-                    <th onclick="sortTable('fiagros', 1)">Nome</th>
-                    <th onclick="sortTable('fiagros', 2)">Preço Atual</th>
-                    <th onclick="sortTable('fiagros', 3)">P/VP</th>
-                    <th onclick="sortTable('fiagros', 4)">Div. Yield</th>
-                    <th onclick="sortTable('fiagros', 5)">Dividendo Anual</th>
-                    <th onclick="sortTable('fiagros', 6)">Score</th>
-                </tr>
-            </thead>
-            <tbody id="fiagros-tbody">
-                {% for fiagro in fiagros %}
-                <tr onclick="openDetailModal('{{ fiagro.ticker }}', 'fiagro')" data-ticker="{{ fiagro.ticker }}" data-name="{{ fiagro.name }}" data-price="{{ fiagro.price if fiagro.price else '0' }}" data-pb="{{ fiagro.pb_ratio if fiagro.pb_ratio else 'null' }}" data-dy="{{ fiagro.dividend_yield if fiagro.dividend_yield else '0' }}" data-rate="{{ fiagro.dividend_rate if fiagro.dividend_rate else '0' }}" data-score="{{ fiagro.score if fiagro.score else '0' }}" data-history='{{ fiagro.history_json | safe if fiagro.history_json else "[]" }}'>
-                    <td class="ticker-col">{{ fiagro.ticker }}</td>
-                    <td class="name-col">{{ fiagro.name }}</td>
-                    <td class="metric-highlight">R$ {{ "%.2f"|format(fiagro.price) if fiagro.price else 'N/A' }}</td>
-                    <td class="{{ 'positive' if fiagro.pb_ratio and fiagro.pb_ratio >= 0.8 and fiagro.pb_ratio <= 1.05 else 'warning' }}">
-                        {{ "%.2f"|format(fiagro.pb_ratio) if fiagro.pb_ratio else 'N/A' }}
-                    </td>
-                    <td class="{{ 'positive' if fiagro.dividend_yield and fiagro.dividend_yield >= 0.08 else 'warning' }}">
-                        {{ "%.2f"|format(fiagro.dividend_yield * 100) if fiagro.dividend_yield else '0.00' }}%
-                    </td>
-                    <td class="metric-highlight">R$ {{ "%.2f"|format(fiagro.dividend_rate) if fiagro.dividend_rate else '0.00' }}</td>
-                    <td>
-                        <span class="score-pill score-{{ fiagro.score if fiagro.score else 0 }}">{{ fiagro.score if fiagro.score else 0 }}</span>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Sector Analysis Panel -->
-    <div id="panel-sectors" class="table-container hidden">
-        <table>
-            <thead>
-                <tr>
-                    <th onclick="sortTable('sectors', 0)">Setor</th>
-                    <th onclick="sortTable('sectors', 1)">Nº Empresas</th>
-                    <th onclick="sortTable('sectors', 2)">Score Médio</th>
-                    <th onclick="sortTable('sectors', 3)">Div. Yield Médio</th>
-                    <th onclick="sortTable('sectors', 4)">P/L Médio</th>
-                </tr>
-            </thead>
-            <tbody id="sectors-tbody">
-                {% for sector in sectors_summary %}
-                <tr onclick="openSectorDetailModal('{{ sector.name }}')" style="cursor: pointer;">
-                    <td class="ticker-col">{{ sector.name }}</td>
-                    <td class="metric-highlight">{{ sector.count }}</td>
-                    <td>
-                        <span class="score-pill score-{{ sector.avg_score | int }}">{{ sector.avg_score }}</span>
-                    </td>
-                    <td class="positive">{{ sector.avg_dy }}%</td>
-                    <td class="metric-highlight">{{ sector.avg_pe if sector.avg_pe else 'N/A' }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Sector Detail Modal -->
-    <div id="sector-detail-modal" class="modal hidden" onclick="closeSectorModalOnOutsideClick(event)">
-        <div class="modal-content" style="max-width: 900px;">
-            <span class="close-btn" onclick="closeSectorDetailModal()">&times;</span>
-            <div class="modal-header">
-                <h2 id="sector-modal-name" class="font-outfit">SETOR</h2>
-                <p>Empresas classificadas neste setor (ordenadas por maior pontuação)</p>
-            </div>
-            
-            <div class="table-container" style="box-shadow: none; margin-bottom: 0; background: transparent; border: none; max-height: 400px; overflow-y: auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Ticker</th>
-                            <th>Nome</th>
-                            <th>Preço</th>
-                            <th>P/L</th>
-                            <th>P/VP</th>
-                            <th>Div. Yield</th>
-                            <th>Score</th>
-                        </tr>
-                    </thead>
-                    <tbody id="sector-modal-tbody">
-                        <!-- Dynamically populated -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Detail -->
-    <div id="detail-modal" class="modal hidden" onclick="closeModalOnOutsideClick(event)">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeDetailModal()">&times;</span>
-            <div class="modal-header">
-                <h2 id="modal-ticker" class="font-outfit">TICKER</h2>
-                <p id="modal-name">Nome da Empresa</p>
-            </div>
-            
-            <div class="modal-body-grid">
-                <!-- Left Column: Details & Score breakdown -->
-                <div class="modal-details-col">
-                    <h3 class="font-outfit section-subtitle">Análise Fundamentalista</h3>
-                    <div id="modal-score-badge-container" style="margin: 0.5rem 0 1rem 0;"></div>
-                    
-                    <div id="modal-scorecard-breakdown" class="breakdown-list">
-                        <!-- Dynamically populated checklist -->
+                    <!-- Right Column: Price History Chart -->
+                    <div class="modal-chart-col">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; border-bottom: 1px solid var(--section-subtitle-border); padding-bottom: 0.5rem;">
+                            <h3 class="font-outfit section-subtitle"
+                                style="margin-bottom: 0; border: none; padding: 0;">Histórico</h3>
+                            <select id="chart-indicator-select" onchange="updateChartIndicator()"
+                                style="background: var(--dropdown-bg); border: 1px solid var(--card-border); color: var(--text-primary); padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; outline: none; cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.3s ease, color 0.3s ease;">
+                                <option value="price">Preço (R$)</option>
+                                <option value="pe">P/L</option>
+                                <option value="pb">P/VP</option>
+                                <option value="dy">Dividend Yield</option>
+                            </select>
+                        </div>
+                        <div class="time-ranges">
+                            <button class="range-btn" onclick="updateChartRange(1)" id="btn-range-1">1 Ano</button>
+                            <button class="range-btn" onclick="updateChartRange(2)" id="btn-range-2">2 Anos</button>
+                            <button class="range-btn" onclick="updateChartRange(3)" id="btn-range-3">3 Anos</button>
+                            <button class="range-btn" onclick="updateChartRange(5)" id="btn-range-5">5 Anos</button>
+                            <button class="range-btn active" onclick="updateChartRange(10)" id="btn-range-10">10
+                                Anos</button>
+                        </div>
+                        <div class="chart-container" style="position: relative; height: 250px; width: 100%;">
+                            <canvas id="history-chart"></canvas>
+                        </div>
                     </div>
                 </div>
-                
-                <!-- Right Column: Price History Chart -->
-                <div class="modal-chart-col">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; border-bottom: 1px solid var(--section-subtitle-border); padding-bottom: 0.5rem;">
-                        <h3 class="font-outfit section-subtitle" style="margin-bottom: 0; border: none; padding: 0;">Histórico</h3>
-                        <select id="chart-indicator-select" onchange="updateChartIndicator()" style="background: var(--dropdown-bg); border: 1px solid var(--card-border); color: var(--text-primary); padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; outline: none; cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.3s ease, color 0.3s ease;">
-                            <option value="price">Preço (R$)</option>
-                            <option value="pe">P/L</option>
-                            <option value="pb">P/VP</option>
-                            <option value="dy">Dividend Yield</option>
-                        </select>
+            </div>
+        </div>
+
+        <!-- Help Modal -->
+        <div id="help-modal" class="modal hidden" onclick="closeHelpModalOnOutsideClick(event)">
+            <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
+                <span class="close-btn" onclick="closeHelpModal()">&times;</span>
+                <div class="modal-header" style="margin-bottom: 1.5rem;">
+                    <h2 class="font-outfit"
+                        style="font-size: 2.2rem; background: linear-gradient(135deg, #60a5fa 0%, #34d399 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+                        Guia Metodológico</h2>
+                    <p>Entenda as fórmulas e critérios fundamentalistas utilizados neste Radar</p>
+                </div>
+
+                <div class="help-section" style="margin-bottom: 2rem;">
+                    <h3 class="font-outfit"
+                        style="color: var(--primary); font-size: 1.3rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span>📐</span> Fórmula de Valor Justo de Benjamin Graham
+                    </h3>
+                    <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); margin-bottom: 1rem;">
+                        Benjamin Graham, o pai do <em>Value Investing</em> e mentor de Warren Buffett, propôs uma
+                        fórmula para calcular o valor intrínseco (justo) de uma ação com base no lucro corrente e no
+                        valor patrimonial, estabelecendo limites conservadores para os múltiplos P/L e P/VP.
+                    </p>
+                    <div
+                        style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--card-border); padding: 1rem; border-radius: 12px; font-family: monospace; font-size: 1.1rem; text-align: center; margin-bottom: 1rem; color: var(--text-primary);">
+                        Valor Justo = √ ( 22.5 * LPA * VPA )
                     </div>
-                    <div class="time-ranges">
-                        <button class="range-btn" onclick="updateChartRange(1)" id="btn-range-1">1 Ano</button>
-                        <button class="range-btn" onclick="updateChartRange(2)" id="btn-range-2">2 Anos</button>
-                        <button class="range-btn" onclick="updateChartRange(3)" id="btn-range-3">3 Anos</button>
-                        <button class="range-btn" onclick="updateChartRange(5)" id="btn-range-5">5 Anos</button>
-                        <button class="range-btn active" onclick="updateChartRange(10)" id="btn-range-10">10 Anos</button>
+                    <ul
+                        style="list-style-type: none; font-size: 0.9rem; color: var(--text-secondary); padding-left: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                        <li>📌 <strong>LPA (Lucro por Ação):</strong> Quanto a empresa lucra por cada ação em
+                            circulação.</li>
+                        <li>📌 <strong>VPA (Valor Patrimonial por Ação):</strong> O patrimônio líquido total dividido
+                            pelo número de ações.</li>
+                        <li>📌 <strong>Constante 22.5:</strong> Corresponde ao limite aceitável do produto de P/L máximo
+                            de 15 e P/VP máximo de 1.5 (15 * 1.5 = 22.5).</li>
+                        <li>✅ <strong>Regra de Desconto:</strong> Se o preço atual for <strong>inferior</strong> ao
+                            Valor Justo de Graham, a ação possui margem de segurança para compra.</li>
+                    </ul>
+                </div>
+
+                <div class="help-section"
+                    style="margin-bottom: 2rem; border-top: 1px solid var(--section-subtitle-border); padding-top: 1.5rem;">
+                    <h3 class="font-outfit"
+                        style="color: var(--accent-green); font-size: 1.3rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span>💸</span> Método de Preço Teto de Décio Bazin
+                    </h3>
+                    <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); margin-bottom: 1rem;">
+                        Décio Bazin, renomado analista e autor brasileiro, formulou um método focado na geração de renda
+                        passiva através de dividendos sustentáveis. Ele buscava empresas saudáveis e com histórico de
+                        bom pagamento de proventos, exigindo um rendimento mínimo anual de 6%.
+                    </p>
+                    <div
+                        style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--card-border); padding: 1rem; border-radius: 12px; font-family: monospace; font-size: 1.1rem; text-align: center; margin-bottom: 1rem; color: var(--text-primary);">
+                        Preço Teto = Dividendo Anual Médio / 0.06
                     </div>
-                    <div class="chart-container" style="position: relative; height: 250px; width: 100%;">
-                        <canvas id="history-chart"></canvas>
+                    <ul
+                        style="list-style-type: none; font-size: 0.9rem; color: var(--text-secondary); padding-left: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                        <li>📌 <strong>Dividendo Anual Médio:</strong> Valor total pago em proventos nos últimos
+                            períodos acumulados.</li>
+                        <li>📌 <strong>Taxa 6% (0.06):</strong> Taxa de rentabilidade mínima desejada em dividendos para
+                            justificar o investimento em renda variável.</li>
+                        <li>✅ <strong>Regra de Desconto:</strong> Se o preço atual for <strong>inferior</strong> ao
+                            Preço Teto de Bazin, o ativo está barato na ótica de dividendos, garantindo retorno mínimo
+                            projetado de 6% a.a.</li>
+                    </ul>
+                </div>
+
+                <div class="help-section"
+                    style="border-top: 1px solid var(--section-subtitle-border); padding-top: 1.5rem;">
+                    <h3 class="font-outfit"
+                        style="color: var(--accent-gold); font-size: 1.3rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span>📊</span> Score Fundamentalista (0 a 5)
+                    </h3>
+                    <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); margin-bottom: 1rem;">
+                        O <strong>Score Fundamentalista</strong> resume a saúde financeira da empresa ou fundo em uma
+                        nota de 0 a 5 pontos baseada em checklist rígido:
+                    </p>
+                    <div
+                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.85rem; color: var(--text-secondary);">
+                        <div>
+                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">Ações
+                                B3:</strong>
+                            • <strong>P/L Saudável:</strong> P/L positivo e menor que 15 (+1)<br>
+                            • <strong>Endividamento:</strong> Dívida Líquida / Patrimônio < 1 (+1)<br>
+                                • <strong>Crescimento:</strong> Receita crescente nos últimos 5 anos (+1)<br>
+                                • <strong>Rentabilidade:</strong> ROE anual maior ou igual a 10% (+1)<br>
+                                • <strong>Proventos:</strong> Dividend Yield nos últimos 12 meses >= 6% (+1)
+                        </div>
+                        <div>
+                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">FIIs e
+                                FIAGROs:</strong>
+                            • <strong>P/VP Ideal:</strong> P/VP histórico entre 0.85 e 1.05 (+1)<br>
+                            • <strong>Preço Limite:</strong> P/VP geral menor ou igual a 1.15 (+1)<br>
+                            • <strong>DY Mínimo:</strong> Dividend Yield anual maior ou igual a 8% (+1)<br>
+                            • <strong>DY Excelente:</strong> Dividend Yield anual maior ou igual a 10% (+1)<br>
+                            • <strong>Distribuição:</strong> Rendimento anual positivo e recorrente (+1)
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Help Modal -->
-    <div id="help-modal" class="modal hidden" onclick="closeHelpModalOnOutsideClick(event)">
-        <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
-            <span class="close-btn" onclick="closeHelpModal()">&times;</span>
-            <div class="modal-header" style="margin-bottom: 1.5rem;">
-                <h2 class="font-outfit" style="font-size: 2.2rem; background: linear-gradient(135deg, #60a5fa 0%, #34d399 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Guia Metodológico</h2>
-                <p>Entenda as fórmulas e critérios fundamentalistas utilizados neste Radar</p>
-            </div>
-            
-            <div class="help-section" style="margin-bottom: 2rem;">
-                <h3 class="font-outfit" style="color: var(--primary); font-size: 1.3rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-                    <span>📐</span> Fórmula de Valor Justo de Benjamin Graham
-                </h3>
-                <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); margin-bottom: 1rem;">
-                    Benjamin Graham, o pai do <em>Value Investing</em> e mentor de Warren Buffett, propôs uma fórmula para calcular o valor intrínseco (justo) de uma ação com base no lucro corrente e no valor patrimonial, estabelecendo limites conservadores para os múltiplos P/L e P/VP.
-                </p>
-                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--card-border); padding: 1rem; border-radius: 12px; font-family: monospace; font-size: 1.1rem; text-align: center; margin-bottom: 1rem; color: var(--text-primary);">
-                    Valor Justo = √ ( 22.5 * LPA * VPA )
-                </div>
-                <ul style="list-style-type: none; font-size: 0.9rem; color: var(--text-secondary); padding-left: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                    <li>📌 <strong>LPA (Lucro por Ação):</strong> Quanto a empresa lucra por cada ação em circulação.</li>
-                    <li>📌 <strong>VPA (Valor Patrimonial por Ação):</strong> O patrimônio líquido total dividido pelo número de ações.</li>
-                    <li>📌 <strong>Constante 22.5:</strong> Corresponde ao limite aceitável do produto de P/L máximo de 15 e P/VP máximo de 1.5 (15 * 1.5 = 22.5).</li>
-                    <li>✅ <strong>Regra de Desconto:</strong> Se o preço atual for <strong>inferior</strong> ao Valor Justo de Graham, a ação possui margem de segurança para compra.</li>
-                </ul>
-            </div>
+    <script>
+        let currentTab = 'stocks';
+        let activeScores = [];
 
-            <div class="help-section" style="margin-bottom: 2rem; border-top: 1px solid var(--section-subtitle-border); padding-top: 1.5rem;">
-                <h3 class="font-outfit" style="color: var(--accent-green); font-size: 1.3rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-                    <span>💸</span> Método de Preço Teto de Décio Bazin
-                </h3>
-                <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); margin-bottom: 1rem;">
-                    Décio Bazin, renomado analista e autor brasileiro, formulou um método focado na geração de renda passiva através de dividendos sustentáveis. Ele buscava empresas saudáveis e com histórico de bom pagamento de proventos, exigindo um rendimento mínimo anual de 6%.
-                </p>
-                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--card-border); padding: 1rem; border-radius: 12px; font-family: monospace; font-size: 1.1rem; text-align: center; margin-bottom: 1rem; color: var(--text-primary);">
-                    Preço Teto = Dividendo Anual Médio / 0.06
-                </div>
-                <ul style="list-style-type: none; font-size: 0.9rem; color: var(--text-secondary); padding-left: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                    <li>📌 <strong>Dividendo Anual Médio:</strong> Valor total pago em proventos nos últimos períodos acumulados.</li>
-                    <li>📌 <strong>Taxa 6% (0.06):</strong> Taxa de rentabilidade mínima desejada em dividendos para justificar o investimento em renda variável.</li>
-                    <li>✅ <strong>Regra de Desconto:</strong> Se o preço atual for <strong>inferior</strong> ao Preço Teto de Bazin, o ativo está barato na ótica de dividendos, garantindo retorno mínimo projetado de 6% a.a.</li>
-                </ul>
-            </div>
-
-            <div class="help-section" style="border-top: 1px solid var(--section-subtitle-border); padding-top: 1.5rem;">
-                <h3 class="font-outfit" style="color: var(--accent-gold); font-size: 1.3rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-                    <span>📊</span> Score Fundamentalista (0 a 5)
-                </h3>
-                <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); margin-bottom: 1rem;">
-                    O <strong>Score Fundamentalista</strong> resume a saúde financeira da empresa ou fundo em uma nota de 0 a 5 pontos baseada em checklist rígido:
-                </p>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.85rem; color: var(--text-secondary);">
-                    <div>
-                        <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">Ações B3:</strong>
-                        • <strong>P/L Saudável:</strong> P/L positivo e menor que 15 (+1)<br>
-                        • <strong>Endividamento:</strong> Dívida Líquida / Patrimônio < 1 (+1)<br>
-                        • <strong>Crescimento:</strong> Receita crescente nos últimos 5 anos (+1)<br>
-                        • <strong>Rentabilidade:</strong> ROE anual maior ou igual a 10% (+1)<br>
-                        • <strong>Proventos:</strong> Dividend Yield nos últimos 12 meses >= 6% (+1)
-                    </div>
-                    <div>
-                        <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">FIIs e FIAGROs:</strong>
-                        • <strong>P/VP Ideal:</strong> P/VP histórico entre 0.85 e 1.05 (+1)<br>
-                        • <strong>Preço Limite:</strong> P/VP geral menor ou igual a 1.15 (+1)<br>
-                        • <strong>DY Mínimo:</strong> Dividend Yield anual maior ou igual a 8% (+1)<br>
-                        • <strong>DY Excelente:</strong> Dividend Yield anual maior ou igual a 10% (+1)<br>
-                        • <strong>Distribuição:</strong> Rendimento anual positivo e recorrente (+1)
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    let currentTab = 'stocks';
-
-    function switchTab(tab) {
-        currentTab = tab;
-        // Atualizar label do PDF
-        const pdfLabel = document.getElementById('pdf-label');
-        if (pdfLabel) {
-            const names = { stocks: 'Ações', fiis: 'FIIs', fiagros: 'FIAGROs', sectors: 'Setores' };
-            pdfLabel.textContent = names[tab] || tab;
-        }
-        const btnStocks = document.querySelectorAll('.tab-btn')[0];
-        const btnFiis = document.querySelectorAll('.tab-btn')[1];
-        const btnFiagros = document.querySelectorAll('.tab-btn')[2];
-        const btnSectors = document.querySelectorAll('.tab-btn')[3];
-        
-        const panelStocks = document.getElementById('panel-stocks');
-        const panelFiis = document.getElementById('panel-fiis');
-        const panelFiagros = document.getElementById('panel-fiagros');
-        const panelSectors = document.getElementById('panel-sectors');
-
-        btnStocks.classList.remove('active');
-        btnFiis.classList.remove('active');
-        btnFiagros.classList.remove('active');
-        if (btnSectors) btnSectors.classList.remove('active');
-        
-        panelStocks.classList.add('hidden');
-        panelFiis.classList.add('hidden');
-        panelFiagros.classList.add('hidden');
-        if (panelSectors) panelSectors.classList.add('hidden');
-
-        if (tab === 'stocks') {
-            btnStocks.classList.add('active');
-            panelStocks.classList.remove('hidden');
-        } else if (tab === 'fiis') {
-            btnFiis.classList.add('active');
-            panelFiis.classList.remove('hidden');
-        } else if (tab === 'fiagros') {
-            btnFiagros.classList.add('active');
-            panelFiagros.classList.remove('hidden');
-        } else if (tab === 'sectors') {
-            if (btnSectors) btnSectors.classList.add('active');
-            if (panelSectors) panelSectors.classList.remove('hidden');
-        }
-        
-        const indexFilter = document.getElementById('index-filter');
-        const sectorFilter = document.getElementById('sector-filter');
-        const scoreFilter = document.getElementById('score-filter');
-        const discountFilter = document.getElementById('discount-filter');
-        
-        if (tab === 'stocks') {
-            if (indexFilter) indexFilter.classList.remove('hidden');
-            if (sectorFilter) sectorFilter.classList.remove('hidden');
-            if (scoreFilter) scoreFilter.classList.remove('hidden');
-            if (discountFilter) discountFilter.classList.remove('hidden');
-        } else if (tab === 'fiis' || tab === 'fiagros') {
-            if (indexFilter) indexFilter.classList.add('hidden');
-            if (sectorFilter) sectorFilter.classList.add('hidden');
-            if (scoreFilter) scoreFilter.classList.remove('hidden');
-            if (discountFilter) discountFilter.classList.remove('hidden');
-        } else { // sectors
-            if (indexFilter) indexFilter.classList.add('hidden');
-            if (sectorFilter) sectorFilter.classList.add('hidden');
-            if (scoreFilter) scoreFilter.classList.add('hidden');
-            if (discountFilter) discountFilter.classList.add('hidden');
-        }
-        
-        filterTable();
-    }
-
-    function filterTable() {
-        const query = document.getElementById('search-bar').value.toLowerCase();
-        let tbodyId = 'stocks-tbody';
-        if (currentTab === 'fiis') tbodyId = 'fiis-tbody';
-        if (currentTab === 'fiagros') tbodyId = 'fiagros-tbody';
-        if (currentTab === 'sectors') tbodyId = 'sectors-tbody';
-        
-        const rows = document.getElementById(tbodyId).getElementsByTagName('tr');
-        
-        const indexFilterVal = document.getElementById('index-filter') ? document.getElementById('index-filter').value : 'all';
-        const sectorFilterVal = document.getElementById('sector-filter') ? document.getElementById('sector-filter').value : 'all';
-        const scoreFilterVal = document.getElementById('score-filter') ? document.getElementById('score-filter').value : 'all';
-        const discountFilterVal = document.getElementById('discount-filter') ? document.getElementById('discount-filter').value : 'all';
-
-        for (let row of rows) {
-            const ticker = (row.getAttribute('data-ticker') || row.cells[0].textContent).toLowerCase();
-            const name = (row.getAttribute('data-name') || (row.cells[1] ? row.cells[1].textContent : '')).toLowerCase();
-            
-            // 1. Search filter
-            const matchesSearch = ticker.includes(query) || name.includes(query);
-            
-            // 2. Index filter (only for stocks)
-            let matchesIndex = true;
-            if (currentTab === 'stocks' && indexFilterVal !== 'all') {
-                const rowIndices = row.getAttribute('data-indices') || '';
-                const indicesList = rowIndices.split(',').map(idx => idx.trim());
-                matchesIndex = indicesList.includes(indexFilterVal);
+        function toggleScoreFilter(score) {
+            const btn = document.querySelector(`.score-btn[data-score="${score}"]`);
+            const idx = activeScores.indexOf(score);
+            if (idx > -1) {
+                activeScores.splice(idx, 1);
+                if (btn) btn.classList.remove('active');
+            } else {
+                activeScores.push(score);
+                if (btn) btn.classList.add('active');
             }
-            
-            // 3. Sector filter (only for stocks)
-            let matchesSector = true;
-            if (currentTab === 'stocks' && sectorFilterVal !== 'all') {
-                const rowSector = row.getAttribute('data-sector') || '';
-                matchesSector = (rowSector === sectorFilterVal);
+
+            const container = document.querySelector('.score-buttons');
+            if (activeScores.length > 0) {
+                container.classList.add('filtering');
+            } else {
+                container.classList.remove('filtering');
             }
-            
-            // 4. Quality/Score filter (for stocks, fiis, fiagros)
-            let matchesScore = true;
-            if (scoreFilterVal !== 'all') {
-                const minScore = parseInt(scoreFilterVal);
-                const rowScore = parseInt(row.getAttribute('data-score')) || 0;
-                matchesScore = (rowScore >= minScore);
+
+            filterTable();
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            // Atualizar label do PDF
+            const pdfLabel = document.getElementById('pdf-label');
+            if (pdfLabel) {
+                const names = { stocks: 'Ações', fiis: 'FIIs', fiagros: 'FIAGROs', sectors: 'Setores' };
+                pdfLabel.textContent = names[tab] || tab;
             }
-            
-            // 5. Discount/Price filter
-            let matchesDiscount = true;
-            if (discountFilterVal !== 'all') {
-                if (currentTab === 'stocks') {
-                    const price = parseFloat(row.getAttribute('data-price')) || 0;
-                    const bazin = parseFloat(row.getAttribute('data-bazin')) || 0;
-                    const graham = parseFloat(row.getAttribute('data-graham')) || 0;
-                    
-                    // Stock is discounted if Price < Graham OR Price < Bazin
-                    const discounted = (graham > 0 && price < graham) || (bazin > 0 && price < bazin);
-                    matchesDiscount = discounted;
-                } else if (currentTab === 'fiis' || currentTab === 'fiagros') {
-                    const pb = parseFloat(row.getAttribute('data-pb')) || null;
-                    // FII/FIAGRO is discounted if P/VP <= 1.00
-                    matchesDiscount = (pb !== null && pb > 0 && pb <= 1.00);
+            const btnStocks = document.querySelectorAll('.tab-btn')[0];
+            const btnFiis = document.querySelectorAll('.tab-btn')[1];
+            const btnFiagros = document.querySelectorAll('.tab-btn')[2];
+            const btnSectors = document.querySelectorAll('.tab-btn')[3];
+
+            const panelStocks = document.getElementById('panel-stocks');
+            const panelFiis = document.getElementById('panel-fiis');
+            const panelFiagros = document.getElementById('panel-fiagros');
+            const panelSectors = document.getElementById('panel-sectors');
+
+            btnStocks.classList.remove('active');
+            btnFiis.classList.remove('active');
+            btnFiagros.classList.remove('active');
+            if (btnSectors) btnSectors.classList.remove('active');
+
+            panelStocks.classList.add('hidden');
+            panelFiis.classList.add('hidden');
+            panelFiagros.classList.add('hidden');
+            if (panelSectors) panelSectors.classList.add('hidden');
+
+            if (tab === 'stocks') {
+                btnStocks.classList.add('active');
+                panelStocks.classList.remove('hidden');
+            } else if (tab === 'fiis') {
+                btnFiis.classList.add('active');
+                panelFiis.classList.remove('hidden');
+            } else if (tab === 'fiagros') {
+                btnFiagros.classList.add('active');
+                panelFiagros.classList.remove('hidden');
+            } else if (tab === 'sectors') {
+                if (btnSectors) btnSectors.classList.add('active');
+                if (panelSectors) panelSectors.classList.remove('hidden');
+            }
+
+            const indexFilter = document.getElementById('index-filter');
+            const sectorFilter = document.getElementById('sector-filter');
+            const scoreFilter = document.getElementById('score-filter');
+            const discountFilter = document.getElementById('discount-filter');
+
+            if (tab === 'stocks') {
+                if (indexFilter) indexFilter.classList.remove('hidden');
+                if (sectorFilter) sectorFilter.classList.remove('hidden');
+                if (scoreFilter) scoreFilter.classList.remove('hidden');
+                if (discountFilter) discountFilter.classList.remove('hidden');
+            } else if (tab === 'fiis' || tab === 'fiagros') {
+                if (indexFilter) indexFilter.classList.add('hidden');
+                if (sectorFilter) sectorFilter.classList.add('hidden');
+                if (scoreFilter) scoreFilter.classList.remove('hidden');
+                if (discountFilter) discountFilter.classList.remove('hidden');
+            } else { // sectors
+                if (indexFilter) indexFilter.classList.add('hidden');
+                if (sectorFilter) sectorFilter.classList.add('hidden');
+                if (scoreFilter) scoreFilter.classList.add('hidden');
+                if (discountFilter) discountFilter.classList.add('hidden');
+            }
+
+            filterTable();
+        }
+
+        function filterTable() {
+            const query = document.getElementById('search-bar').value.toLowerCase();
+            let tbodyId = 'stocks-tbody';
+            if (currentTab === 'fiis') tbodyId = 'fiis-tbody';
+            if (currentTab === 'fiagros') tbodyId = 'fiagros-tbody';
+            if (currentTab === 'sectors') tbodyId = 'sectors-tbody';
+
+            const rows = document.getElementById(tbodyId).getElementsByTagName('tr');
+
+            const indexFilterVal = document.getElementById('index-filter') ? document.getElementById('index-filter').value : 'all';
+            const sectorFilterVal = document.getElementById('sector-filter') ? document.getElementById('sector-filter').value : 'all';
+            const discountFilterVal = document.getElementById('discount-filter') ? document.getElementById('discount-filter').value : 'all';
+
+            for (let row of rows) {
+                const ticker = (row.getAttribute('data-ticker') || row.cells[0].textContent).toLowerCase();
+                const name = (row.getAttribute('data-name') || (row.cells[1] ? row.cells[1].textContent : '')).toLowerCase();
+
+                // 1. Search filter
+                const matchesSearch = ticker.includes(query) || name.includes(query);
+
+                // 2. Index filter (only for stocks)
+                let matchesIndex = true;
+                if (currentTab === 'stocks' && indexFilterVal !== 'all') {
+                    const rowIndices = row.getAttribute('data-indices') || '';
+                    const indicesList = rowIndices.split(',').map(idx => idx.trim());
+                    matchesIndex = indicesList.includes(indexFilterVal);
+                }
+
+                // 3. Sector filter (only for stocks)
+                let matchesSector = true;
+                if (currentTab === 'stocks' && sectorFilterVal !== 'all') {
+                    const rowSector = row.getAttribute('data-sector') || '';
+                    matchesSector = (rowSector === sectorFilterVal);
+                }
+
+                // 4. Quality/Score filter (for stocks, fiis, fiagros)
+                let matchesScore = true;
+                if (activeScores.length > 0) {
+                    const rowScore = parseInt(row.getAttribute('data-score')) || 0;
+                    matchesScore = activeScores.includes(rowScore);
+                }
+
+                // 5. Discount/Price filter
+                let matchesDiscount = true;
+                if (discountFilterVal !== 'all') {
+                    if (currentTab === 'stocks') {
+                        const price = parseFloat(row.getAttribute('data-price')) || 0;
+                        const bazin = parseFloat(row.getAttribute('data-bazin')) || 0;
+                        const graham = parseFloat(row.getAttribute('data-graham')) || 0;
+
+                        // Stock is discounted if Price < Graham OR Price < Bazin
+                        const discounted = (graham > 0 && price < graham) || (bazin > 0 && price < bazin);
+                        matchesDiscount = discounted;
+                    } else if (currentTab === 'fiis' || currentTab === 'fiagros') {
+                        const pb = parseFloat(row.getAttribute('data-pb')) || null;
+                        // FII/FIAGRO is discounted if P/VP <= 1.00
+                        matchesDiscount = (pb !== null && pb > 0 && pb <= 1.00);
+                    }
+                }
+
+                if (matchesSearch && matchesIndex && matchesSector && matchesScore && matchesDiscount) {
+                    row.classList.remove('hidden');
+                } else {
+                    row.classList.add('hidden');
                 }
             }
-            
-            if (matchesSearch && matchesIndex && matchesSector && matchesScore && matchesDiscount) {
-                row.classList.remove('hidden');
-            } else {
-                row.classList.add('hidden');
-            }
         }
-    }
 
-    function sortTable(type, colIdx) {
-        let tbodyId = 'stocks-tbody';
-        if (type === 'fiis') tbodyId = 'fiis-tbody';
-        if (type === 'fiagros') tbodyId = 'fiagros-tbody';
-        if (type === 'sectors') tbodyId = 'sectors-tbody';
-        
-        const tbody = document.getElementById(tbodyId);
-        const rows = Array.from(tbody.getElementsByTagName('tr'));
-        
-        let isNumeric = true;
-        if (type === 'stocks' && (colIdx === 0 || colIdx === 1 || colIdx === 2)) isNumeric = false;
-        else if ((type === 'fiis' || type === 'fiagros') && (colIdx === 0 || colIdx === 1)) isNumeric = false;
-        else if (type === 'sectors' && colIdx === 0) isNumeric = false;
-        
-        // Track sorting direction
-        this.asc = !this.asc;
-        
-        rows.sort((a, b) => {
-            let valA = a.cells[colIdx].textContent.trim();
-            let valB = b.cells[colIdx].textContent.trim();
-            
-            if (isNumeric) {
-                // Clean money/percentage signs
-                valA = parseFloat(valA.replace(/[R$\s%]/g, '').replace(',', '.')) || 0;
-                valB = parseFloat(valB.replace(/[R$\s%]/g, '').replace(',', '.')) || 0;
-                return this.asc ? valA - valB : valB - valA;
+        function sortTable(type, colIdx) {
+            let tbodyId = 'stocks-tbody';
+            if (type === 'fiis') tbodyId = 'fiis-tbody';
+            if (type === 'fiagros') tbodyId = 'fiagros-tbody';
+            if (type === 'sectors') tbodyId = 'sectors-tbody';
+
+            const tbody = document.getElementById(tbodyId);
+            const rows = Array.from(tbody.getElementsByTagName('tr'));
+
+            let isNumeric = true;
+            if (type === 'stocks' && (colIdx === 0 || colIdx === 1 || colIdx === 2)) isNumeric = false;
+            else if ((type === 'fiis' || type === 'fiagros') && (colIdx === 0 || colIdx === 1)) isNumeric = false;
+            else if (type === 'sectors' && colIdx === 0) isNumeric = false;
+
+            // Track sorting direction
+            this.asc = !this.asc;
+
+            rows.sort((a, b) => {
+                let valA = a.cells[colIdx].textContent.trim();
+                let valB = b.cells[colIdx].textContent.trim();
+
+                if (isNumeric) {
+                    // Clean money/percentage signs
+                    valA = parseFloat(valA.replace(/[R$\s%]/g, '').replace(',', '.')) || 0;
+                    valB = parseFloat(valB.replace(/[R$\s%]/g, '').replace(',', '.')) || 0;
+                    return this.asc ? valA - valB : valB - valA;
+                } else {
+                    return this.asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                }
+            });
+
+            // Re-append sorted rows
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        function openSectorDetailModal(sectorName) {
+            document.getElementById('sector-modal-name').textContent = sectorName;
+
+            const tbody = document.getElementById('sector-modal-tbody');
+            tbody.innerHTML = '';
+
+            // Get all stock rows in stocks-tbody
+            const stockRows = document.querySelectorAll('#stocks-tbody tr');
+            let foundStocks = [];
+
+            stockRows.forEach(row => {
+                const rowSector = row.getAttribute('data-sector');
+                if (rowSector === sectorName) {
+                    const ticker = row.getAttribute('data-ticker');
+                    const name = row.getAttribute('data-name');
+                    const price = parseFloat(row.getAttribute('data-price')) || 0;
+                    const pe = row.getAttribute('data-pe') !== 'null' ? parseFloat(row.getAttribute('data-pe')) : null;
+                    const pb = row.getAttribute('data-pb') !== 'null' ? parseFloat(row.getAttribute('data-pb')) : null;
+                    const dy = parseFloat(row.getAttribute('data-dy')) || 0;
+                    const score = parseInt(row.getAttribute('data-score')) || 0;
+
+                    foundStocks.push({ ticker, name, price, pe, pb, dy, score });
+                }
+            });
+
+            // Sort by Score desc, then by Dividend Yield desc (Bao opcao filter)
+            foundStocks.sort((a, b) => b.score - a.score || b.dy - a.dy);
+
+            if (foundStocks.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">Nenhuma empresa cadastrada neste setor.</td></tr>';
             } else {
-                return this.asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-            }
-        });
-        
-        // Re-append sorted rows
-        rows.forEach(row => tbody.appendChild(row));
-    }
+                foundStocks.forEach(stock => {
+                    const tr = document.createElement('tr');
+                    tr.style.cursor = 'pointer';
+                    tr.onclick = (e) => {
+                        closeSectorDetailModal();
+                        openDetailModal(stock.ticker, 'stock');
+                        e.stopPropagation();
+                    };
 
-    function openSectorDetailModal(sectorName) {
-        document.getElementById('sector-modal-name').textContent = sectorName;
-        
-        const tbody = document.getElementById('sector-modal-tbody');
-        tbody.innerHTML = '';
-        
-        // Get all stock rows in stocks-tbody
-        const stockRows = document.querySelectorAll('#stocks-tbody tr');
-        let foundStocks = [];
-        
-        stockRows.forEach(row => {
-            const rowSector = row.getAttribute('data-sector');
-            if (rowSector === sectorName) {
-                const ticker = row.getAttribute('data-ticker');
-                const name = row.getAttribute('data-name');
-                const price = parseFloat(row.getAttribute('data-price')) || 0;
-                const pe = row.getAttribute('data-pe') !== 'null' ? parseFloat(row.getAttribute('data-pe')) : null;
-                const pb = row.getAttribute('data-pb') !== 'null' ? parseFloat(row.getAttribute('data-pb')) : null;
-                const dy = parseFloat(row.getAttribute('data-dy')) || 0;
-                const score = parseInt(row.getAttribute('data-score')) || 0;
-                
-                foundStocks.push({ ticker, name, price, pe, pb, dy, score });
-            }
-        });
-        
-        // Sort by Score desc, then by Dividend Yield desc (Bao opcao filter)
-        foundStocks.sort((a, b) => b.score - a.score || b.dy - a.dy);
-        
-        if (foundStocks.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">Nenhuma empresa cadastrada neste setor.</td></tr>';
-        } else {
-            foundStocks.forEach(stock => {
-                const tr = document.createElement('tr');
-                tr.style.cursor = 'pointer';
-                tr.onclick = (e) => {
-                    closeSectorDetailModal();
-                    openDetailModal(stock.ticker, 'stock');
-                    e.stopPropagation();
-                };
-                
-                tr.innerHTML = `
+                    tr.innerHTML = `
                     <td class="ticker-col">${stock.ticker}</td>
                     <td>${stock.name}</td>
                     <td class="metric-highlight">R$ ${stock.price.toFixed(2)}</td>
@@ -1429,412 +1846,414 @@
                         <span class="score-pill score-${stock.score}">${stock.score}</span>
                     </td>
                 `;
-                tbody.appendChild(tr);
-            });
+                    tbody.appendChild(tr);
+                });
+            }
+
+            document.getElementById('sector-detail-modal').classList.remove('hidden');
         }
-        
-        document.getElementById('sector-detail-modal').classList.remove('hidden');
-    }
 
-    function closeSectorDetailModal() {
-        document.getElementById('sector-detail-modal').classList.add('hidden');
-    }
-
-    function closeSectorModalOnOutsideClick(event) {
-        if (event.target === document.getElementById('sector-detail-modal')) {
-            closeSectorDetailModal();
+        function closeSectorDetailModal() {
+            document.getElementById('sector-detail-modal').classList.add('hidden');
         }
-    }
 
-    let activeChart = null;
-    let currentAssetHistory = [];
-    let currentAssetType = '';
-    let currentAssetMetrics = {};
-    let currentAssetRange = 10;
+        function closeSectorModalOnOutsideClick(event) {
+            if (event.target === document.getElementById('sector-detail-modal')) {
+                closeSectorDetailModal();
+            }
+        }
 
-    function openDetailModal(ticker, type) {
-        const rows = document.querySelectorAll(`[data-ticker="${ticker}"]`);
-        if (rows.length === 0) return;
-        const row = rows[0];
-        
-        // Populate Header
-        document.getElementById('modal-ticker').textContent = ticker;
-        document.getElementById('modal-name').textContent = row.getAttribute('data-name');
-        
-        // Clear previous scorecard and load details
-        const scoreContainer = document.getElementById('modal-score-badge-container');
-        const scorecard = document.getElementById('modal-scorecard-breakdown');
-        scoreContainer.innerHTML = '';
-        scorecard.innerHTML = '';
-        
-        const price = parseFloat(row.getAttribute('data-price')) || 0;
-        
-        if (type === 'stock') {
-            const pe = parseFloat(row.getAttribute('data-pe')) || null;
-            const pb = parseFloat(row.getAttribute('data-pb')) || null;
-            const dy = parseFloat(row.getAttribute('data-dy')) || 0;
-            const roe = parseFloat(row.getAttribute('data-roe')) || null;
-            const score = parseInt(row.getAttribute('data-score')) || 0;
-            const bazin = parseFloat(row.getAttribute('data-bazin')) || 0;
-            const graham = parseFloat(row.getAttribute('data-graham')) || 0;
-            const eps = parseFloat(row.getAttribute('data-eps')) || null;
-            const vpa = parseFloat(row.getAttribute('data-vpa')) || null;
+        let activeChart = null;
+        let currentAssetHistory = [];
+        let currentAssetType = '';
+        let currentAssetMetrics = {};
+        let currentAssetRange = 10;
 
-            currentAssetMetrics = {
-                price: price,
-                dy: dy,
-                eps: eps,
-                vpa: vpa,
-                dividendRate: price * dy
-            };
-            
-            // Score Badge
-            scoreContainer.innerHTML = `<span class="score-pill score-${score}" style="width: auto; height: auto; border-radius: 12px; padding: 0.4rem 1rem; font-size: 0.9rem;">Score Fundamentalista: ${score}/5</span>`;
-            
-            // Score Rules Checklist
-            const rules = [
-                { label: "Dividend Yield >= 6%", val: dy >= 0.06, desc: `Atual: ${(dy*100).toFixed(2)}%` },
-                { label: "P/L (Preço / Lucro) <= 15", val: pe !== null && pe > 0 && pe <= 15, desc: `Atual: ${pe !== null ? pe.toFixed(2) : 'N/A'}` },
-                { label: "P/VP (Preço / V.P.) <= 1.5", val: pb !== null && pb > 0 && pb <= 1.5, desc: `Atual: ${pb !== null ? pb.toFixed(2) : 'N/A'}` },
-                { label: "ROE (Retorno s/ Patr.) >= 10%", val: roe !== null && roe >= 0.10, desc: `Atual: ${roe !== null ? (roe*100).toFixed(2) : 'N/A'}%` },
-                { label: "Margem de Graham (Preço < Justo)", val: graham > 0 && price < graham, desc: `Justo: R$ ${graham.toFixed(2)} vs R$ ${price.toFixed(2)}` }
-            ];
-            
-            rules.forEach(rule => {
-                const item = document.createElement('div');
-                item.className = 'breakdown-item';
-                item.innerHTML = `
+        function openDetailModal(ticker, type) {
+            const rows = document.querySelectorAll(`[data-ticker="${ticker}"]`);
+            if (rows.length === 0) return;
+            const row = rows[0];
+
+            // Populate Header
+            document.getElementById('modal-ticker').textContent = ticker;
+            document.getElementById('modal-name').textContent = row.getAttribute('data-name');
+
+            // Clear previous scorecard and load details
+            const scoreContainer = document.getElementById('modal-score-badge-container');
+            const scorecard = document.getElementById('modal-scorecard-breakdown');
+            scoreContainer.innerHTML = '';
+            scorecard.innerHTML = '';
+
+            const price = parseFloat(row.getAttribute('data-price')) || 0;
+
+            if (type === 'stock') {
+                const pe = parseFloat(row.getAttribute('data-pe')) || null;
+                const pb = parseFloat(row.getAttribute('data-pb')) || null;
+                const dy = parseFloat(row.getAttribute('data-dy')) || 0;
+                const roe = parseFloat(row.getAttribute('data-roe')) || null;
+                const score = parseInt(row.getAttribute('data-score')) || 0;
+                const bazin = parseFloat(row.getAttribute('data-bazin')) || 0;
+                const graham = parseFloat(row.getAttribute('data-graham')) || 0;
+                const eps = parseFloat(row.getAttribute('data-eps')) || null;
+                const vpa = parseFloat(row.getAttribute('data-vpa')) || null;
+
+                currentAssetMetrics = {
+                    price: price,
+                    dy: dy,
+                    eps: eps,
+                    vpa: vpa,
+                    dividendRate: price * dy
+                };
+
+                // Score Badge
+                scoreContainer.innerHTML = `<span class="score-pill score-${score}" style="width: auto; height: auto; border-radius: 12px; padding: 0.4rem 1rem; font-size: 0.9rem;">Score Fundamentalista: ${score}/5</span>`;
+
+                // Score Rules Checklist
+                const rules = [
+                    { label: "Dividend Yield >= 6%", val: dy >= 0.06, desc: `Atual: ${(dy * 100).toFixed(2)}%` },
+                    { label: "P/L (Preço / Lucro) <= 15", val: pe !== null && pe > 0 && pe <= 15, desc: `Atual: ${pe !== null ? pe.toFixed(2) : 'N/A'}` },
+                    { label: "P/VP (Preço / V.P.) <= 1.5", val: pb !== null && pb > 0 && pb <= 1.5, desc: `Atual: ${pb !== null ? pb.toFixed(2) : 'N/A'}` },
+                    { label: "ROE (Retorno s/ Patr.) >= 10%", val: roe !== null && roe >= 0.10, desc: `Atual: ${roe !== null ? (roe * 100).toFixed(2) : 'N/A'}%` },
+                    { label: "Margem de Graham (Preço < Justo)", val: graham > 0 && price < graham, desc: `Justo: R$ ${graham.toFixed(2)} vs R$ ${price.toFixed(2)}` }
+                ];
+
+                rules.forEach(rule => {
+                    const item = document.createElement('div');
+                    item.className = 'breakdown-item';
+                    item.innerHTML = `
                     <span>${rule.label} <small style="display:block; color:var(--text-secondary); margin-top: 0.1rem;">${rule.desc}</small></span>
                     <span class="breakdown-check ${rule.val ? 'positive' : 'negative'}">${rule.val ? '✓' : '✗'}</span>
                 `;
-                scorecard.appendChild(item);
-            });
+                    scorecard.appendChild(item);
+                });
 
-            // For Stocks: enable P/L option in the dropdown and show it
-            const peOption = document.querySelector('#chart-indicator-select option[value="pe"]');
-            if (peOption) {
-                peOption.disabled = false;
-                peOption.style.display = 'block';
-            }
-        } else {
-            // For FII / FIAGRO
-            const pb = parseFloat(row.getAttribute('data-pb')) || null;
-            const dy = parseFloat(row.getAttribute('data-dy')) || 0;
-            const rate = parseFloat(row.getAttribute('data-rate')) || 0;
-            const vpa = pb && pb > 0 ? (price / pb) : null;
-            const score = parseInt(row.getAttribute('data-score')) || 0;
+                // For Stocks: enable P/L option in the dropdown and show it
+                const peOption = document.querySelector('#chart-indicator-select option[value="pe"]');
+                if (peOption) {
+                    peOption.disabled = false;
+                    peOption.style.display = 'block';
+                }
+            } else {
+                // For FII / FIAGRO
+                const pb = parseFloat(row.getAttribute('data-pb')) || null;
+                const dy = parseFloat(row.getAttribute('data-dy')) || 0;
+                const rate = parseFloat(row.getAttribute('data-rate')) || 0;
+                const vpa = pb && pb > 0 ? (price / pb) : null;
+                const score = parseInt(row.getAttribute('data-score')) || 0;
 
-            currentAssetMetrics = {
-                price: price,
-                dy: dy,
-                vpa: vpa,
-                dividendRate: rate || (price * dy)
-            };
-            
-            scoreContainer.innerHTML = `<span class="score-pill score-${score}" style="width: auto; height: auto; border-radius: 12px; padding: 0.4rem 1rem; font-size: 0.9rem;">Score Fundamentalista: ${score}/5</span>`;
-            
-            const rules = [
-                { label: "Múltiplo P/VP entre 0.85 e 1.05 (Ideal)", val: pb !== null && pb >= 0.85 && pb <= 1.05, desc: `Atual: ${pb !== null ? pb.toFixed(2) : 'N/A'}` },
-                { label: "Múltiplo P/VP <= 1.15 (Preço Limite)", val: pb !== null && pb > 0 && pb <= 1.15, desc: `Atual: ${pb !== null ? pb.toFixed(2) : 'N/A'}` },
-                { label: "Dividend Yield Anual >= 8% (Mínimo)", val: dy >= 0.08, desc: `Atual: ${(dy*100).toFixed(2)}%` },
-                { label: "Dividend Yield Anual >= 10% (Excelente)", val: dy >= 0.10, desc: `Atual: ${(dy*100).toFixed(2)}%` },
-                { label: "Distribuição Anual Estimada > R$ 0.00", val: rate > 0, desc: `Atual: R$ ${rate.toFixed(2)}` }
-            ];
-            
-            rules.forEach(rule => {
-                const item = document.createElement('div');
-                item.className = 'breakdown-item';
-                item.innerHTML = `
+                currentAssetMetrics = {
+                    price: price,
+                    dy: dy,
+                    vpa: vpa,
+                    dividendRate: rate || (price * dy)
+                };
+
+                scoreContainer.innerHTML = `<span class="score-pill score-${score}" style="width: auto; height: auto; border-radius: 12px; padding: 0.4rem 1rem; font-size: 0.9rem;">Score Fundamentalista: ${score}/5</span>`;
+
+                const rules = [
+                    { label: "Múltiplo P/VP entre 0.85 e 1.05 (Ideal)", val: pb !== null && pb >= 0.85 && pb <= 1.05, desc: `Atual: ${pb !== null ? pb.toFixed(2) : 'N/A'}` },
+                    { label: "Múltiplo P/VP <= 1.15 (Preço Limite)", val: pb !== null && pb > 0 && pb <= 1.15, desc: `Atual: ${pb !== null ? pb.toFixed(2) : 'N/A'}` },
+                    { label: "Dividend Yield Anual >= 8% (Mínimo)", val: dy >= 0.08, desc: `Atual: ${(dy * 100).toFixed(2)}%` },
+                    { label: "Dividend Yield Anual >= 10% (Excelente)", val: dy >= 0.10, desc: `Atual: ${(dy * 100).toFixed(2)}%` },
+                    { label: "Distribuição Anual Estimada > R$ 0.00", val: rate > 0, desc: `Atual: R$ ${rate.toFixed(2)}` }
+                ];
+
+                rules.forEach(rule => {
+                    const item = document.createElement('div');
+                    item.className = 'breakdown-item';
+                    item.innerHTML = `
                     <span>${rule.label} <small style="display:block; color:var(--text-secondary); margin-top: 0.1rem;">${rule.desc}</small></span>
                     <span class="breakdown-check ${rule.val ? 'positive' : 'negative'}">${rule.val ? '✓' : '✗'}</span>
                 `;
-                scorecard.appendChild(item);
-            });
+                    scorecard.appendChild(item);
+                });
 
-            // For FIIs/FIAGROs: disable P/L option and hide it
-            const peOption = document.querySelector('#chart-indicator-select option[value="pe"]');
-            if (peOption) {
-                peOption.disabled = true;
-                peOption.style.display = 'none';
-            }
-        }
-        
-        // Handle History Chart
-        currentAssetHistory = JSON.parse(row.getAttribute('data-history') || '[]');
-        currentAssetType = type;
-        currentAssetRange = 10;
-
-        // Reset range selector button states
-        document.querySelectorAll('.range-btn').forEach(btn => btn.classList.remove('active'));
-        const activeRangeBtn = document.getElementById('btn-range-10');
-        if (activeRangeBtn) activeRangeBtn.classList.add('active');
-        
-        // Reset dropdown to "price"
-        document.getElementById('chart-indicator-select').value = 'price';
-        
-        renderChart(currentAssetHistory, 'price');
-        
-        // Show Modal
-        document.getElementById('detail-modal').classList.remove('hidden');
-    }
-
-    function closeDetailModal() {
-        document.getElementById('detail-modal').classList.add('hidden');
-        if (activeChart) {
-            activeChart.destroy();
-            activeChart = null;
-        }
-        currentAssetHistory = [];
-        currentAssetType = '';
-        currentAssetMetrics = {};
-    }
-
-    function closeModalOnOutsideClick(event) {
-        if (event.target === document.getElementById('detail-modal')) {
-            closeDetailModal();
-        }
-    }
-
-    function updateChartRange(years) {
-        currentAssetRange = years;
-        
-        // Update range button active state
-        document.querySelectorAll('.range-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        
-        const btn = document.getElementById(`btn-range-${years}`);
-        if (btn) {
-            btn.classList.add('active');
-        }
-        
-        updateChartIndicator();
-    }
-
-    function updateChartIndicator() {
-        const select = document.getElementById('chart-indicator-select');
-        const indicator = select.value;
-        renderChart(currentAssetHistory, indicator);
-    }
-
-    function roundValue(value, decimals) {
-        if (value === null || isNaN(value)) return null;
-        return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
-    }
-
-    function renderChart(history, indicator = 'price') {
-        const ctx = document.getElementById('history-chart').getContext('2d');
-        
-        if (activeChart) {
-            activeChart.destroy();
-        }
-        
-        if (!history || history.length === 0) {
-            ctx.clearRect(0, 0, 400, 250);
-            ctx.fillStyle = '#9ca3af';
-            ctx.font = '14px Inter';
-            ctx.textAlign = 'center';
-            ctx.fillText('Nenhum histórico disponível', 200, 125);
-            return;
-        }
-
-        // Filter history based on currentAssetRange
-        let filteredHistory = history;
-        if (currentAssetRange < 10) {
-            const latestDateStr = history[history.length - 1].date;
-            const parts = latestDateStr.split('-');
-            const cutoffYear = parseInt(parts[0]) - currentAssetRange;
-            const cutoffDateStr = `${cutoffYear}-${parts[1]}-${parts[2]}`;
-            filteredHistory = history.filter(h => h.date >= cutoffDateStr);
-        }
-        
-        if (filteredHistory.length === 0) {
-            ctx.clearRect(0, 0, 400, 250);
-            ctx.fillStyle = '#9ca3af';
-            ctx.font = '14px Inter';
-            ctx.textAlign = 'center';
-            ctx.fillText('Nenhum dado no período selecionado', 200, 125);
-            return;
-        }
-
-        const labels = filteredHistory.map(h => {
-            const parts = h.date.split('-');
-            return `${parts[1]}/${parts[0]}`; // MM/AAAA
-        });
-        
-        let data = [];
-        let label = '';
-        let borderColor = '#3b82f6';
-        let backgroundColor = 'rgba(59, 130, 246, 0.05)';
-        
-        if (indicator === 'price') {
-            data = filteredHistory.map(h => h.price);
-            label = 'Preço (R$)';
-            borderColor = '#3b82f6';
-            backgroundColor = 'rgba(59, 130, 246, 0.05)';
-        } else if (indicator === 'pe') {
-            const eps = currentAssetMetrics.eps;
-            if (eps !== null && eps !== 0) {
-                data = filteredHistory.map(h => roundValue(h.price / eps, 2));
-            } else {
-                data = filteredHistory.map(h => null);
-            }
-            label = 'P/L';
-            borderColor = '#a855f7';
-            backgroundColor = 'rgba(168, 85, 247, 0.05)';
-        } else if (indicator === 'pb') {
-            const vpa = currentAssetMetrics.vpa;
-            if (vpa !== null && vpa > 0) {
-                data = filteredHistory.map(h => roundValue(h.price / vpa, 2));
-            } else {
-                data = filteredHistory.map(h => null);
-            }
-            label = 'P/VP';
-            borderColor = '#eab308';
-            backgroundColor = 'rgba(234, 179, 8, 0.05)';
-        } else if (indicator === 'dy') {
-            const divRate = currentAssetMetrics.dividendRate;
-            if (divRate !== null && divRate > 0) {
-                data = filteredHistory.map(h => roundValue((divRate / h.price) * 100, 2));
-            } else {
-                data = filteredHistory.map(h => 0);
-            }
-            label = 'Dividend Yield (%)';
-            borderColor = '#10b981';
-            backgroundColor = 'rgba(16, 185, 129, 0.05)';
-        }
-        
-        const isLight = document.body.classList.contains('light-theme');
-        const gridColor = isLight ? 'rgba(15, 23, 42, 0.06)' : 'rgba(255, 255, 255, 0.05)';
-        const tickColor = isLight ? '#475569' : '#9ca3af';
-
-        activeChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: label,
-                    data: data,
-                    borderColor: borderColor,
-                    backgroundColor: backgroundColor,
-                    fill: true,
-                    tension: 0.3,
-                    borderWidth: 2,
-                    pointRadius: 1,
-                    pointHoverRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let val = context.parsed.y;
-                                if (val === null || isNaN(val)) return 'N/A';
-                                if (indicator === 'price') return `Preço: R$ ${val.toFixed(2)}`;
-                                if (indicator === 'pe') return `P/L: ${val.toFixed(2)}`;
-                                if (indicator === 'pb') return `P/VP: ${val.toFixed(2)}`;
-                                if (indicator === 'dy') return `DY: ${val.toFixed(2)}%`;
-                                return val;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: { display: false },
-                        ticks: { color: tickColor, maxTicksLimit: 6 }
-                    },
-                    y: {
-                        grid: { color: gridColor },
-                        ticks: { color: tickColor }
-                    }
+                // For FIIs/FIAGROs: disable P/L option and hide it
+                const peOption = document.querySelector('#chart-indicator-select option[value="pe"]');
+                if (peOption) {
+                    peOption.disabled = true;
+                    peOption.style.display = 'none';
                 }
             }
-        });
-    }
 
-    function toggleTheme() {
-        document.body.classList.toggle('light-theme');
-        const isLight = document.body.classList.contains('light-theme');
-        localStorage.setItem('theme', isLight ? 'light' : 'dark');
-        
-        const themeIcon = document.getElementById('theme-toggle-icon');
-        if (themeIcon) {
-            themeIcon.textContent = isLight ? '☀️' : '🌙';
+            // Handle History Chart
+            currentAssetHistory = JSON.parse(row.getAttribute('data-history') || '[]');
+            currentAssetType = type;
+            currentAssetRange = 10;
+
+            // Reset range selector button states
+            document.querySelectorAll('.range-btn').forEach(btn => btn.classList.remove('active'));
+            const activeRangeBtn = document.getElementById('btn-range-10');
+            if (activeRangeBtn) activeRangeBtn.classList.add('active');
+
+            // Reset dropdown to "price"
+            document.getElementById('chart-indicator-select').value = 'price';
+
+            renderChart(currentAssetHistory, 'price');
+
+            // Show Modal
+            document.getElementById('detail-modal').classList.remove('hidden');
         }
-        
-        if (activeChart && currentAssetHistory && currentAssetHistory.length > 0) {
+
+        function closeDetailModal() {
+            document.getElementById('detail-modal').classList.add('hidden');
+            if (activeChart) {
+                activeChart.destroy();
+                activeChart = null;
+            }
+            currentAssetHistory = [];
+            currentAssetType = '';
+            currentAssetMetrics = {};
+        }
+
+        function closeModalOnOutsideClick(event) {
+            if (event.target === document.getElementById('detail-modal')) {
+                closeDetailModal();
+            }
+        }
+
+        function updateChartRange(years) {
+            currentAssetRange = years;
+
+            // Update range button active state
+            document.querySelectorAll('.range-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            const btn = document.getElementById(`btn-range-${years}`);
+            if (btn) {
+                btn.classList.add('active');
+            }
+
             updateChartIndicator();
         }
-    }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        const isLight = document.body.classList.contains('light-theme');
-        const themeIcon = document.getElementById('theme-toggle-icon');
-        if (themeIcon) {
-            themeIcon.textContent = isLight ? '☀️' : '🌙';
+        function updateChartIndicator() {
+            const select = document.getElementById('chart-indicator-select');
+            const indicator = select.value;
+            renderChart(currentAssetHistory, indicator);
         }
-        // Inicializar label do PDF
-        const pdfLabel = document.getElementById('pdf-label');
-        if (pdfLabel) {
-            const names = { stocks: 'Ações', fiis: 'FIIs', fiagros: 'FIAGROs', sectors: 'Setores' };
-            pdfLabel.textContent = names[currentTab] || 'Ações';
+
+        function roundValue(value, decimals) {
+            if (value === null || isNaN(value)) return null;
+            return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
         }
-        checkRefreshStatus();
-    });
 
-    function toggleExportMenu() {
-        const menu = document.getElementById('export-menu');
-        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-    }
+        function renderChart(history, indicator = 'price') {
+            const ctx = document.getElementById('history-chart').getContext('2d');
 
-    function exportPDF() {
-        // Fechar menu de export
-        document.getElementById('export-menu').style.display = 'none';
+            if (activeChart) {
+                activeChart.destroy();
+            }
 
-        const btn = document.querySelector('#export-btn');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '⏳ Gerando PDF...';
-        btn.disabled = true;
+            if (!history || history.length === 0) {
+                ctx.clearRect(0, 0, 400, 250);
+                ctx.fillStyle = '#9ca3af';
+                ctx.font = '14px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText('Nenhum histórico disponível', 200, 125);
+                return;
+            }
 
-        const container = document.querySelector('.container');
+            // Filter history based on currentAssetRange
+            let filteredHistory = history;
+            if (currentAssetRange < 10) {
+                const latestDateStr = history[history.length - 1].date;
+                const parts = latestDateStr.split('-');
+                const cutoffYear = parseInt(parts[0]) - currentAssetRange;
+                const cutoffDateStr = `${cutoffYear}-${parts[1]}-${parts[2]}`;
+                filteredHistory = history.filter(h => h.date >= cutoffDateStr);
+            }
 
-        // ── Cabeçalho temporário com data ──
-        const now = new Date();
-        const dateStr = now.toLocaleDateString('pt-BR', { 
-            day: '2-digit', month: 'long', year: 'numeric',
-            hour: '2-digit', minute: '2-digit'
+            if (filteredHistory.length === 0) {
+                ctx.clearRect(0, 0, 400, 250);
+                ctx.fillStyle = '#9ca3af';
+                ctx.font = '14px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText('Nenhum dado no período selecionado', 200, 125);
+                return;
+            }
+
+            const labels = filteredHistory.map(h => {
+                const parts = h.date.split('-');
+                return `${parts[1]}/${parts[0]}`; // MM/AAAA
+            });
+
+            let data = [];
+            let label = '';
+            let borderColor = '#3b82f6';
+            let backgroundColor = 'rgba(59, 130, 246, 0.05)';
+
+            if (indicator === 'price') {
+                data = filteredHistory.map(h => h.price);
+                label = 'Preço (R$)';
+                borderColor = '#3b82f6';
+                backgroundColor = 'rgba(59, 130, 246, 0.05)';
+            } else if (indicator === 'pe') {
+                const eps = currentAssetMetrics.eps;
+                if (eps !== null && eps !== 0) {
+                    data = filteredHistory.map(h => roundValue(h.price / eps, 2));
+                } else {
+                    data = filteredHistory.map(h => null);
+                }
+                label = 'P/L';
+                borderColor = '#a855f7';
+                backgroundColor = 'rgba(168, 85, 247, 0.05)';
+            } else if (indicator === 'pb') {
+                const vpa = currentAssetMetrics.vpa;
+                if (vpa !== null && vpa > 0) {
+                    data = filteredHistory.map(h => roundValue(h.price / vpa, 2));
+                } else {
+                    data = filteredHistory.map(h => null);
+                }
+                label = 'P/VP';
+                borderColor = '#eab308';
+                backgroundColor = 'rgba(234, 179, 8, 0.05)';
+            } else if (indicator === 'dy') {
+                const divRate = currentAssetMetrics.dividendRate;
+                if (divRate !== null && divRate > 0) {
+                    data = filteredHistory.map(h => roundValue((divRate / h.price) * 100, 2));
+                } else {
+                    data = filteredHistory.map(h => 0);
+                }
+                label = 'Dividend Yield (%)';
+                borderColor = '#10b981';
+                backgroundColor = 'rgba(16, 185, 129, 0.05)';
+            }
+
+            const isLight = document.body.classList.contains('light-theme');
+            const gridColor = isLight ? 'rgba(15, 23, 42, 0.06)' : 'rgba(255, 255, 255, 0.05)';
+            const tickColor = isLight ? '#475569' : '#9ca3af';
+
+            activeChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        borderColor: borderColor,
+                        backgroundColor: backgroundColor,
+                        fill: true,
+                        tension: 0.3,
+                        borderWidth: 2,
+                        pointRadius: 1,
+                        pointHoverRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    let val = context.parsed.y;
+                                    if (val === null || isNaN(val)) return 'N/A';
+                                    if (indicator === 'price') return `Preço: R$ ${val.toFixed(2)}`;
+                                    if (indicator === 'pe') return `P/L: ${val.toFixed(2)}`;
+                                    if (indicator === 'pb') return `P/VP: ${val.toFixed(2)}`;
+                                    if (indicator === 'dy') return `DY: ${val.toFixed(2)}%`;
+                                    return val;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: tickColor, maxTicksLimit: 6 }
+                        },
+                        y: {
+                            grid: { color: gridColor },
+                            ticks: { color: tickColor }
+                        }
+                    }
+                }
+            });
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('light-theme');
+            const isLight = document.body.classList.contains('light-theme');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+
+            const themeIcon = document.getElementById('theme-toggle-icon');
+            if (themeIcon) {
+                themeIcon.textContent = isLight ? '☀️' : '🌙';
+            }
+
+            if (activeChart && currentAssetHistory && currentAssetHistory.length > 0) {
+                updateChartIndicator();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const isLight = document.body.classList.contains('light-theme');
+            const themeIcon = document.getElementById('theme-toggle-icon');
+            if (themeIcon) {
+                themeIcon.textContent = isLight ? '☀️' : '🌙';
+            }
+            // Inicializar label do PDF
+            const pdfLabel = document.getElementById('pdf-label');
+            if (pdfLabel) {
+                const names = { stocks: 'Ações', fiis: 'FIIs', fiagros: 'FIAGROs', sectors: 'Setores' };
+                pdfLabel.textContent = names[currentTab] || 'Ações';
+            }
+            checkRefreshStatus();
         });
-        
-        let visibleCount = 0;
-        const currentTbody = document.querySelector(
-            currentTab === 'stocks' ? '#stocks-tbody' :
-            currentTab === 'fiis' ? '#fiis-tbody' :
-            currentTab === 'fiagros' ? '#fiagros-tbody' :
-            currentTab === 'sectors' ? '#sectors-tbody' : null
-        );
-        if (currentTbody) {
-            visibleCount = currentTbody.querySelectorAll('tr:not(.hidden)').length;
+
+        function toggleExportMenu() {
+            const menu = document.getElementById('export-menu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
         }
 
-        const filterInfo = [];
-        const scoreVal = document.getElementById('score-filter').value;
-        if (scoreVal !== 'all') filterInfo.push('Score ≥ ' + scoreVal);
-        const indexVal = document.getElementById('index-filter').value;
-        if (indexVal !== 'all') filterInfo.push('Índice: ' + indexVal.toUpperCase());
-        const sectorVal = document.getElementById('sector-filter').value;
-        if (sectorVal !== 'all') filterInfo.push('Setor: ' + sectorVal);
-        const filterStr = filterInfo.length ? ' &mdash; ' + filterInfo.join(', ') : '';
-        const tabName = currentTab === 'stocks' ? 'acoes' : currentTab === 'fiis' ? 'fiis' : currentTab === 'fiagros' ? 'fiagros' : 'setores';
-        const pdfFilename = `radar-b3-${tabName}${scoreVal !== 'all' ? '-score' + scoreVal : ''}-${now.toISOString().slice(0, 10)}.pdf`;
+        function exportPDF() {
+            // Fechar menu de export
+            document.getElementById('export-menu').style.display = 'none';
 
-        const pdfHeader = document.createElement('div');
-        pdfHeader.id = 'pdf-temp-header';
-        pdfHeader.innerHTML = `
+            const btn = document.querySelector('#export-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ Gerando PDF...';
+            btn.disabled = true;
+
+            const container = document.querySelector('.container');
+
+            // ── Cabeçalho temporário com data ──
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('pt-BR', {
+                day: '2-digit', month: 'long', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+
+            let visibleCount = 0;
+            const currentTbody = document.querySelector(
+                currentTab === 'stocks' ? '#stocks-tbody' :
+                    currentTab === 'fiis' ? '#fiis-tbody' :
+                        currentTab === 'fiagros' ? '#fiagros-tbody' :
+                            currentTab === 'sectors' ? '#sectors-tbody' : null
+            );
+            if (currentTbody) {
+                visibleCount = currentTbody.querySelectorAll('tr:not(.hidden)').length;
+            }
+
+            const filterInfo = [];
+            if (activeScores.length > 0) {
+                filterInfo.push('Score: ' + activeScores.sort().join(', '));
+            }
+            const indexVal = document.getElementById('index-filter').value;
+            if (indexVal !== 'all') filterInfo.push('Índice: ' + indexVal.toUpperCase());
+            const sectorVal = document.getElementById('sector-filter').value;
+            if (sectorVal !== 'all') filterInfo.push('Setor: ' + sectorVal);
+            const filterStr = filterInfo.length ? ' &mdash; ' + filterInfo.join(', ') : '';
+            const tabName = currentTab === 'stocks' ? 'acoes' : currentTab === 'fiis' ? 'fiis' : currentTab === 'fiagros' ? 'fiagros' : 'setores';
+            const scoreSuffix = activeScores.length ? '-score-' + activeScores.sort().join('-') : '';
+            const pdfFilename = `radar-b3-${tabName}${scoreSuffix}-${now.toISOString().slice(0, 10)}.pdf`;
+
+            const pdfHeader = document.createElement('div');
+            pdfHeader.id = 'pdf-temp-header';
+            pdfHeader.innerHTML = `
             <div style="text-align:center;padding:4px 0 6px 0;border-bottom:2px solid #334155;margin-bottom:6px;">
                 <h1 style="margin:0;font-size:16px;font-weight:700;color:#1e293b;">Radar Fundamentalista B3</h1>
                 <p style="margin:2px 0 0 0;font-size:10px;color:#64748b;">
@@ -1844,110 +2263,111 @@
                 </p>
             </div>
         `;
-        container.insertBefore(pdfHeader, container.firstChild);
+            container.insertBefore(pdfHeader, container.firstChild);
 
-        // ── Compactar layout para PDF ──
-        document.body.classList.add('pdf-export');
+            // ── Compactar layout para PDF ──
+            document.body.classList.add('pdf-export');
 
-        // ── Forçar estilos inline para captura sem whitespace ──
-        const headerEl = container.querySelector('header');
-        const logoH1 = container.querySelector('.logo-area h1');
-        const logoP = container.querySelector('.logo-area p');
+            // ── Forçar estilos inline para captura sem whitespace ──
+            const headerEl = container.querySelector('header');
+            const logoH1 = container.querySelector('.logo-area h1');
+            const logoP = container.querySelector('.logo-area p');
 
-        // Aplicar compactação DIRETAMENTE nos elementos (inline, sem depender de classe CSS)
-        document.body.style.padding = '0';
-        document.body.style.margin = '0';
-        document.body.style.background = 'none';
-        headerEl.style.margin = '0';
-        headerEl.style.padding = '0.1rem 0';
-        headerEl.style.borderBottomWidth = '1px';
-        if (logoH1) { logoH1.style.margin = '0'; logoH1.style.fontSize = '13px'; logoH1.style.lineHeight = '1.1'; }
-        if (logoP) { logoP.style.margin = '0'; logoP.style.fontSize = '9px'; logoP.style.lineHeight = '1.1'; }
+            // Aplicar compactação DIRETAMENTE nos elementos (inline, sem depender de classe CSS)
+            document.body.style.padding = '0';
+            document.body.style.margin = '0';
+            document.body.style.background = 'none';
+            headerEl.style.margin = '0';
+            headerEl.style.padding = '0.1rem 0';
+            headerEl.style.borderBottomWidth = '1px';
+            if (logoH1) { logoH1.style.margin = '0'; logoH1.style.fontSize = '13px'; logoH1.style.lineHeight = '1.1'; }
+            if (logoP) { logoP.style.margin = '0'; logoP.style.fontSize = '9px'; logoP.style.lineHeight = '1.1'; }
 
-        // Esconder botões
-        document.querySelectorAll('#export-btn, #help-toggle-btn, #theme-toggle-btn, .timestamp').forEach(el => {
-            if (el) el.style.display = 'none';
-        });
-
-        document.body.classList.add('pdf-export');
-
-        const opt = {
-            margin:       [0.15, 0.3, 0.3, 0.3],   // top, right, bottom, left (inches)
-            filename:     pdfFilename,
-            image:        { type: 'jpeg', quality: 0.9 },
-            html2canvas:  { scale: 2, useCORS: true, letterRendering: true, scrollY: 0, y: 0 },
-            jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' },
-            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-        };
-
-        html2pdf().set(opt).from(container).save().then(() => {
-            // Restaurar estilos
-            document.body.style.padding = '';
-            document.body.style.margin = '';
-            document.body.style.background = '';
-            if (headerEl) { headerEl.style.margin = ''; headerEl.style.padding = ''; headerEl.style.borderBottomWidth = ''; }
-            if (logoH1) { logoH1.style.margin = ''; logoH1.style.fontSize = ''; logoH1.style.lineHeight = ''; }
-            if (logoP) { logoP.style.margin = ''; logoP.style.fontSize = ''; logoP.style.lineHeight = ''; }
+            // Esconder botões
             document.querySelectorAll('#export-btn, #help-toggle-btn, #theme-toggle-btn, .timestamp').forEach(el => {
-                if (el) el.style.display = '';
+                if (el) el.style.display = 'none';
             });
-            document.body.classList.remove('pdf-export');
-            pdfHeader.remove();
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        }).catch(err => {
-            document.body.style.padding = '';
-            document.body.style.margin = '';
-            document.body.style.background = '';
-            if (headerEl) { headerEl.style.margin = ''; headerEl.style.padding = ''; headerEl.style.borderBottomWidth = ''; }
-            if (logoH1) { logoH1.style.margin = ''; logoH1.style.fontSize = ''; logoH1.style.lineHeight = ''; }
-            if (logoP) { logoP.style.margin = ''; logoP.style.fontSize = ''; logoP.style.lineHeight = ''; }
-            document.querySelectorAll('#export-btn, #help-toggle-btn, #theme-toggle-btn, .timestamp').forEach(el => {
-                if (el) el.style.display = '';
+
+            document.body.classList.add('pdf-export');
+
+            const opt = {
+                margin: [0.15, 0.3, 0.3, 0.3],   // top, right, bottom, left (inches)
+                filename: pdfFilename,
+                image: { type: 'jpeg', quality: 0.9 },
+                html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0, y: 0 },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            html2pdf().set(opt).from(container).save().then(() => {
+                // Restaurar estilos
+                document.body.style.padding = '';
+                document.body.style.margin = '';
+                document.body.style.background = '';
+                if (headerEl) { headerEl.style.margin = ''; headerEl.style.padding = ''; headerEl.style.borderBottomWidth = ''; }
+                if (logoH1) { logoH1.style.margin = ''; logoH1.style.fontSize = ''; logoH1.style.lineHeight = ''; }
+                if (logoP) { logoP.style.margin = ''; logoP.style.fontSize = ''; logoP.style.lineHeight = ''; }
+                document.querySelectorAll('#export-btn, #help-toggle-btn, #theme-toggle-btn, .timestamp').forEach(el => {
+                    if (el) el.style.display = '';
+                });
+                document.body.classList.remove('pdf-export');
+                pdfHeader.remove();
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }).catch(err => {
+                document.body.style.padding = '';
+                document.body.style.margin = '';
+                document.body.style.background = '';
+                if (headerEl) { headerEl.style.margin = ''; headerEl.style.padding = ''; headerEl.style.borderBottomWidth = ''; }
+                if (logoH1) { logoH1.style.margin = ''; logoH1.style.fontSize = ''; logoH1.style.lineHeight = ''; }
+                if (logoP) { logoP.style.margin = ''; logoP.style.fontSize = ''; logoP.style.lineHeight = ''; }
+                document.querySelectorAll('#export-btn, #help-toggle-btn, #theme-toggle-btn, .timestamp').forEach(el => {
+                    if (el) el.style.display = '';
+                });
+                document.body.classList.remove('pdf-export');
+                pdfHeader.remove();
+                console.error('PDF error:', err);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                alert('Erro ao gerar PDF. Tente novamente.');
             });
-            document.body.classList.remove('pdf-export');
-            pdfHeader.remove();
-            console.error('PDF error:', err);
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            alert('Erro ao gerar PDF. Tente novamente.');
-        });
-    }
-
-    // Close export menu on outside click
-    document.addEventListener('click', function(event) {
-        const btn = document.getElementById('export-btn');
-        const menu = document.getElementById('export-menu');
-        if (btn && menu && !btn.contains(event.target) && !menu.contains(event.target)) {
-            menu.style.display = 'none';
         }
-    });
 
-    function openHelpModal() {
-        document.getElementById('help-modal').classList.remove('hidden');
-    }
-
-    function closeHelpModal() {
-        document.getElementById('help-modal').classList.add('hidden');
-    }
-
-    function closeHelpModalOnOutsideClick(event) {
-        if (event.target === document.getElementById('help-modal')) {
-            closeHelpModal();
-        }
-    }
-</script>
-
-<!-- Service Worker: enable PWA offline support -->
-<script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('service-worker.js')
-                .then(() => console.log('SW registered'))
-                .catch((err) => console.log('SW registration failed:', err));
+        // Close export menu on outside click
+        document.addEventListener('click', function (event) {
+            const btn = document.getElementById('export-btn');
+            const menu = document.getElementById('export-menu');
+            if (btn && menu && !btn.contains(event.target) && !menu.contains(event.target)) {
+                menu.style.display = 'none';
+            }
         });
-    }
-</script>
+
+        function openHelpModal() {
+            document.getElementById('help-modal').classList.remove('hidden');
+        }
+
+        function closeHelpModal() {
+            document.getElementById('help-modal').classList.add('hidden');
+        }
+
+        function closeHelpModalOnOutsideClick(event) {
+            if (event.target === document.getElementById('help-modal')) {
+                closeHelpModal();
+            }
+        }
+    </script>
+
+    <!-- Service Worker: enable PWA offline support -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(() => console.log('SW registered'))
+                    .catch((err) => console.log('SW registration failed:', err));
+            });
+        }
+    </script>
 
 </body>
+
 </html>

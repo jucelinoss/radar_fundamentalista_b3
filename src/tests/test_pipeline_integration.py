@@ -1032,7 +1032,7 @@ class TestConfiguration:
         assert "_meta" in indices
 
         # Every ticker should have a list of indices
-        valid_indices = {"IBOV", "IDIV", "SMLL"}
+        valid_indices = {"IBOV", "IDIV", "SMLL", "IEE", "IFNC"}
         for ticker, memberships in indices.items():
             if ticker.startswith("_"):
                 continue
