@@ -1,16 +1,16 @@
 # PRD — Product Requirements Document
 
-## Screener Fundamentalista B3
+## Radar Fundamentalista B3
 
-**Versão:** 2.0  
-**Data:** 2026-07-04  
-**Status:** Aprovado
+**Versão:** 2.1.1  
+**Data:** 2026-07-05  
+**Status:** Fases 0-7 Concluídas ✅
 
 ---
 
 ## 1. Resumo Executivo
 
-Sistema automatizado de análise, triagem (screening) e visualização fundamentalista de ativos negociados na bolsa brasileira (B3). O projeto avalia a saúde financeira, precificação e qualidade de **97 ações**, **32 FIIs** e **14 FIAGROs** com base nas teorias de Benjamin Graham (value investing) e Décio Bazin (dividendos), exibindo os resultados em um dashboard web estático.
+Sistema automatizado de análise, triagem (screening) e visualização fundamentalista de ativos negociados na bolsa brasileira (B3). O projeto avalia a saúde financeira, precificação e qualidade de **91 ações**, **122 FIIs** e **38 FIAGROs** com base nas teorias de Benjamin Graham (value investing) e Décio Bazin (dividendos), exibindo os resultados em um dashboard web estático com suporte a PWA (instalável e offline).
 
 ---
 
@@ -42,7 +42,7 @@ Democratizar o acesso à análise fundamentalista de qualidade para investidores
 
 ## 4. Funcionalidades
 
-### 4.1 MVP Atual (v2.0)
+### 4.1 MVP Atual (v2.1)
 
 | Funcionalidade | Prioridade | Status |
 |---|---|---|
@@ -50,23 +50,27 @@ Democratizar o acesso à análise fundamentalista de qualidade para investidores
 | **Scorecard quantitativo** (0-5) para ações (Graham/Bazin) | P0 | ✅ |
 | **Scorecard quantitativo** (0-5) para FIIs e FIAGROs | P0 | ✅ |
 | **Dashboard web estático** com tabelas, filtros e gráficos | P0 | ✅ |
+| **Carga incremental** (apenas tickers desatualizados) | P0 | ✅ |
+| **Pipeline paralelo** com retry e logging | P0 | ✅ |
+| **Export CSV/JSON** para análise externa / IA | P1 | ✅ |
 | **Gráficos interativos** de histórico (preço, P/L, P/VP, DY) | P1 | ✅ |
 | **Análise setorial** com drill-down | P1 | ✅ |
 | **Índices de mercado** (IBOV, IDIV, SMLL) por ticker | P1 | ✅ |
-| **Pipeline paralelo** com retry e logging | P0 | ✅ (v2.0) |
-| **Refresh via API** (POST /api/refresh) | P1 | ✅ |
 | **Tema claro/escuro** persistente | P2 | ✅ |
 | **Responsividade mobile** | P2 | ✅ |
+| **PWA** (instalável, offline, service worker) | P2 | ✅ |
+| **CI/CD** (GitHub Actions + Pages) | P0 | ✅ |
+| **Testes unitários** (121 testes, 100% passando) | P1 | ✅ |
 
 ### 4.2 Futuro (Roadmap)
 
 | Funcionalidade | Prioridade | Previsão |
 |---|---|---|
 | Comparação lado a lado de ativos | P2 | Q3 2026 |
-| Exportar para CSV/Excel | P2 | Q3 2026 |
 | Alertas de preço (e-mail/telegram) | P2 | Q4 2026 |
 | Backtesting de scorecard | P3 | Q4 2026 |
 | Dados fundamentalistas via BRAPI (fallback) | P3 | 2027 |
+| Notificações de atualização do dashboard | P3 | 2027 |
 
 ---
 
@@ -169,8 +173,6 @@ Democratizar o acesso à análise fundamentalista de qualidade para investidores
 | **Schedule Local (Windows)** | Task Scheduler diário 08:00 |
 | **Schedule Local (Linux/Mac)** | Cron diário 08:00 |
 | **Cloud (GitHub Actions)** | Workflow diário 08:00 BRT |
-| **Via Dashboard** | Clique no botão "Atualizar Dados" |
-| **API** | `POST /api/refresh` |
 
 ### 8.2 Etapas do Pipeline
 
@@ -215,6 +217,90 @@ Democratizar o acesso à análise fundamentalista de qualidade para investidores
 | 1.0 | 2025-Q4 | MVP inicial: ingestão sequencial, dashboard estático |
 | 1.1 | 2026-Q1 | Scorecards FII/FIAGRO, análise setorial, tema escuro |
 | 2.0 | 2026-Q3 | Pipeline paralelo, retry, logging, config externa, testes, CI/CD |
+| 2.1 | 2026-Q3 | Carga incremental, PWA, export IA, refatoração, limpeza de código morto |
+| 2.1.1 | 2026-Q3 | Fases 0-7 concluídas: refatoração completa, type hints, testes, CI/CD, documentação (CHANGELOG + CONTRIBUTING), validação de configs |
+
+---
+
+## 12. Plano de Melhorias de Código
+
+### Fase 0 — Segurança (OK ✅)
+
+| Ação | Status |
+|------|--------|
+| `server.crt` / `server.key` no `.gitignore` | ✅ |
+| `.env` no `.gitignore` | ✅ |
+| Workflow YAML: `id: db-cache` duplicado removido | ✅ |
+| Nenhum token hardcoded no repositório | ✅ |
+| BRAPI_TOKEN nunca commitado no git history | ✅ |
+| Revogar token antigo no brapi.dev | ✅ |
+| Configurar novo `BRAPI_TOKEN` no GitHub Secrets | ✅ |
+
+### Fase 1 — Empacotamento (OK ✅)
+
+| Tarefa | Arquivos | Esforço | Status |
+|--------|----------|---------|--------|
+| Criar `pyproject.toml` com build system | `pyproject.toml` | Pequeno | ✅ |
+| Renomear `src/` → pacote instalável | `src/__init__.py`, imports | Médio | ✅ |
+| Remover `sys.path` hacks | `src/*.py` | Pequeno | ✅ |
+| Consolidar imports relativos/absolutos | Todos os `src/*.py` | Pequeno | ✅ |
+
+### Fase 2 — Refatoração (OK ✅ v2.1.1)
+
+| Tarefa | Arquivos | Esforço | Status |
+|--------|----------|---------|--------|
+| Extrair duplicações de cálculo de score | `analyzer.py` | Médio | ✅ |
+| Extrair constantes mágicas (APR_DAYS, AGIOS, etc.) | `analyzer.py` | Pequeno | ✅ |
+| Quebrar funções > 70 linhas (4 funções) | `database.py`, `exporter.py`, `ingestion.py` | Grande | ✅ |
+| Remover logging duplicado entre módulos | `pipeline.py`, `ingestion.py` | Pequeno | ✅ |
+| Extrair `_get_brapi_token()` para módulo de config | `sources.py` | Pequeno | ✅ |
+
+### Fase 3 — Type Hints (OK ✅)
+
+| Tarefa | Arquivos | Esforço | Status |
+|--------|----------|---------|--------|
+| Adicionar type hints em `analyzer.py` (~285 linhas) | `analyzer.py` | Médio | ✅ |
+| Adicionar type hints em `database.py` | `database.py` | Médio | ✅ |
+| Adicionar type hints em `ingestion.py` | `ingestion.py` | Médio | ✅ |
+| Adicionar type hints em `pipeline.py` | `pipeline.py` | Pequeno | ✅ |
+| Adicionar type hints em `generator.py` | `generator.py` | Médio | ✅ |
+| Adicionar type hints em `exporter.py` | `exporter.py` | Pequeno | ✅ |
+| Adicionar type hints em `sources.py` | `sources.py` | Grande | ✅ |
+| Adicionar type hints em `server.py` | `server.py` | Pequeno | ✅ |
+
+### Fase 4 — Testes (OK ✅)
+
+| Tarefa | Arquivos | Esforço | Status |
+|--------|----------|---------|--------|
+| Extrair `MockResponse` fixture compartilhada | `tests/conftest.py` | Pequeno | ✅ |
+| Criar `tests/utils.py` com helpers | `tests/utils.py` | Pequeno | ✅ |
+| Melhorar injeção de dependência nos testes | `tests/test_sources.py` | Médio | ✅ |
+| Separar testes unitários de integração | `tests/` | Médio | ✅ |
+
+### Fase 5 — Config (OK ✅)
+
+| Tarefa | Arquivos | Esforço | Status |
+|--------|----------|---------|--------|
+| Corrigir 10+ tickers obsoletos em `indices.json` | `config/indices.json` | Pequeno | ✅ |
+| Sincronizar com `ticker_mappings.json` | `data/ticker_mappings.json` | Pequeno | ✅ |
+| Validar consistência entre `tickers.json`, `indices.json` e `ticker_mappings.json` | `config/` | Pequeno | ✅ |
+
+### Fase 6 — CI/CD (OK ✅)
+
+| Tarefa | Arquivos | Esforço | Status |
+|--------|----------|---------|--------|
+| Corrigir cache key (usar hash do tickers.json) | Workflow YAML | Pequeno | ✅ |
+| Adicionar notificação de falha (issues/discord) | Workflow YAML | Médio | ✅ |
+| Deploy condicional (só se dados mudaram) | Workflow YAML + pipeline.py | Médio | ✅ |
+| Adicionar badge de status no README | `README.md`, Workflow YAML | Pequeno | ✅ |
+
+### Fase 7 — Documentação (OK ✅)
+
+| Tarefa | Arquivos | Esforço | Status |
+|--------|----------|---------|--------|
+| Atualizar README com estrutura de diretórios | `README.md` | Pequeno | ✅ |
+| Adicionar guia de contribuição (`CONTRIBUTING.md`) | `CONTRIBUTING.md` | Pequeno | ✅ |
+| Adicionar changelog (`CHANGELOG.md`) | `CHANGELOG.md` | Pequeno | ✅ |
 
 ---
 

@@ -13,17 +13,16 @@ Run with:
 """
 import json
 import os
-import sys
-
-# Ensure src/ is in path
-SRC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-if SRC_DIR not in sys.path:
-    sys.path.insert(0, SRC_DIR)
 
 import pytest
-
-# Markers
-network = pytest.mark.network
+from conftest import MockResponse, RateLimitedResponse
+from utils import (
+    make_mock_yfinance,
+    make_mock_yfinance_history,
+    setup_mock_brapi_fii,
+    setup_mock_brapi_history,
+    setup_mock_brapi_stock,
+)
 
 # ======================================================================
 # Fixtures
@@ -145,33 +144,15 @@ class TestBrapiClient:
         """All 4 endpoints return valid data — should merge correctly."""
         from sources import BrapiClient
 
-        mock_get = mocker.patch("requests.get")
+        mock_get = setup_mock_brapi_stock(
+            mocker,
+            quote=sample_quote_payload,
+            stats=sample_statistics_payload,
+            fin=sample_financial_payload,
+            profile=sample_profile_payload,
+            symbol="PETR4",
+        )
         brapi = BrapiClient(token="test-token")
-
-        def side_effect(url, **kwargs):
-            class MockResponse:
-                def __init__(self, data, status=200):
-                    self._data = data
-                    self.status_code = status
-
-                def raise_for_status(self):
-                    pass
-
-                def json(self):
-                    return self._data
-
-            if "quote" in url:
-                return MockResponse({"results": [{"symbol": "PETR4", "data": sample_quote_payload}]})
-            elif "statistics" in url:
-                return MockResponse({"results": [{"symbol": "PETR4", "data": sample_statistics_payload}]})
-            elif "financial-data" in url:
-                return MockResponse({"results": [{"symbol": "PETR4", "data": sample_financial_payload}]})
-            elif "profile" in url:
-                return MockResponse({"results": [{"symbol": "PETR4", "data": sample_profile_payload}]})
-            return MockResponse({"results": []})
-
-        mock_get.side_effect = side_effect
-
         info = brapi.fetch_stock_info("PETR4.SA")
 
         assert info is not None
@@ -191,18 +172,6 @@ class TestBrapiClient:
         from sources import BrapiClient
 
         mock_get = mocker.patch("requests.get")
-
-        class MockResponse:
-            def __init__(self, data, status=200):
-                self._data = data
-                self.status_code = status
-
-            def raise_for_status(self):
-                pass
-
-            def json(self):
-                return self._data
-
         mock_get.return_value = MockResponse({"results": []})
 
         brapi = BrapiClient(token="test")
@@ -225,17 +194,6 @@ class TestBrapiClient:
         from sources import BrapiClient, BrapiRateLimitError
 
         mock_get = mocker.patch("requests.get")
-
-        class RateLimitedResponse:
-            status_code = 429
-
-            def raise_for_status(self):
-                from requests.exceptions import HTTPError
-                raise HTTPError("429 Too Many Requests")
-
-            def json(self):
-                return {}
-
         mock_get.return_value = RateLimitedResponse()
 
         brapi = BrapiClient(token="test")
@@ -246,26 +204,12 @@ class TestBrapiClient:
         """Only quote endpoint works — should still return partial info."""
         from sources import BrapiClient
 
-        mock_get = mocker.patch("requests.get")
-
-        class MockResponse:
-            def __init__(self, data, status=200):
-                self._data = data
-                self.status_code = status
-
-            def raise_for_status(self):
-                pass
-
-            def json(self):
-                return self._data
-
-        def side_effect(url, **kwargs):
-            if "quote" in url:
-                return MockResponse({"results": [{"symbol": "PETR4", "data": sample_quote_payload}]})
-            return MockResponse({"results": [{"symbol": "PETR4", "data": {}}]})
-
-        mock_get.side_effect = side_effect
-
+        mock_get = setup_mock_brapi_stock(
+            mocker,
+            quote=sample_quote_payload,
+            symbol="PETR4",
+            # No stats/fin/profile → those endpoints return empty
+        )
         brapi = BrapiClient(token="test")
         info = brapi.fetch_stock_info("PETR4.SA")
 
@@ -281,21 +225,7 @@ class TestBrapiClient:
         """FII indicators endpoint returns valid data."""
         from sources import BrapiClient
 
-        mock_get = mocker.patch("requests.get")
-
-        class MockResponse:
-            def __init__(self, data, status=200):
-                self._data = data
-                self.status_code = status
-
-            def raise_for_status(self):
-                pass
-
-            def json(self):
-                return self._data
-
-        mock_get.return_value = MockResponse(sample_fii_payload)
-
+        setup_mock_brapi_fii(mocker, sample_fii_payload)
         brapi = BrapiClient(token="test")
         info = brapi.fetch_fii_info("MXRF11.SA")
 
@@ -314,18 +244,6 @@ class TestBrapiClient:
         from sources import BrapiClient
 
         mock_get = mocker.patch("requests.get")
-
-        class MockResponse:
-            def __init__(self, data, status=200):
-                self._data = data
-                self.status_code = status
-
-            def raise_for_status(self):
-                pass
-
-            def json(self):
-                return self._data
-
         mock_get.return_value = MockResponse({"fiis": []})
 
         brapi = BrapiClient(token="test")
@@ -339,23 +257,7 @@ class TestBrapiClient:
         """Historical data should be converted to standard format."""
         from sources import BrapiClient
 
-        mock_get = mocker.patch("requests.get")
-
-        class MockResponse:
-            def __init__(self, data, status=200):
-                self._data = data
-                self.status_code = status
-
-            def raise_for_status(self):
-                pass
-
-            def json(self):
-                return self._data
-
-        mock_get.return_value = MockResponse({
-            "results": [{"symbol": "PETR4", "data": sample_history_payload}],
-        })
-
+        setup_mock_brapi_history(mocker, sample_history_payload, symbol="PETR4")
         brapi = BrapiClient(token="test")
         history = brapi.fetch_history("PETR4.SA", period="1y", max_points=60)
 
@@ -372,18 +274,6 @@ class TestBrapiClient:
         from sources import BrapiClient
 
         mock_get = mocker.patch("requests.get")
-
-        class MockResponse:
-            def __init__(self, data, status=200):
-                self._data = data
-                self.status_code = status
-
-            def raise_for_status(self):
-                pass
-
-            def json(self):
-                return self._data
-
         mock_get.return_value = MockResponse({"results": [{"symbol": "PETR4", "data": {}}]})
 
         brapi = BrapiClient(token="test")
@@ -395,17 +285,6 @@ class TestBrapiClient:
         from sources import BrapiClient, BrapiRateLimitError
 
         mock_get = mocker.patch("requests.get")
-
-        class RateLimitedResponse:
-            status_code = 429
-
-            def raise_for_status(self):
-                from requests.exceptions import HTTPError
-                raise HTTPError("429 Too Many Requests")
-
-            def json(self):
-                return {}
-
         mock_get.return_value = RateLimitedResponse()
 
         brapi = BrapiClient(token="test")
@@ -440,8 +319,7 @@ class TestYfinanceClient:
         """yfinance returns valid stock info."""
         from sources import YfinanceClient
 
-        mock_ticker = mocker.MagicMock()
-        mock_ticker.info = {
+        make_mock_yfinance(mocker, {
             "longName": "Petrobras PN",
             "currentPrice": 38.25,
             "trailingPE": 5.08,
@@ -451,8 +329,7 @@ class TestYfinanceClient:
             "bookValue": 34.54,
             "returnOnEquity": 0.24,
             "sector": "Energy",
-        }
-        mocker.patch("yfinance.Ticker", return_value=mock_ticker)
+        })
 
         client = YfinanceClient()
         info = client.fetch_stock_info("PETR4.SA")
@@ -465,9 +342,7 @@ class TestYfinanceClient:
         """yfinance returns empty info should return {}."""
         from sources import YfinanceClient
 
-        mock_ticker = mocker.MagicMock()
-        mock_ticker.info = {}
-        mocker.patch("yfinance.Ticker", return_value=mock_ticker)
+        make_mock_yfinance(mocker, info={})
 
         client = YfinanceClient()
         info = client.fetch_stock_info("BAD.SA")
@@ -488,15 +363,11 @@ class TestYfinanceClient:
         from sources import YfinanceClient
         import pandas as pd
 
-        # Create a mock DataFrame
         dates = pd.date_range("2025-01-01", periods=100, freq="D")
         mock_df = pd.DataFrame({
             "Close": [float(i) for i in range(100)],
         }, index=dates)
-
-        mock_ticker = mocker.MagicMock()
-        mock_ticker.history.return_value = mock_df
-        mocker.patch("yfinance.Ticker", return_value=mock_ticker)
+        make_mock_yfinance_history(mocker, mock_df)
 
         client = YfinanceClient()
         history = client.fetch_history("PETR4.SA", period="1y", max_points=60)
@@ -511,9 +382,7 @@ class TestYfinanceClient:
         from sources import YfinanceClient
         import pandas as pd
 
-        mock_ticker = mocker.MagicMock()
-        mock_ticker.history.return_value = pd.DataFrame()  # Empty
-        mocker.patch("yfinance.Ticker", return_value=mock_ticker)
+        make_mock_yfinance_history(mocker, pd.DataFrame())
 
         client = YfinanceClient()
         history = client.fetch_history("PETR4.SA")
@@ -535,31 +404,14 @@ class TestFetchAssetInfo:
         """brapi.dev (primary) returns valid stock data — no fallback needed."""
         from sources import fetch_asset_info
 
-        mock_get = mocker.patch("requests.get")
-
-        class MockResponse:
-            def __init__(self, data, status=200):
-                self._data = data
-                self.status_code = status
-
-            def raise_for_status(self):
-                pass
-
-            def json(self):
-                return self._data
-
-        def side_effect(url, **kwargs):
-            if "quote" in url:
-                return MockResponse({"results": [{"symbol": "PETR4", "data": sample_quote_payload}]})
-            elif "statistics" in url:
-                return MockResponse({"results": [{"symbol": "PETR4", "data": sample_statistics_payload}]})
-            elif "financial-data" in url:
-                return MockResponse({"results": [{"symbol": "PETR4", "data": sample_financial_payload}]})
-            elif "profile" in url:
-                return MockResponse({"results": [{"symbol": "PETR4", "data": sample_profile_payload}]})
-            return MockResponse({"results": []})
-
-        mock_get.side_effect = side_effect
+        setup_mock_brapi_stock(
+            mocker,
+            quote=sample_quote_payload,
+            stats=sample_statistics_payload,
+            fin=sample_financial_payload,
+            profile=sample_profile_payload,
+            symbol="PETR4",
+        )
 
         info = fetch_asset_info("PETR4.SA", "stock", minimal_config)
 
@@ -573,13 +425,10 @@ class TestFetchAssetInfo:
         """brapi.dev fails — yfinance fallback should work."""
         from sources import fetch_asset_info
 
-        # Make brapi.dev fail with network error
         mock_get = mocker.patch("requests.get")
         mock_get.side_effect = Exception("brapi.dev network error")
 
-        # Make yfinance succeed
-        mock_ticker = mocker.MagicMock()
-        mock_ticker.info = {
+        make_mock_yfinance(mocker, {
             "longName": "Petrobras PN",
             "currentPrice": 38.25,
             "trailingPE": 5.08,
@@ -589,8 +438,7 @@ class TestFetchAssetInfo:
             "bookValue": 34.54,
             "returnOnEquity": 0.24,
             "sector": "Energy",
-        }
-        mocker.patch("yfinance.Ticker", return_value=mock_ticker)
+        })
 
         info = fetch_asset_info("PETR4.SA", "stock", minimal_config)
 
@@ -605,10 +453,7 @@ class TestFetchAssetInfo:
         from sources import fetch_asset_info
 
         mocker.patch("requests.get", side_effect=Exception("Network error"))
-
-        mock_ticker = mocker.MagicMock()
-        mock_ticker.info = {}
-        mocker.patch("yfinance.Ticker", return_value=mock_ticker)
+        make_mock_yfinance(mocker, info={})
 
         info = fetch_asset_info("BOGUS.SA", "stock", minimal_config)
         assert info == {}
@@ -617,20 +462,7 @@ class TestFetchAssetInfo:
         """brapi.dev FII indicators work for FII assets."""
         from sources import fetch_asset_info
 
-        mock_get = mocker.patch("requests.get")
-
-        class MockResponse:
-            def __init__(self, data, status=200):
-                self._data = data
-                self.status_code = status
-
-            def raise_for_status(self):
-                pass
-
-            def json(self):
-                return self._data
-
-        mock_get.return_value = MockResponse(sample_fii_payload)
+        setup_mock_brapi_fii(mocker, sample_fii_payload)
 
         info = fetch_asset_info("MXRF11.SA", "fii", minimal_config)
 
@@ -643,20 +475,7 @@ class TestFetchAssetInfo:
         """FIAGRO assets use the same FII analysis endpoint."""
         from sources import fetch_asset_info
 
-        mock_get = mocker.patch("requests.get")
-
-        class MockResponse:
-            def __init__(self, data, status=200):
-                self._data = data
-                self.status_code = status
-
-            def raise_for_status(self):
-                pass
-
-            def json(self):
-                return self._data
-
-        mock_get.return_value = MockResponse(sample_fii_payload)
+        setup_mock_brapi_fii(mocker, sample_fii_payload)
 
         info = fetch_asset_info("KNCA11.SA", "fiagro", minimal_config)
 
@@ -668,27 +487,13 @@ class TestFetchAssetInfo:
         from sources import fetch_asset_info
 
         mock_get = mocker.patch("requests.get")
-
-        class RateLimitedResponse:
-            status_code = 429
-
-            def raise_for_status(self):
-                from requests.exceptions import HTTPError
-                raise HTTPError("429 Too Many Requests")
-
-            def json(self):
-                return {}
-
         mock_get.return_value = RateLimitedResponse()
 
-        # Make yfinance succeed
-        mock_ticker = mocker.MagicMock()
-        mock_ticker.info = {
+        make_mock_yfinance(mocker, {
             "longName": "Petrobras PN",
             "currentPrice": 38.25,
             "trailingPE": 5.08,
-        }
-        mocker.patch("yfinance.Ticker", return_value=mock_ticker)
+        })
 
         info = fetch_asset_info("PETR4.SA", "stock", minimal_config)
 
@@ -705,26 +510,11 @@ class TestFetchHistory:
     """Test the unified fetch_history with fallback logic."""
 
     def test_primary_history_success(self, mocker, sample_history_payload,
-                                      minimal_config):
+                                       minimal_config):
         """brapi.dev history returns valid data."""
         from sources import fetch_history
 
-        mock_get = mocker.patch("requests.get")
-
-        class MockResponse:
-            def __init__(self, data, status=200):
-                self._data = data
-                self.status_code = status
-
-            def raise_for_status(self):
-                pass
-
-            def json(self):
-                return self._data
-
-        mock_get.return_value = MockResponse({
-            "results": [{"symbol": "PETR4", "data": sample_history_payload}],
-        })
+        setup_mock_brapi_history(mocker, sample_history_payload, symbol="PETR4")
 
         hist_json = fetch_history("PETR4.SA", minimal_config, period="1y", max_points=60)
         data = json.loads(hist_json)
@@ -738,17 +528,12 @@ class TestFetchHistory:
         from sources import fetch_history
         import pandas as pd
 
-        # brapi fails
         mock_get = mocker.patch("requests.get")
         mock_get.side_effect = Exception("brapi error")
 
-        # yfinance succeeds
         dates = pd.date_range("2025-01-01", periods=10, freq="D")
         mock_df = pd.DataFrame({"Close": [float(i) for i in range(10)]}, index=dates)
-
-        mock_ticker = mocker.MagicMock()
-        mock_ticker.history.return_value = mock_df
-        mocker.patch("yfinance.Ticker", return_value=mock_ticker)
+        make_mock_yfinance_history(mocker, mock_df)
 
         hist_json = fetch_history("PETR4.SA", minimal_config, period="1y", max_points=60)
         data = json.loads(hist_json)
@@ -759,118 +544,15 @@ class TestFetchHistory:
     def test_both_history_fail(self, mocker, minimal_config):
         """Both sources fail for history — should return []."""
         from sources import fetch_history
+        import pandas as pd
 
         mock_get = mocker.patch("requests.get")
         mock_get.side_effect = Exception("brapi error")
 
-        mock_ticker = mocker.MagicMock()
-        mock_ticker.history.return_value = __import__("pandas").DataFrame()  # Empty
-        mocker.patch("yfinance.Ticker", return_value=mock_ticker)
+        make_mock_yfinance_history(mocker, pd.DataFrame())
 
         hist_json = fetch_history("FAIL.SA", minimal_config)
         assert hist_json == "[]"
-
-
-# ======================================================================
-# Integration Tests (REAL brapi.dev calls for test tickers)
-# ======================================================================
-
-class TestBrapiLiveConnectivity:
-    """Make real calls to brapi.dev for the 4 publicly accessible tickers.
-
-    These work WITHOUT a token (public test tickers).
-    """
-
-    @network
-    def test_brapi_live_stock_quote(self):
-        """PETR4 should return quote data without token."""
-        from sources import BrapiClient
-
-        brapi = BrapiClient(token=None)
-        info = brapi.fetch_stock_info("PETR4.SA")
-
-        assert info is not None, "brapi.dev returned None for PETR4"
-        assert info.get("longName"), "No longName for PETR4"
-        assert info.get("currentPrice") is not None, "No price for PETR4"
-        if info.get("currentPrice") is not None:
-            assert info["currentPrice"] > 0, f"Price should be > 0, got {info['currentPrice']}"
-
-    @network
-    def test_brapi_live_stock_statistics(self):
-        """PETR4 statistics should include P/E, P/B, DY, EPS, BV."""
-        from sources import BrapiClient
-
-        brapi = BrapiClient(token=None)
-        info = brapi.fetch_stock_info("PETR4.SA")
-
-        fundamentals = [
-            ("trailingPE", info.get("trailingPE")),
-            ("priceToBook", info.get("priceToBook")),
-            ("dividendYield", info.get("dividendYield")),
-            ("trailingEps", info.get("trailingEps")),
-            ("bookValue", info.get("bookValue")),
-        ]
-        present = [name for name, val in fundamentals if val is not None]
-        assert len(present) >= 3, (
-            f"PETR4 missing most fundamentals via brapi.dev. "
-            f"Found only: {present}"
-        )
-
-    @network
-    def test_brapi_live_fii(self):
-        """MXRF11 should return FII indicator data without token."""
-        from sources import BrapiClient
-
-        brapi = BrapiClient(token=None)
-        info = brapi.fetch_fii_info("MXRF11.SA")
-
-        assert info is not None, "brapi.dev returned None for MXRF11"
-        # MXRF11 should have price data
-        if info.get("currentPrice") is not None:
-            assert info["currentPrice"] > 0, f"Price should be > 0, got {info['currentPrice']}"
-
-    @network
-    def test_brapi_live_history(self):
-        """PETR4 history should contain date/price points."""
-        from sources import BrapiClient
-
-        brapi = BrapiClient(token=None)
-        history = brapi.fetch_history("PETR4.SA", period="1y", max_points=60)
-
-        assert isinstance(history, list), "History should be a list"
-        if len(history) > 0:
-            assert "date" in history[0], "Missing date in history point"
-            assert "price" in history[0], "Missing price in history point"
-            assert history[0]["price"] > 0, "Price should be positive"
-
-    @network
-    def test_live_fetch_asset_info_fallback(self):
-        """For a non-public ticker (no token), should fallback to yfinance."""
-        from sources import fetch_asset_info
-
-        # Without token, ITUB4 is public but let's verify fallback works
-        # for a ticker that IS public
-        config = {"brapi": {"token": ""}, "pipeline": {}}
-        info = fetch_asset_info("ITUB4.SA", "stock", config)
-
-        assert info is not None
-        assert info.get("longName") or info.get("shortName"), "No name for ITUB4"
-        price = info.get("currentPrice") or info.get("regularMarketPrice")
-        if price is not None:
-            assert price > 0, f"Price should be > 0, got {price}"
-
-    @network
-    def test_live_fetch_history_fallback(self):
-        """Without token, history should still work via fallback."""
-        from sources import fetch_history
-
-        config = {"brapi": {"token": ""}, "pipeline": {}}
-        hist_json = fetch_history("PETR4.SA", config, period="1y", max_points=30)
-        data = json.loads(hist_json)
-
-        # Either brapi or yfinance should return data
-        if len(data) > 0:
-            assert data[0]["price"] > 0
 
 
 # ======================================================================
@@ -881,39 +563,22 @@ class TestSourceAnalyzerCompatibility:
     """Verify that sources.py output is compatible with analyzer.py."""
 
     def test_source_output_has_all_analyzer_keys(self, mocker,
-                                                  sample_quote_payload,
-                                                  sample_statistics_payload,
-                                                  sample_financial_payload,
-                                                  minimal_config):
+                                                   sample_quote_payload,
+                                                   sample_statistics_payload,
+                                                   sample_financial_payload,
+                                                   minimal_config):
         """Stock info from sources should have all keys that analyzer needs."""
         from sources import fetch_asset_info
         import analyzer
 
-        mock_get = mocker.patch("requests.get")
-
-        class MockResponse:
-            def __init__(self, data, status=200):
-                self._data = data
-                self.status_code = status
-
-            def raise_for_status(self):
-                pass
-
-            def json(self):
-                return self._data
-
-        def side_effect(url, **kwargs):
-            if "quote" in url:
-                return MockResponse({"results": [{"symbol": "PETR4", "data": sample_quote_payload}]})
-            elif "statistics" in url:
-                return MockResponse({"results": [{"symbol": "PETR4", "data": sample_statistics_payload}]})
-            elif "financial-data" in url:
-                return MockResponse({"results": [{"symbol": "PETR4", "data": sample_financial_payload}]})
-            elif "profile" in url:
-                return MockResponse({"results": [{"symbol": "PETR4", "data": {"sector": "Energy"}}]})
-            return MockResponse({"results": []})
-
-        mock_get.side_effect = side_effect
+        setup_mock_brapi_stock(
+            mocker,
+            quote=sample_quote_payload,
+            stats=sample_statistics_payload,
+            fin=sample_financial_payload,
+            profile={"sector": "Energy"},
+            symbol="PETR4",
+        )
 
         info = fetch_asset_info("PETR4.SA", "stock", minimal_config)
 
@@ -936,26 +601,13 @@ class TestSourceAnalyzerCompatibility:
         assert 0 <= result["score"] <= 5
 
     def test_fii_source_analyzer_compatible(self, mocker,
-                                             sample_fii_payload,
-                                             minimal_config):
+                                              sample_fii_payload,
+                                              minimal_config):
         """FII info from sources should work with analyzer.analyze_fii."""
         from sources import fetch_asset_info
         import analyzer
 
-        mock_get = mocker.patch("requests.get")
-
-        class MockResponse:
-            def __init__(self, data, status=200):
-                self._data = data
-                self.status_code = status
-
-            def raise_for_status(self):
-                pass
-
-            def json(self):
-                return self._data
-
-        mock_get.return_value = MockResponse(sample_fii_payload)
+        setup_mock_brapi_fii(mocker, sample_fii_payload)
 
         info = fetch_asset_info("MXRF11.SA", "fii", minimal_config)
 

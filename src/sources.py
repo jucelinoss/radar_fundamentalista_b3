@@ -38,6 +38,7 @@ import logging
 import os
 import time
 from datetime import datetime, timezone
+from typing import Any
 
 logger = logging.getLogger("sources")
 
@@ -47,7 +48,7 @@ logger = logging.getLogger("sources")
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _ENV_FILE = os.path.join(_ROOT, ".env")
 
-def _load_brapi_token():
+def _load_brapi_token() -> str | None:
     """Load BRAPI token from env var > .env file, or return None."""
     # 1. Environment variable (used by GitHub Actions)
     env_token = os.environ.get("BRAPI_TOKEN")
@@ -95,17 +96,17 @@ PERIOD_TO_RANGE = {
 class BrapiClient:
     """HTTP client for the brapi.dev v2 API."""
 
-    def __init__(self, token=None):
-        self.token = token
+    def __init__(self, token: str | None = None) -> None:
+        self.token: str | None = token
 
     @property
-    def _headers(self):
-        headers = {"User-Agent": "B3-Screener/2.0"}
+    def _headers(self) -> dict[str, str]:
+        headers: dict[str, str] = {"User-Agent": "Radar-Fundamentalista-B3/2.0"}
         if self.token:
             headers["Authorization"] = f"Bearer {self.token}"
         return headers
 
-    def _get(self, endpoint, params=None):
+    def _get(self, endpoint: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
         """Perform a GET request to the brapi.dev API."""
         import requests as req
         url = f"{BRAPI_BASE}/{endpoint}"
@@ -119,7 +120,7 @@ class BrapiClient:
     # -------------------------------------------------------------------
     # Stock info (quote + statistics + financial-data)
     # -------------------------------------------------------------------
-    def fetch_stock_info(self, ticker):
+    def fetch_stock_info(self, ticker: str) -> dict[str, Any]:
         """Fetch complete stock info from brapi.dev.
 
         Combines data from quote, statistics, financial-data, and profile
@@ -177,7 +178,7 @@ class BrapiClient:
     # -------------------------------------------------------------------
     # FII / FIAGRO info (indicators endpoint)
     # -------------------------------------------------------------------
-    def fetch_fii_info(self, ticker):
+    def fetch_fii_info(self, ticker: str) -> dict[str, Any]:
         """Fetch FII/FIAGRO info from brapi.dev's FII indicators endpoint.
 
         Returns {} on any failure.
@@ -224,7 +225,7 @@ class BrapiClient:
     # -------------------------------------------------------------------
     # Historical data
     # -------------------------------------------------------------------
-    def fetch_history(self, ticker, period="5y", max_points=60):
+    def fetch_history(self, ticker: str, period: str = "5y", max_points: int = 60) -> list[dict[str, Any]]:
         """Fetch OHLCV history from brapi.dev.
 
         Returns a list of {date, price} dicts sampled to max_points.
@@ -283,7 +284,7 @@ class BrapiClient:
     # Internal helpers
     # -------------------------------------------------------------------
     @staticmethod
-    def _unwrap_result(response):
+    def _unwrap_result(response: dict[str, Any]) -> dict[str, Any] | None:
         """Extract the inner 'data' payload from a v2 API response.
 
         v2 format: {"results": [{"symbol": "...", "data": {...}}]}
@@ -295,7 +296,7 @@ class BrapiClient:
         return results[0].get("data", {})
 
     @staticmethod
-    def _extract_quote(quote):
+    def _extract_quote(quote: dict[str, Any]) -> dict[str, Any]:
         """Extract fields from the quote endpoint response."""
         return {
             "symbol": quote.get("symbol"),
@@ -315,7 +316,7 @@ class BrapiClient:
         }
 
     @staticmethod
-    def _extract_statistics(stats):
+    def _extract_statistics(stats: dict[str, Any]) -> dict[str, Any]:
         """Extract fundamental fields from the statistics endpoint."""
         return {
             "trailingPE": stats.get("trailingPE"),
@@ -331,7 +332,7 @@ class BrapiClient:
         }
 
     @staticmethod
-    def _extract_financial(fin):
+    def _extract_financial(fin: dict[str, Any]) -> dict[str, Any]:
         """Extract ROE from the financial-data endpoint."""
         return {
             "returnOnEquity": fin.get("returnOnEquity"),
@@ -343,7 +344,7 @@ class BrapiClient:
         }
 
     @staticmethod
-    def _extract_profile(profile):
+    def _extract_profile(profile: dict[str, Any]) -> dict[str, Any]:
         """Extract sector/industry from the profile endpoint."""
         return {
             "sector": profile.get("sector"),
@@ -358,7 +359,7 @@ class YfinanceClient:
     """yfinance-based data source for fallback scenarios."""
 
     @staticmethod
-    def fetch_stock_info(ticker):
+    def fetch_stock_info(ticker: str) -> dict[str, Any]:
         """Fetch stock info from yfinance."""
         import yfinance as yf
         try:
@@ -372,12 +373,12 @@ class YfinanceClient:
             return {}
 
     @staticmethod
-    def fetch_fii_info(ticker):
+    def fetch_fii_info(ticker: str) -> dict[str, Any]:
         """Fetch FII info from yfinance (same as stock info)."""
         return YfinanceClient.fetch_stock_info(ticker)
 
     @staticmethod
-    def fetch_history(ticker, period="10y", max_points=60):
+    def fetch_history(ticker: str, period: str = "10y", max_points: int = 60) -> list[dict[str, Any]]:
         """Fetch history from yfinance and sample down."""
         import yfinance as yf
         try:
@@ -416,7 +417,7 @@ class AllSourcesFailedError(Exception):
 # Unified fetch functions (main public API)
 # ---------------------------------------------------------------------------
 
-def fetch_asset_info(ticker, asset_type, config):
+def fetch_asset_info(ticker: str, asset_type: str, config: dict[str, Any]) -> dict[str, Any]:
     """Fetch asset info from primary source (brapi.dev) with yfinance fallback.
 
     Args:
@@ -466,7 +467,7 @@ def fetch_asset_info(ticker, asset_type, config):
     return {}
 
 
-def fetch_history(ticker, config, period="10y", max_points=60):
+def fetch_history(ticker: str, config: dict[str, Any], period: str = "10y", max_points: int = 60) -> str:
     """Fetch historical price data from brapi.dev with yfinance fallback.
 
     Args:
@@ -507,7 +508,7 @@ def fetch_history(ticker, config, period="10y", max_points=60):
     return json.dumps([])
 
 
-def normalize_dividend_yield(dy):
+def normalize_dividend_yield(dy: float | None) -> float:
     """Normalize dividend yield to decimal form (same as analyzer.normalize_dividend_yield).
 
     brapi.dev returns DY as decimal (e.g. 0.06 for 6%) — same as normalized yfinance.

@@ -1,6 +1,6 @@
 @echo off
 echo ===================================================
-echo   Screener Fundamentalista B3 - Inicializador
+echo   Radar Fundamentalista B3 - Inicializador
 echo ===================================================
 echo.
 

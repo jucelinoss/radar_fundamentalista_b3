@@ -1,5 +1,5 @@
 """
-Data ingestion pipeline for the B3 Fundamentalist Screener.
+Data ingestion pipeline for the Radar Fundamentalista B3.
 
 Fetches asset data from Yahoo Finance (yfinance), computes fundamentalist
 metrics via analyzer.py, and persists results to SQLite via database.py.
@@ -20,6 +20,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from threading import Lock
+from typing import Any
 
 from sources import fetch_asset_info, fetch_history
 
@@ -41,21 +42,18 @@ os.makedirs(DATA_DIR, exist_ok=True)
 # ---------------------------------------------------------------------------
 # Logging setup
 # ---------------------------------------------------------------------------
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(asctime)s] %(levelname)s - %(message)s",
+    datefmt="%H:%M:%S",
+)
 logger = logging.getLogger("ingestion")
-_log_handler = logging.StreamHandler(sys.stdout)
-_log_handler.setFormatter(logging.Formatter(
-    "[%(asctime)s] %(levelname)s - %(message)s", datefmt="%H:%M:%S"
-))
-logger.addHandler(_log_handler)
-logger.setLevel(logging.INFO)
-# Prevent propagation to root logger to avoid duplicate prints
-logger.propagate = False
 
 
 # ---------------------------------------------------------------------------
 # Configuration loader
 # ---------------------------------------------------------------------------
-def load_config():
+def load_config() -> dict[str, Any]:
     """Load ticker lists and pipeline settings from config/tickers.json."""
     config_path = os.path.join(CONFIG_DIR, "tickers.json")
     defaults = {
@@ -93,7 +91,7 @@ def load_config():
     return defaults
 
 
-def load_ticker_mappings():
+def load_ticker_mappings() -> dict[str, Any]:
     """Load ticker rename/delist mappings from data/ticker_mappings.json."""
     if os.path.exists(MAPPINGS_FILE):
         try:
@@ -104,7 +102,7 @@ def load_ticker_mappings():
     return {}
 
 
-def resolve_ticker(ticker, mappings):
+def resolve_ticker(ticker: str, mappings: dict[str, Any]) -> tuple[str, bool]:
     """Resolve a ticker through mappings; returns (resolved_ticker, is_delisted)."""
     if ticker in mappings:
         resolved = mappings[ticker]
@@ -120,17 +118,17 @@ def resolve_ticker(ticker, mappings):
 class ProgressTracker:
     """Thread-safe progress tracker that writes status to JSON for the web UI."""
 
-    def __init__(self, total=0):
-        self._total = total
-        self._processed = 0
-        self._lock = Lock()
-        self._results = {"ok": 0, "fail": 0}
-        self._start_time = time.time()
+    def __init__(self, total: int = 0) -> None:
+        self._total: int = total
+        self._processed: int = 0
+        self._lock: Lock = Lock()
+        self._results: dict[str, int] = {"ok": 0, "fail": 0}
+        self._start_time: float = time.time()
 
-    def set_total(self, total):
+    def set_total(self, total: int) -> None:
         self._total = total
 
-    def increment(self, ok=True):
+    def increment(self, ok: bool = True) -> None:
         with self._lock:
             self._processed += 1
             if ok:
@@ -139,8 +137,8 @@ class ProgressTracker:
                 self._results["fail"] += 1
             self._write_status()
 
-    def _write_status(self):
-        elapsed = round(time.time() - self._start_time, 1)
+    def _write_status(self) -> None:
+        elapsed: float = round(time.time() - self._start_time, 1)
         try:
             with open(STATUS_FILE, "w", encoding="utf-8") as f:
                 json.dump({
@@ -155,7 +153,7 @@ class ProgressTracker:
         except Exception:
             pass
 
-    def set_current_ticker(self, ticker):
+    def set_current_ticker(self, ticker: str) -> None:
         try:
             with self._lock:
                 status_data = {"status": "running", "current": ticker}
@@ -170,12 +168,12 @@ class ProgressTracker:
             pass
 
     @property
-    def results(self):
+    def results(self) -> dict[str, int]:
         with self._lock:
             return dict(self._results)
 
     @staticmethod
-    def set_idle(current="Atualização concluída."):
+    def set_idle(current: str = "Atualização concluída.") -> None:
         try:
             with open(STATUS_FILE, "w", encoding="utf-8") as f:
                 json.dump({
@@ -187,7 +185,7 @@ class ProgressTracker:
             pass
 
     @staticmethod
-    def set_error(message):
+    def set_error(message: str) -> None:
         try:
             with open(STATUS_FILE, "w", encoding="utf-8") as f:
                 json.dump({
@@ -199,7 +197,7 @@ class ProgressTracker:
             pass
 
 
-def log_failed_ticker(ticker, reason):
+def log_failed_ticker(ticker: str, reason: str) -> None:
     """Append a failed ticker to the persistent log file."""
     try:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -210,9 +208,57 @@ def log_failed_ticker(ticker, reason):
 
 
 # ---------------------------------------------------------------------------
+# Helpers for single asset ingestion
+# ---------------------------------------------------------------------------
+
+def _persist_asset(analysis: dict[str, Any], asset_type: str) -> None:
+    """Save analysis result to the correct table based on asset type."""
+    if asset_type == "stock":
+        database.save_stock(analysis)
+    elif asset_type == "fii":
+        database.save_fii(analysis)
+    else:
+        database.save_fiagro(analysis)
+
+
+def _fetch_with_retry(ticker: str, resolved_ticker: str, asset_type: str,
+                      config: dict[str, Any], retry_attempts: int,
+                      retry_delay: float) -> dict[str, Any] | None:
+    """
+    Fetch asset info with exponential backoff retry.
+    Returns the analysis dict on success, None on failure.
+    """
+    pipeline_cfg = config.get("pipeline", {})
+
+    for attempt in range(1, retry_attempts + 1):
+        info = fetch_asset_info(resolved_ticker, asset_type, config)
+
+        if info and ("longName" in info or "shortName" in info):
+            analysis = (
+                analyzer.analyze_stock(resolved_ticker, info)
+                if asset_type == "stock"
+                else analyzer.analyze_fii(resolved_ticker, info)
+            )
+            analysis["history_json"] = fetch_history(
+                resolved_ticker, config,
+                period=pipeline_cfg.get("history_years", "10y"),
+                max_points=pipeline_cfg.get("history_sample_points", 60),
+            )
+            return analysis
+
+        msg = "No valid data from any source"
+        if attempt < retry_attempts:
+            logger.warning(f"  ⚠️  {ticker}: {msg}, retry {attempt}/{retry_attempts}")
+            time.sleep(retry_delay * (2 ** (attempt - 1)))
+        else:
+            logger.error(f"  ❌ {ticker}: {msg} after {retry_attempts} attempts")
+    return None
+
+
+# ---------------------------------------------------------------------------
 # Single asset ingestion (called by parallel workers)
 # ---------------------------------------------------------------------------
-def ingest_single_asset(ticker, asset_type, mappings, config, tracker):
+def ingest_single_asset(ticker: str, asset_type: str, mappings: dict[str, Any], config: dict[str, Any], tracker: ProgressTracker) -> bool:
     """
     Fetch, analyze, and persist a single asset.
     Returns True on success, False on failure.
@@ -230,68 +276,31 @@ def ingest_single_asset(ticker, asset_type, mappings, config, tracker):
 
     display_name = f"{ticker}→{resolved_ticker}" if resolved_ticker != ticker else ticker
 
-    for attempt in range(1, retry_attempts + 1):
-        try:
-            tracker.set_current_ticker(ticker)
+    tracker.set_current_ticker(ticker)
 
-            # Fetch from primary source (brapi.dev) with yfinance fallback
-            info = fetch_asset_info(resolved_ticker, asset_type, config)
+    try:
+        analysis = _fetch_with_retry(ticker, resolved_ticker, asset_type, config, retry_attempts, retry_delay)
+        if analysis is None:
+            log_failed_ticker(ticker, f"No data (resolved: {resolved_ticker})")
+            tracker.increment(ok=False)
+            return False
 
-            # Validate we got meaningful data
-            if not info or ("longName" not in info and "shortName" not in info):
-                msg = "No valid data from any source"
-                if attempt < retry_attempts:
-                    logger.warning(f"  ⚠️  {display_name}: {msg}, retry {attempt}/{retry_attempts}")
-                    time.sleep(retry_delay * (2 ** (attempt - 1)))  # exponential backoff
-                    continue
-                logger.error(f"  ❌ {display_name}: {msg} after {retry_attempts} attempts")
-                log_failed_ticker(ticker, f"{msg} (resolved: {resolved_ticker})")
-                tracker.increment(ok=False)
-                return False
+        _persist_asset(analysis, asset_type)
+        logger.info(f"  ✅ {display_name}")
+        tracker.increment(ok=True)
+        return True
 
-            # Compute analysis
-            if asset_type == "stock":
-                analysis = analyzer.analyze_stock(resolved_ticker, info)
-            else:  # FII / FIAGRO
-                analysis = analyzer.analyze_fii(resolved_ticker, info)
-
-            # Fetch history from primary source (brapi.dev) with yfinance fallback
-            analysis["history_json"] = fetch_history(
-                resolved_ticker, config,
-                period=pipeline_cfg.get("history_years", "10y"),
-                max_points=pipeline_cfg.get("history_sample_points", 60)
-            )
-
-            # Persist
-            if asset_type == "stock":
-                database.save_stock(analysis)
-            elif asset_type == "fii":
-                database.save_fii(analysis)
-            else:
-                database.save_fiagro(analysis)
-
-            logger.info(f"  ✅ {display_name}")
-            tracker.increment(ok=True)
-            return True
-
-        except Exception as e:
-            if attempt < retry_attempts:
-                delay = retry_delay * (2 ** (attempt - 1))
-                logger.warning(f"  ⚠️  {display_name}: {e}, retry {attempt}/{retry_attempts} in {delay:.0f}s")
-                time.sleep(delay)
-            else:
-                logger.error(f"  ❌ {display_name}: {e} after {retry_attempts} attempts")
-                log_failed_ticker(ticker, f"Exception: {e} (resolved: {resolved_ticker})")
-                tracker.increment(ok=False)
-                return False
-
-    return False  # should not reach here
+    except Exception as e:
+        logger.error(f"  ❌ {display_name}: {e} after {retry_attempts} attempts")
+        log_failed_ticker(ticker, f"Exception: {e} (resolved: {resolved_ticker})")
+        tracker.increment(ok=False)
+        return False
 
 
 # ---------------------------------------------------------------------------
 # Batch ingestion (parallel)
 # ---------------------------------------------------------------------------
-def ingest_batch(tickers, asset_type, mappings, config, tracker):
+def ingest_batch(tickers: list[str], asset_type: str, mappings: dict[str, Any], config: dict[str, Any], tracker: ProgressTracker) -> tuple[int, int]:
     """
     Ingest a batch of assets in parallel using ThreadPoolExecutor.
     Returns (ok_count, fail_count).
@@ -329,15 +338,68 @@ def ingest_batch(tickers, asset_type, mappings, config, tracker):
 
 
 # ---------------------------------------------------------------------------
+# Orchestration helpers
+# ---------------------------------------------------------------------------
+
+def _prepare_ticker_lists(config: dict[str, Any], max_age_hours: int, force: bool) -> tuple[list[str], list[str], list[str], int]:
+    """Load all tickers and filter to stale ones (unless force). Returns (stocks, fiis, fiagros, skipped)."""
+    all_stocks = config.get("stocks", {}).get("tickers", [])
+    all_fiis = config.get("fiis", {}).get("tickers", [])
+    all_fiagros = config.get("fiagros", {}).get("tickers", [])
+    total_all = len(all_stocks) + len(all_fiis) + len(all_fiagros)
+
+    if force or max_age_hours <= 0:
+        logger.info("  🔄 Forçando refresh de TODOS os tickers")
+        return all_stocks, all_fiis, all_fiagros, 0
+
+    stocks_tickers = database.get_stale_tickers(all_stocks, "stocks", max_age_hours)
+    fiis_tickers = database.get_stale_tickers(all_fiis, "fiis", max_age_hours)
+    fiagros_tickers = database.get_stale_tickers(all_fiagros, "fiagros", max_age_hours)
+    skipped = total_all - (len(stocks_tickers) + len(fiis_tickers) + len(fiagros_tickers))
+    logger.info(f"  ⏭️  Pulando {skipped} tickers atualizados há <{max_age_hours}h")
+    return stocks_tickers, fiis_tickers, fiagros_tickers, skipped
+
+
+def _log_pipeline_summary(total_ok: int, total_fail: int, total: int, duration: float) -> None:
+    """Log the final pipeline summary."""
+    logger.info("=" * 60)
+    logger.info(f"  INGESTION COMPLETE — {duration}s")
+    logger.info(f"  ✅ OK: {total_ok}  |  ❌ Failed: {total_fail}  |  Total: {total}")
+    logger.info("=" * 60)
+
+
+def _record_pipeline_run(started_at: str, duration: float, stats: dict[str, int], total_fail: int) -> None:
+    """Record pipeline execution to DB and set idle status."""
+    try:
+        database.log_pipeline_run(
+            started_at=started_at,
+            finished_at=datetime.now().isoformat(),
+            duration=duration,
+            stats=stats,
+            status="success" if total_fail == 0 else "partial",
+        )
+    except Exception as e:
+        logger.warning(f"Could not log pipeline run: {e}")
+
+    total_ok = stats.get("stocks_ok", 0) + stats.get("fiis_ok", 0) + stats.get("fiagros_ok", 0)
+    ProgressTracker.set_idle(f"OK: {total_ok}, Falhas: {total_fail}, Duração: {duration}s")
+
+
+# ---------------------------------------------------------------------------
 # Main orchestration
 # ---------------------------------------------------------------------------
-def run_full_ingestion():
+def run_full_ingestion(max_age_hours: int = 6, force: bool = False) -> dict[str, Any]:
     """
     Run the complete ingestion pipeline:
-      1. Load config & mappings
-      2. Initialize DB
-      3. Ingest stocks, FIIs, FIAGROs in parallel batches
-      4. Log results
+        1. Load config & mappings
+        2. Initialize DB
+        3. Filter to stale tickers (unless force)
+        4. Ingest stocks, FIIs, FIAGROs in parallel batches
+        5. Log results
+
+    Parameters:
+        max_age_hours: Skip tickers updated within this many hours (default 6)
+        force: If True, ignores staleness and fetches ALL tickers
     """
     logger.info("=" * 60)
     logger.info("  INGESTION PIPELINE v2 — INICIANDO")
@@ -346,18 +408,17 @@ def run_full_ingestion():
     config = load_config()
     mappings = load_ticker_mappings()
 
-    stocks_tickers = config.get("stocks", {}).get("tickers", [])
-    fiis_tickers = config.get("fiis", {}).get("tickers", [])
-    fiagros_tickers = config.get("fiagros", {}).get("tickers", [])
+    logger.info("Initializing database...")
+    database.init_db()
+
+    stocks_tickers, fiis_tickers, fiagros_tickers, _ = _prepare_ticker_lists(
+        config, max_age_hours, force
+    )
     total = len(stocks_tickers) + len(fiis_tickers) + len(fiagros_tickers)
 
     tracker = ProgressTracker(total=total)
     start_time = time.time()
     started_at = datetime.now().isoformat()
-
-    # Initialize database
-    logger.info("Initializing database...")
-    database.init_db()
 
     # Clear failed tickers log from previous run
     if os.path.exists(FAILED_LOG_FILE):
@@ -375,31 +436,14 @@ def run_full_ingestion():
     total_ok = stocks_ok + fiis_ok + fiagros_ok
     total_fail = stocks_fail + fiis_fail + fiagros_fail
 
-    logger.info("=" * 60)
-    logger.info(f"  INGESTION COMPLETE — {duration}s")
-    logger.info(f"  ✅ OK: {total_ok}  |  ❌ Failed: {total_fail}  |  Total: {total}")
-    logger.info("=" * 60)
+    _log_pipeline_summary(total_ok, total_fail, total, duration)
 
-    # Record pipeline run in DB
     stats = {
         "stocks_ok": stocks_ok, "stocks_fail": stocks_fail,
         "fiis_ok": fiis_ok, "fiis_fail": fiis_fail,
         "fiagros_ok": fiagros_ok, "fiagros_fail": fiagros_fail,
     }
-    try:
-        database.log_pipeline_run(
-            started_at=started_at,
-            finished_at=datetime.now().isoformat(),
-            duration=duration,
-            stats=stats,
-            status="success" if total_fail == 0 else "partial"
-        )
-    except Exception as e:
-        logger.warning(f"Could not log pipeline run: {e}")
-
-    ProgressTracker.set_idle(
-        f"OK: {total_ok}, Falhas: {total_fail}, Duração: {duration}s"
-    )
+    _record_pipeline_run(started_at, duration, stats, total_fail)
 
     return {"ok": total_ok, "fail": total_fail, "duration": duration}
 

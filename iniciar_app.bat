@@ -1,9 +1,9 @@
 @echo off
-title Screener Fundamentalista B3
+title Radar Fundamentalista B3
 cd /d "%~dp0"
 
 echo ============================================
-echo  Screener Fundamentalista B3
+echo  Radar Fundamentalista B3
 echo ============================================
 echo.
 echo Iniciando servidor em http://localhost:8000
