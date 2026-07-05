@@ -149,6 +149,9 @@ jobs:
     needs: pipeline
     if: needs.pipeline.result == 'success' && (needs.pipeline.outputs.changed == 'true' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
