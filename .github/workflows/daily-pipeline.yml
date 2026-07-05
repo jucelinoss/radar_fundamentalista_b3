@@ -147,7 +147,7 @@ jobs:
   deploy:
     name: Deploy to GitHub Pages
     needs: pipeline
-    if: needs.pipeline.result == 'success' && (needs.pipeline.outputs.changed == 'true' || github.event_name == 'workflow_dispatch')
+    if: needs.pipeline.result == 'success' && needs.pipeline.outputs.changed == 'true'
     runs-on: ubuntu-latest
     permissions:
       pages: write
