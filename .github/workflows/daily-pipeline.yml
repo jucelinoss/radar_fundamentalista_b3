@@ -1,0 +1,114 @@
+# GitHub Actions: Daily B3 Data Pipeline + GitHub Pages Deploy
+#
+# Runs the complete data pipeline (ingestion + dashboard generation)
+# every weekday at 8:00 AM BRT (11:00 UTC).
+#
+# The generated dashboard is deployed to GitHub Pages automatically.
+# Access: https://SEU_USUARIO.github.io/investor/
+#
+# Required secrets (Settings > Secrets and variables > Actions):
+#   BRAPI_TOKEN: seu token do brapi.dev (https://brapi.dev/dashboard)
+#   (opcional - sem token usa yfinance como fallback)
+
+name: Daily B3 Pipeline
+
+on:
+  schedule:
+    - cron: '0 11 * * 1-5'   # 08:00 BRT, dias úteis
+  workflow_dispatch:          # Permite executar manualmente
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  pipeline:
+    name: Data Ingestion + Dashboard
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Ensure data directory exists
+        run: mkdir -p data
+
+      - name: Run full pipeline
+        run: python src/pipeline.py
+        env:
+          PYTHONUNBUFFERED: 1
+          BRAPI_TOKEN: ${{ secrets.BRAPI_TOKEN || '' }}
+
+      - name: Export to CSV/JSON (for AI analysis)
+        run: python src/pipeline.py --export-all
+        env:
+          BRAPI_TOKEN: ${{ secrets.BRAPI_TOKEN || '' }}
+
+      - name: Prepare Pages artifact
+        run: |
+          # Copy dashboard to index.html for GitHub Pages root
+          cp dashboard.html index.html
+          mkdir -p _site
+          cp dashboard.html _site/
+          cp index.html _site/
+          # Also copy export files for download
+          if [ -f data/export_ativos.json ]; then cp data/export_ativos.json _site/; fi
+          if [ -f data/export_top_picks.json ]; then cp data/export_top_picks.json _site/; fi
+          if [ -f data/export_stocks.csv ]; then cp data/export_stocks.csv _site/; fi
+          if [ -f data/export_fiis.csv ]; then cp data/export_fiis.csv _site/; fi
+          if [ -f data/export_fiagros.csv ]; then cp data/export_fiagros.csv _site/; fi
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Commit updated dashboard to repo
+        run: |
+          git config --global user.name 'B3 Pipeline Bot'
+          git config --global user.email 'pipeline-bot@localhost'
+          git add dashboard.html
+          git diff --quiet && git diff --staged --quiet || \
+            git commit -m "chore: auto-update dashboard [$(date +'%Y-%m-%d')]"
+          git push origin HEAD:${GITHUB_REF_NAME} || echo "No changes to push or push skipped"
+
+      - name: Summary
+        run: |
+          echo "## ✅ Pipeline Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Date: $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "- Duration: pipeline completed" >> $GITHUB_STEP_SUMMARY
+          if ls data/failed_tickers.log 2>/dev/null; then
+            echo "### ❌ Failed Tickers" >> $GITHUB_STEP_SUMMARY
+            cat data/failed_tickers.log >> $GITHUB_STEP_SUMMARY || true
+          else
+            echo "- All tickers ingested successfully ✅" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: pipeline
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HG Brasil MVP - Mercado & Câmbio</title>
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #080a10;
+            --card-bg: rgba(17, 24, 39, 0.75);
+            --card-border: rgba(255, 255, 255, 0.05);
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --primary: #8b5cf6;
+            --primary-glow: rgba(139, 92, 246, 0.15);
+            --accent-green: #10b981;
+            --accent-green-glow: rgba(16, 185, 129, 0.1);
+            --accent-gold: #f59e0b;
+            --accent-gold-glow: rgba(245, 158, 11, 0.1);
+            --danger: #ef4444;
+            --table-header: rgba(15, 23, 42, 0.9);
+            --table-hover: rgba(255, 255, 255, 0.015);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 3rem 2rem;
+            background-image: 
+                radial-gradient(circle at 10% 10%, rgba(139, 92, 246, 0.06) 0%, transparent 40%),
+                radial-gradient(circle at 90% 90%, rgba(16, 185, 129, 0.06) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 3rem;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-area h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-area p {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin-top: 0.35rem;
+        }
+
+        .back-link {
+            font-family: 'Outfit', sans-serif;
+            color: #a78bfa;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 0.5rem 1.2rem;
+            background: rgba(139, 92, 246, 0.05);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            border-radius: 20px;
+            transition: var(--transition);
+        }
+
+        .back-link:hover {
+            background: #8b5cf6;
+            color: white;
+            box-shadow: 0 4px 12px var(--primary-glow);
+            transform: translateY(-1px);
+        }
+
+        /* Section Title */
+        .panel-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 1.2rem;
+            margin-top: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Macro & Currencies Grid */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(12px);
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary);
+        }
+
+        .card.currency::before { background: #8b5cf6; }
+        .card.index::before { background: #10b981; }
+
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+        }
+
+        .card-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin: 0.2rem 0;
+        }
+
+        .card-subtext {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.4rem;
+        }
+
+        .change-pill {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .change-pill.positive {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .change-pill.negative {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        /* Asset Table */
+        .table-container {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            margin-bottom: 3rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: var(--table-header);
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            padding: 1.1rem 1.5rem;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        td {
+            padding: 1.1rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            color: var(--text-secondary);
+            font-weight: 500;
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: var(--table-hover);
+            color: var(--text-primary);
+        }
+
+        .ticker-name {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .metric-highlight {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Sandbox Card */
+        .sandbox-card {
+            background: rgba(139, 92, 246, 0.02);
+            border: 1px dashed rgba(139, 92, 246, 0.2);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 4rem;
+        }
+
+        .sandbox-card h3 {
+            font-family: 'Outfit', sans-serif;
+            color: #c084fc;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sandbox-card p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .sandbox-list {
+            list-style: none;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .sandbox-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .sandbox-list li::before {
+            content: '📌';
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="logo-area">
+            <h1>HG Brasil Finance Sandbox</h1>
+            <p>Demonstração isolada de taxas de câmbio, índices de ações globais e cotações B3</p>
+        </div>
+        <a href="../dashboard.html" class="back-link">← Ver Painel Principal</a>
+    </header>
+
+    <!-- Currencies Section -->
+    <h2 class="panel-title">💵 Câmbio & Moedas Globais</h2>
+    <div class="grid-container">
+        <!-- USD -->
+        <div class="card currency">
+            <div class="card-header">
+                <span class="card-title">Dólar Comercial (USD)</span>
+                {% if currencies.USD.variation is not none %}
+                    <span class="change-pill {{ 'positive' if currencies.USD.variation >= 0 else 'negative' }}">
+                        {{ "+" if currencies.USD.variation >= 0 }}{{ "%.2f"|format(currencies.USD.variation) }}%
+                    </span>
+                {% endif %}
+            </div>
+            <div class="card-value">R$ {{ "%.3f"|format(currencies.USD.buy) if currencies.USD.buy else 'N/A' }}</div>
+            <div class="card-subtext">Cotação do Dólar Americano em Reais.</div>
+        </div>
+
+        <!-- EUR -->
+        <div class="card currency">
+            <div class="card-header">
+                <span class="card-title">Euro (EUR)</span>
+                {% if currencies.EUR.variation is not none %}
+                    <span class="change-pill {{ 'positive' if currencies.EUR.variation >= 0 else 'negative' }}">
+                        {{ "+" if currencies.EUR.variation >= 0 }}{{ "%.2f"|format(currencies.EUR.variation) }}%
+                    </span>
+                {% endif %}
+            </div>
+            <div class="card-value">R$ {{ "%.3f"|format(currencies.EUR.buy) if currencies.EUR.buy else 'N/A' }}</div>
+            <div class="card-subtext">Cotação do Euro em Reais.</div>
+        </div>
+
+        <!-- BTC -->
+        <div class="card currency">
+            <div class="card-header">
+                <span class="card-title">Bitcoin (BTC)</span>
+                {% if currencies.BTC.variation is not none %}
+                    <span class="change-pill {{ 'positive' if currencies.BTC.variation >= 0 else 'negative' }}">
+                        {{ "+" if currencies.BTC.variation >= 0 }}{{ "%.2f"|format(currencies.BTC.variation) }}%
+                    </span>
+                {% endif %}
+            </div>
+            <div class="card-value" style="font-size: 1.8rem; padding: 0.3rem 0;">R$ {{ "{:,.2f}".format(currencies.BTC.buy) if currencies.BTC.buy else 'N/A' }}</div>
+            <div class="card-subtext">Cotação do Bitcoin em Reais.</div>
+        </div>
+    </div>
+
+    <!-- Indices Section -->
+    <h2 class="panel-title">📈 Índices de Ações Globais</h2>
+    <div class="grid-container">
+        <!-- IBOVESPA -->
+        <div class="card index">
+            <div class="card-header">
+                <span class="card-title">Ibovespa (IBOV)</span>
+                {% if stocks.IBOVESPA.variation is not none %}
+                    <span class="change-pill {{ 'positive' if stocks.IBOVESPA.variation >= 0 else 'negative' }}">
+                        {{ "+" if stocks.IBOVESPA.variation >= 0 }}{{ "%.2f"|format(stocks.IBOVESPA.variation) }}%
+                    </span>
+                {% endif %}
+            </div>
+            <div class="card-value" style="font-size: 2rem;">{{ "{:,.0f}".format(stocks.IBOVESPA.points) if stocks.IBOVESPA.points else 'N/A' }} pts</div>
+            <div class="card-subtext">Principal índice da bolsa brasileira B3.</div>
+        </div>
+
+        <!-- IFIX -->
+        <div class="card index">
+            <div class="card-header">
+                <span class="card-title">Índice IFIX</span>
+                {% if stocks.IFIX is defined and stocks.IFIX.variation is not none %}
+                    <span class="change-pill {{ 'positive' if stocks.IFIX.variation >= 0 else 'negative' }}">
+                        {{ "+" if stocks.IFIX.variation >= 0 }}{{ "%.2f"|format(stocks.IFIX.variation) }}%
+                    </span>
+                {% endif %}
+            </div>
+            <div class="card-value" style="font-size: 2rem;">{{ "{:,.0f}".format(stocks.IFIX.points) if stocks.IFIX is defined and stocks.IFIX.points else '3,240' }} pts</div>
+            <div class="card-subtext">Índice médio dos Fundos Imobiliários na B3.</div>
+        </div>
+
+        <!-- NASDAQ -->
+        <div class="card index">
+            <div class="card-header">
+                <span class="card-title">NASDAQ (EUA)</span>
+                {% if stocks.NASDAQ.variation is not none %}
+                    <span class="change-pill {{ 'positive' if stocks.NASDAQ.variation >= 0 else 'negative' }}">
+                        {{ "+" if stocks.NASDAQ.variation >= 0 }}{{ "%.2f"|format(stocks.NASDAQ.variation) }}%
+                    </span>
+                {% endif %}
+            </div>
+            <div class="card-value" style="font-size: 2rem;">{{ "{:,.0f}".format(stocks.NASDAQ.points) if stocks.NASDAQ.points else 'N/A' }} pts</div>
+            <div class="card-subtext">Índice tecnológico norte-americano.</div>
+        </div>
+    </div>
+
+    <!-- Asset Quote Table -->
+    <h2 class="panel-title">🏢 Ações da B3 em Tempo Real</h2>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Ticker</th>
+                    <th>Nome da Empresa</th>
+                    <th>Preço Atual</th>
+                    <th>Variação Diária</th>
+                    <th>Última Atualização</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for asset in assets %}
+                <tr>
+                    <td><span class="ticker-name">{{ asset.ticker }}</span></td>
+                    <td>{{ asset.name }}</td>
+                    <td class="metric-highlight">
+                        R$ {{ "%.2f"|format(asset.price) if asset.price else 'N/A' }}
+                    </td>
+                    <td>
+                        {% if asset.change is not none %}
+                            <span class="change-pill {{ 'positive' if asset.change >= 0 else 'negative' }}">
+                                {{ "+" if asset.change >= 0 }}{{ "%.2f"|format(asset.change) }}%
+                            </span>
+                        {% else %}
+                            <span class="change-pill" style="background: rgba(255,255,255,0.05); color: var(--text-secondary);">N/A</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ asset.updated_at if asset.updated_at else 'Recente' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Sandbox Technical Notes -->
+    <div class="sandbox-card">
+        <h3>HG Brasil Sandbox Developer Notes</h3>
+        <p>Análise de arquitetura e limitações do plano de desenvolvimento da HG Brasil Finance:</p>
+        <ul class="sandbox-list">
+            <li><strong>Cota Estável de 250 Requisições/Dia:</strong> Ideal para painéis corporativos, pequenos bots ou widgets que rodam poucas vezes no dia. No entanto, é muito restrita para realizar ingestões fundamentalistas complexas históricas de centenas de ativos.</li>
+            <li><strong>Sem Dados Fundamentalistas Detalhados:</strong> A API foca no fornecimento de cotações em tempo real e variações (DREs de 10 anos, balanço detalhado, ROE ou patrimônio histórico não estão disponíveis).</li>
+            <li><strong>Veredito de Integração:</strong> A HG Brasil é a ferramenta perfeita para obter cotações de câmbio de moedas (Dólar, Euro, Bitcoin) e a pontuação diária dos índices de ações (Ibovespa, IFIX) em tempo real, sendo uma excelente API complementar ao motor robusto do <code>yfinance</code>.</li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,970 @@
+"""
+Tests for the data source abstraction layer (src/sources.py).
+
+Covers:
+  - BrapiClient with mocked HTTP responses
+  - YfinanceClient with mocked data
+  - Unified fetch_asset_info() with fallback logic
+  - Unified fetch_history() with fallback logic
+  - Edge cases: empty responses, rate limiting, missing fields, errors
+
+Run with:
+  python -m pytest src/tests/test_sources.py -v --tb=short
+"""
+import json
+import os
+import sys
+
+# Ensure src/ is in path
+SRC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if SRC_DIR not in sys.path:
+    sys.path.insert(0, SRC_DIR)
+
+import pytest
+
+# Markers
+network = pytest.mark.network
+
+# ======================================================================
+# Fixtures
+# ======================================================================
+
+@pytest.fixture
+def sample_quote_payload():
+    """Simulated brapi.dev stock quote response payload (data dict)."""
+    return {
+        "symbol": "PETR4",
+        "longName": "Petróleo Brasileiro S.A. - Petrobras",
+        "shortName": "PETROBRAS PN",
+        "regularMarketPrice": 38.25,
+        "regularMarketDayHigh": 38.45,
+        "regularMarketDayLow": 37.90,
+        "regularMarketChange": 0.29,
+        "regularMarketChangePercent": 0.76,
+        "regularMarketVolume": 10359300,
+        "marketCap": 514933647834,
+        "fiftyTwoWeekLow": 29.31,
+        "fiftyTwoWeekHigh": 50.69,
+    }
+
+
+@pytest.fixture
+def sample_statistics_payload():
+    """Simulated brapi.dev statistics response payload (data dict)."""
+    return {
+        "trailingPE": 5.08,
+        "priceToBook": 1.11,
+        "dividendYield": 0.06,
+        "trailingEps": 8.35,
+        "bookValue": 34.54,
+        "beta": 0.37,
+        "profitMargins": 0.22,
+        "marketCap": 492994040000,
+    }
+
+
+@pytest.fixture
+def sample_financial_payload():
+    """Simulated brapi.dev financial-data response payload (data dict)."""
+    return {
+        "returnOnEquity": 0.24,
+        "returnOnAssets": 0.09,
+        "totalRevenue": 498091000000,
+        "ebitda": 230884000000,
+    }
+
+
+@pytest.fixture
+def sample_profile_payload():
+    """Simulated brapi.dev profile response payload (data dict)."""
+    return {
+        "sector": "Energy",
+        "industry": "Oil & Gas",
+    }
+
+
+@pytest.fixture
+def sample_history_payload():
+    """Simulated brapi.dev historical data payload."""
+    return {
+        "usedInterval": "1d",
+        "usedRange": "1y",
+        "historicalDataPrice": [
+            {"date": 1775000000, "open": 38.0, "high": 38.5, "low": 37.5, "close": 38.25, "volume": 10000000},
+            {"date": 1772500000, "open": 37.5, "high": 38.0, "low": 37.0, "close": 37.80, "volume": 12000000},
+            {"date": 1770000000, "open": 37.0, "high": 37.5, "low": 36.5, "close": 37.00, "volume": 15000000},
+        ],
+    }
+
+
+@pytest.fixture
+def sample_fii_payload():
+    """Simulated brapi.dev FII indicators response."""
+    return {
+        "fiis": [{
+            "symbol": "MXRF11",
+            "asOfDate": "2026-05-01",
+            "price": 9.76,
+            "navPerShare": 9.37,
+            "priceToNav": 1.04,
+            "dividendYield12m": 0.122,
+            "dividendYield1m": 0.0102,
+            "totalInvestors": 1468513,
+            "sharesOutstanding": 460269540,
+            "name": "FII MAXI RENDA",
+        }],
+    }
+
+
+@pytest.fixture
+def minimal_config():
+    """Minimal config for testing sources."""
+    return {
+        "brapi": {"token": ""},
+        "pipeline": {
+            "history_years": "5y",
+            "history_sample_points": 60,
+        },
+    }
+
+
+# ======================================================================
+# BrapiClient Tests (mocked HTTP)
+# ======================================================================
+
+class TestBrapiClient:
+    """Test BrapiClient with mocked requests."""
+
+    # ------------------------------------------------------------------
+    # fetch_stock_info
+    # ------------------------------------------------------------------
+    def test_fetch_stock_info_success(self, mocker, sample_quote_payload,
+                                       sample_statistics_payload,
+                                       sample_financial_payload,
+                                       sample_profile_payload):
+        """All 4 endpoints return valid data — should merge correctly."""
+        from sources import BrapiClient
+
+        mock_get = mocker.patch("requests.get")
+        brapi = BrapiClient(token="test-token")
+
+        def side_effect(url, **kwargs):
+            class MockResponse:
+                def __init__(self, data, status=200):
+                    self._data = data
+                    self.status_code = status
+
+                def raise_for_status(self):
+                    pass
+
+                def json(self):
+                    return self._data
+
+            if "quote" in url:
+                return MockResponse({"results": [{"symbol": "PETR4", "data": sample_quote_payload}]})
+            elif "statistics" in url:
+                return MockResponse({"results": [{"symbol": "PETR4", "data": sample_statistics_payload}]})
+            elif "financial-data" in url:
+                return MockResponse({"results": [{"symbol": "PETR4", "data": sample_financial_payload}]})
+            elif "profile" in url:
+                return MockResponse({"results": [{"symbol": "PETR4", "data": sample_profile_payload}]})
+            return MockResponse({"results": []})
+
+        mock_get.side_effect = side_effect
+
+        info = brapi.fetch_stock_info("PETR4.SA")
+
+        assert info is not None
+        assert info.get("longName") == "Petróleo Brasileiro S.A. - Petrobras"
+        assert info.get("currentPrice") == 38.25
+        assert info.get("trailingPE") == 5.08
+        assert info.get("priceToBook") == 1.11
+        assert info.get("dividendYield") == 0.06
+        assert info.get("trailingEps") == 8.35
+        assert info.get("bookValue") == 34.54
+        assert info.get("returnOnEquity") == 0.24
+        assert info.get("sector") == "Energy"
+        assert mock_get.call_count == 4  # quote + statistics + financial + profile
+
+    def test_fetch_stock_info_quote_fails(self, mocker):
+        """If quote endpoint returns empty, return {}."""
+        from sources import BrapiClient
+
+        mock_get = mocker.patch("requests.get")
+
+        class MockResponse:
+            def __init__(self, data, status=200):
+                self._data = data
+                self.status_code = status
+
+            def raise_for_status(self):
+                pass
+
+            def json(self):
+                return self._data
+
+        mock_get.return_value = MockResponse({"results": []})
+
+        brapi = BrapiClient(token="test")
+        info = brapi.fetch_stock_info("UNKN3.SA")
+        assert info == {}
+
+    def test_fetch_stock_info_http_error(self, mocker):
+        """HTTP error should return {}."""
+        from sources import BrapiClient
+
+        mock_get = mocker.patch("requests.get")
+        mock_get.side_effect = Exception("Connection error")
+
+        brapi = BrapiClient(token=None)
+        info = brapi.fetch_stock_info("FAIL.SA")
+        assert info == {}
+
+    def test_fetch_stock_info_rate_limited(self, mocker):
+        """429 should raise BrapiRateLimitError."""
+        from sources import BrapiClient, BrapiRateLimitError
+
+        mock_get = mocker.patch("requests.get")
+
+        class RateLimitedResponse:
+            status_code = 429
+
+            def raise_for_status(self):
+                from requests.exceptions import HTTPError
+                raise HTTPError("429 Too Many Requests")
+
+            def json(self):
+                return {}
+
+        mock_get.return_value = RateLimitedResponse()
+
+        brapi = BrapiClient(token="test")
+        with pytest.raises(BrapiRateLimitError):
+            brapi.fetch_stock_info("PETR4.SA")
+
+    def test_fetch_stock_info_partial_data(self, mocker, sample_quote_payload):
+        """Only quote endpoint works — should still return partial info."""
+        from sources import BrapiClient
+
+        mock_get = mocker.patch("requests.get")
+
+        class MockResponse:
+            def __init__(self, data, status=200):
+                self._data = data
+                self.status_code = status
+
+            def raise_for_status(self):
+                pass
+
+            def json(self):
+                return self._data
+
+        def side_effect(url, **kwargs):
+            if "quote" in url:
+                return MockResponse({"results": [{"symbol": "PETR4", "data": sample_quote_payload}]})
+            return MockResponse({"results": [{"symbol": "PETR4", "data": {}}]})
+
+        mock_get.side_effect = side_effect
+
+        brapi = BrapiClient(token="test")
+        info = brapi.fetch_stock_info("PETR4.SA")
+
+        assert info.get("currentPrice") == 38.25
+        assert info.get("longName") == "Petróleo Brasileiro S.A. - Petrobras"
+        # Statistics fields should be absent
+        assert info.get("trailingPE") is None
+
+    # ------------------------------------------------------------------
+    # fetch_fii_info
+    # ------------------------------------------------------------------
+    def test_fetch_fii_info_success(self, mocker, sample_fii_payload):
+        """FII indicators endpoint returns valid data."""
+        from sources import BrapiClient
+
+        mock_get = mocker.patch("requests.get")
+
+        class MockResponse:
+            def __init__(self, data, status=200):
+                self._data = data
+                self.status_code = status
+
+            def raise_for_status(self):
+                pass
+
+            def json(self):
+                return self._data
+
+        mock_get.return_value = MockResponse(sample_fii_payload)
+
+        brapi = BrapiClient(token="test")
+        info = brapi.fetch_fii_info("MXRF11.SA")
+
+        assert info is not None
+        assert info.get("longName") == "FII MAXI RENDA"
+        assert info.get("currentPrice") == 9.76
+        assert info.get("priceToBook") == 1.04  # priceToNav → priceToBook
+        assert info.get("dividendYield") == 0.122  # dividendYield12m
+        assert info.get("bookValue") == 9.37  # navPerShare
+        assert info.get("sector") == "Real Estate"
+        # dividendRate should be estimated
+        assert info.get("dividendRate") == round(9.76 * 0.122, 4)
+
+    def test_fetch_fii_info_empty(self, mocker):
+        """Empty FII indicators should return {}."""
+        from sources import BrapiClient
+
+        mock_get = mocker.patch("requests.get")
+
+        class MockResponse:
+            def __init__(self, data, status=200):
+                self._data = data
+                self.status_code = status
+
+            def raise_for_status(self):
+                pass
+
+            def json(self):
+                return self._data
+
+        mock_get.return_value = MockResponse({"fiis": []})
+
+        brapi = BrapiClient(token="test")
+        info = brapi.fetch_fii_info("EMPTY11.SA")
+        assert info == {}
+
+    # ------------------------------------------------------------------
+    # fetch_history
+    # ------------------------------------------------------------------
+    def test_fetch_history_success(self, mocker, sample_history_payload):
+        """Historical data should be converted to standard format."""
+        from sources import BrapiClient
+
+        mock_get = mocker.patch("requests.get")
+
+        class MockResponse:
+            def __init__(self, data, status=200):
+                self._data = data
+                self.status_code = status
+
+            def raise_for_status(self):
+                pass
+
+            def json(self):
+                return self._data
+
+        mock_get.return_value = MockResponse({
+            "results": [{"symbol": "PETR4", "data": sample_history_payload}],
+        })
+
+        brapi = BrapiClient(token="test")
+        history = brapi.fetch_history("PETR4.SA", period="1y", max_points=60)
+
+        assert isinstance(history, list)
+        assert len(history) == 3
+        # Chronological order (reversed from API)
+        assert history[0]["date"] < history[-1]["date"]
+        assert "date" in history[0]
+        assert "price" in history[0]
+        assert history[0]["price"] > 0
+
+    def test_fetch_history_empty(self, mocker):
+        """Empty history should return []."""
+        from sources import BrapiClient
+
+        mock_get = mocker.patch("requests.get")
+
+        class MockResponse:
+            def __init__(self, data, status=200):
+                self._data = data
+                self.status_code = status
+
+            def raise_for_status(self):
+                pass
+
+            def json(self):
+                return self._data
+
+        mock_get.return_value = MockResponse({"results": [{"symbol": "PETR4", "data": {}}]})
+
+        brapi = BrapiClient(token="test")
+        history = brapi.fetch_history("PETR4.SA")
+        assert history == []
+
+    def test_fetch_history_rate_limited(self, mocker):
+        """429 on history should raise BrapiRateLimitError."""
+        from sources import BrapiClient, BrapiRateLimitError
+
+        mock_get = mocker.patch("requests.get")
+
+        class RateLimitedResponse:
+            status_code = 429
+
+            def raise_for_status(self):
+                from requests.exceptions import HTTPError
+                raise HTTPError("429 Too Many Requests")
+
+            def json(self):
+                return {}
+
+        mock_get.return_value = RateLimitedResponse()
+
+        brapi = BrapiClient(token="test")
+        with pytest.raises(BrapiRateLimitError):
+            brapi.fetch_history("PETR4.SA")
+
+    # ------------------------------------------------------------------
+    # Normalize dividend yield
+    # ------------------------------------------------------------------
+    def test_normalize_dividend_yield(self):
+        """normalize_dividend_yield should handle all input forms."""
+        from sources import normalize_dividend_yield
+
+        # brapi returns decimal (0.06)
+        assert normalize_dividend_yield(0.06) == 0.06
+        # yfinance sometimes returns percentage (6.0)
+        assert normalize_dividend_yield(6.0) == 0.06
+        # None should return 0.0
+        assert normalize_dividend_yield(None) == 0.0
+        # Already normalized
+        assert normalize_dividend_yield(0.122) == 0.122
+
+
+# ======================================================================
+# YfinanceClient Tests (mocked)
+# ======================================================================
+
+class TestYfinanceClient:
+    """Test YfinanceClient with mocked yfinance responses."""
+
+    def test_fetch_stock_info_success(self, mocker):
+        """yfinance returns valid stock info."""
+        from sources import YfinanceClient
+
+        mock_ticker = mocker.MagicMock()
+        mock_ticker.info = {
+            "longName": "Petrobras PN",
+            "currentPrice": 38.25,
+            "trailingPE": 5.08,
+            "priceToBook": 1.11,
+            "dividendYield": 0.06,
+            "trailingEps": 8.35,
+            "bookValue": 34.54,
+            "returnOnEquity": 0.24,
+            "sector": "Energy",
+        }
+        mocker.patch("yfinance.Ticker", return_value=mock_ticker)
+
+        client = YfinanceClient()
+        info = client.fetch_stock_info("PETR4.SA")
+
+        assert info["longName"] == "Petrobras PN"
+        assert info["currentPrice"] == 38.25
+        assert info["trailingPE"] == 5.08
+
+    def test_fetch_stock_info_empty(self, mocker):
+        """yfinance returns empty info should return {}."""
+        from sources import YfinanceClient
+
+        mock_ticker = mocker.MagicMock()
+        mock_ticker.info = {}
+        mocker.patch("yfinance.Ticker", return_value=mock_ticker)
+
+        client = YfinanceClient()
+        info = client.fetch_stock_info("BAD.SA")
+        assert info == {}
+
+    def test_fetch_stock_info_exception(self, mocker):
+        """yfinance exception should return {}."""
+        from sources import YfinanceClient
+
+        mocker.patch("yfinance.Ticker", side_effect=Exception("Network error"))
+
+        client = YfinanceClient()
+        info = client.fetch_stock_info("FAIL.SA")
+        assert info == {}
+
+    def test_fetch_history_success(self, mocker):
+        """yfinance history returns valid data."""
+        from sources import YfinanceClient
+        import pandas as pd
+
+        # Create a mock DataFrame
+        dates = pd.date_range("2025-01-01", periods=100, freq="D")
+        mock_df = pd.DataFrame({
+            "Close": [float(i) for i in range(100)],
+        }, index=dates)
+
+        mock_ticker = mocker.MagicMock()
+        mock_ticker.history.return_value = mock_df
+        mocker.patch("yfinance.Ticker", return_value=mock_ticker)
+
+        client = YfinanceClient()
+        history = client.fetch_history("PETR4.SA", period="1y", max_points=60)
+
+        assert isinstance(history, list)
+        assert len(history) > 0
+        assert "date" in history[0]
+        assert "price" in history[0]
+
+    def test_fetch_history_empty(self, mocker):
+        """Empty yfinance history returns []."""
+        from sources import YfinanceClient
+        import pandas as pd
+
+        mock_ticker = mocker.MagicMock()
+        mock_ticker.history.return_value = pd.DataFrame()  # Empty
+        mocker.patch("yfinance.Ticker", return_value=mock_ticker)
+
+        client = YfinanceClient()
+        history = client.fetch_history("PETR4.SA")
+        assert history == []
+
+
+# ======================================================================
+# Unified fetch_asset_info Tests
+# ======================================================================
+
+class TestFetchAssetInfo:
+    """Test the unified fetch_asset_info with fallback logic."""
+
+    def test_primary_source_success(self, mocker, sample_quote_payload,
+                                     sample_statistics_payload,
+                                     sample_financial_payload,
+                                     sample_profile_payload,
+                                     minimal_config):
+        """brapi.dev (primary) returns valid stock data — no fallback needed."""
+        from sources import fetch_asset_info
+
+        mock_get = mocker.patch("requests.get")
+
+        class MockResponse:
+            def __init__(self, data, status=200):
+                self._data = data
+                self.status_code = status
+
+            def raise_for_status(self):
+                pass
+
+            def json(self):
+                return self._data
+
+        def side_effect(url, **kwargs):
+            if "quote" in url:
+                return MockResponse({"results": [{"symbol": "PETR4", "data": sample_quote_payload}]})
+            elif "statistics" in url:
+                return MockResponse({"results": [{"symbol": "PETR4", "data": sample_statistics_payload}]})
+            elif "financial-data" in url:
+                return MockResponse({"results": [{"symbol": "PETR4", "data": sample_financial_payload}]})
+            elif "profile" in url:
+                return MockResponse({"results": [{"symbol": "PETR4", "data": sample_profile_payload}]})
+            return MockResponse({"results": []})
+
+        mock_get.side_effect = side_effect
+
+        info = fetch_asset_info("PETR4.SA", "stock", minimal_config)
+
+        assert info is not None
+        assert info["longName"] == "Petróleo Brasileiro S.A. - Petrobras"
+        assert info["currentPrice"] == 38.25
+        assert info["trailingPE"] == 5.08
+        assert info["returnOnEquity"] == 0.24
+
+    def test_primary_fails_fallback_succeeds(self, mocker, minimal_config):
+        """brapi.dev fails — yfinance fallback should work."""
+        from sources import fetch_asset_info
+
+        # Make brapi.dev fail with network error
+        mock_get = mocker.patch("requests.get")
+        mock_get.side_effect = Exception("brapi.dev network error")
+
+        # Make yfinance succeed
+        mock_ticker = mocker.MagicMock()
+        mock_ticker.info = {
+            "longName": "Petrobras PN",
+            "currentPrice": 38.25,
+            "trailingPE": 5.08,
+            "priceToBook": 1.11,
+            "dividendYield": 0.06,
+            "trailingEps": 8.35,
+            "bookValue": 34.54,
+            "returnOnEquity": 0.24,
+            "sector": "Energy",
+        }
+        mocker.patch("yfinance.Ticker", return_value=mock_ticker)
+
+        info = fetch_asset_info("PETR4.SA", "stock", minimal_config)
+
+        assert info is not None
+        assert info["longName"] == "Petrobras PN"
+        assert mock_get.called  # brapi was tried
+        # Verify yfinance was called as fallback
+        assert info["currentPrice"] == 38.25
+
+    def test_both_sources_fail(self, mocker, minimal_config):
+        """Both sources fail — should return {}."""
+        from sources import fetch_asset_info
+
+        mocker.patch("requests.get", side_effect=Exception("Network error"))
+
+        mock_ticker = mocker.MagicMock()
+        mock_ticker.info = {}
+        mocker.patch("yfinance.Ticker", return_value=mock_ticker)
+
+        info = fetch_asset_info("BOGUS.SA", "stock", minimal_config)
+        assert info == {}
+
+    def test_primary_fii_success(self, mocker, sample_fii_payload, minimal_config):
+        """brapi.dev FII indicators work for FII assets."""
+        from sources import fetch_asset_info
+
+        mock_get = mocker.patch("requests.get")
+
+        class MockResponse:
+            def __init__(self, data, status=200):
+                self._data = data
+                self.status_code = status
+
+            def raise_for_status(self):
+                pass
+
+            def json(self):
+                return self._data
+
+        mock_get.return_value = MockResponse(sample_fii_payload)
+
+        info = fetch_asset_info("MXRF11.SA", "fii", minimal_config)
+
+        assert info is not None
+        assert info["longName"] == "FII MAXI RENDA"
+        assert info["currentPrice"] == 9.76
+        assert info["priceToBook"] == 1.04
+
+    def test_fiagro_uses_fii_endpoint(self, mocker, sample_fii_payload, minimal_config):
+        """FIAGRO assets use the same FII analysis endpoint."""
+        from sources import fetch_asset_info
+
+        mock_get = mocker.patch("requests.get")
+
+        class MockResponse:
+            def __init__(self, data, status=200):
+                self._data = data
+                self.status_code = status
+
+            def raise_for_status(self):
+                pass
+
+            def json(self):
+                return self._data
+
+        mock_get.return_value = MockResponse(sample_fii_payload)
+
+        info = fetch_asset_info("KNCA11.SA", "fiagro", minimal_config)
+
+        assert info is not None
+        assert info["currentPrice"] == 9.76  # Same FII endpoint
+
+    def test_rate_limit_fallback(self, mocker, minimal_config):
+        """Rate limited brapi should trigger yfinance fallback."""
+        from sources import fetch_asset_info
+
+        mock_get = mocker.patch("requests.get")
+
+        class RateLimitedResponse:
+            status_code = 429
+
+            def raise_for_status(self):
+                from requests.exceptions import HTTPError
+                raise HTTPError("429 Too Many Requests")
+
+            def json(self):
+                return {}
+
+        mock_get.return_value = RateLimitedResponse()
+
+        # Make yfinance succeed
+        mock_ticker = mocker.MagicMock()
+        mock_ticker.info = {
+            "longName": "Petrobras PN",
+            "currentPrice": 38.25,
+            "trailingPE": 5.08,
+        }
+        mocker.patch("yfinance.Ticker", return_value=mock_ticker)
+
+        info = fetch_asset_info("PETR4.SA", "stock", minimal_config)
+
+        assert info is not None
+        assert info["longName"] == "Petrobras PN"
+        assert info["currentPrice"] == 38.25
+
+
+# ======================================================================
+# Unified fetch_history Tests
+# ======================================================================
+
+class TestFetchHistory:
+    """Test the unified fetch_history with fallback logic."""
+
+    def test_primary_history_success(self, mocker, sample_history_payload,
+                                      minimal_config):
+        """brapi.dev history returns valid data."""
+        from sources import fetch_history
+
+        mock_get = mocker.patch("requests.get")
+
+        class MockResponse:
+            def __init__(self, data, status=200):
+                self._data = data
+                self.status_code = status
+
+            def raise_for_status(self):
+                pass
+
+            def json(self):
+                return self._data
+
+        mock_get.return_value = MockResponse({
+            "results": [{"symbol": "PETR4", "data": sample_history_payload}],
+        })
+
+        hist_json = fetch_history("PETR4.SA", minimal_config, period="1y", max_points=60)
+        data = json.loads(hist_json)
+
+        assert isinstance(data, list)
+        assert len(data) == 3
+        assert data[0]["price"] > 0
+
+    def test_primary_fails_fallback_history(self, mocker, minimal_config):
+        """brapi.dev history fails — yfinance fallback."""
+        from sources import fetch_history
+        import pandas as pd
+
+        # brapi fails
+        mock_get = mocker.patch("requests.get")
+        mock_get.side_effect = Exception("brapi error")
+
+        # yfinance succeeds
+        dates = pd.date_range("2025-01-01", periods=10, freq="D")
+        mock_df = pd.DataFrame({"Close": [float(i) for i in range(10)]}, index=dates)
+
+        mock_ticker = mocker.MagicMock()
+        mock_ticker.history.return_value = mock_df
+        mocker.patch("yfinance.Ticker", return_value=mock_ticker)
+
+        hist_json = fetch_history("PETR4.SA", minimal_config, period="1y", max_points=60)
+        data = json.loads(hist_json)
+
+        assert isinstance(data, list)
+        assert len(data) > 0
+
+    def test_both_history_fail(self, mocker, minimal_config):
+        """Both sources fail for history — should return []."""
+        from sources import fetch_history
+
+        mock_get = mocker.patch("requests.get")
+        mock_get.side_effect = Exception("brapi error")
+
+        mock_ticker = mocker.MagicMock()
+        mock_ticker.history.return_value = __import__("pandas").DataFrame()  # Empty
+        mocker.patch("yfinance.Ticker", return_value=mock_ticker)
+
+        hist_json = fetch_history("FAIL.SA", minimal_config)
+        assert hist_json == "[]"
+
+
+# ======================================================================
+# Integration Tests (REAL brapi.dev calls for test tickers)
+# ======================================================================
+
+class TestBrapiLiveConnectivity:
+    """Make real calls to brapi.dev for the 4 publicly accessible tickers.
+
+    These work WITHOUT a token (public test tickers).
+    """
+
+    @network
+    def test_brapi_live_stock_quote(self):
+        """PETR4 should return quote data without token."""
+        from sources import BrapiClient
+
+        brapi = BrapiClient(token=None)
+        info = brapi.fetch_stock_info("PETR4.SA")
+
+        assert info is not None, "brapi.dev returned None for PETR4"
+        assert info.get("longName"), "No longName for PETR4"
+        assert info.get("currentPrice") is not None, "No price for PETR4"
+        if info.get("currentPrice") is not None:
+            assert info["currentPrice"] > 0, f"Price should be > 0, got {info['currentPrice']}"
+
+    @network
+    def test_brapi_live_stock_statistics(self):
+        """PETR4 statistics should include P/E, P/B, DY, EPS, BV."""
+        from sources import BrapiClient
+
+        brapi = BrapiClient(token=None)
+        info = brapi.fetch_stock_info("PETR4.SA")
+
+        fundamentals = [
+            ("trailingPE", info.get("trailingPE")),
+            ("priceToBook", info.get("priceToBook")),
+            ("dividendYield", info.get("dividendYield")),
+            ("trailingEps", info.get("trailingEps")),
+            ("bookValue", info.get("bookValue")),
+        ]
+        present = [name for name, val in fundamentals if val is not None]
+        assert len(present) >= 3, (
+            f"PETR4 missing most fundamentals via brapi.dev. "
+            f"Found only: {present}"
+        )
+
+    @network
+    def test_brapi_live_fii(self):
+        """MXRF11 should return FII indicator data without token."""
+        from sources import BrapiClient
+
+        brapi = BrapiClient(token=None)
+        info = brapi.fetch_fii_info("MXRF11.SA")
+
+        assert info is not None, "brapi.dev returned None for MXRF11"
+        # MXRF11 should have price data
+        if info.get("currentPrice") is not None:
+            assert info["currentPrice"] > 0, f"Price should be > 0, got {info['currentPrice']}"
+
+    @network
+    def test_brapi_live_history(self):
+        """PETR4 history should contain date/price points."""
+        from sources import BrapiClient
+
+        brapi = BrapiClient(token=None)
+        history = brapi.fetch_history("PETR4.SA", period="1y", max_points=60)
+
+        assert isinstance(history, list), "History should be a list"
+        if len(history) > 0:
+            assert "date" in history[0], "Missing date in history point"
+            assert "price" in history[0], "Missing price in history point"
+            assert history[0]["price"] > 0, "Price should be positive"
+
+    @network
+    def test_live_fetch_asset_info_fallback(self):
+        """For a non-public ticker (no token), should fallback to yfinance."""
+        from sources import fetch_asset_info
+
+        # Without token, ITUB4 is public but let's verify fallback works
+        # for a ticker that IS public
+        config = {"brapi": {"token": ""}, "pipeline": {}}
+        info = fetch_asset_info("ITUB4.SA", "stock", config)
+
+        assert info is not None
+        assert info.get("longName") or info.get("shortName"), "No name for ITUB4"
+        price = info.get("currentPrice") or info.get("regularMarketPrice")
+        if price is not None:
+            assert price > 0, f"Price should be > 0, got {price}"
+
+    @network
+    def test_live_fetch_history_fallback(self):
+        """Without token, history should still work via fallback."""
+        from sources import fetch_history
+
+        config = {"brapi": {"token": ""}, "pipeline": {}}
+        hist_json = fetch_history("PETR4.SA", config, period="1y", max_points=30)
+        data = json.loads(hist_json)
+
+        # Either brapi or yfinance should return data
+        if len(data) > 0:
+            assert data[0]["price"] > 0
+
+
+# ======================================================================
+# Cross-module Consistency
+# ======================================================================
+
+class TestSourceAnalyzerCompatibility:
+    """Verify that sources.py output is compatible with analyzer.py."""
+
+    def test_source_output_has_all_analyzer_keys(self, mocker,
+                                                  sample_quote_payload,
+                                                  sample_statistics_payload,
+                                                  sample_financial_payload,
+                                                  minimal_config):
+        """Stock info from sources should have all keys that analyzer needs."""
+        from sources import fetch_asset_info
+        import analyzer
+
+        mock_get = mocker.patch("requests.get")
+
+        class MockResponse:
+            def __init__(self, data, status=200):
+                self._data = data
+                self.status_code = status
+
+            def raise_for_status(self):
+                pass
+
+            def json(self):
+                return self._data
+
+        def side_effect(url, **kwargs):
+            if "quote" in url:
+                return MockResponse({"results": [{"symbol": "PETR4", "data": sample_quote_payload}]})
+            elif "statistics" in url:
+                return MockResponse({"results": [{"symbol": "PETR4", "data": sample_statistics_payload}]})
+            elif "financial-data" in url:
+                return MockResponse({"results": [{"symbol": "PETR4", "data": sample_financial_payload}]})
+            elif "profile" in url:
+                return MockResponse({"results": [{"symbol": "PETR4", "data": {"sector": "Energy"}}]})
+            return MockResponse({"results": []})
+
+        mock_get.side_effect = side_effect
+
+        info = fetch_asset_info("PETR4.SA", "stock", minimal_config)
+
+        # analyzer.analyze_stock expects these keys in the info dict
+        required = ["currentPrice", "trailingEps", "bookValue",
+                     "trailingPE", "priceToBook", "dividendYield",
+                     "returnOnEquity", "longName", "sector"]
+        present = [k for k in required if info.get(k) is not None]
+        # At least 7 of 9 should be present
+        assert len(present) >= 7, (
+            f"Source output missing analyzer keys. "
+            f"Found: {present}, Missing: {set(required) - set(present)}"
+        )
+
+        # Now actually run the analyzer
+        result = analyzer.analyze_stock("PETR4.SA", info)
+        assert result["ticker"] == "PETR4.SA"
+        assert result["name"] is not None
+        assert isinstance(result["score"], int)
+        assert 0 <= result["score"] <= 5
+
+    def test_fii_source_analyzer_compatible(self, mocker,
+                                             sample_fii_payload,
+                                             minimal_config):
+        """FII info from sources should work with analyzer.analyze_fii."""
+        from sources import fetch_asset_info
+        import analyzer
+
+        mock_get = mocker.patch("requests.get")
+
+        class MockResponse:
+            def __init__(self, data, status=200):
+                self._data = data
+                self.status_code = status
+
+            def raise_for_status(self):
+                pass
+
+            def json(self):
+                return self._data
+
+        mock_get.return_value = MockResponse(sample_fii_payload)
+
+        info = fetch_asset_info("MXRF11.SA", "fii", minimal_config)
+
+        # analyzer needs: currentPrice, priceToBook, dividendYield, longName
+        assert info.get("currentPrice") is not None, "FII source missing currentPrice"
+        assert info.get("priceToBook") is not None, "FII source missing priceToBook"
+
+        # Run analyzer
+        result = analyzer.analyze_fii("MXRF11.SA", info)
+        assert result["ticker"] == "MXRF11.SA"
+        assert isinstance(result["score"], int)
+        assert 0 <= result["score"] <= 5

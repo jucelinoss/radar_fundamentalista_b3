@@ -1,0 +1,40 @@
+# Environment
+.env
+.env.local
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Database & Data artifacts
+data/investments.db
+data/status.json
+data/failed_tickers.log
+data/*.log
+
+# Generated output
+dashboard.html
+data/export_*.csv
+data/export_*.json
+brapi_mvp/index.html
+hgbrasil_mvp/index.html
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+nul
+
+# Logs
+*.log
+logs/
