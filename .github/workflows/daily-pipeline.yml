@@ -80,15 +80,6 @@ jobs:
         with:
           path: _site
 
-      - name: Commit updated dashboard to repo
-        run: |
-          git config --global user.name 'B3 Pipeline Bot'
-          git config --global user.email 'pipeline-bot@localhost'
-          git add dashboard.html
-          git diff --quiet && git diff --staged --quiet || \
-            git commit -m "chore: auto-update dashboard [$(date +'%Y-%m-%d')]"
-          git push origin HEAD:${GITHUB_REF_NAME} || echo "No changes to push or push skipped"
-
       - name: Summary
         run: |
           echo "## ✅ Pipeline Results" >> $GITHUB_STEP_SUMMARY
