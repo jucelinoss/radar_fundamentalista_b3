@@ -169,16 +169,16 @@ class TestFiiScore:
         assert score == 5, f"Expected 5, got {score}"
 
     def test_low_pb_ratio(self):
-        """P/B below 0.85 → no ideal range point but may still pass limit."""
+        """P/B below 0.85 → still passes ideal (P/VP <= 1.05) because more discounted."""
         score = calculate_fii_score(
             price=100.0, pb_ratio=0.70, dividend_yield=0.12, dividend_rate=1.0
         )
-        # P/B ideal (0.85-1.05)? No → -1
-        # P/B ≤ 1.15? Yes → +1
+        # P/VP <= 1.05? Yes (0.70 <= 1.05) → +1
+        # P/VP ≤ 1.15? Yes → +1
         # DY ≥ 8%? Yes → +1
         # DY ≥ 10%? Yes → +1
         # Rate > 0? Yes → +1
-        assert score == 4
+        assert score == 5
 
     def test_high_pb_ratio(self):
         """P/B above 1.15 → only DY and rate count."""

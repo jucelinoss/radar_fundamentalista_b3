@@ -417,37 +417,83 @@ class AllSourcesFailedError(Exception):
 # Unified fetch functions (main public API)
 # ---------------------------------------------------------------------------
 
-_FIAGRO_VPA_CACHE = None
+# ---------------------------------------------------------------------------
+# CVM data cache (lazy-loaded for VPA and DY)
+# ---------------------------------------------------------------------------
+_CVM_VPA_CACHE: dict[str, dict[str, float]] | None = None
+_CVM_DY_CACHE: dict[str, dict[str, float]] | None = None
 
-def _inject_fiagro_vpa(ticker: str, info: dict[str, Any]) -> None:
-    """Inject local VPA cache value and compute priceToBook (P/VP) dynamically."""
+
+def _load_cvm_cache(filename: str) -> dict[str, float]:
+    """Load a CVM cache JSON file (VPA or DY). Returns {} on any failure."""
+    path: str = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", filename)
+    if os.path.exists(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            logger.warning(f"Failed to load CVM cache {filename}: {e}")
+    return {}
+
+
+def _inject_cvm_data(ticker: str, info: dict[str, Any], asset_type: str) -> None:
+    """Inject CVM VPA and DY data into the info dict for FIIs and FIAGROs.
+    
+    Uses cached CVM data (VPA per share and monthly dividend yield) to:
+    1. Set bookValue = VPA and compute priceToBook = price / VPA
+    2. Fallback dividendYield from CVM when yfinance returns None/0
+    """
     if not info:
         return
     
-    global _FIAGRO_VPA_CACHE
-    if _FIAGRO_VPA_CACHE is None:
-        cache_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "fiagro_vpa.json")
-        if os.path.exists(cache_path):
-            try:
-                with open(cache_path, "r", encoding="utf-8") as f:
-                    _FIAGRO_VPA_CACHE = json.load(f)
-            except Exception as e:
-                logger.warning(f"Failed to load FIAGRO VPA cache: {e}")
-                _FIAGRO_VPA_CACHE = {}
-        else:
-            _FIAGRO_VPA_CACHE = {}
-            
-    clean_ticker = ticker.replace(".SA", "")
-    vpa = _FIAGRO_VPA_CACHE.get(clean_ticker)
-    if vpa:
+    global _CVM_VPA_CACHE, _CVM_DY_CACHE
+    
+    # Lazy-load VPA caches
+    if _CVM_VPA_CACHE is None:
+        _CVM_VPA_CACHE = {
+            "fii": _load_cvm_cache("fii_vpa.json"),
+            "fiagro": _load_cvm_cache("fiagro_vpa.json"),
+        }
+    
+    # Lazy-load DY caches (these may not exist if CVM updater hasn't run yet)
+    if _CVM_DY_CACHE is None:
+        _CVM_DY_CACHE = {
+            "fii": _load_cvm_cache("fii_dy.json"),
+            "fiagro": _load_cvm_cache("fiagro_dy.json"),
+        }
+    
+    clean_ticker: str = ticker.replace(".SA", "")
+    cache_key: str = "fiagro" if asset_type == "fiagro" else "fii"
+    
+    # --- VPA injection ---
+    vpa_map = _CVM_VPA_CACHE.get(cache_key, {})
+    vpa = vpa_map.get(clean_ticker)
+    if vpa and vpa > 0:
         info["bookValue"] = vpa
-        # Calculate priceToBook if we have price
         price = info.get("currentPrice") or info.get("regularMarketPrice")
-        if price is not None and vpa > 0:
-            info["priceToBook"] = round(price / vpa, 4)
+        if price is not None:
+            # Only set priceToBook if not already present from source
+            if not info.get("priceToBook"):
+                info["priceToBook"] = round(price / vpa, 4)
+    
+    # --- DY injection (fallback if yfinance didn't provide) ---
+    dy_map = _CVM_DY_CACHE.get(cache_key, {})
+    cvm_dy = dy_map.get(clean_ticker)
+    existing_dy = info.get("dividendYield")
+    if cvm_dy is not None and cvm_dy > 0 and (not existing_dy or existing_dy == 0.0):
+        info["dividendYield"] = cvm_dy
+        # Recalculate dividendRate if we have price
+        price = info.get("currentPrice") or info.get("regularMarketPrice")
+        if price is not None:
+            info["dividendRate"] = round(cvm_dy * price, 4)
+
 
 def fetch_asset_info(ticker: str, asset_type: str, config: dict[str, Any]) -> dict[str, Any]:
-    """Fetch asset info from primary source (brapi.dev) with yfinance fallback.
+    """Fetch asset info from primary source with fallback chain.
+    
+    For stocks: BRAPI primary → yfinance fallback.
+    For FIIs/FIAGROs: yfinance only (BRAPI has poor coverage, wastes rate limit).
+    After any source fetch, injects CVM data (VPA + DY) for FIIs/FIAGROs.
 
     Args:
         ticker: Full ticker symbol (e.g. 'PETR4.SA')
@@ -457,27 +503,31 @@ def fetch_asset_info(ticker: str, asset_type: str, config: dict[str, Any]) -> di
     Returns:
         dict with yfinance-compatible keys, or {} if all sources fail.
     """
-    # Token: .env > config
     brapi_token = _load_brapi_token() or config.get("brapi", {}).get("token")
     brapi = BrapiClient(token=brapi_token)
     yfin = YfinanceClient()
 
-    fetch_funcs = {
-        "stock": (brapi.fetch_stock_info, yfin.fetch_stock_info),
-        "fii": (brapi.fetch_fii_info, yfin.fetch_fii_info),
-        "fiagro": (brapi.fetch_fii_info, yfin.fetch_fii_info),
-    }
+    # FIIs and FIAGROs → skip BRAPI entirely, go straight to yfinance
+    # BRAPI has near-zero coverage for FIAGROs and limited value for FIIs,
+    # while consuming free-tier rate limit. CVM + yfinance give better coverage.
+    if asset_type in ("fii", "fiagro"):
+        try:
+            info = yfin.fetch_fii_info(ticker)
+            if info and (info.get("longName") or info.get("shortName") or info.get("currentPrice")):
+                logger.debug(f"yfinance OK for {ticker}")
+                _inject_cvm_data(ticker, info, asset_type)
+                return info
+        except Exception as e:
+            logger.debug(f"yfinance failed for {ticker}: {e}")
+        logger.warning(f"yfinance failed for {ticker}")
+        return {}
 
-    primary, fallback = fetch_funcs.get(asset_type, (brapi.fetch_stock_info, yfin.fetch_stock_info))
-
-    # Try primary source (brapi.dev)
+    # Stocks → BRAPI primary, yfinance fallback
     try:
-        info = primary(ticker)
+        info = brapi.fetch_stock_info(ticker)
         if info and (info.get("longName") or info.get("shortName") or info.get("currentPrice")):
             if info.get("dividendYield") is not None or info.get("currentPrice") is not None:
                 logger.debug(f"brapi.dev OK for {ticker}")
-                if asset_type == "fiagro":
-                    _inject_fiagro_vpa(ticker, info)
                 return info
         logger.debug(f"brapi.dev returned incomplete data for {ticker}, trying fallback")
     except BrapiRateLimitError:
@@ -485,13 +535,10 @@ def fetch_asset_info(ticker: str, asset_type: str, config: dict[str, Any]) -> di
     except Exception as e:
         logger.debug(f"brapi.dev failed for {ticker}: {e}")
 
-    # Fallback to yfinance
     try:
-        info = fallback(ticker)
+        info = yfin.fetch_stock_info(ticker)
         if info and (info.get("longName") or info.get("shortName") or info.get("currentPrice")):
             logger.debug(f"yfinance fallback OK for {ticker}")
-            if asset_type == "fiagro":
-                _inject_fiagro_vpa(ticker, info)
             return info
     except Exception as e:
         logger.debug(f"yfinance fallback also failed for {ticker}: {e}")
