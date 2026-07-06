@@ -127,13 +127,132 @@ def _compute_top_picks(stocks: list[dict[str, Any]], fiis: list[dict[str, Any]],
     valid_fiis: list[dict[str, Any]] = [f for f in fiis if f.get("pb_ratio") and f.get("dividend_yield")]
     top_fiis: list[dict[str, Any]] = sorted(valid_fiis, key=lambda x: (x["pb_ratio"], -x["dividend_yield"]))[:5]
 
-    valid_fiagros: list[dict[str, Any]] = [f for f in fiagros if f.get("dividend_yield")]
+    valid_fiagros: list[dict[str, Any]] = [f for f in fiagros if f.get("pb_ratio") and f.get("dividend_yield")]
     top_fiagros: list[dict[str, Any]] = sorted(
         valid_fiagros,
         key=lambda x: (-x["dividend_yield"], x.get("pb_ratio") or 999.0)
     )[:5]
 
     return top_stocks, top_fiis, top_fiagros
+
+
+
+
+
+def _enrich_stock_status(stock: dict[str, Any]) -> dict[str, Any]:
+    """Add diagnostic status fields for each metric on a stock.
+    
+    Status values:
+      'ok'   → value is valid and present
+      'na'   → not applicable (e.g., P/L when EPS <= 0)
+      'nd'   → no data (API should have returned but didn't)
+      'zero' → value is truly zero (e.g., DY when company doesn't pay dividends)
+    """
+    s = dict(stock)
+    eps = s.get("eps")
+    price = s.get("price")
+    bv = s.get("book_value")
+    pe = s.get("pe_ratio")
+    dy = s.get("dividend_yield")
+    roe = s.get("roe")
+    gp = s.get("graham_price")
+    bp = s.get("bazin_price")
+
+    # --- P/L status ---
+    if pe is not None and pe > 0:
+        s["pe_status"] = "ok"
+    elif eps is not None and eps <= 0:
+        s["pe_status"] = "na"   # EPS <= 0 → P/L nao se aplica
+    elif eps is not None and eps > 0 and pe is None:
+        s["pe_status"] = "nd"   # EPS positivo mas API nao retornou P/L
+    else:
+        s["pe_status"] = "nd"
+
+    # --- P/VP status ---
+    pb = s.get("pb_ratio")
+    if pb is not None and pb > 0:
+        s["pb_status"] = "ok"
+    elif pb is not None and pb <= 0:
+        s["pb_status"] = "na"   # P/VP negativo (PL negativo)
+    else:
+        s["pb_status"] = "nd"
+
+    # --- DY status ---
+    if dy is not None and dy > 0:
+        s["dy_status"] = "ok"
+    elif dy is not None and dy == 0:
+        if eps is not None and eps < 0:
+            s["dy_status"] = "na"   # prejuizo, sem dividendos
+        else:
+            s["dy_status"] = "zero"  # empresa nao distribui
+    else:
+        s["dy_status"] = "nd"
+
+    # --- ROE status ---
+    if roe is not None:
+        s["roe_status"] = "ok"
+    else:
+        if eps is not None and eps < 0:
+            s["roe_status"] = "na"   # prejuizo, ROE nao se aplica
+        else:
+            s["roe_status"] = "nd"
+
+    # --- Graham price status ---
+    if gp is not None and gp > 0:
+        s["graham_status"] = "ok"
+    elif eps is not None and eps <= 0:
+        s["graham_status"] = "na"   # LPA <= 0
+    elif bv is not None and bv <= 0:
+        s["graham_status"] = "na"   # VPA <= 0
+    elif eps is None or bv is None:
+        s["graham_status"] = "nd"
+    else:
+        s["graham_status"] = "ok"
+
+    # --- Bazin price status ---
+    if bp is not None and bp > 0:
+        s["bazin_status"] = "ok"
+    elif dy is None or dy == 0:
+        if eps is not None and eps < 0:
+            s["bazin_status"] = "na"   # prejuizo
+        else:
+            s["bazin_status"] = "zero"  # nao distribui
+    else:
+        s["bazin_status"] = "nd"
+
+    return s
+
+
+def _enrich_fii_status(asset: dict[str, Any], asset_type: str) -> dict[str, Any]:
+    """Add diagnostic status fields for FIIs and FIAGROs."""
+    a = dict(asset)
+
+    # P/VP status
+    pb = a.get("pb_ratio")
+    if pb is not None:
+        a["pb_status"] = "ok"
+    else:
+        a["pb_status"] = "nd"
+
+    # DY status
+    dy = a.get("dividend_yield")
+    if dy is not None and dy > 0:
+        a["dy_status"] = "ok"
+    elif dy is not None and dy == 0:
+        a["dy_status"] = "zero"
+    else:
+        a["dy_status"] = "nd"
+
+    # Dividend rate status
+    dr = a.get("dividend_rate")
+    if dr is not None and dr > 0:
+        a["rate_status"] = "ok"
+    elif dr is not None and dr == 0:
+        a["rate_status"] = "zero"
+    else:
+        a["rate_status"] = "nd"
+
+    return a
 
 
 def generate_dashboard() -> None:
@@ -150,6 +269,11 @@ def generate_dashboard() -> None:
     logger.info(f"  Loaded {len(stocks)} stocks, {len(fiis)} FIIs, {len(fiagros)} FIAGROs")
 
     _clean_ticker_display(stocks, fiis, fiagros, mappings_clean, STOCK_INDICES)
+
+    # Enrich each asset with diagnostic status fields
+    stocks = [_enrich_stock_status(s) for s in stocks]
+    fiis = [_enrich_fii_status(f, "fii") for f in fiis]
+    fiagros = [_enrich_fii_status(f, "fiagro") for f in fiagros]
 
     unique_sectors: list[str] = sorted({
         s.get("sector") for s in stocks if s.get("sector")

@@ -17,8 +17,8 @@ DY_FII_EXCELLENT = 0.10  # Excellent DY for FIIs
 PE_MAX_GRAHAM = 15     # Max P/E for Graham value
 PB_MAX_GRAHAM = 1.5    # Max P/B for Graham value
 ROE_MIN = 0.10         # Min ROE for profitability
-PB_FII_IDEAL_LOW = 0.85   # Ideal P/VP range for FIIs
-PB_FII_IDEAL_HIGH = 1.05
+PB_FII_IDEAL_HIGH = 1.05  # P/VP <= 1.05 = descontado ou valor justo (ideal)
+
 PB_FII_MAX = 1.15         # Max P/VP for FIIs
 # Normalization
 DY_PERCENTAGE_THRESHOLD = 1.0  # Values > 1 are treated as percentages
@@ -242,11 +242,11 @@ def calculate_fii_score(price: Any, pb_ratio: Any, dividend_yield: Any, dividend
     pb_ratio = safe_float(pb_ratio)
     dividend_rate = safe_float(dividend_rate)
     
-    # 1. Valuation: P/VP in the ideal range (0.85 to 1.05)
-    if pb_ratio is not None and PB_FII_IDEAL_LOW <= pb_ratio <= PB_FII_IDEAL_HIGH:
+    # 1. Valuation: P/VP <= 1.05 (desconto ou valor justo)
+    if pb_ratio is not None and 0 < pb_ratio <= PB_FII_IDEAL_HIGH:
         score += 1
         
-    # 2. Valuation: P/VP is not extremely expensive
+    # 2. Valuation: P/VP <= 1.15 (nao extremamente caro)
     if pb_ratio is not None and 0 < pb_ratio <= PB_FII_MAX:
         score += 1
         
