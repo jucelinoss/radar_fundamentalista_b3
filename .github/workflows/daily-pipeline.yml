@@ -86,7 +86,7 @@ jobs:
           PYTHONUNBUFFERED: 1
           BRAPI_TOKEN: ${{ secrets.BRAPI_TOKEN || '' }}
 
-- name: Export to CSV/JSON (for AI analysis)
+      - name: Export to CSV/JSON (for AI analysis)
         id: export
         run: |
           if [[ "${{ github.event.inputs.force }}" == "true" ]]; then
