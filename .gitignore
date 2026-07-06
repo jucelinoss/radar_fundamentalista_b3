@@ -22,7 +22,7 @@ data/failed_tickers.log
 data/*.log
 
 # Generated output (root level)
-dashboard.html
+data.json
 /manifest.json
 /service-worker.js
 /_headers

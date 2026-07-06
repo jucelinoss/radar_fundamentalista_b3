@@ -15,11 +15,11 @@ if not exist ".venv" (
 )
 
 echo Iniciando o servidor local na porta 8000...
-echo Acesse: http://127.0.0.1:8000/dashboard.html
+echo Acesse: http://127.0.0.1:8000/index.html
 echo.
 
 :: Open browser after a short delay (2 seconds) to let server start
-start /b cmd /c "timeout /t 2 >nul && start http://127.0.0.1:8000/dashboard.html"
+start /b cmd /c "timeout /t 2 >nul && start http://127.0.0.1:8000/index.html"
 
 :: Run the server using python in .venv
 .\.venv\Scripts\python.exe src/server.py
