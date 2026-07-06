@@ -510,6 +510,26 @@
             color: var(--text-primary);
         }
 
+        th:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 12;
+            background: var(--table-header);
+            border-right: 1px solid var(--card-border);
+        }
+
+        td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 10;
+            background: var(--card-bg);
+            border-right: 1px solid var(--card-border);
+        }
+
+        tr:hover td:first-child {
+            background: var(--table-hover) !important;
+        }
+
         .ticker-col {
             font-weight: 700;
             font-family: 'Outfit', sans-serif;
