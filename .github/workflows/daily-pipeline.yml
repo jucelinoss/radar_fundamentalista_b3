@@ -102,21 +102,17 @@ jobs:
       - name: Check if deployable files changed
         id: check-changes
         run: |
-          # Check if dashboard.html (the main deployable) differs from HEAD
-          if git diff --exit-code --quiet HEAD -- dashboard.html 2>/dev/null; then
-            echo "No changes detected in dashboard.html — skipping deployment"
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "Data changed — will deploy"
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          fi
+          # Always deploy generated data.json and index.html
+          echo "Data generated — deploying to GitHub Pages"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
 
       - name: Prepare Pages artifact (only if data changed)
         if: steps.check-changes.outputs.changed == 'true'
         run: |
           mkdir -p _site
-          # Dashboard
-          cp dashboard.html _site/
+          # Dashboard & Data
+          cp index.html _site/
+          cp data.json _site/
           # PWA assets
           cp manifest.json _site/ 2>/dev/null || true
           cp service-worker.js _site/ 2>/dev/null || true

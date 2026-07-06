@@ -73,7 +73,7 @@ def run_server(port: int = 8000) -> None:
 
     with socketserver.ThreadingTCPServer(("", port), Handler) as httpd:
         logger.info(f"  🌐 http://localhost:{port}")
-        logger.info(f"  📊 http://localhost:{port}/dashboard.html")
+        logger.info(f"  📊 http://localhost:{port}/index.html")
         logger.info("Press Ctrl+C to stop.")
         try:
             httpd.serve_forever()

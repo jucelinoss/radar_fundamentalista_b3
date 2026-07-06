@@ -1118,7 +1118,7 @@
                     <span>Tema</span>
                 </button>
                 <div class="timestamp">
-                    Atualizado em: {{ timestamp }}
+                    Atualizado em: <span id="timestamp-container">Carregando...</span>
                 </div>
                 <div class="disclaimer">
                     ⚠️ Não é recomendação de investimento. Dados coletados via APIs públicas B3 + regras de análise
@@ -1135,13 +1135,8 @@
                     <span>Top Ações (Maiores Scores)</span>
                     <span class="badge badge-gold">Value Investing</span>
                 </div>
-                <ul class="top-list">
-                    {% for stock in top_stocks %}
-                    <li class="top-item">
-                        <span class="top-ticker">{{ stock.ticker }}</span>
-                        <span class="top-val positive">Score: {{ stock.score }}/5</span>
-                    </li>
-                    {% endfor %}
+                <ul class="top-list" id="top-stocks-list">
+                    <!-- Carregado via JS -->
                 </ul>
             </div>
 
@@ -1151,36 +1146,21 @@
                     <span>Top FIIs (Menores P/VP & Bons Yields)</span>
                     <span class="badge badge-green">Imobiliário</span>
                 </div>
-                <ul class="top-list">
-                    {% for fii in top_fiis %}
-                    <li class="top-item">
-                        <span class="top-ticker">{{ fii.ticker }}</span>
-                        <span class="top-val positive">DY: {{ "%.2f"|format(fii.dividend_yield * 100) }}% | P/VP: {{
-                            "%.2f"|format(fii.pb_ratio) }}</span>
-                    </li>
-                    {% endfor %}
+                <ul class="top-list" id="top-fiis-list">
+                    <!-- Carregado via JS -->
                 </ul>
             </div>
 
             <!-- FIAGRO Summary -->
-            {% if top_fiagros %}
-            <div class="summary-card card-fii">
+            <div class="summary-card card-fii" id="top-fiagros-card" style="display: none;">
                 <div class="card-title">
                     <span>Top FIAGROs (Maiores Dividend Yields)</span>
                     <span class="badge badge-green">Agronegócio</span>
                 </div>
-                <ul class="top-list">
-                    {% for fiagro in top_fiagros %}
-                    <li class="top-item">
-                        <span class="top-ticker">{{ fiagro.ticker }}</span>
-                        <span class="top-val positive">DY: {{ "%.2f"|format(fiagro.dividend_yield * 100) if
-                            fiagro.dividend_yield else '0.00' }}% | P/VP: {{ "%.2f"|format(fiagro.pb_ratio) if
-                            fiagro.pb_ratio else 'N/A' }}</span>
-                    </li>
-                    {% endfor %}
+                <ul class="top-list" id="top-fiagros-list">
+                    <!-- Carregado via JS -->
                 </ul>
             </div>
-            {% endif %}
         </div>
 
         <!-- Controls Row -->
@@ -1204,9 +1184,6 @@
 
                 <select id="sector-filter" onchange="filterTable()" class="filter-select">
                     <option value="all">Todos os Setores</option>
-                    {% for sector in unique_sectors %}
-                    <option value="{{ sector }}">{{ sector }}</option>
-                    {% endfor %}
                 </select>
 
                 <div id="score-filter" class="score-range-filter">
@@ -1253,60 +1230,7 @@
                     </tr>
                 </thead>
                 <tbody id="stocks-tbody">
-                    {% for stock in stocks %}
-                    <tr onclick="openDetailModal('{{ stock.ticker }}', 'stock')" data-ticker="{{ stock.ticker }}"
-                        data-name="{{ stock.name }}" data-sector="{{ stock.sector }}"
-                        data-indices="{{ stock.indices | join(',') }}"
-                        data-price="{{ stock.price if stock.price else '0' }}"
-                        data-pe="{{ stock.pe_ratio if stock.pe_ratio else 'null' }}"
-                        data-pb="{{ stock.pb_ratio if stock.pb_ratio else 'null' }}"
-                        data-dy="{{ stock.dividend_yield if stock.dividend_yield else '0' }}"
-                        data-roe="{{ stock.roe if stock.roe else 'null' }}"
-                        data-bazin="{{ stock.bazin_price if stock.bazin_price else '0' }}"
-                        data-graham="{{ stock.graham_price if stock.graham_price else '0' }}"
-                        data-score="{{ stock.score if stock.score else '0' }}"
-                        data-eps="{{ stock.eps if stock.eps else 'null' }}"
-                        data-vpa="{{ stock.book_value if stock.book_value else 'null' }}"
-                        data-history='{{ stock.history_json | safe if stock.history_json else "[]" }}'>
-                        <td class="ticker-col">
-                            {{ stock.ticker }}
-                            <div style="display: flex; gap: 0.2rem; margin-top: 0.25rem;">
-                                {% for index in stock.indices %}
-                                <span class="index-pill {{ index | lower }}">{{ index }}</span>
-                                {% endfor %}
-                            </div>
-                        </td>
-                        <td class="name-col">{{ stock.name }}</td>
-                        <td>{{ stock.sector }}</td>
-                        <td class="metric-highlight">R$ {{ "%.2f"|format(stock.price) if stock.price else 'N/A' }}</td>
-                        <td
-                            class="{{ 'positive' if stock.pe_ratio and stock.pe_ratio > 0 and stock.pe_ratio <= 15 else 'warning' }}">
-                            {{ "%.2f"|format(stock.pe_ratio) if stock.pe_ratio else 'N/A' }}
-                        </td>
-                        <td
-                            class="{{ 'positive' if stock.pb_ratio and stock.pb_ratio > 0 and stock.pb_ratio <= 1.5 else 'warning' }}">
-                            {{ "%.2f"|format(stock.pb_ratio) if stock.pb_ratio else 'N/A' }}
-                        </td>
-                        <td
-                            class="{{ 'positive' if stock.dividend_yield and stock.dividend_yield >= 0.06 else 'negative' }}">
-                            {{ "%.2f"|format(stock.dividend_yield * 100) if stock.dividend_yield else '0.00' }}%
-                        </td>
-                        <td class="{{ 'positive' if stock.roe and stock.roe >= 0.10 else 'negative' }}">
-                            {{ "%.2f"|format(stock.roe * 100) if stock.roe else 'N/A' }}%
-                        </td>
-                        <td
-                            class="metric-highlight {{ 'positive' if stock.price and stock.bazin_price and stock.price < stock.bazin_price else '' }}">
-                            R$ {{ "%.2f"|format(stock.bazin_price) if stock.bazin_price else 'N/A' }}
-                        </td>
-                        <td
-                            class="metric-highlight {{ 'positive' if stock.price and stock.graham_price and stock.price < stock.graham_price else '' }}">
-                            R$ {{ "%.2f"|format(stock.graham_price) if stock.graham_price else 'N/A' }}
-                        </td>
-                        <td>
-                            <span class="score-pill score-{{ stock.score }}">{{ stock.score }}</span>
-                        </td>
-                    </tr>
-                    {% endfor %}
+                    <!-- Carregado via JS -->
                 </tbody>
             </table>
         </div>
@@ -1326,33 +1250,7 @@
                     </tr>
                 </thead>
                 <tbody id="fiis-tbody">
-                    {% for fii in fiis %}
-                    <tr onclick="openDetailModal('{{ fii.ticker }}', 'fii')" data-ticker="{{ fii.ticker }}"
-                        data-name="{{ fii.name }}" data-price="{{ fii.price if fii.price else '0' }}"
-                        data-pb="{{ fii.pb_ratio if fii.pb_ratio else 'null' }}"
-                        data-dy="{{ fii.dividend_yield if fii.dividend_yield else '0' }}"
-                        data-rate="{{ fii.dividend_rate if fii.dividend_rate else '0' }}"
-                        data-score="{{ fii.score if fii.score else '0' }}"
-                        data-history='{{ fii.history_json | safe if fii.history_json else "[]" }}'>
-                        <td class="ticker-col">{{ fii.ticker }}</td>
-                        <td class="name-col">{{ fii.name }}</td>
-                        <td class="metric-highlight">R$ {{ "%.2f"|format(fii.price) if fii.price else 'N/A' }}</td>
-                        <td
-                            class="{{ 'positive' if fii.pb_ratio and fii.pb_ratio >= 0.8 and fii.pb_ratio <= 1.05 else 'warning' }}">
-                            {{ "%.2f"|format(fii.pb_ratio) if fii.pb_ratio else 'N/A' }}
-                        </td>
-                        <td
-                            class="{{ 'positive' if fii.dividend_yield and fii.dividend_yield >= 0.08 else 'warning' }}">
-                            {{ "%.2f"|format(fii.dividend_yield * 100) if fii.dividend_yield else '0.00' }}%
-                        </td>
-                        <td class="metric-highlight">R$ {{ "%.2f"|format(fii.dividend_rate) if fii.dividend_rate else
-                            '0.00' }}</td>
-                        <td>
-                            <span class="score-pill score-{{ fii.score if fii.score else 0 }}">{{ fii.score if fii.score
-                                else 0 }}</span>
-                        </td>
-                    </tr>
-                    {% endfor %}
+                    <!-- Carregado via JS -->
                 </tbody>
             </table>
         </div>
@@ -1372,34 +1270,7 @@
                     </tr>
                 </thead>
                 <tbody id="fiagros-tbody">
-                    {% for fiagro in fiagros %}
-                    <tr onclick="openDetailModal('{{ fiagro.ticker }}', 'fiagro')" data-ticker="{{ fiagro.ticker }}"
-                        data-name="{{ fiagro.name }}" data-price="{{ fiagro.price if fiagro.price else '0' }}"
-                        data-pb="{{ fiagro.pb_ratio if fiagro.pb_ratio else 'null' }}"
-                        data-dy="{{ fiagro.dividend_yield if fiagro.dividend_yield else '0' }}"
-                        data-rate="{{ fiagro.dividend_rate if fiagro.dividend_rate else '0' }}"
-                        data-score="{{ fiagro.score if fiagro.score else '0' }}"
-                        data-history='{{ fiagro.history_json | safe if fiagro.history_json else "[]" }}'>
-                        <td class="ticker-col">{{ fiagro.ticker }}</td>
-                        <td class="name-col">{{ fiagro.name }}</td>
-                        <td class="metric-highlight">R$ {{ "%.2f"|format(fiagro.price) if fiagro.price else 'N/A' }}
-                        </td>
-                        <td
-                            class="{{ 'positive' if fiagro.pb_ratio and fiagro.pb_ratio >= 0.8 and fiagro.pb_ratio <= 1.05 else 'warning' }}">
-                            {{ "%.2f"|format(fiagro.pb_ratio) if fiagro.pb_ratio else 'N/A' }}
-                        </td>
-                        <td
-                            class="{{ 'positive' if fiagro.dividend_yield and fiagro.dividend_yield >= 0.08 else 'warning' }}">
-                            {{ "%.2f"|format(fiagro.dividend_yield * 100) if fiagro.dividend_yield else '0.00' }}%
-                        </td>
-                        <td class="metric-highlight">R$ {{ "%.2f"|format(fiagro.dividend_rate) if fiagro.dividend_rate
-                            else '0.00' }}</td>
-                        <td>
-                            <span class="score-pill score-{{ fiagro.score if fiagro.score else 0 }}">{{ fiagro.score if
-                                fiagro.score else 0 }}</span>
-                        </td>
-                    </tr>
-                    {% endfor %}
+                    <!-- Carregado via JS -->
                 </tbody>
             </table>
         </div>
@@ -1417,17 +1288,7 @@
                     </tr>
                 </thead>
                 <tbody id="sectors-tbody">
-                    {% for sector in sectors_summary %}
-                    <tr onclick="openSectorDetailModal('{{ sector.name }}')" style="cursor: pointer;">
-                        <td class="ticker-col">{{ sector.name }}</td>
-                        <td class="metric-highlight">{{ sector.count }}</td>
-                        <td>
-                            <span class="score-pill score-{{ sector.avg_score | int }}">{{ sector.avg_score }}</span>
-                        </td>
-                        <td class="positive">{{ sector.avg_dy }}%</td>
-                        <td class="metric-highlight">{{ sector.avg_pe if sector.avg_pe else 'N/A' }}</td>
-                    </tr>
-                    {% endfor %}
+                    <!-- Carregado via JS -->
                 </tbody>
             </table>
         </div>
@@ -2209,6 +2070,197 @@
             }
         }
 
+        function loadDashboardData() {
+            fetch('data.json')
+                .then(response => response.json())
+                .then(data => {
+                    // 1. Timestamp
+                    document.getElementById('timestamp-container').textContent = data.timestamp;
+
+                    // 2. Top Picks: Stocks
+                    const topStocksList = document.getElementById('top-stocks-list');
+                    topStocksList.innerHTML = data.top_stocks.map(stock => `
+                        <li class="top-item">
+                            <span class="top-ticker">${stock.ticker}</span>
+                            <span class="top-val positive">Score: ${stock.score}/5</span>
+                        </li>
+                    `).join('');
+
+                    // 3. Top Picks: FIIs
+                    const topFiisList = document.getElementById('top-fiis-list');
+                    topFiisList.innerHTML = data.top_fiis.map(fii => `
+                        <li class="top-item">
+                            <span class="top-ticker">${fii.ticker}</span>
+                            <span class="top-val positive">DY: ${(fii.dividend_yield * 100).toFixed(2)}% | P/VP: ${fii.pb_ratio.toFixed(2)}</span>
+                        </li>
+                    `).join('');
+
+                    // 4. Top Picks: FIAGROs
+                    const topFiagrosCard = document.getElementById('top-fiagros-card');
+                    if (data.top_fiagros && data.top_fiagros.length > 0) {
+                        topFiagrosCard.style.display = 'block';
+                        const topFiagrosList = document.getElementById('top-fiagros-list');
+                        topFiagrosList.innerHTML = data.top_fiagros.map(fiagro => `
+                            <li class="top-item">
+                                <span class="top-ticker">${fiagro.ticker}</span>
+                                <span class="top-val positive">DY: ${(fiagro.dividend_yield * 100).toFixed(2)}% | P/VP: ${fiagro.pb_ratio ? fiagro.pb_ratio.toFixed(2) : 'N/A'}</span>
+                            </li>
+                        `).join('');
+                    } else {
+                        topFiagrosCard.style.display = 'none';
+                    }
+
+                    // 5. Unique Sectors Filter
+                    const sectorFilter = document.getElementById('sector-filter');
+                    data.unique_sectors.forEach(sector => {
+                        const opt = document.createElement('option');
+                        opt.value = sector;
+                        opt.textContent = sector;
+                        sectorFilter.appendChild(opt);
+                    });
+
+                    // 6. Stocks Table
+                    const stocksTbody = document.getElementById('stocks-tbody');
+                    stocksTbody.innerHTML = data.stocks.map(stock => {
+                        const indexPills = (stock.indices || []).map(index => `
+                            <span class="index-pill ${index.toLowerCase()}">${index}</span>
+                        `).join('');
+                        
+                        const priceFormatted = stock.price ? `R$ ${stock.price.toFixed(2)}` : 'N/A';
+                        const peFormatted = stock.pe_ratio ? stock.pe_ratio.toFixed(2) : 'N/A';
+                        const pbFormatted = stock.pb_ratio ? stock.pb_ratio.toFixed(2) : 'N/A';
+                        const dyFormatted = stock.dividend_yield ? `${(stock.dividend_yield * 100).toFixed(2)}%` : '0.00%';
+                        const roeFormatted = stock.roe ? `${(stock.roe * 100).toFixed(2)}%` : 'N/A';
+                        const bazinFormatted = stock.bazin_price ? `R$ ${stock.bazin_price.toFixed(2)}` : 'N/A';
+                        const grahamFormatted = stock.graham_price ? `R$ ${stock.graham_price.toFixed(2)}` : 'N/A';
+                        
+                        const peClass = (stock.pe_ratio && stock.pe_ratio > 0 && stock.pe_ratio <= 15) ? 'positive' : 'warning';
+                        const pbClass = (stock.pb_ratio && stock.pb_ratio > 0 && stock.pb_ratio <= 1.5) ? 'positive' : 'warning';
+                        const dyClass = (stock.dividend_yield && stock.dividend_yield >= 0.06) ? 'positive' : 'negative';
+                        const roeClass = (stock.roe && stock.roe >= 0.10) ? 'positive' : 'negative';
+                        const bazinClass = (stock.price && stock.bazin_price && stock.price < stock.bazin_price) ? 'positive' : '';
+                        const grahamClass = (stock.price && stock.graham_price && stock.price < stock.graham_price) ? 'positive' : '';
+                        
+                        return `
+                        <tr onclick="openDetailModal('${stock.ticker}', 'stock')" data-ticker="${stock.ticker}"
+                            data-name="${stock.name}" data-sector="${stock.sector}"
+                            data-indices="${(stock.indices || []).join(',')}"
+                            data-price="${stock.price || 0}"
+                            data-pe="${stock.pe_ratio !== null ? stock.pe_ratio : 'null'}"
+                            data-pb="${stock.pb_ratio !== null ? stock.pb_ratio : 'null'}"
+                            data-dy="${stock.dividend_yield || 0}"
+                            data-roe="${stock.roe !== null ? stock.roe : 'null'}"
+                            data-bazin="${stock.bazin_price || 0}"
+                            data-graham="${stock.graham_price || 0}"
+                            data-score="${stock.score || 0}"
+                            data-eps="${stock.eps !== null ? stock.eps : 'null'}"
+                            data-vpa="${stock.book_value !== null ? stock.book_value : 'null'}"
+                            data-history='${stock.history_json || "[]"}'>
+                            <td class="ticker-col">
+                                ${stock.ticker}
+                                <div style="display: flex; gap: 0.2rem; margin-top: 0.25rem;">
+                                    ${indexPills}
+                                </div>
+                            </td>
+                            <td class="name-col">${stock.name}</td>
+                            <td>${stock.sector}</td>
+                            <td class="metric-highlight">${priceFormatted}</td>
+                            <td class="${peClass}">${peFormatted}</td>
+                            <td class="${pbClass}">${pbFormatted}</td>
+                            <td class="${dyClass}">${dyFormatted}</td>
+                            <td class="${roeClass}">${roeFormatted}</td>
+                            <td class="metric-highlight ${bazinClass}">${bazinFormatted}</td>
+                            <td class="metric-highlight ${grahamClass}">${grahamFormatted}</td>
+                            <td>
+                                <span class="score-pill score-${stock.score}">${stock.score}</span>
+                            </td>
+                        </tr>`;
+                    }).join('');
+
+                    // 7. FIIs Table
+                    const fiisTbody = document.getElementById('fiis-tbody');
+                    fiisTbody.innerHTML = data.fiis.map(fii => {
+                        const priceFormatted = fii.price ? `R$ ${fii.price.toFixed(2)}` : 'N/A';
+                        const pbFormatted = fii.pb_ratio ? fii.pb_ratio.toFixed(2) : 'N/A';
+                        const dyFormatted = fii.dividend_yield ? `${(fii.dividend_yield * 100).toFixed(2)}%` : '0.00%';
+                        const rateFormatted = fii.dividend_rate ? `R$ ${fii.dividend_rate.toFixed(2)}` : '0.00';
+                        
+                        const pbClass = (fii.pb_ratio && fii.pb_ratio >= 0.8 && fii.pb_ratio <= 1.05) ? 'positive' : 'warning';
+                        const dyClass = (fii.dividend_yield && fii.dividend_yield >= 0.08) ? 'positive' : 'warning';
+                        
+                        return `
+                        <tr onclick="openDetailModal('${fii.ticker}', 'fii')" data-ticker="${fii.ticker}"
+                            data-name="${fii.name}" data-price="${fii.price || 0}"
+                            data-pb="${fii.pb_ratio !== null ? fii.pb_ratio : 'null'}"
+                            data-dy="${fii.dividend_yield || 0}"
+                            data-rate="${fii.dividend_rate || 0}"
+                            data-score="${fii.score || 0}"
+                            data-history='${fii.history_json || "[]"}'>
+                            <td class="ticker-col">${fii.ticker}</td>
+                            <td class="name-col">${fii.name}</td>
+                            <td class="metric-highlight">${priceFormatted}</td>
+                            <td class="${pbClass}">${pbFormatted}</td>
+                            <td class="${dyClass}">${dyFormatted}</td>
+                            <td class="metric-highlight">${rateFormatted}</td>
+                            <td>
+                                <span class="score-pill score-${fii.score || 0}">${fii.score || 0}</span>
+                            </td>
+                        </tr>`;
+                    }).join('');
+
+                    // 8. FIAGROs Table
+                    const fiagrosTbody = document.getElementById('fiagros-tbody');
+                    fiagrosTbody.innerHTML = data.fiagros.map(fiagro => {
+                        const priceFormatted = fiagro.price ? `R$ ${fiagro.price.toFixed(2)}` : 'N/A';
+                        const pbFormatted = fiagro.pb_ratio ? fiagro.pb_ratio.toFixed(2) : 'N/A';
+                        const dyFormatted = fiagro.dividend_yield ? `${(fiagro.dividend_yield * 100).toFixed(2)}%` : '0.00%';
+                        const rateFormatted = fiagro.dividend_rate ? `R$ ${fiagro.dividend_rate.toFixed(2)}` : '0.00';
+                        
+                        const pbClass = (fiagro.pb_ratio && fiagro.pb_ratio >= 0.8 && fiagro.pb_ratio <= 1.05) ? 'positive' : 'warning';
+                        const dyClass = (fiagro.dividend_yield && fiagro.dividend_yield >= 0.08) ? 'positive' : 'warning';
+                        
+                        return `
+                        <tr onclick="openDetailModal('${fiagro.ticker}', 'fiagro')" data-ticker="${fiagro.ticker}"
+                            data-name="${fiagro.name}" data-price="${fiagro.price || 0}"
+                            data-pb="${fiagro.pb_ratio !== null ? fiagro.pb_ratio : 'null'}"
+                            data-dy="${fiagro.dividend_yield || 0}"
+                            data-rate="${fiagro.dividend_rate || 0}"
+                            data-score="${fiagro.score || 0}"
+                            data-history='${fiagro.history_json || "[]"}'>
+                            <td class="ticker-col">${fiagro.ticker}</td>
+                            <td class="name-col">${fiagro.name}</td>
+                            <td class="metric-highlight">${priceFormatted}</td>
+                            <td class="${pbClass}">${pbFormatted}</td>
+                            <td class="${dyClass}">${dyFormatted}</td>
+                            <td class="metric-highlight">${rateFormatted}</td>
+                            <td>
+                                <span class="score-pill score-${fiagro.score || 0}">${fiagro.score || 0}</span>
+                            </td>
+                        </tr>`;
+                    }).join('');
+
+                    // 9. Sectors Summary Table
+                    const sectorsTbody = document.getElementById('sectors-tbody');
+                    sectorsTbody.innerHTML = data.sectors_summary.map(sector => {
+                        const avgPeFormatted = sector.avg_pe ? sector.avg_pe.toFixed(2) : 'N/A';
+                        
+                        return `
+                        <tr onclick="openSectorDetailModal('${sector.name}')" style="cursor: pointer;">
+                            <td class="ticker-col">${sector.name}</td>
+                            <td class="metric-highlight">${sector.count}</td>
+                            <td>
+                                <span class="score-pill score-${Math.floor(sector.avg_score)}">${sector.avg_score}</span>
+                            </td>
+                            <td class="positive">${sector.avg_dy}%</td>
+                            <td class="metric-highlight">${avgPeFormatted}</td>
+                        </tr>`;
+                    }).join('');
+
+                    // Initialize view and tab filters
+                    checkRefreshStatus();
+                });
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const isLight = document.body.classList.contains('light-theme');
             const themeIcon = document.getElementById('theme-toggle-icon');
@@ -2221,7 +2273,7 @@
                 const names = { stocks: 'Ações', fiis: 'FIIs', fiagros: 'FIAGROs', sectors: 'Setores' };
                 pdfLabel.textContent = names[currentTab] || 'Ações';
             }
-            checkRefreshStatus();
+            loadDashboardData();
         });
 
         function toggleExportMenu() {

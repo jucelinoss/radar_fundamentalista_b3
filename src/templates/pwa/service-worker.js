@@ -11,7 +11,7 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE).then((cache) => {
       cache.addAll(STATIC_ASSETS);
-      return cache.add("/dashboard.html").catch(() => {});
+      return cache.addAll(["index.html", "data.json"]).catch(() => {});
     })
   );
   self.skipWaiting();
@@ -46,7 +46,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   /* Network-first for dashboard (always try fresh data) */
-  if (url.pathname.endsWith("dashboard.html")) {
+  if (url.pathname.endsWith("index.html") || url.pathname.endsWith("data.json") || url.pathname.endsWith("/")) {
     event.respondWith(
       fetch(request)
         .then((res) => {

@@ -13,6 +13,6 @@ echo.
 start /B "" python src/server.py
 
 timeout /t 3 >nul
-start http://localhost:8000/dashboard.html
+start http://localhost:8000/index.html
 
 python src/server.py

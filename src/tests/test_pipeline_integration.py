@@ -1128,10 +1128,10 @@ class TestFullPipelineSmoke:
 
         # Patch output to a temp file
         original_output = os.path.join(
-            os.path.dirname(SRC_DIR), "dashboard.html"
+            os.path.dirname(SRC_DIR), "data.json"
         )
         test_output = os.path.join(
-            os.path.dirname(SRC_DIR), "data", "test_dashboard.html"
+            os.path.dirname(SRC_DIR), "data", "test_data.json"
         )
 
         try:

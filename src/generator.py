@@ -10,8 +10,6 @@ import os
 from datetime import datetime
 from typing import Any
 
-from jinja2 import Environment, FileSystemLoader
-
 import database
 
 # ---------------------------------------------------------------------------
@@ -139,8 +137,8 @@ def _compute_top_picks(stocks: list[dict[str, Any]], fiis: list[dict[str, Any]],
 
 
 def generate_dashboard() -> None:
-    """Main generator: read DB, compute aggregates, render template, write HTML."""
-    logger.info("Generating dashboard...")
+    """Main generator: read DB, compute aggregates, save JSON data."""
+    logger.info("Generating dashboard JSON...")
 
     STOCK_INDICES: dict[str, list[str]] = load_indices()
     mappings: dict[str, Any] = load_ticker_mappings()
@@ -160,31 +158,26 @@ def generate_dashboard() -> None:
     sectors_summary: list[dict[str, Any]] = _compute_sector_summaries(stocks)
     top_stocks, top_fiis, top_fiagros = _compute_top_picks(stocks, fiis, fiagros)
 
-    # Render
-    env: Environment = Environment(loader=FileSystemLoader(TEMPLATES_DIR))
-    template = env.get_template("dashboard_template.html")
-
     now: datetime = datetime.now()
     timestamp_str: str = now.strftime("%d/%m/%Y %H:%M:%S")
 
-    html_output: str = template.render(
-        stocks=stocks,
-        fiis=fiis,
-        fiagros=fiagros,
-        sectors_summary=sectors_summary,
-        top_stocks=top_stocks,
-        top_fiis=top_fiis,
-        top_fiagros=top_fiagros,
-        unique_sectors=unique_sectors,
-        timestamp=timestamp_str,
-    )
+    data_payload = {
+        "stocks": stocks,
+        "fiis": fiis,
+        "fiagros": fiagros,
+        "sectors_summary": sectors_summary,
+        "top_stocks": top_stocks,
+        "top_fiis": top_fiis,
+        "top_fiagros": top_fiagros,
+        "unique_sectors": unique_sectors,
+        "timestamp": timestamp_str,
+    }
 
-    output_path: str = os.path.join(PROJECT_ROOT, "dashboard.html")
+    output_path: str = os.path.join(PROJECT_ROOT, "data.json")
     with open(output_path, "w", encoding="utf-8") as f:
-        f.write(html_output)
+        json.dump(data_payload, f, ensure_ascii=False, indent=2)
 
-    logger.info(f"Dashboard generated: {output_path} "
-                f"({len(html_output)} bytes, {len(stocks) + len(fiis) + len(fiagros)} ativos)")
+    logger.info(f"JSON data generated: {output_path} ({len(stocks) + len(fiis) + len(fiagros)} ativos)")
 
     _copy_pwa_assets(PROJECT_ROOT)
     _copy_pages_config(PROJECT_ROOT)
