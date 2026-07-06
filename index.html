@@ -6,8 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Radar Fundamentalista B3</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#f8fafc">
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0f172a">
+    <meta name="theme-color" content="#1e3a5f">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="icons/icon.svg">
@@ -22,636 +21,1028 @@
     <!-- html2pdf.js for PDF export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    <!-- Tailwind CSS v4 CDN -->
-    <script>
-        tailwindConfig = {
-            darkMode: 'class',
-            theme: { extend: {} }
-        }
-    </script>
-    <script src="https://cdn.tailwindcss.com"></script>
-
     <style>
-        /* ═══════ React / Lovable Design Tokens ═══════ */
         :root {
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --card-border: #e2e8f0;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --primary: #1e293b;
-            --primary-glow: transparent;
+            --bg-color: #0b0f19;
+            --card-bg: rgba(20, 27, 45, 0.7);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.15);
             --accent-green: #10b981;
-            --accent-green-glow: transparent;
-            --accent-gold: #d97706;
-            --accent-gold-glow: transparent;
+            --accent-green-glow: rgba(16, 185, 129, 0.15);
+            --accent-gold: #f59e0b;
+            --accent-gold-glow: rgba(245, 158, 11, 0.15);
             --danger: #ef4444;
-            --table-header: #f1f5f9;
-            --table-hover: #f1f5f9;
-            --transition: all 0.15s ease;
-            --modal-bg: #ffffff;
-            --modal-overlay: rgba(15, 23, 42, 0.4);
-            --modal-shadow: rgba(15, 23, 42, 0.1);
-            --breakdown-bg: #f8fafc;
-            --breakdown-border: #e2e8f0;
-            --section-subtitle-border: #e2e8f0;
-            --dropdown-bg: #ffffff;
-            --radius: 0.375rem;
+            --table-header: rgba(15, 22, 38, 0.9);
+            --table-hover: rgba(255, 255, 255, 0.02);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+            --modal-bg: rgba(22, 30, 49, 0.95);
+            --modal-overlay: rgba(10, 14, 23, 0.85);
+            --modal-shadow: rgba(0, 0, 0, 0.5);
+            --breakdown-bg: rgba(255, 255, 255, 0.02);
+            --breakdown-border: rgba(255, 255, 255, 0.04);
+            --section-subtitle-border: rgba(255, 255, 255, 0.05);
+            --dropdown-bg: rgba(15, 22, 38, 0.9);
         }
 
-        .dark {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --card-border: #334155;
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --primary: #f1f5f9;
-            --primary-glow: transparent;
-            --accent-green: #34d399;
-            --accent-green-glow: transparent;
-            --accent-gold: #fbbf24;
-            --accent-gold-glow: transparent;
-            --danger: #f87171;
-            --table-header: #1e293b;
-            --table-hover: #334155;
-            --modal-bg: #1e293b;
-            --modal-overlay: rgba(0, 0, 0, 0.5);
-            --modal-shadow: rgba(0, 0, 0, 0.3);
-            --breakdown-bg: #1e293b;
-            --breakdown-border: #334155;
-            --section-subtitle-border: #334155;
-            --dropdown-bg: #1e293b;
+        body.light-theme {
+            --bg-color: #f8fafc;
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --card-border: rgba(15, 23, 42, 0.08);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --primary: #2563eb;
+            --primary-glow: rgba(37, 99, 235, 0.12);
+            --accent-green: #059669;
+            --accent-green-glow: rgba(5, 150, 105, 0.1);
+            --accent-gold: #d97706;
+            --accent-gold-glow: rgba(217, 119, 6, 0.1);
+            --danger: #dc2626;
+            --table-header: rgba(241, 245, 249, 0.95);
+            --table-hover: rgba(15, 23, 42, 0.02);
+
+            --modal-bg: rgba(255, 255, 255, 0.98);
+            --modal-overlay: rgba(15, 23, 42, 0.6);
+            --modal-shadow: rgba(15, 23, 42, 0.15);
+            --breakdown-bg: rgba(15, 23, 42, 0.02);
+            --breakdown-border: rgba(15, 23, 42, 0.04);
+            --section-subtitle-border: rgba(15, 23, 42, 0.08);
+            --dropdown-bg: rgba(241, 245, 249, 0.95);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-primary);
             min-height: 100vh;
-            padding: 1.5rem 1rem;
+            padding: 2rem 1.5rem;
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 40%);
+            background-attachment: fixed;
             transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        h1, h2, h3, .font-outfit { font-family: 'Outfit', sans-serif; }
-
-        .container { max-width: 1600px; margin: 0 auto; }
-
-        /* ═══════ Header (React style) ═══════ */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid var(--card-border);
-            padding-bottom: 1rem;
-            gap: 1rem;
-            flex-wrap: wrap;
+        body.light-theme {
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.04) 0%, transparent 40%);
         }
 
-        .logo-area h1 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            letter-spacing: -0.3px;
-        }
-
-        .logo-area p {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            margin-top: 0.1rem;
-        }
-
-        .header-actions { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
-
-        .timestamp {
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-            background: var(--card-bg);
-            padding: 0.35rem 0.75rem;
-            border-radius: var(--radius);
-            border: 1px solid var(--card-border);
-            white-space: nowrap;
-        }
-
-        .disclaimer {
-            font-size: 0.6rem;
-            color: var(--text-secondary);
-            max-width: 240px;
-            line-height: 1.3;
-            text-align: right;
-        }
-
-        /* ═══════ Action Buttons (React style) ═══════ */
         .action-btn {
             background: var(--card-bg);
-            border: 1px solid var(--card-border);
+            border: 1.5px solid var(--text-secondary);
             color: var(--text-primary);
-            padding: 0.35rem 0.75rem;
-            border-radius: var(--radius);
-            font-size: 0.75rem;
-            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
             cursor: pointer;
             transition: var(--transition);
             display: inline-flex;
             align-items: center;
-            gap: 0.35rem;
+            gap: 0.5rem;
             outline: none;
-            font-family: inherit;
+            font-family: 'Outfit', sans-serif;
+            backdrop-filter: blur(6px);
             text-decoration: none;
-            line-height: 1.4;
-            white-space: nowrap;
+            font-size: inherit;
+            line-height: inherit;
         }
 
-        .action-btn:hover { background: var(--table-hover); border-color: var(--text-secondary); }
-        .action-btn:active { background: var(--card-border); }
+        .action-btn:hover {
+            background: color-mix(in srgb, var(--primary) 15%, var(--card-bg));
+            border-color: var(--primary);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
 
-        /* ═══════ Tabs (React style: underline) ═══════ */
+        .action-btn:active {
+            transform: translateY(0);
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .action-btn:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+
+
+        h1,
+        h2,
+        h3,
+        .font-outfit {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        /* PDF export: remove ALL excess whitespace */
+        @page {
+            margin: 0;
+        }
+
+        body.pdf-export {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        body.pdf-export .container {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+
+        body.pdf-export header {
+            margin: 0 0 0.25rem 0 !important;
+            padding: 0.25rem 0 !important;
+            border-bottom-width: 1px;
+        }
+
+        body.pdf-export .logo-area h1 {
+            font-size: 1rem !important;
+            line-height: 1.2 !important;
+            margin: 0 !important;
+        }
+
+        body.pdf-export .logo-area p {
+            font-size: 0.65rem !important;
+            line-height: 1.2 !important;
+            margin: 0 !important;
+        }
+
+        body.pdf-export #pdf-temp-header {
+            display: block !important;
+        }
+
+        body.pdf-export #export-btn,
+        body.pdf-export #help-toggle-btn,
+        body.pdf-export #theme-toggle-btn,
+        body.pdf-export .timestamp,
+        body.pdf-export .disclaimer {
+            display: none !important;
+        }
+
+        body.pdf-export .controls-row {
+            margin-bottom: 0.2rem !important;
+        }
+
+        body.pdf-export .tab-bar {
+            margin-bottom: 0.2rem !important;
+        }
+
+        body.pdf-export table {
+            font-size: 0.6rem !important;
+        }
+
+        body.pdf-export th,
+        body.pdf-export td {
+            padding: 0.2rem 0.35rem !important;
+        }
+
+        body.pdf-export .score-badge {
+            font-size: 0.55rem !important;
+            padding: 0.1rem 0.3rem !important;
+            min-width: 1rem !important;
+        }
+
+        body.pdf-export .card {
+            padding: 0.5rem !important;
+        }
+
+        body.pdf-export .table-container {
+            overflow: visible !important;
+            overflow-x: visible !important;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 1.5rem;
+        }
+
+        .logo-area h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #60a5fa 0%, #34d399 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-area p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .timestamp {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            background: var(--card-bg);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            border: 1px solid var(--card-border);
+        }
+
+        .disclaimer {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            opacity: 0.7;
+            max-width: 280px;
+            line-height: 1.3;
+            text-align: right;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .controls-filters {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        /* Tabs & Controls */
         .controls-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
             flex-wrap: wrap;
-            gap: 0.75rem;
+            gap: 1rem;
         }
 
         .tabs {
             display: flex;
-            gap: 0;
-            border-bottom: 1px solid var(--card-border);
-            width: 100%;
+            background: var(--card-bg);
+            padding: 0.35rem;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(10px);
         }
 
         .tab-btn {
             background: transparent;
-            border: none;
-            border-bottom: 2px solid transparent;
+            border: 1.5px solid transparent;
             color: var(--text-secondary);
-            padding: 0.5rem 1rem;
-            font-size: 0.8rem;
-            font-weight: 500;
+            padding: 0.6rem 1.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 8px;
             cursor: pointer;
             transition: var(--transition);
-            font-family: inherit;
-            margin-bottom: -1px;
+            font-family: 'Outfit', sans-serif;
         }
 
-        .tab-btn:hover { color: var(--text-primary); }
-        .tab-btn.active { color: var(--text-primary); border-bottom-color: var(--text-primary); }
-
-        /* ═══════ Controls / Filters (React style) ═══════ */
-        .controls-filters {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-            align-items: center;
-            width: 100%;
+        .tab-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--text-secondary);
         }
 
-        .search-container { position: relative; flex: 1; min-width: 140px; }
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
 
-        .search-icon {
-            position: absolute; left: 0.6rem; top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-secondary);
-            pointer-events: none;
-            font-size: 0.75rem;
+        .search-container {
+            position: relative;
         }
 
         .search-input {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             color: var(--text-primary);
-            padding: 0.4rem 0.75rem 0.4rem 1.75rem;
-            border-radius: var(--radius);
-            width: 100%;
-            font-size: 0.75rem;
+            padding: 0.6rem 1rem 0.6rem 2.5rem;
+            border-radius: 10px;
+            width: 250px;
+            font-size: 0.9rem;
             outline: none;
             transition: var(--transition);
         }
 
-        .search-input:focus { border-color: var(--text-secondary); }
-
-        .filter-select {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            color: var(--text-primary);
-            padding: 0.4rem 0.6rem;
-            border-radius: var(--radius);
-            font-size: 0.75rem;
-            outline: none;
-            cursor: pointer;
-            font-family: inherit;
-            transition: var(--transition);
-            max-width: 180px;
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary-glow);
         }
 
-        .filter-select:hover { border-color: var(--text-secondary); }
-        .filter-select.hidden { display: none !important; }
-
-        .score-range-filter {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            padding: 0.25rem 0.5rem;
-            border-radius: var(--radius);
-            transition: var(--transition);
-        }
-
-        .score-range-filter.hidden { display: none !important; }
-
-        .filter-label {
-            font-size: 0.65rem;
-            font-weight: 600;
+        .search-icon {
+            position: absolute;
+            left: 0.85rem;
+            top: 50%;
+            transform: translateY(-50%);
             color: var(--text-secondary);
+            pointer-events: none;
+            font-size: 0.9rem;
         }
 
-        .score-buttons { display: flex; gap: 0.15rem; }
-
-        .score-btn {
-            width: 24px; height: 24px;
-            border-radius: 4px;
-            font-weight: 600;
-            font-size: 0.7rem;
-            cursor: pointer;
-            border: 1px solid var(--card-border);
-            transition: var(--transition);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: transparent;
-            color: var(--text-secondary);
-        }
-
-        .score-btn.score-5,
-        .score-btn.score-4 { color: var(--accent-green); border-color: var(--accent-green); background: transparent; }
-        .score-btn.score-3 { color: var(--accent-gold); border-color: var(--accent-gold); background: transparent; }
-        .score-btn.score-2,
-        .score-btn.score-1,
-        .score-btn.score-0 { color: var(--danger); border-color: var(--danger); background: transparent; }
-
-        .score-btn:hover { background: var(--table-hover); }
-        .score-buttons.filtering .score-btn { opacity: 0.3; }
-        .score-buttons.filtering .score-btn.active { opacity: 1; background: var(--table-hover); }
-
-        /* ═══════ Summary / Top Cards (React style) ═══════ */
+        /* Cards Summary */
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
         }
 
         .summary-card {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
-            border-radius: calc(var(--radius) + 2px);
-            padding: 1rem;
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
             transition: var(--transition);
+            position: relative;
+            overflow: hidden;
         }
-        .summary-card:hover { border-color: var(--text-secondary); }
 
-        .summary-card::before { display: none; }
-        .card-stock::before { display: none; }
-        .card-fii::before { display: none; }
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+        }
+
+        .card-stock::before {
+            background: linear-gradient(90deg, var(--primary) 0%, #60a5fa 100%);
+        }
+
+        .card-fii::before {
+            background: linear-gradient(90deg, var(--accent-green) 0%, #34d399 100%);
+        }
+
+        .summary-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
 
         .card-title {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-            margin-bottom: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
 
-        .top-list { list-style: none; }
+        .top-list {
+            list-style: none;
+        }
 
         .top-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.4rem 0;
-            border-bottom: 1px solid var(--card-border);
-            cursor: pointer;
-            transition: var(--transition);
-            border-radius: 4px;
-            padding-left: 0.25rem;
-            padding-right: 0.25rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
-        .top-item:hover { background: var(--table-hover); }
-        .top-item:last-child { border-bottom: none; padding-bottom: 0; }
-        .top-item:last-child:hover { padding-bottom: 0; }
 
-        .top-ticker { font-weight: 600; font-size: 0.8rem; color: var(--text-primary); }
-        .top-val { font-weight: 500; font-size: 0.75rem; }
+        .top-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .top-ticker {
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+            color: var(--text-primary);
+        }
+
+        .top-val {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
 
         .badge {
-            padding: 0.1rem 0.4rem;
-            border-radius: 4px;
-            font-size: 0.6rem;
-            font-weight: 600;
-        }
-        .badge-green { background: rgba(16, 185, 129, 0.1); color: var(--accent-green); }
-        .badge-gold { background: rgba(217, 119, 6, 0.1); color: var(--accent-gold); }
-
-        /* ═══════ Custom Tooltip (theme-aware) ═══════ */
-        [data-tooltip] {
-            position: relative;
-            cursor: help;
-        }
-        [data-tooltip]:hover::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: calc(100% + 3px);
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--card-bg);
-            color: var(--text-primary);
-            border: 1px solid var(--card-border);
-            padding: 0.35rem 0.6rem;
-            border-radius: 5px;
-            font-size: 0.65rem;
-            font-weight: 400;
-            white-space: pre-line;
-            z-index: 1000;
-            box-shadow: 0 2px 8px var(--modal-shadow);
-            pointer-events: none;
-            line-height: 1.5;
-            min-width: 100px;
-            text-align: left;
-            font-family: 'Inter', sans-serif;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
         }
 
-        /* ═══════ Table (React style) ═══════ */
+        .badge-green {
+            background-color: var(--accent-green-glow);
+            color: var(--accent-green);
+        }
+
+        .badge-gold {
+            background-color: var(--accent-gold-glow);
+            color: var(--accent-gold);
+        }
+
+        /* Tables */
         .table-container {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
-            border-radius: calc(var(--radius) + 2px);
+            border-radius: 16px;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
-            margin-bottom: 1.5rem;
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
         }
 
-        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.75rem; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.85rem;
+        }
 
         th {
             background: var(--table-header);
-            color: var(--text-secondary);
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
             font-weight: 600;
-            padding: 0.55rem 0.7rem;
+            padding: 0.75rem 0.9rem;
             border-bottom: 1px solid var(--card-border);
             cursor: pointer;
             user-select: none;
+            transition: var(--transition);
             white-space: nowrap;
-            font-size: 0.65rem;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
         }
 
-        th:hover { color: var(--text-primary); }
+        th:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--primary);
+        }
 
         td {
-            padding: 0.5rem 0.7rem;
-            border-bottom: 1px solid var(--card-border);
-            color: var(--text-primary);
-            font-weight: 400;
+            padding: 0.7rem 0.9rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: var(--text-secondary);
+            font-weight: 500;
             white-space: nowrap;
         }
-        tr:last-child td { border-bottom: none; }
-        tr:hover td { background: var(--table-hover); }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: var(--table-hover);
+            color: var(--text-primary);
+        }
 
         th:first-child {
-            position: sticky; left: 0; z-index: 12;
+            position: sticky;
+            left: 0;
+            z-index: 12;
             background: var(--table-header);
             border-right: 1px solid var(--card-border);
         }
+
         td:first-child {
-            position: sticky; left: 0; z-index: 10;
+            position: sticky;
+            left: 0;
+            z-index: 10;
             background: var(--card-bg);
             border-right: 1px solid var(--card-border);
         }
-        tr:hover td:first-child { background: var(--table-hover) !important; }
 
-        .ticker-col { font-weight: 600; color: var(--text-primary); }
-        .name-col { min-width: 100px; max-width: 200px; overflow-wrap: break-word; word-break: keep-all; white-space: normal; line-height: 1.3; }
-        .metric-highlight { font-weight: 500; }
-        .positive { color: var(--accent-green); }
-        .negative { color: var(--danger); }
-        .warning { color: var(--accent-gold); }
+        tr:hover td:first-child {
+            background: var(--table-hover) !important;
+        }
 
-        /* Score pill (React style: square badge) */
+        .ticker-col {
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+            color: var(--text-primary);
+        }
+
+        .name-col {
+            min-width: 120px;
+            max-width: 220px;
+            overflow-wrap: break-word;
+            word-break: keep-all;
+            white-space: normal;
+            line-height: 1.3;
+        }
+
+        .metric-highlight {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .positive {
+            color: var(--accent-green);
+        }
+
+        .negative {
+            color: var(--danger);
+        }
+
+        .warning {
+            color: var(--accent-gold);
+        }
+
         .score-pill {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-width: 1.25rem;
-            height: 1.25rem;
-            padding: 0 0.25rem;
-            border-radius: 3px;
-            font-weight: 600;
-            font-size: 0.7rem;
-            border: 1px solid var(--card-border);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 0.85rem;
+            font-family: 'Outfit', sans-serif;
         }
 
-        .score-5, .score-4 { border-color: var(--accent-green); color: var(--accent-green); }
-        .score-3 { border-color: var(--accent-gold); color: var(--accent-gold); }
-        .score-2, .score-1, .score-0 { border-color: var(--danger); color: var(--danger); }
+        .score-5 {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+        }
 
-        .hidden { display: none !important; }
+        .score-4 {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent-green);
+        }
 
-        /* ═══════ Index Pills ═══════ */
+        .score-3 {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--accent-gold);
+        }
+
+        .score-2 {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .score-1 {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .score-0 {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .time-ranges {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .range-btn {
+            background: var(--card-bg);
+            border: 1.5px solid var(--text-secondary);
+            color: var(--text-secondary);
+            padding: 0.35rem 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'Outfit', sans-serif;
+            outline: none;
+        }
+
+        .range-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--primary);
+            background: color-mix(in srgb, var(--primary) 10%, var(--card-bg));
+        }
+
+        .range-btn.active {
+            background: var(--primary);
+            color: white !important;
+            border-color: var(--primary);
+            box-shadow: 0 4px 10px var(--primary-glow);
+        }
+
         .index-pill {
-            font-size: 0.55rem;
-            padding: 0.05rem 0.25rem;
-            border-radius: 3px;
+            font-size: 0.65rem;
+            padding: 0.1rem 0.35rem;
+            border-radius: 4px;
             font-weight: 700;
             text-transform: uppercase;
             display: inline-block;
         }
-        .index-pill.ibov { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.2); }
-        .index-pill.idiv { background: rgba(16, 185, 129, 0.1); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.2); }
-        .index-pill.smll { background: rgba(245, 158, 11, 0.1); color: var(--accent-gold); border: 1px solid rgba(245, 158, 11, 0.2); }
-        .index-pill.iee { background: rgba(6, 182, 212, 0.1); color: #06b6d4; border: 1px solid rgba(6, 182, 212, 0.2); }
-        .index-pill.ifnc { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, 0.2); }
 
-        /* ═══════ Chart Controls (React style) ═══════ */
-        .time-ranges { display: flex; gap: 0.25rem; }
+        .index-pill.ibov {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.25);
+        }
 
-        .range-btn {
-            background: transparent;
+        .index-pill.idiv {
+            background: rgba(16, 185, 129, 0.15);
+            color: #32a179;
+            border: 1px solid rgba(16, 185, 129, 0.25);
+        }
+
+        .index-pill.smll {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.25);
+        }
+
+        .index-pill.iee {
+            background: rgba(6, 182, 212, 0.15);
+            color: #22d3ee;
+            border: 1px solid rgba(6, 182, 212, 0.25);
+        }
+
+        .index-pill.ifnc {
+            background: rgba(139, 92, 246, 0.15);
+            color: #a78bfa;
+            border: 1px solid rgba(139, 92, 246, 0.25);
+        }
+
+        .filter-select {
+            background: var(--card-bg);
             border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            padding: 0.6rem 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            outline: none;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            transition: var(--transition);
+        }
+
+        .filter-select:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .filter-select.hidden {
+            display: none !important;
+        }
+
+        .score-range-filter {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            padding: 0.35rem 0.75rem;
+            border-radius: 10px;
+            transition: var(--transition);
+        }
+
+        .score-range-filter:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .score-range-filter.hidden {
+            display: none !important;
+        }
+
+        .filter-label {
+            font-size: 0.85rem;
+            font-weight: 600;
             color: var(--text-secondary);
-            padding: 0.2rem 0.5rem;
-            font-size: 0.65rem;
-            font-weight: 500;
-            border-radius: var(--radius);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .score-buttons {
+            display: flex;
+            gap: 0.3rem;
+        }
+
+        .score-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 0.85rem;
+            font-family: 'Outfit', sans-serif;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.85;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+        }
+
+        .score-btn.score-5 {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-green);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .score-btn.score-4 {
+            background: rgba(16, 185, 129, 0.08);
+            color: var(--accent-green);
+            border-color: rgba(16, 185, 129, 0.15);
+        }
+
+        .score-btn.score-3 {
+            background: rgba(245, 158, 11, 0.08);
+            color: var(--accent-gold);
+            border-color: rgba(245, 158, 11, 0.15);
+        }
+
+        .score-btn.score-2 {
+            background: rgba(239, 68, 68, 0.08);
+            color: var(--danger);
+            border-color: rgba(239, 68, 68, 0.15);
+        }
+
+        .score-btn.score-1 {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .score-btn.score-0 {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .score-btn:hover {
+            transform: scale(1.1);
+            opacity: 1;
+        }
+
+        .score-buttons.filtering .score-btn {
+            opacity: 0.35;
+        }
+
+        .score-buttons.filtering .score-btn.active {
+            opacity: 1;
+            transform: scale(1.1);
+            border-color: currentColor !important;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        /* Responsive styling */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .logo-area h1 {
+                font-size: 1.8rem;
+            }
+
+            .header-actions {
+                flex-wrap: wrap;
+                width: 100%;
+                gap: 0.5rem;
+            }
+
+            .header-actions>* {
+                flex: 1 1 auto;
+            }
+
+            .disclaimer {
+                text-align: left;
+                max-width: 100%;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .controls-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .controls-filters {
+                flex-direction: column;
+                align-items: stretch;
+                width: 100%;
+                gap: 0.75rem;
+            }
+
+            .filter-select {
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .score-range-filter {
+                width: 100%;
+                box-sizing: border-box;
+                justify-content: space-between;
+                padding: 0.5rem 0.75rem;
+            }
+
+            .search-container {
+                width: 100%;
+            }
+
+            .search-input {
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .tabs {
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+            }
+
+            .tab-btn {
+                padding: 0.5rem 0.5rem;
+                font-size: 0.8rem;
+                flex: 1;
+                text-align: center;
+            }
+
+            table {
+                font-size: 0.8rem;
+            }
+
+            th,
+            td {
+                padding: 0.75rem 0.5rem;
+            }
+        }
+
+        tbody tr {
             cursor: pointer;
             transition: var(--transition);
-            font-family: inherit;
         }
 
-        .range-btn:hover { color: var(--text-primary); border-color: var(--text-secondary); }
-
-        .range-btn.active {
-            background: var(--text-primary);
-            color: var(--bg-color);
-            border-color: var(--text-primary);
-        }
-
-        /* ═══════ Modal (React style) ═══════ */
+        /* Modal Glassmorphism */
         .modal {
             position: fixed;
             z-index: 100;
-            left: 0; top: 0;
-            width: 100%; height: 100%;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
             background-color: var(--modal-overlay);
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(8px);
             display: flex;
             justify-content: center;
-            align-items: flex-start;
-            padding: 2rem 1rem;
-            overflow-y: auto;
+            align-items: center;
+            transition: var(--transition);
         }
 
         .modal-content {
             background: var(--modal-bg);
             border: 1px solid var(--card-border);
-            border-radius: calc(var(--radius) + 2px);
-            width: 100%;
-            max-width: 800px;
-            padding: 1.5rem;
-            box-shadow: 0 10px 30px var(--modal-shadow);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 850px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 50px var(--modal-shadow);
             position: relative;
-            animation: modalFadeIn 0.2s ease;
-            margin-top: 2rem;
+            animation: modalFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: background 0.3s ease, box-shadow 0.3s ease;
         }
 
         @keyframes modalFadeIn {
-            from { transform: scale(0.97); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+            from {
+                transform: scale(0.95);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         .close-btn {
             position: absolute;
-            right: 1rem; top: 1rem;
-            width: 1.75rem; height: 1.75rem;
-            display: grid; place-items: center;
-            border: 1px solid var(--card-border);
-            border-radius: var(--radius);
+            right: 1.5rem;
+            top: 1.5rem;
+            font-size: 2rem;
             cursor: pointer;
-            font-size: 1rem;
             color: var(--text-secondary);
             transition: var(--transition);
-            background: var(--card-bg);
         }
-        .close-btn:hover { color: var(--text-primary); border-color: var(--text-secondary); }
+
+        .close-btn:hover {
+            color: var(--text-primary);
+        }
 
         .modal-header h2 {
-            font-size: 1.1rem;
-            font-weight: 700;
+            font-size: 2.5rem;
+            font-weight: 800;
             color: var(--text-primary);
-            margin-bottom: 0.1rem;
+            margin-bottom: 0.2rem;
         }
+
         .modal-header p {
             color: var(--text-secondary);
-            font-size: 0.8rem;
-            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
         }
 
         .modal-body-grid {
             display: grid;
             grid-template-columns: 1fr 1.2fr;
-            gap: 1.5rem;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .modal-body-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .modal-content {
+                padding: 1.5rem;
+                margin-top: 2rem;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
         }
 
         .section-subtitle {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-            padding-bottom: 0.4rem;
-            margin-bottom: 0.75rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-bottom: 1px solid var(--section-subtitle-border);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            transition: border-color 0.3s ease;
         }
 
-        .breakdown-list { display: flex; flex-direction: column; gap: 0.4rem; }
+        .breakdown-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
 
         .breakdown-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0.4rem 0.6rem;
-            border-radius: var(--radius);
+            padding: 0.6rem 0.85rem;
+            border-radius: 8px;
             background: var(--breakdown-bg);
             border: 1px solid var(--breakdown-border);
-            font-size: 0.75rem;
+            font-size: 0.9rem;
+            transition: background 0.3s ease, border-color 0.3s ease;
         }
 
-        .breakdown-check { font-weight: 700; }
+        .breakdown-check {
+            font-weight: 700;
+        }
 
-        /* ═══════ Export Menu ═══════ */
         .export-menu {
             position: absolute;
             top: 100%;
             right: 0;
-            margin-top: 0.35rem;
-            background: var(--dropdown-bg);
+            margin-top: 0.5rem;
+            background: var(--modal-bg);
             border: 1px solid var(--card-border);
-            border-radius: calc(var(--radius) + 1px);
-            padding: 0.35rem;
-            min-width: 200px;
-            box-shadow: 0 8px 20px var(--modal-shadow);
+            border-radius: 12px;
+            padding: 0.5rem;
+            min-width: 230px;
+            box-shadow: 0 10px 30px var(--modal-shadow);
             z-index: 50;
+            backdrop-filter: blur(10px);
         }
 
-        /* ═══════ PDF Export ═══════ */
-        @page { margin: 0; }
-        body.pdf-export { padding: 0 !important; margin: 0 !important; }
-        body.pdf-export .container { padding-top: 0 !important; margin-top: 0 !important; }
-        body.pdf-export header { margin: 0 0 0.25rem 0 !important; padding: 0.25rem 0 !important; }
-        body.pdf-export .logo-area h1 { font-size: 1rem !important; line-height: 1.2 !important; margin: 0 !important; }
-        body.pdf-export .logo-area p { font-size: 0.65rem !important; line-height: 1.2 !important; margin: 0 !important; }
-        body.pdf-export #pdf-temp-header { display: block !important; }
-        body.pdf-export #export-btn,
-        body.pdf-export #help-toggle-btn,
-        body.pdf-export #theme-toggle-btn,
-        body.pdf-export .timestamp,
-        body.pdf-export .disclaimer { display: none !important; }
-        body.pdf-export .controls-row { margin-bottom: 0.2rem !important; }
-        body.pdf-export table { font-size: 0.6rem !important; }
-        body.pdf-export th, body.pdf-export td { padding: 0.2rem 0.35rem !important; }
-        body.pdf-export .score-pill { font-size: 0.55rem !important; padding: 0.1rem 0.3rem !important; min-width: 1rem !important; }
-        body.pdf-export .table-container { overflow: visible !important; overflow-x: visible !important; }
-
-        /* ═══════ Responsive (Mobile) ═══════ */
         @media (max-width: 768px) {
-            body { padding: 0.75rem; }
-            header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
-            .logo-area h1 { font-size: 1.1rem; }
-            .header-actions { width: 100%; gap: 0.35rem; }
-            .header-actions > * { flex: 1 1 auto; }
-            .disclaimer { text-align: left; max-width: 100%; }
-            .summary-grid { grid-template-columns: 1fr; gap: 0.75rem; }
-            .controls-row { flex-direction: column; align-items: stretch; }
-            .controls-filters { flex-direction: column; align-items: stretch; width: 100%; gap: 0.5rem; }
-            .filter-select { width: 100%; }
-            .score-range-filter { width: 100%; justify-content: space-between; }
-            .search-container { width: 100%; }
-            .search-input { width: 100%; }
-            .tabs { width: 100%; display: flex; overflow-x: auto; }
-            .tab-btn { padding: 0.4rem 0.6rem; font-size: 0.7rem; white-space: nowrap; }
-            table { font-size: 0.7rem; }
-            th, td { padding: 0.4rem 0.4rem; }
-            .modal-content { padding: 1rem; margin-top: 1rem; }
-            .modal-body-grid { grid-template-columns: 1fr; gap: 1rem; }
-            .export-menu { left: 0; right: auto; }
+            .export-menu {
+                left: 0;
+                right: auto;
+            }
         }
     </style>
 </head>
@@ -660,8 +1051,8 @@
     <script>
         (function () {
             const savedTheme = localStorage.getItem('theme');
-            if (savedTheme === 'dark') {
-                document.documentElement.classList.add('dark');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-theme');
             }
         })();
     </script>
@@ -1401,10 +1792,10 @@
                 // Score Rules Checklist
                 const rules = [
                     { label: "Dividend Yield >= 6%", val: dy >= 0.06, desc: `Atual: ${(dy * 100).toFixed(2)}%` },
-                    { label: "P/L (Preço / Lucro) <= 15", val: pe !== null && pe > 0 && pe <= 15, desc: `Atual: ${pe !== null ? pe.toFixed(2) : pe === null && row.getAttribute('data-pe-status') === 'na' ? '— (prejuizo)' : 'N/D'}` },
-                    { label: "P/VP (Preço / V.P.) <= 1.5", val: pb !== null && pb > 0 && pb <= 1.5, desc: `Atual: ${pb !== null ? pb.toFixed(2) : pb === null && row.getAttribute('data-pb-status') === 'na' ? '— (PL neg.)' : 'N/D'}` },
-                    { label: "ROE (Retorno s/ Patr.) >= 10%", val: roe !== null && roe >= 0.10, desc: `Atual: ${roe !== null ? (roe * 100).toFixed(2) : row.getAttribute('data-roe-status') === 'na' ? '— (prejuizo)' : 'N/D'}%` },
-                    { label: "Margem de Graham (Preço < Justo)", val: graham > 0 && price < graham, desc: `Justo: ${graham > 0 ? 'R$ ' + graham.toFixed(2) : '—'} vs R$ ${price.toFixed(2)}` }
+                    { label: "P/L (Preço / Lucro) <= 15", val: pe !== null && pe > 0 && pe <= 15, desc: `Atual: ${pe !== null ? pe.toFixed(2) : 'N/A'}` },
+                    { label: "P/VP (Preço / V.P.) <= 1.5", val: pb !== null && pb > 0 && pb <= 1.5, desc: `Atual: ${pb !== null ? pb.toFixed(2) : 'N/A'}` },
+                    { label: "ROE (Retorno s/ Patr.) >= 10%", val: roe !== null && roe >= 0.10, desc: `Atual: ${roe !== null ? (roe * 100).toFixed(2) : 'N/A'}%` },
+                    { label: "Margem de Graham (Preço < Justo)", val: graham > 0 && price < graham, desc: `Justo: R$ ${graham.toFixed(2)} vs R$ ${price.toFixed(2)}` }
                 ];
 
                 rules.forEach(rule => {
@@ -1441,7 +1832,7 @@
                 scoreContainer.innerHTML = `<span class="score-pill score-${score}" style="width: auto; height: auto; border-radius: 12px; padding: 0.4rem 1rem; font-size: 0.9rem;">Score Fundamentalista: ${score}/5</span>`;
 
                 const rules = [
-                    { label: "Múltiplo P/VP <= 1.05 (Ideal — descontado ou justo)", val: pb !== null && pb > 0 && pb <= 1.05, desc: `Atual: ${pb !== null ? pb.toFixed(2) : 'N/A'}` },
+                    { label: "Múltiplo P/VP entre 0.85 e 1.05 (Ideal)", val: pb !== null && pb >= 0.85 && pb <= 1.05, desc: `Atual: ${pb !== null ? pb.toFixed(2) : 'N/A'}` },
                     { label: "Múltiplo P/VP <= 1.15 (Preço Limite)", val: pb !== null && pb > 0 && pb <= 1.15, desc: `Atual: ${pb !== null ? pb.toFixed(2) : 'N/A'}` },
                     { label: "Dividend Yield Anual >= 8% (Mínimo)", val: dy >= 0.08, desc: `Atual: ${(dy * 100).toFixed(2)}%` },
                     { label: "Dividend Yield Anual >= 10% (Excelente)", val: dy >= 0.10, desc: `Atual: ${(dy * 100).toFixed(2)}%` },
@@ -1611,9 +2002,9 @@
                 backgroundColor = 'rgba(16, 185, 129, 0.05)';
             }
 
-            const isDark = document.documentElement.classList.contains('dark');
-            const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(15, 23, 42, 0.06)';
-            const tickColor = isDark ? '#9ca3af' : '#475569';
+            const isLight = document.body.classList.contains('light-theme');
+            const gridColor = isLight ? 'rgba(15, 23, 42, 0.06)' : 'rgba(255, 255, 255, 0.05)';
+            const tickColor = isLight ? '#475569' : '#9ca3af';
 
             activeChart = new Chart(ctx, {
                 type: 'line',
@@ -1665,13 +2056,13 @@
         }
 
         function toggleTheme() {
-            document.documentElement.classList.toggle('dark');
-            const isDark = document.documentElement.classList.contains('dark');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.body.classList.toggle('light-theme');
+            const isLight = document.body.classList.contains('light-theme');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
 
             const themeIcon = document.getElementById('theme-toggle-icon');
             if (themeIcon) {
-                themeIcon.textContent = isDark ? '🌙' : '☀️';
+                themeIcon.textContent = isLight ? '☀️' : '🌙';
             }
 
             if (activeChart && currentAssetHistory && currentAssetHistory.length > 0) {
@@ -1680,82 +2071,41 @@
         }
 
         function loadDashboardData() {
-            Promise.all([
-                fetch('data.json').then(r => r.json()),
-                fetch('data/fii_vpa.json').then(r => r.json()).catch(() => ({})),
-                fetch('data/fiagro_vpa.json').then(r => r.json()).catch(() => ({})),
-            ]).then(([data, fiiVpaCache, fiagroVpaCache]) => {
-                // ═══ Patch missing P/VP for FIIs and FIAGROs using CVM cache ═══
-                (data.fiis || []).forEach(fii => {
-                    if (!fii.pb_ratio && fii.price && fiiVpaCache[fii.ticker]) {
-                        fii.pb_ratio = fii.price / fiiVpaCache[fii.ticker];
-                    }
-                });
-                (data.fiagros || []).forEach(fiagro => {
-                    if (!fiagro.pb_ratio && fiagro.price && fiagroVpaCache[fiagro.ticker]) {
-                        fiagro.pb_ratio = fiagro.price / fiagroVpaCache[fiagro.ticker];
-                    }
-                });
-
-                // 1. Timestamp
-                document.getElementById('timestamp-container').textContent = data.timestamp;
+            fetch('data.json')
+                .then(response => response.json())
+                .then(data => {
+                    // 1. Timestamp
+                    document.getElementById('timestamp-container').textContent = data.timestamp;
 
                     // 2. Top Picks: Stocks
                     const topStocksList = document.getElementById('top-stocks-list');
-                    topStocksList.innerHTML = data.top_stocks.map(stock => {
-                        const peStr = (stock.pe_status || 'nd') === 'ok' ? stock.pe_ratio.toFixed(2) : ((stock.pe_status || 'nd') === 'na' ? 'N/A' : 'N/D');
-                        const dyStr = (stock.dy_status || 'nd') === 'ok' ? (stock.dividend_yield * 100).toFixed(2) + '%' : ((stock.dy_status || 'nd') === 'na' ? 'N/A' : (stock.dy_status || 'nd') === 'zero' ? '0,00%' : 'N/D');
-                        const roeStr = (stock.roe_status || 'nd') === 'ok' ? (stock.roe * 100).toFixed(2) + '%' : ((stock.roe_status || 'nd') === 'na' ? 'N/A' : 'N/D');
-                        const pbStr = (stock.pb_status || 'nd') === 'ok' ? stock.pb_ratio.toFixed(2) : ((stock.pb_status || 'nd') === 'na' ? 'N/A' : 'N/D');
-                        const grahamStr = (stock.graham_status || 'nd') === 'ok' ? 'R$ ' + stock.graham_price.toFixed(2) : 'N/A';
-                        const bazinStr = (stock.bazin_status || 'nd') === 'ok' ? 'R$ ' + stock.bazin_price.toFixed(2) : ((stock.bazin_status || 'nd') === 'na' ? 'N/A' : (stock.bazin_status || 'nd') === 'zero' ? 'R$ 0,00' : 'N/D');
-                        const tooltip = 'P/L: ' + peStr + '\nP/VP: ' + pbStr + '\nDY: ' + dyStr + '\nROE: ' + roeStr + '\nGraham: ' + grahamStr + '\nBazin: ' + bazinStr;
-                        return `
-                        <li class="top-item" onclick="openDetailModal('${stock.ticker}', 'stock')" data-tooltip="${tooltip}">
+                    topStocksList.innerHTML = data.top_stocks.map(stock => `
+                        <li class="top-item">
                             <span class="top-ticker">${stock.ticker}</span>
-                            <span style="display:flex;align-items:center;gap:0.4rem;">
-                                <span class="score-pill score-${Math.round(stock.score)}" style="min-width:1.5rem;height:1.3rem;font-size:0.65rem;">${stock.score}</span>
-                                <span class="top-val positive" style="font-size:0.65rem;">🔍</span>
-                            </span>
-                        </li>`;
-                    }).join('');
+                            <span class="top-val positive">Score: ${stock.score}/5</span>
+                        </li>
+                    `).join('');
 
                     // 3. Top Picks: FIIs
                     const topFiisList = document.getElementById('top-fiis-list');
-                    topFiisList.innerHTML = data.top_fiis.map(fii => {
-                        const dyStr = fii.dy_status === 'ok' ? (fii.dividend_yield * 100).toFixed(2) + '%' : (fii.dy_status === 'zero' ? '0,00%' : 'N/D');
-                        const pbStr = fii.pb_status === 'ok' ? fii.pb_ratio.toFixed(2) : 'N/D';
-                        const rateStr = fii.rate_status === 'ok' ? 'R$ ' + fii.dividend_rate.toFixed(2) : (fii.rate_status === 'zero' ? 'R$ 0,00' : 'N/D');
-                        const tooltip = 'P/VP: ' + pbStr + '\nDY: ' + dyStr + '\nDividendos: ' + rateStr;
-                        return `
-                        <li class="top-item" onclick="openDetailModal('${fii.ticker}', 'fii')" data-tooltip="${tooltip}">
+                    topFiisList.innerHTML = data.top_fiis.map(fii => `
+                        <li class="top-item">
                             <span class="top-ticker">${fii.ticker}</span>
-                            <span style="display:flex;align-items:center;gap:0.4rem;">
-                                <span class="score-pill score-${Math.round(fii.score)}" style="min-width:1.5rem;height:1.3rem;font-size:0.65rem;">${fii.score}</span>
-                                <span class="top-val positive" style="font-size:0.65rem;">🔍</span>
-                            </span>
-                        </li>`;
-                    }).join('');
+                            <span class="top-val positive">DY: ${(fii.dividend_yield * 100).toFixed(2)}% | P/VP: ${fii.pb_ratio.toFixed(2)}</span>
+                        </li>
+                    `).join('');
 
                     // 4. Top Picks: FIAGROs
                     const topFiagrosCard = document.getElementById('top-fiagros-card');
                     if (data.top_fiagros && data.top_fiagros.length > 0) {
                         topFiagrosCard.style.display = 'block';
                         const topFiagrosList = document.getElementById('top-fiagros-list');
-                        topFiagrosList.innerHTML = data.top_fiagros.map(fiagro => {
-                            const dyStr = (fiagro.dy_status || 'nd') === 'ok' ? (fiagro.dividend_yield * 100).toFixed(2) + '%' : ((fiagro.dy_status || 'nd') === 'zero' ? '0,00%' : 'N/D');
-                            const pbStr = (fiagro.pb_status || 'nd') === 'ok' ? fiagro.pb_ratio.toFixed(2) : 'N/D';
-                            const rateStr = (fiagro.rate_status || 'nd') === 'ok' ? 'R$ ' + fiagro.dividend_rate.toFixed(2) : ((fiagro.rate_status || 'nd') === 'zero' ? 'R$ 0,00' : 'N/D');
-                            const tooltip = 'P/VP: ' + pbStr + '\nDY: ' + dyStr + '\nDividendos: ' + rateStr;
-                            return `
-                            <li class="top-item" onclick="openDetailModal('${fiagro.ticker}', 'fiagro')" data-tooltip="${tooltip}">
+                        topFiagrosList.innerHTML = data.top_fiagros.map(fiagro => `
+                            <li class="top-item">
                                 <span class="top-ticker">${fiagro.ticker}</span>
-                                <span style="display:flex;align-items:center;gap:0.4rem;">
-                                    <span class="score-pill score-${Math.round(fiagro.score)}" style="min-width:1.5rem;height:1.3rem;font-size:0.65rem;">${fiagro.score}</span>
-                                    <span class="top-val positive" style="font-size:0.65rem;">🔍</span>
-                                </span>
-                            </li>`;
-                        }).join('');
+                                <span class="top-val positive">DY: ${(fiagro.dividend_yield * 100).toFixed(2)}% | P/VP: ${fiagro.pb_ratio ? fiagro.pb_ratio.toFixed(2) : 'N/A'}</span>
+                            </li>
+                        `).join('');
                     } else {
                         topFiagrosCard.style.display = 'none';
                     }
@@ -1776,39 +2126,13 @@
                             <span class="index-pill ${index.toLowerCase()}">${index}</span>
                         `).join('');
                         
-                        const priceFormatted = stock.price ? `R$ ${stock.price.toFixed(2)}` : 'N/D';
-                        const peFormatted = (() => {
-                            if (stock.pe_status === 'ok') return stock.pe_ratio.toFixed(2);
-                            if (stock.pe_status === 'na') return '—';
-                            return 'N/D';
-                        })();
-                        const pbFormatted = (() => {
-                            if (stock.pb_status === 'ok') return stock.pb_ratio.toFixed(2);
-                            if (stock.pb_status === 'na') return '—';
-                            return 'N/D';
-                        })();
-                        const dyFormatted = (() => {
-                            if (stock.dy_status === 'ok') return `${(stock.dividend_yield * 100).toFixed(2)}%`;
-                            if (stock.dy_status === 'na') return '—';
-                            if (stock.dy_status === 'zero') return '0,00%';
-                            return 'N/D';
-                        })();
-                        const roeFormatted = (() => {
-                            if (stock.roe_status === 'ok') return `${(stock.roe * 100).toFixed(2)}%`;
-                            if (stock.roe_status === 'na') return '—';
-                            return 'N/D';
-                        })();
-                        const bazinFormatted = (() => {
-                            if (stock.bazin_status === 'ok') return `R$ ${stock.bazin_price.toFixed(2)}`;
-                            if (stock.bazin_status === 'na') return '—';
-                            if (stock.bazin_status === 'zero') return 'R$ 0,00';
-                            return 'N/D';
-                        })();
-                        const grahamFormatted = (() => {
-                            if (stock.graham_status === 'ok') return `R$ ${stock.graham_price.toFixed(2)}`;
-                            if (stock.graham_status === 'na') return '—';
-                            return 'N/D';
-                        })();
+                        const priceFormatted = stock.price ? `R$ ${stock.price.toFixed(2)}` : 'N/A';
+                        const peFormatted = stock.pe_ratio ? stock.pe_ratio.toFixed(2) : 'N/A';
+                        const pbFormatted = stock.pb_ratio ? stock.pb_ratio.toFixed(2) : 'N/A';
+                        const dyFormatted = stock.dividend_yield ? `${(stock.dividend_yield * 100).toFixed(2)}%` : '0.00%';
+                        const roeFormatted = stock.roe ? `${(stock.roe * 100).toFixed(2)}%` : 'N/A';
+                        const bazinFormatted = stock.bazin_price ? `R$ ${stock.bazin_price.toFixed(2)}` : 'N/A';
+                        const grahamFormatted = stock.graham_price ? `R$ ${stock.graham_price.toFixed(2)}` : 'N/A';
                         
                         const peClass = (stock.pe_ratio && stock.pe_ratio > 0 && stock.pe_ratio <= 15) ? 'positive' : 'warning';
                         const pbClass = (stock.pb_ratio && stock.pb_ratio > 0 && stock.pb_ratio <= 1.5) ? 'positive' : 'warning';
@@ -1823,17 +2147,11 @@
                             data-indices="${(stock.indices || []).join(',')}"
                             data-price="${stock.price || 0}"
                             data-pe="${stock.pe_ratio !== null ? stock.pe_ratio : 'null'}"
-                            data-pe-status="${stock.pe_status || 'nd'}"
                             data-pb="${stock.pb_ratio !== null ? stock.pb_ratio : 'null'}"
-                            data-pb-status="${stock.pb_status || 'nd'}"
                             data-dy="${stock.dividend_yield || 0}"
-                            data-dy-status="${stock.dy_status || 'nd'}"
                             data-roe="${stock.roe !== null ? stock.roe : 'null'}"
-                            data-roe-status="${stock.roe_status || 'nd'}"
                             data-bazin="${stock.bazin_price || 0}"
-                            data-bazin-status="${stock.bazin_status || 'nd'}"
                             data-graham="${stock.graham_price || 0}"
-                            data-graham-status="${stock.graham_status || 'nd'}"
                             data-score="${stock.score || 0}"
                             data-eps="${stock.eps !== null ? stock.eps : 'null'}"
                             data-vpa="${stock.book_value !== null ? stock.book_value : 'null'}"
@@ -1847,12 +2165,12 @@
                             <td class="name-col">${stock.name}</td>
                             <td>${stock.sector}</td>
                             <td class="metric-highlight">${priceFormatted}</td>
-                            <td class="${peClass}" data-tooltip="${peFormatted === '—' ? 'N/A: Lucro negativo ou zero' : peFormatted === 'N/D' ? 'Dado nao disponivel da API' : ''}">${peFormatted}</td>
-                            <td class="${pbClass}" data-tooltip="${pbFormatted === '—' ? 'N/A: PL negativo' : pbFormatted === 'N/D' ? 'Dado nao disponivel da API' : ''}">${pbFormatted}</td>
-                            <td class="${dyClass}" data-tooltip="${dyFormatted === '—' ? 'N/A: Empresa com prejuizo' : dyFormatted === 'N/D' ? 'Dado nao disponivel da API' : ''}">${dyFormatted}</td>
-                            <td class="${roeClass}" data-tooltip="${roeFormatted === '—' ? 'N/A: Empresa com prejuizo' : roeFormatted === 'N/D' ? 'Dado nao disponivel da API' : ''}">${roeFormatted}</td>
-                            <td class="metric-highlight ${bazinClass}" data-tooltip="${bazinFormatted === '—' ? 'N/A: Empresa com prejuizo' : bazinFormatted === 'N/D' ? 'Dado nao disponivel da API' : bazinFormatted === 'R$ 0,00' ? 'Empresa nao distribui dividendos' : ''}">${bazinFormatted}</td>
-                            <td class="metric-highlight ${grahamClass}" data-tooltip="${grahamFormatted === '—' ? 'N/A: LPA/VPA negativo/zero' : grahamFormatted === 'N/D' ? 'Dado nao disponivel da API' : ''}">${grahamFormatted}</td>
+                            <td class="${peClass}">${peFormatted}</td>
+                            <td class="${pbClass}">${pbFormatted}</td>
+                            <td class="${dyClass}">${dyFormatted}</td>
+                            <td class="${roeClass}">${roeFormatted}</td>
+                            <td class="metric-highlight ${bazinClass}">${bazinFormatted}</td>
+                            <td class="metric-highlight ${grahamClass}">${grahamFormatted}</td>
                             <td>
                                 <span class="score-pill score-${stock.score}">${stock.score}</span>
                             </td>
@@ -1862,21 +2180,10 @@
                     // 7. FIIs Table
                     const fiisTbody = document.getElementById('fiis-tbody');
                     fiisTbody.innerHTML = data.fiis.map(fii => {
-                        const priceFormatted = fii.price ? `R$ ${fii.price.toFixed(2)}` : 'N/D';
-                        const pbFormatted = (() => {
-                            if (fii.pb_status === 'ok') return fii.pb_ratio.toFixed(2);
-                            return 'N/D';
-                        })();
-                        const dyFormatted = (() => {
-                            if (fii.dy_status === 'ok') return `${(fii.dividend_yield * 100).toFixed(2)}%`;
-                            if (fii.dy_status === 'zero') return '0,00%';
-                            return 'N/D';
-                        })();
-                        const rateFormatted = (() => {
-                            if (fii.rate_status === 'ok') return `R$ ${fii.dividend_rate.toFixed(2)}`;
-                            if (fii.rate_status === 'zero') return 'R$ 0,00';
-                            return 'N/D';
-                        })();
+                        const priceFormatted = fii.price ? `R$ ${fii.price.toFixed(2)}` : 'N/A';
+                        const pbFormatted = fii.pb_ratio ? fii.pb_ratio.toFixed(2) : 'N/A';
+                        const dyFormatted = fii.dividend_yield ? `${(fii.dividend_yield * 100).toFixed(2)}%` : '0.00%';
+                        const rateFormatted = fii.dividend_rate ? `R$ ${fii.dividend_rate.toFixed(2)}` : '0.00';
                         
                         const pbClass = (fii.pb_ratio && fii.pb_ratio >= 0.8 && fii.pb_ratio <= 1.05) ? 'positive' : 'warning';
                         const dyClass = (fii.dividend_yield && fii.dividend_yield >= 0.08) ? 'positive' : 'warning';
@@ -1885,11 +2192,8 @@
                         <tr onclick="openDetailModal('${fii.ticker}', 'fii')" data-ticker="${fii.ticker}"
                             data-name="${fii.name}" data-price="${fii.price || 0}"
                             data-pb="${fii.pb_ratio !== null ? fii.pb_ratio : 'null'}"
-                            data-pb-status="${fii.pb_status || 'nd'}"
                             data-dy="${fii.dividend_yield || 0}"
-                            data-dy-status="${fii.dy_status || 'nd'}"
                             data-rate="${fii.dividend_rate || 0}"
-                            data-rate-status="${fii.rate_status || 'nd'}"
                             data-score="${fii.score || 0}"
                             data-history='${fii.history_json || "[]"}'>
                             <td class="ticker-col">${fii.ticker}</td>
@@ -1907,21 +2211,10 @@
                     // 8. FIAGROs Table
                     const fiagrosTbody = document.getElementById('fiagros-tbody');
                     fiagrosTbody.innerHTML = data.fiagros.map(fiagro => {
-                        const priceFormatted = fiagro.price ? `R$ ${fiagro.price.toFixed(2)}` : 'N/D';
-                        const pbFormatted = (() => {
-                            if (fiagro.pb_status === 'ok') return fiagro.pb_ratio.toFixed(2);
-                            return 'N/D';
-                        })();
-                        const dyFormatted = (() => {
-                            if (fiagro.dy_status === 'ok') return `${(fiagro.dividend_yield * 100).toFixed(2)}%`;
-                            if (fiagro.dy_status === 'zero') return '0,00%';
-                            return 'N/D';
-                        })();
-                        const rateFormatted = (() => {
-                            if (fiagro.rate_status === 'ok') return `R$ ${fiagro.dividend_rate.toFixed(2)}`;
-                            if (fiagro.rate_status === 'zero') return 'R$ 0,00';
-                            return 'N/D';
-                        })();
+                        const priceFormatted = fiagro.price ? `R$ ${fiagro.price.toFixed(2)}` : 'N/A';
+                        const pbFormatted = fiagro.pb_ratio ? fiagro.pb_ratio.toFixed(2) : 'N/A';
+                        const dyFormatted = fiagro.dividend_yield ? `${(fiagro.dividend_yield * 100).toFixed(2)}%` : '0.00%';
+                        const rateFormatted = fiagro.dividend_rate ? `R$ ${fiagro.dividend_rate.toFixed(2)}` : '0.00';
                         
                         const pbClass = (fiagro.pb_ratio && fiagro.pb_ratio >= 0.8 && fiagro.pb_ratio <= 1.05) ? 'positive' : 'warning';
                         const dyClass = (fiagro.dividend_yield && fiagro.dividend_yield >= 0.08) ? 'positive' : 'warning';
@@ -1930,11 +2223,8 @@
                         <tr onclick="openDetailModal('${fiagro.ticker}', 'fiagro')" data-ticker="${fiagro.ticker}"
                             data-name="${fiagro.name}" data-price="${fiagro.price || 0}"
                             data-pb="${fiagro.pb_ratio !== null ? fiagro.pb_ratio : 'null'}"
-                            data-pb-status="${fiagro.pb_status || 'nd'}"
                             data-dy="${fiagro.dividend_yield || 0}"
-                            data-dy-status="${fiagro.dy_status || 'nd'}"
                             data-rate="${fiagro.dividend_rate || 0}"
-                            data-rate-status="${fiagro.rate_status || 'nd'}"
                             data-score="${fiagro.score || 0}"
                             data-history='${fiagro.history_json || "[]"}'>
                             <td class="ticker-col">${fiagro.ticker}</td>
@@ -1972,10 +2262,10 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const isDark = document.documentElement.classList.contains('dark');
+            const isLight = document.body.classList.contains('light-theme');
             const themeIcon = document.getElementById('theme-toggle-icon');
             if (themeIcon) {
-                themeIcon.textContent = isDark ? '🌙' : '☀️';
+                themeIcon.textContent = isLight ? '☀️' : '🌙';
             }
             // Inicializar label do PDF
             const pdfLabel = document.getElementById('pdf-label');
