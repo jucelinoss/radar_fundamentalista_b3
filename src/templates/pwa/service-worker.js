@@ -1,8 +1,7 @@
-/* Radar Fundamentalista B3 — Service Worker v1.0 */
+/* Radar Fundamentalista B3 — Service Worker v1.2 */
 
-const CACHE = "radar-b3-v1";
+const CACHE = "radar-b3-v3";
 const STATIC_ASSETS = [
-  "/dashboard.html",
   "/manifest.json",
   "/icons/icon.svg",
 ];
@@ -10,7 +9,10 @@ const STATIC_ASSETS = [
 /* Install: cache core assets */
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(STATIC_ASSETS))
+    caches.open(CACHE).then((cache) => {
+      cache.addAll(STATIC_ASSETS);
+      return cache.add("/dashboard.html").catch(() => {});
+    })
   );
   self.skipWaiting();
 });

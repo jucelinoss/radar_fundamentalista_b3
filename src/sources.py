@@ -417,6 +417,35 @@ class AllSourcesFailedError(Exception):
 # Unified fetch functions (main public API)
 # ---------------------------------------------------------------------------
 
+_FIAGRO_VPA_CACHE = None
+
+def _inject_fiagro_vpa(ticker: str, info: dict[str, Any]) -> None:
+    """Inject local VPA cache value and compute priceToBook (P/VP) dynamically."""
+    if not info:
+        return
+    
+    global _FIAGRO_VPA_CACHE
+    if _FIAGRO_VPA_CACHE is None:
+        cache_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "fiagro_vpa.json")
+        if os.path.exists(cache_path):
+            try:
+                with open(cache_path, "r", encoding="utf-8") as f:
+                    _FIAGRO_VPA_CACHE = json.load(f)
+            except Exception as e:
+                logger.warning(f"Failed to load FIAGRO VPA cache: {e}")
+                _FIAGRO_VPA_CACHE = {}
+        else:
+            _FIAGRO_VPA_CACHE = {}
+            
+    clean_ticker = ticker.replace(".SA", "")
+    vpa = _FIAGRO_VPA_CACHE.get(clean_ticker)
+    if vpa:
+        info["bookValue"] = vpa
+        # Calculate priceToBook if we have price
+        price = info.get("currentPrice") or info.get("regularMarketPrice")
+        if price is not None and vpa > 0:
+            info["priceToBook"] = round(price / vpa, 4)
+
 def fetch_asset_info(ticker: str, asset_type: str, config: dict[str, Any]) -> dict[str, Any]:
     """Fetch asset info from primary source (brapi.dev) with yfinance fallback.
 
@@ -447,6 +476,8 @@ def fetch_asset_info(ticker: str, asset_type: str, config: dict[str, Any]) -> di
         if info and (info.get("longName") or info.get("shortName") or info.get("currentPrice")):
             if info.get("dividendYield") is not None or info.get("currentPrice") is not None:
                 logger.debug(f"brapi.dev OK for {ticker}")
+                if asset_type == "fiagro":
+                    _inject_fiagro_vpa(ticker, info)
                 return info
         logger.debug(f"brapi.dev returned incomplete data for {ticker}, trying fallback")
     except BrapiRateLimitError:
@@ -459,6 +490,8 @@ def fetch_asset_info(ticker: str, asset_type: str, config: dict[str, Any]) -> di
         info = fallback(ticker)
         if info and (info.get("longName") or info.get("shortName") or info.get("currentPrice")):
             logger.debug(f"yfinance fallback OK for {ticker}")
+            if asset_type == "fiagro":
+                _inject_fiagro_vpa(ticker, info)
             return info
     except Exception as e:
         logger.debug(f"yfinance fallback also failed for {ticker}: {e}")
