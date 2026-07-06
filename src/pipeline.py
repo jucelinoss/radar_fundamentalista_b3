@@ -75,6 +75,13 @@ def _reset_status_file() -> None:
 # ---------------------------------------------------------------------------
 def run_ingestion(max_age_hours: int = 6, force: bool = False) -> dict[str, Any]:
     """Execute the data ingestion pipeline."""
+    # 1. Update FIAGRO VPA cache from CVM
+    try:
+        import cvm_updater
+        cvm_updater.update_fiagro_vpas(force=force)
+    except Exception as e:
+        logger.warning(f"Failed to update CVM FIAGRO VPA cache: {e}. Ingestion will proceed using existing cache.")
+
     import ingestion
     logger.info("=" * 60)
     logger.info("  STEP 1/2: DATA INGESTION")

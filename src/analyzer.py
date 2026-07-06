@@ -166,12 +166,20 @@ def _derive_dividend_fields(dividend_yield: Any, dividend_rate: Any, price: floa
         last_div = safe_float(last_div)
         if (not dy or dy == 0.0) and (not rate or rate == 0.0) and last_div and price:
             rate = last_div * 12
-            dy = rate / price
+            dy = normalize_dividend_yield(rate / price)
+            if dy != rate / price:
+                rate = round(dy * price, 4)
     
     if (not dy or dy == 0.0) and rate and price:
         dy = normalize_dividend_yield(rate / price)
     if not rate and dy and price:
         rate = dy * price
+        
+    # Re-align rate if it is 100x larger than dy * price (cents vs. BRL mismatch)
+    if dy and rate and price:
+        expected_annual = dy * price
+        if abs(rate - expected_annual * 100.0) < (expected_annual * 10.0) and abs(rate - expected_annual) > 1.0:
+            rate = round(expected_annual, 4)
     
     return dy, rate
 

@@ -17,7 +17,13 @@ name: Daily B3 Pipeline
 on:
   schedule:
     - cron: '0 11 * * 1-5'   # 08:00 BRT, dias úteis
-  workflow_dispatch:          # Permite executar manualmente
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force full refresh (ignore cache)'
+        required: false
+        default: 'false'
+        type: boolean
 
 permissions:
   contents: write
@@ -67,16 +73,30 @@ jobs:
           restore-keys: |
             b3-db-
 
-      - name: Run full pipeline (incremental)
+      - name: Run full pipeline (incremental or forced)
         id: pipeline-run
-        run: python src/pipeline.py --max-age-hours 24
+        run: |
+          if [[ "${{ github.event.inputs.force }}" == "true" ]]; then
+            echo "Forçando refresh completo de todos os tickers"
+            python src/pipeline.py --force
+          else
+            python src/pipeline.py --max-age-hours 24
+          fi
         env:
           PYTHONUNBUFFERED: 1
           BRAPI_TOKEN: ${{ secrets.BRAPI_TOKEN || '' }}
 
-      - name: Export to CSV/JSON (for AI analysis)
-        run: python src/pipeline.py --export-all
+- name: Export to CSV/JSON (for AI analysis)
+        id: export
+        run: |
+          if [[ "${{ github.event.inputs.force }}" == "true" ]]; then
+            echo "Exportando dados completos (forçado)"
+            python src/pipeline.py --force --export-all
+          else
+            python src/pipeline.py --export-all
+          fi
         env:
+          PYTHONUNBUFFERED: 1
           BRAPI_TOKEN: ${{ secrets.BRAPI_TOKEN || '' }}
 
       - name: Check if deployable files changed
@@ -147,8 +167,11 @@ jobs:
   deploy:
     name: Deploy to GitHub Pages
     needs: pipeline
-    if: needs.pipeline.result == 'success' && (needs.pipeline.outputs.changed == 'true' || github.event_name == 'workflow_dispatch')
+    if: needs.pipeline.result == 'success' && needs.pipeline.outputs.changed == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
