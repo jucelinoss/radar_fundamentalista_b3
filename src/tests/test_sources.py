@@ -458,29 +458,42 @@ class TestFetchAssetInfo:
         info = fetch_asset_info("BOGUS.SA", "stock", minimal_config)
         assert info == {}
 
-    def test_primary_fii_success(self, mocker, sample_fii_payload, minimal_config):
-        """brapi.dev FII indicators work for FII assets."""
+    def test_primary_fii_success(self, mocker, minimal_config):
+        """yfinance fetches FII data successfully (BRAPI is skipped for FIIs)."""
         from sources import fetch_asset_info
 
-        setup_mock_brapi_fii(mocker, sample_fii_payload)
+        make_mock_yfinance(mocker, {
+            "longName": "MXRF11 Fundo Imobiliario",
+            "currentPrice": 9.76,
+            "priceToBook": 1.04,
+            "dividendYield": 0.122,
+            "dividendRate": 1.19,
+            "lastDividendValue": 0.10,
+        })
 
         info = fetch_asset_info("MXRF11.SA", "fii", minimal_config)
 
         assert info is not None
-        assert info["longName"] == "FII MAXI RENDA"
+        assert info["longName"] == "MXRF11 Fundo Imobiliario"
         assert info["currentPrice"] == 9.76
         assert info["priceToBook"] == 1.04
 
-    def test_fiagro_uses_fii_endpoint(self, mocker, sample_fii_payload, minimal_config):
-        """FIAGRO assets use the same FII analysis endpoint."""
+    def test_fiagro_uses_fii_endpoint(self, mocker, minimal_config):
+        """FIAGRO assets use the same yfinance path as FIIs."""
         from sources import fetch_asset_info
 
-        setup_mock_brapi_fii(mocker, sample_fii_payload)
+        make_mock_yfinance(mocker, {
+            "longName": "KNCA11 Fundo Agro",
+            "currentPrice": 9.76,
+            "dividendYield": 0.122,
+            "dividendRate": 1.19,
+            "lastDividendValue": 0.10,
+        })
 
         info = fetch_asset_info("KNCA11.SA", "fiagro", minimal_config)
 
         assert info is not None
-        assert info["currentPrice"] == 9.76  # Same FII endpoint
+        assert info["currentPrice"] == 9.76  # Same as mocked yfinance data
 
     def test_rate_limit_fallback(self, mocker, minimal_config):
         """Rate limited brapi should trigger yfinance fallback."""
