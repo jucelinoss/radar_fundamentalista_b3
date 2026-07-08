@@ -600,7 +600,7 @@
             position: sticky;
             left: 0;
             z-index: 10;
-            background: var(--card-bg);
+            background: var(--bg-color);
             border-right: 1px solid var(--card-border);
         }
 
@@ -2163,6 +2163,39 @@
             const isLight = document.body.classList.contains('light-theme');
             const gridColor = isLight ? 'rgba(15, 23, 42, 0.06)' : 'rgba(255, 255, 255, 0.05)';
             const tickColor = isLight ? '#475569' : '#9ca3af';
+
+            // Plugin customizado: desenha labels de data em 4 pontos do gráfico
+            if (!Chart.registry.plugins.get('dateLabels')) {
+                Chart.register({
+                    id: 'dateLabels',
+                    afterDraw(chart) {
+                        const c = chart.ctx;
+                        const meta = chart.getDatasetMeta(0);
+                        const pts = meta.data;
+                        const ds = chart.data.datasets[0].data;
+                        const lbs = chart.data.labels;
+                        if (!pts || pts.length < 4) return;
+                        const step = Math.max(1, Math.floor(pts.length / 4));
+                        c.save();
+                        c.font = '9px Inter, sans-serif';
+                        c.textAlign = 'center';
+                        c.textBaseline = 'bottom';
+                        for (let i = step; i < pts.length - 1; i += step) {
+                            const pt = pts[i];
+                            if (!pt || ds[i] === null || ds[i] === undefined) continue;
+                            const x = pt.x;
+                            const y = pt.y;
+                            const label = lbs[i];
+                            const tw = c.measureText(label).width;
+                            c.fillStyle = isLight ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.7)';
+                            c.fillRect(x - tw / 2 - 2, y - 12, tw + 4, 12);
+                            c.fillStyle = tickColor;
+                            c.fillText(label, x, y - 2);
+                        }
+                        c.restore();
+                    }
+                });
+            }
 
             activeChart = new Chart(ctx, {
                 type: 'line',
