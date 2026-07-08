@@ -419,13 +419,21 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.5rem 0;
+            padding: 0.5rem 0.5rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+            margin: 0 -0.5rem;
+        }
+
+        .top-item:hover {
+            background: var(--table-hover);
         }
 
         .top-item:last-child {
             border-bottom: none;
-            padding-bottom: 0;
+            padding-bottom: 0.5rem;
         }
 
         .top-ticker {
@@ -461,11 +469,15 @@
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: 16px;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
+            overflow: visible;
             backdrop-filter: blur(10px);
             margin-bottom: 2rem;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        .table-scroll {
+            overflow-x: auto;
+            overflow-y: visible;
+            -webkit-overflow-scrolling: touch;
         }
 
         table {
@@ -473,6 +485,72 @@
             border-collapse: collapse;
             text-align: left;
             font-size: 0.85rem;
+        }
+
+        /* ── Tooltips temáticos ── */
+        .hint {
+            position: relative;
+            cursor: help;
+            border-bottom: 1px dashed var(--text-secondary);
+        }
+        .hint::after {
+            content: attr(data-tip);
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%) scale(0.9);
+            transform-origin: top center;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            color: var(--text-primary);
+            border: 1px solid var(--card-border);
+            padding: 0.6rem 0.9rem;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 400;
+            font-family: 'Inter', sans-serif;
+            white-space: normal;
+            width: 260px;
+            text-align: left;
+            line-height: 1.4;
+            box-shadow: 0 8px 32px var(--modal-shadow);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            z-index: 50;
+        }
+        .hint::before {
+            content: '';
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-bottom-color: var(--card-border);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            z-index: 51;
+        }
+        .hint:hover::after {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+        }
+        .hint:hover::before {
+            opacity: 1;
+        }
+
+        /* ── Evita tooltip da última coluna vazar pra direita ── */
+        th:last-child .hint::after {
+            left: auto;
+            right: 0;
+            transform: none;
+        }
+        th:last-child .hint::before {
+            left: auto;
+            right: 1.2rem;
+            transform: none;
         }
 
         th {
@@ -1143,7 +1221,7 @@
             <!-- FII Summary -->
             <div class="summary-card card-fii">
                 <div class="card-title">
-                    <span>Top FIIs (Menores P/VP & Bons Yields)</span>
+                    <span>Top FIIs (Maiores Scores)</span>
                     <span class="badge badge-green">Imobiliário</span>
                 </div>
                 <ul class="top-list" id="top-fiis-list">
@@ -1154,7 +1232,7 @@
             <!-- FIAGRO Summary -->
             <div class="summary-card card-fii" id="top-fiagros-card" style="display: none;">
                 <div class="card-title">
-                    <span>Top FIAGROs (Maiores Dividend Yields)</span>
+                    <span>Top FIAGROs (Maiores Scores)</span>
                     <span class="badge badge-green">Agronegócio</span>
                 </div>
                 <ul class="top-list" id="top-fiagros-list">
@@ -1213,6 +1291,7 @@
 
         <!-- Stocks Panel -->
         <div id="panel-stocks" class="table-container">
+            <div class="table-scroll">
             <table>
                 <thead>
                     <tr>
@@ -1220,77 +1299,120 @@
                         <th onclick="sortTable('stocks', 1)">Nome</th>
                         <th onclick="sortTable('stocks', 2)">Setor</th>
                         <th onclick="sortTable('stocks', 3)">Preço Atual</th>
-                        <th onclick="sortTable('stocks', 4)">P/L</th>
-                        <th onclick="sortTable('stocks', 5)">P/VP</th>
-                        <th onclick="sortTable('stocks', 6)">Div. Yield</th>
-                        <th onclick="sortTable('stocks', 7)">ROE</th>
-                        <th onclick="sortTable('stocks', 8)">Teto Bazin</th>
-                        <th onclick="sortTable('stocks', 9)">Justo Graham</th>
-                        <th onclick="sortTable('stocks', 10)">Score</th>
+                        <th onclick="sortTable('stocks', 4)">
+                            <span class="hint" data-tip="Preço sobre Lucro (P/E). Quanto o mercado paga por cada R$ 1,00 de lucro. Quanto menor, mais barata. Ideal: &lt; 15.">P/L</span>
+                        </th>
+                        <th onclick="sortTable('stocks', 5)">
+                            <span class="hint" data-tip="Preço sobre Valor Patrimonial (P/B). Compara o preço ao patrimônio líquido por ação. Abaixo de 1,00 = desconto. Ideal: &lt; 1,5.">P/VP</span>
+                        </th>
+                        <th onclick="sortTable('stocks', 6)">
+                            <span class="hint" data-tip="Dividend Yield. Retorno em dividendos nos últimos 12 meses dividido pelo preço atual. Ideal: &ge; 6%.">Div. Yield</span>
+                        </th>
+                        <th onclick="sortTable('stocks', 7)">
+                            <span class="hint" data-tip="Return on Equity. Rentabilidade: lucro líquido &divide; patrimônio líquido. Mede a eficiência da gestão. Ideal: &ge; 10%.">ROE</span>
+                        </th>
+                        <th onclick="sortTable('stocks', 8)">
+                            <span class="hint" data-tip="Preço Teto de Décio Bazin. Máximo que se deve pagar para garantir retorno de 6% a.a. em dividendos: Dividendo Anual &divide; 0,06.">Teto Bazin</span>
+                        </th>
+                        <th onclick="sortTable('stocks', 9)">
+                            <span class="hint" data-tip="Valor Justo de Benjamin Graham. Preço intrínseco = &radic;(22,5 &times; LPA &times; VPA). Abaixo dele = margem de segurança.">Justo Graham</span>
+                        </th>
+                        <th onclick="sortTable('stocks', 10)">
+                            <span class="hint" data-tip="Nota de 0 a 5 baseada em 5 critérios: DY, P/L, P/VP, ROE e Margem de Graham. Quanto maior, mais saudável.">Score</span>
+                        </th>
                     </tr>
                 </thead>
                 <tbody id="stocks-tbody">
                     <!-- Carregado via JS -->
                 </tbody>
             </table>
+            </div>
         </div>
 
         <!-- FIIs Panel -->
         <div id="panel-fiis" class="table-container hidden">
+            <div class="table-scroll">
             <table>
                 <thead>
                     <tr>
                         <th onclick="sortTable('fiis', 0)">Ticker</th>
                         <th onclick="sortTable('fiis', 1)">Nome</th>
                         <th onclick="sortTable('fiis', 2)">Preço Atual</th>
-                        <th onclick="sortTable('fiis', 3)">P/VP</th>
-                        <th onclick="sortTable('fiis', 4)">Div. Yield</th>
-                        <th onclick="sortTable('fiis', 5)">Dividendo Anual</th>
-                        <th onclick="sortTable('fiis', 6)">Score</th>
+                        <th onclick="sortTable('fiis', 3)">
+                            <span class="hint" data-tip="Preço sobre Valor Patrimonial do fundo. Entre 0,70 e 1,05 é considerado ideal (desconto moderado a valor justo).">P/VP</span>
+                        </th>
+                        <th onclick="sortTable('fiis', 4)">
+                            <span class="hint" data-tip="Dividend Yield anual do fundo. Mede o retorno em dividendos sobre o preço da cota. Mínimo ideal: 8%.">Div. Yield</span>
+                        </th>
+                        <th onclick="sortTable('fiis', 5)">
+                            <span class="hint" data-tip="Valor total estimado de dividendos pagos pelo fundo nos últimos 12 meses por cota.">Dividendo Anual</span>
+                        </th>
+                        <th onclick="sortTable('fiis', 6)">
+                            <span class="hint" data-tip="Nota de 0 a 5. Critérios: P/VP ≤ 1,15 (base), P/VP ideal 0,70-1,05 (bônus), DY mínimo (8%), DY excelente (10%) e distribuição ativa.">Score</span>
+                        </th>
                     </tr>
                 </thead>
                 <tbody id="fiis-tbody">
                     <!-- Carregado via JS -->
                 </tbody>
             </table>
+            </div>
         </div>
 
         <!-- FIAGROs Panel -->
         <div id="panel-fiagros" class="table-container hidden">
+            <div class="table-scroll">
             <table>
                 <thead>
                     <tr>
                         <th onclick="sortTable('fiagros', 0)">Ticker</th>
                         <th onclick="sortTable('fiagros', 1)">Nome</th>
                         <th onclick="sortTable('fiagros', 2)">Preço Atual</th>
-                        <th onclick="sortTable('fiagros', 3)">P/VP</th>
-                        <th onclick="sortTable('fiagros', 4)">Div. Yield</th>
-                        <th onclick="sortTable('fiagros', 5)">Dividendo Anual</th>
-                        <th onclick="sortTable('fiagros', 6)">Score</th>
+                        <th onclick="sortTable('fiagros', 3)">
+                            <span class="hint" data-tip="Preço sobre Valor Patrimonial do fundo. Entre 0,70 e 1,05 é considerado ideal (desconto moderado a valor justo).">P/VP</span>
+                        </th>
+                        <th onclick="sortTable('fiagros', 4)">
+                            <span class="hint" data-tip="Dividend Yield anual do fundo. FIAGROs exigem retorno maior: mínimo ideal de 10% (vs 8% dos FIIs) devido ao risco de crédito agropecuário.">Div. Yield</span>
+                        </th>
+                        <th onclick="sortTable('fiagros', 5)">
+                            <span class="hint" data-tip="Valor total estimado de dividendos pagos pelo fundo nos últimos 12 meses por cota.">Dividendo Anual</span>
+                        </th>
+                        <th onclick="sortTable('fiagros', 6)">
+                            <span class="hint" data-tip="Nota de 0 a 5. Critérios: P/VP ≤ 1,15 (base), P/VP ideal 0,70-1,05 (bônus), DY mínimo (10%), DY excelente (12%) e distribuição ativa.">Score</span>
+                        </th>
                     </tr>
                 </thead>
                 <tbody id="fiagros-tbody">
                     <!-- Carregado via JS -->
                 </tbody>
             </table>
+            </div>
         </div>
 
         <!-- Sector Analysis Panel -->
         <div id="panel-sectors" class="table-container hidden">
+            <div class="table-scroll">
             <table>
                 <thead>
                     <tr>
                         <th onclick="sortTable('sectors', 0)">Setor</th>
                         <th onclick="sortTable('sectors', 1)">Nº Empresas</th>
-                        <th onclick="sortTable('sectors', 2)">Score Médio</th>
-                        <th onclick="sortTable('sectors', 3)">Div. Yield Médio</th>
-                        <th onclick="sortTable('sectors', 4)">P/L Médio</th>
+                        <th onclick="sortTable('sectors', 2)">
+                            <span class="hint" data-tip="Média do Score Fundamentalista (0-5) das empresas do setor. Quanto maior, melhor a saúde financeira média.">Score Médio</span>
+                        </th>
+                        <th onclick="sortTable('sectors', 3)">
+                            <span class="hint" data-tip="Dividend Yield médio do setor. Indica o retorno médio em dividendos do conjunto de empresas.">Div. Yield Médio</span>
+                        </th>
+                        <th onclick="sortTable('sectors', 4)">
+                            <span class="hint" data-tip="Preço sobre Lucro (P/L) médio do setor. Ajuda a comparar valuation entre setores.">P/L Médio</span>
+                        </th>
                     </tr>
                 </thead>
                 <tbody id="sectors-tbody">
                     <!-- Carregado via JS -->
                 </tbody>
             </table>
+            </div>
         </div>
 
         <!-- Sector Detail Modal -->
@@ -1304,22 +1426,32 @@
 
                 <div class="table-container"
                     style="box-shadow: none; margin-bottom: 0; background: transparent; border: none; max-height: 400px; overflow-y: auto;">
+                    <div class="table-scroll">
                     <table>
                         <thead>
                             <tr>
                                 <th>Ticker</th>
                                 <th>Nome</th>
                                 <th>Preço</th>
-                                <th>P/L</th>
-                                <th>P/VP</th>
-                                <th>Div. Yield</th>
-                                <th>Score</th>
+                                <th>
+                                    <span class="hint" data-tip="Preço sobre Lucro (P/E). Quanto o mercado paga por cada R$ 1,00 de lucro. Quanto menor, mais barata. Ideal: &lt; 15.">P/L</span>
+                                </th>
+                                <th>
+                                    <span class="hint" data-tip="Preço sobre Valor Patrimonial (P/B). Compara o preço ao patrimônio líquido por ação. Abaixo de 1,00 = desconto.">P/VP</span>
+                                </th>
+                                <th>
+                                    <span class="hint" data-tip="Dividend Yield. Retorno em dividendos nos últimos 12 meses dividido pelo preço atual.">Div. Yield</span>
+                                </th>
+                                <th>
+                                    <span class="hint" data-tip="Nota de 0 a 5 baseada em critérios fundamentalistas. Quanto maior, mais saudável o ativo.">Score</span>
+                                </th>
                             </tr>
                         </thead>
                         <tbody id="sector-modal-tbody">
                             <!-- Dynamically populated -->
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1450,7 +1582,7 @@
                         nota de 0 a 5 pontos baseada em checklist rígido:
                     </p>
                     <div
-                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.85rem; color: var(--text-secondary);">
+                        style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; font-size: 0.85rem; color: var(--text-secondary);">
                         <div>
                             <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">Ações
                                 B3:</strong>
@@ -1461,13 +1593,20 @@
                                 • <strong>Proventos:</strong> Dividend Yield nos últimos 12 meses >= 6% (+1)
                         </div>
                         <div>
-                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">FIIs e
-                                FIAGROs:</strong>
-                            • <strong>P/VP Ideal:</strong> P/VP histórico entre 0.85 e 1.05 (+1)<br>
-                            • <strong>Preço Limite:</strong> P/VP geral menor ou igual a 1.15 (+1)<br>
-                            • <strong>DY Mínimo:</strong> Dividend Yield anual maior ou igual a 8% (+1)<br>
-                            • <strong>DY Excelente:</strong> Dividend Yield anual maior ou igual a 10% (+1)<br>
-                            • <strong>Distribuição:</strong> Rendimento anual positivo e recorrente (+1)
+                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">FIIs (0-5):</strong>
+                            • <strong>P/VP ≤ 1.15 (Base):</strong> Preço justo, não excessivamente caro (+1)<br>
+                            • <strong>P/VP 0.70-1.05 (Bônus):</strong> Faixa ideal de desconto (+1)<br>
+                            • <strong>DY ≥ 8% (Base):</strong> Dividend Yield mínimo (+1)<br>
+                            • <strong>DY ≥ 10% (Bônus):</strong> Dividend Yield excelente (+1)<br>
+                            • <strong>Distribuição:</strong> Rendimento anual positivo ou dividendos históricos 12m (+1)
+                        </div>
+                        <div>
+                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">FIAGROs (0-5):</strong>
+                            • <strong>P/VP ≤ 1.15 (Base):</strong> Preço justo, não excessivamente caro (+1)<br>
+                            • <strong>P/VP 0.70-1.05 (Bônus):</strong> Faixa ideal de desconto (+1)<br>
+                            • <strong>DY ≥ 10% (Base):</strong> Dividend Yield mínimo (+1)<br>
+                            • <strong>DY ≥ 12% (Bônus):</strong> Dividend Yield excelente (+1)<br>
+                            • <strong>Distribuição:</strong> Rendimento anual positivo ou dividendos históricos 12m (+1)
                         </div>
                     </div>
                 </div>
@@ -1829,14 +1968,24 @@
                     dividendRate: rate || (price * dy)
                 };
 
-                scoreContainer.innerHTML = `<span class="score-pill score-${score}" style="width: auto; height: auto; border-radius: 12px; padding: 0.4rem 1rem; font-size: 0.9rem;">Score Fundamentalista: ${score}/5</span>`;
+                const isFiagro = type === 'fiagro';
+                const maxScore = 5;
+                scoreContainer.innerHTML = `<span class="score-pill score-${score}" style="width: auto; height: auto; border-radius: 12px; padding: 0.4rem 1rem; font-size: 0.9rem;">Score Fundamentalista: ${score}/${maxScore}</span>`;
+
+                // C2: P/VP ≤ 1.15 (base — ativo não está excessivamente caro)
+                const c2Pass = pb !== null && pb > 0 && pb <= 1.15;
+                // C1: P/VP ideal 0.70-1.05 (bônus aninhado na base)
+                const c1Pass = pb !== null && pb >= 0.70 && pb <= 1.05;
+                // DY thresholds differ for FIAGROs
+                const dyGood = isFiagro ? 0.10 : 0.08;
+                const dyExcellent = isFiagro ? 0.12 : 0.10;
 
                 const rules = [
-                    { label: "Múltiplo P/VP entre 0.85 e 1.05 (Ideal)", val: pb !== null && pb >= 0.85 && pb <= 1.05, desc: `Atual: ${pb !== null ? pb.toFixed(2) : 'N/A'}` },
-                    { label: "Múltiplo P/VP <= 1.15 (Preço Limite)", val: pb !== null && pb > 0 && pb <= 1.15, desc: `Atual: ${pb !== null ? pb.toFixed(2) : 'N/A'}` },
-                    { label: "Dividend Yield Anual >= 8% (Mínimo)", val: dy >= 0.08, desc: `Atual: ${(dy * 100).toFixed(2)}%` },
-                    { label: "Dividend Yield Anual >= 10% (Excelente)", val: dy >= 0.10, desc: `Atual: ${(dy * 100).toFixed(2)}%` },
-                    { label: "Distribuição Anual Estimada > R$ 0.00", val: rate > 0, desc: `Atual: R$ ${rate.toFixed(2)}` }
+                    { label: `P/VP ≤ 1.15 (Base — Preço Justo)`, val: c2Pass, desc: `Atual: ${pb !== null ? pb.toFixed(2) : 'N/A'}` },
+                    { label: `P/VP entre 0.70 e 1.05 (Bônus — Ideal)`, val: c1Pass, desc: `Atual: ${pb !== null ? pb.toFixed(2) : 'N/A'}` },
+                    { label: `DY ≥ ${(dyGood * 100).toFixed(0)}% (Base — Mínimo)`, val: dy >= dyGood, desc: `Atual: ${(dy * 100).toFixed(2)}%` },
+                    { label: `DY ≥ ${(dyExcellent * 100).toFixed(0)}% (Bônus — Excelente)`, val: dy >= dyExcellent, desc: `Atual: ${(dy * 100).toFixed(2)}%` },
+                    { label: "Distribuição Ativa > R$ 0.00", val: rate > 0, desc: `Atual: R$ ${rate.toFixed(2)}` }
                 ];
 
                 rules.forEach(rule => {
@@ -2080,18 +2229,18 @@
                     // 2. Top Picks: Stocks
                     const topStocksList = document.getElementById('top-stocks-list');
                     topStocksList.innerHTML = data.top_stocks.map(stock => `
-                        <li class="top-item">
+                        <li class="top-item" onclick="openDetailModal('${stock.ticker}', 'stock')">
                             <span class="top-ticker">${stock.ticker}</span>
-                            <span class="top-val positive">Score: ${stock.score}/5</span>
+                            <span class="top-val positive">Score: ${stock.score}/5 | DY: ${(stock.dividend_yield * 100).toFixed(2)}% | P/VP: ${stock.pb_ratio ? stock.pb_ratio.toFixed(2) : 'N/A'}</span>
                         </li>
                     `).join('');
 
                     // 3. Top Picks: FIIs
                     const topFiisList = document.getElementById('top-fiis-list');
                     topFiisList.innerHTML = data.top_fiis.map(fii => `
-                        <li class="top-item">
+                        <li class="top-item" onclick="openDetailModal('${fii.ticker}', 'fii')">
                             <span class="top-ticker">${fii.ticker}</span>
-                            <span class="top-val positive">DY: ${(fii.dividend_yield * 100).toFixed(2)}% | P/VP: ${fii.pb_ratio.toFixed(2)}</span>
+                            <span class="top-val positive">Score: ${fii.score}/5 | DY: ${(fii.dividend_yield * 100).toFixed(2)}% | P/VP: ${fii.pb_ratio.toFixed(2)}</span>
                         </li>
                     `).join('');
 
@@ -2101,9 +2250,9 @@
                         topFiagrosCard.style.display = 'block';
                         const topFiagrosList = document.getElementById('top-fiagros-list');
                         topFiagrosList.innerHTML = data.top_fiagros.map(fiagro => `
-                            <li class="top-item">
+                            <li class="top-item" onclick="openDetailModal('${fiagro.ticker}', 'fiagro')">
                                 <span class="top-ticker">${fiagro.ticker}</span>
-                                <span class="top-val positive">DY: ${(fiagro.dividend_yield * 100).toFixed(2)}% | P/VP: ${fiagro.pb_ratio ? fiagro.pb_ratio.toFixed(2) : 'N/A'}</span>
+                                <span class="top-val positive">Score: ${fiagro.score}/5 | DY: ${(fiagro.dividend_yield * 100).toFixed(2)}% | P/VP: ${fiagro.pb_ratio ? fiagro.pb_ratio.toFixed(2) : 'N/A'}</span>
                             </li>
                         `).join('');
                     } else {
@@ -2185,7 +2334,7 @@
                         const dyFormatted = fii.dividend_yield ? `${(fii.dividend_yield * 100).toFixed(2)}%` : '0.00%';
                         const rateFormatted = fii.dividend_rate ? `R$ ${fii.dividend_rate.toFixed(2)}` : '0.00';
                         
-                        const pbClass = (fii.pb_ratio && fii.pb_ratio >= 0.8 && fii.pb_ratio <= 1.05) ? 'positive' : 'warning';
+                        const pbClass = (fii.pb_ratio && fii.pb_ratio >= 0.7 && fii.pb_ratio <= 1.05) ? 'positive' : 'warning';
                         const dyClass = (fii.dividend_yield && fii.dividend_yield >= 0.08) ? 'positive' : 'warning';
                         
                         return `
@@ -2216,8 +2365,8 @@
                         const dyFormatted = fiagro.dividend_yield ? `${(fiagro.dividend_yield * 100).toFixed(2)}%` : '0.00%';
                         const rateFormatted = fiagro.dividend_rate ? `R$ ${fiagro.dividend_rate.toFixed(2)}` : '0.00';
                         
-                        const pbClass = (fiagro.pb_ratio && fiagro.pb_ratio >= 0.8 && fiagro.pb_ratio <= 1.05) ? 'positive' : 'warning';
-                        const dyClass = (fiagro.dividend_yield && fiagro.dividend_yield >= 0.08) ? 'positive' : 'warning';
+                        const pbClass = (fiagro.pb_ratio && fiagro.pb_ratio >= 0.7 && fiagro.pb_ratio <= 1.05) ? 'positive' : 'warning';
+                        const dyClass = (fiagro.dividend_yield && fiagro.dividend_yield >= 0.10) ? 'positive' : 'warning';
                         
                         return `
                         <tr onclick="openDetailModal('${fiagro.ticker}', 'fiagro')" data-ticker="${fiagro.ticker}"

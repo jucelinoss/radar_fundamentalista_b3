@@ -12,8 +12,11 @@ from analyzer import (
     normalize_dividend_yield,
     calculate_stock_score,
     calculate_fii_score,
+    calculate_fiagro_score,
     analyze_stock,
     analyze_fii,
+    analyze_fiagro,
+    get_true_yield,
     SECTOR_MAP,
 )
 
@@ -162,31 +165,52 @@ class TestStockScore:
 
 class TestFiiScore:
     def test_perfect_fii(self):
-        """All 5 FII criteria met."""
+        """Max score is 5 (C2 base + C1 bonus + 3 DY/distribution criteria)."""
         score = calculate_fii_score(
             price=100.0, pb_ratio=0.95, dividend_yield=0.12, dividend_rate=1.0
         )
+        # C2 (≤1.15): 0.95 ✓ +1
+        # C1 (0.70-1.05): 0.95 ✓ +1
+        # DY ≥ 8% ✓ +1, DY ≥ 10% ✓ +1, Rate > 0 ✓ +1
         assert score == 5, f"Expected 5, got {score}"
 
-    def test_low_pb_ratio(self):
-        """P/B below 0.85 → still passes ideal (P/VP <= 1.05) because more discounted."""
+    def test_low_pb_at_lower_bound(self):
+        """P/B at 0.70 passes both C2 (≤1.15) and C1 (0.70-1.05 inclusive)."""
         score = calculate_fii_score(
             price=100.0, pb_ratio=0.70, dividend_yield=0.12, dividend_rate=1.0
         )
-        # P/VP <= 1.05? Yes (0.70 <= 1.05) → +1
-        # P/VP ≤ 1.15? Yes → +1
-        # DY ≥ 8%? Yes → +1
-        # DY ≥ 10%? Yes → +1
-        # Rate > 0? Yes → +1
-        assert score == 5
+        # C2: 0.70 <= 1.15 ✓ +1
+        # C1: 0.70 <= 0.70 <= 1.05 ✓ +1
+        # DY ≥ 8% ✓ +1, DY ≥ 10% ✓ +1, Rate > 0 ✓ +1
+        assert score == 5, f"Expected 5, got {score}"
+
+    def test_pb_below_ideal_range(self):
+        """P/B below 0.70 → C2 passes (≤1.15), C1 fails (<0.70)."""
+        score = calculate_fii_score(
+            price=100.0, pb_ratio=0.50, dividend_yield=0.12, dividend_rate=1.0
+        )
+        # C2: 0.50 <= 1.15 ✓ +1
+        # C1: 0.70 <= 0.50? No +0
+        # DY ≥ 8% ✓ +1, DY ≥ 10% ✓ +1, Rate > 0 ✓ +1
+        assert score == 4, f"Expected 4, got {score}"
+
+    def test_pb_in_limit_zone_above_ideal(self):
+        """P/B between 1.05 and 1.15 → C2 passes (≤1.15), C1 fails (>1.05)."""
+        score = calculate_fii_score(
+            price=100.0, pb_ratio=1.10, dividend_yield=0.12, dividend_rate=1.0
+        )
+        # C2: 1.10 <= 1.15 ✓ +1
+        # C1: 0.70 <= 1.10 <= 1.05? No +0
+        # DY ≥ 8% ✓ +1, DY ≥ 10% ✓ +1, Rate > 0 ✓ +1
+        assert score == 4, f"Expected 4, got {score}"
 
     def test_high_pb_ratio(self):
         """P/B above 1.15 → only DY and rate count."""
         score = calculate_fii_score(
             price=100.0, pb_ratio=1.50, dividend_yield=0.12, dividend_rate=1.0
         )
-        # P/B ideal? No. P/B ≤ 1.15? No.
-        # DY ≥ 8%? Yes. DY ≥ 10%? Yes. Rate > 0? Yes.
+        # C2 (1.50 > 1.15): No. C1: No.
+        # DY ≥ 8% ✓ +1, DY ≥ 10% ✓ +1, Rate > 0 ✓ +1
         assert score == 3
 
     def test_no_dividend(self):
@@ -194,8 +218,17 @@ class TestFiiScore:
         score = calculate_fii_score(
             price=100.0, pb_ratio=0.95, dividend_yield=0.0, dividend_rate=0.0
         )
-        # P/B ideal ✓, P/B limit ✓, DY 0 ✗, DY excellent ✗, Rate ✗
+        # C2 ✓ +1, C1 ✓ +1, DY 0 ✗, DY exc ✗, Rate ✗
         assert score == 2
+
+    def test_historical_dividends(self):
+        """historical_dividends_365d > 0 satisfies C5 even with zero rate."""
+        score = calculate_fii_score(
+            price=100.0, pb_ratio=0.95, dividend_yield=0.12, dividend_rate=0.0,
+            historical_dividends_365d=5.0
+        )
+        # C2 ✓ +1, C1 ✓ +1, DY ≥ 8% ✓ +1, DY ≥ 10% ✓ +1, hist_divs > 0 ✓ +1
+        assert score == 5
 
     def test_none_values(self):
         """None values should not crash and return 0."""
@@ -335,7 +368,7 @@ class TestAnalyzeFii:
         assert result["pb_ratio"] == 0.95
         assert result["dividend_yield"] == 0.095
         assert result["dividend_rate"] == 0.85
-        # Score: P/B ideal ✓, P/B limit ✓, DY ≥ 8% ✓, DY ≥ 10% ✗ (9.5%), Rate >0 ✓ → 4
+        # Score: C2 (≤1.15) ✓ +1, C1 (0.70-1.05) ✓ +1, DY ≥ 8% ✓ +1, DY ≥ 10% ✗ (9.5%) +0, Rate >0 ✓ +1 → 4
         assert result["score"] == 4, f"Expected 4, got {result['score']}"
 
     def test_fii_last_dividend_fallback(self):
@@ -350,6 +383,259 @@ class TestAnalyzeFii:
         # rate = 0.80 * 12 ≈ 9.6, yield = rate / 100 ≈ 0.096
         assert round(result["dividend_rate"], 4) == 9.6
         assert round(result["dividend_yield"], 4) == 0.096
+
+
+# ======================================================================
+# FIAGRO Score Tests
+# ======================================================================
+
+class TestFiagroScore:
+    def test_perfect_fiagro(self):
+        """Max score is 5 (C2 base + C1 bonus + 3 DY/distribution, elevated DY)."""
+        score = calculate_fiagro_score(
+            price=100.0, pb_ratio=0.95, dividend_yield=0.15, dividend_rate=1.0
+        )
+        # C2 (≤1.15): 0.95 ✓ +1
+        # C1 (0.70-1.05): 0.95 ✓ +1
+        # DY ≥ 10% ✓ +1, DY ≥ 12% ✓ +1, Rate > 0 ✓ +1
+        assert score == 5, f"Expected 5, got {score}"
+
+    def test_fiagro_minimum_dy(self):
+        """DY at 10% meets the 'good' threshold for FIAGROs."""
+        score = calculate_fiagro_score(
+            price=100.0, pb_ratio=0.95, dividend_yield=0.10, dividend_rate=1.0
+        )
+        # C2 ✓ +1, C1 ✓ +1, DY ≥ 10% ✓ +1, DY ≥ 12% ✗ +0, Rate > 0 ✓ +1
+        assert score == 4, f"Expected 4, got {score}"
+
+    def test_fiagro_dy_below_minimum(self):
+        """DY at 9% passes FII thresholds but NOT FIAGRO thresholds."""
+        score = calculate_fiagro_score(
+            price=100.0, pb_ratio=0.95, dividend_yield=0.09, dividend_rate=1.0
+        )
+        # C2 ✓ +1, C1 ✓ +1, DY ≥ 10% ✗ +0, DY ≥ 12% ✗ +0, Rate > 0 ✓ +1
+        assert score == 3, f"Expected 3, got {score}"
+
+    def test_fiagro_dy_exactly_12_percent(self):
+        """DY exactly at 12% meets both FIAGRO DY thresholds."""
+        score = calculate_fiagro_score(
+            price=100.0, pb_ratio=0.95, dividend_yield=0.12, dividend_rate=1.0
+        )
+        # C2 ✓ +1, C1 ✓ +1, DY ≥ 10% ✓ +1, DY ≥ 12% ✓ +1, Rate > 0 ✓ +1
+        assert score == 5
+
+    def test_fiagro_pb_below_ideal(self):
+        """P/B below 0.70 → C2 passes (≤1.15), C1 fails (<0.70)."""
+        score = calculate_fiagro_score(
+            price=100.0, pb_ratio=0.50, dividend_yield=0.15, dividend_rate=1.0
+        )
+        # C2: 0.50 <= 1.15 ✓ +1
+        # C1: 0.70 <= 0.50? No +0
+        # DY ≥ 10% ✓ +1, DY ≥ 12% ✓ +1, Rate > 0 ✓ +1
+        assert score == 4
+
+    def test_fiagro_pb_in_limit_zone(self):
+        """P/B in 1.05-1.15 → C2 passes (≤1.15), C1 fails (>1.05)."""
+        score = calculate_fiagro_score(
+            price=100.0, pb_ratio=1.10, dividend_yield=0.15, dividend_rate=1.0
+        )
+        # C2: 1.10 <= 1.15 ✓ +1
+        # C1: 0.70 <= 1.10 <= 1.05? No +0
+        # DY ✓, DY exc ✓, Rate ✓
+        assert score == 4
+
+    def test_fiagro_high_pb(self):
+        """P/B above 1.15 → only DY and rate count."""
+        score = calculate_fiagro_score(
+            price=100.0, pb_ratio=1.50, dividend_yield=0.15, dividend_rate=1.0
+        )
+        assert score == 3
+
+    def test_fiagro_no_dividend(self):
+        """Zero dividend → only valuation points."""
+        score = calculate_fiagro_score(
+            price=100.0, pb_ratio=0.95, dividend_yield=0.0, dividend_rate=0.0
+        )
+        # C2 ✓ +1, C1 ✓ +1, DY 0 ✗, DY exc ✗, Rate ✗
+        assert score == 2
+
+    def test_fiagro_historical_dividends(self):
+        """historical_dividends_365d satisfies C5 even with zero rate."""
+        score = calculate_fiagro_score(
+            price=100.0, pb_ratio=0.95, dividend_yield=0.15, dividend_rate=0.0,
+            historical_dividends_365d=8.0
+        )
+        assert score == 5
+
+    def test_fiagro_none_values(self):
+        """None values should not crash."""
+        score = calculate_fiagro_score(
+            price=100.0, pb_ratio=None, dividend_yield=None, dividend_rate=None
+        )
+        assert score == 0
+
+    def test_fiagro_dy_as_percentage(self):
+        """DY as percentage (15%) should be normalized."""
+        score = calculate_fiagro_score(
+            price=100.0, pb_ratio=0.95, dividend_yield=15.0, dividend_rate=1.0
+        )
+        assert score == 5
+
+
+# ======================================================================
+# True Yield Tests
+# ======================================================================
+
+def _make_mock_ticker(total_dividends: float, days_ago: int = 180):
+    """Build a mock yfinance Ticker whose .actions returns a dividend DataFrame."""
+    import pandas as pd
+    from datetime import datetime, timedelta
+    idx = pd.date_range(end=datetime.now() - timedelta(days=days_ago),
+                        periods=3, freq='ME')
+    actions_df = pd.DataFrame({'Dividends': [total_dividends / 3] * 3}, index=idx)
+    return type('MockTicker', (), {'actions': actions_df})()
+
+
+class TestGetTrueYield:
+    def test_with_recent_dividends(self):
+        """Uses ticker.actions when available."""
+        info = {}
+        mock_ticker = _make_mock_ticker(total_dividends=6.0, days_ago=30)
+        result = get_true_yield(info, yf_ticker=mock_ticker, price=100.0)
+        # 6.0 / 100.0 = 0.06
+        assert result == 0.06, f"Expected 0.06, got {result}"
+
+    def test_fallback_to_info_dy(self):
+        """Falls back to info['dividendYield'] when no yf_ticker."""
+        info = {'dividendYield': 0.08}
+        result = get_true_yield(info, yf_ticker=None, price=None)
+        assert result == 0.08, f"Expected 0.08, got {result}"
+
+    def test_fallback_with_percentage(self):
+        """Falls back and normalizes percentage DY."""
+        info = {'dividendYield': 9.5}  # 9.5%
+        result = get_true_yield(info, yf_ticker=None, price=None)
+        assert result == 0.095, f"Expected 0.095, got {result}"
+
+    def test_no_data_returns_zero(self):
+        """When no data at all, returns 0.0."""
+        info = {}
+        result = get_true_yield(info, yf_ticker=None, price=None)
+        assert result == 0.0, f"Expected 0.0, got {result}"
+
+    def test_zero_price_uses_fallback(self):
+        """Zero price avoids division by zero, falls back."""
+        info = {'dividendYield': 0.06}
+        mock_ticker = _make_mock_ticker(total_dividends=6.0, days_ago=30)
+        result = get_true_yield(info, yf_ticker=mock_ticker, price=0)
+        assert result == 0.06
+
+
+# ======================================================================
+# Integration: analyze_fiagro with synthetic data
+# ======================================================================
+
+class TestAnalyzeFiagro:
+    def test_basic_fiagro_analysis(self):
+        info = {
+            "currentPrice": 90.00,
+            "priceToBook": 0.95,
+            "dividendYield": 14.0,  # 14% — passes both FIAGRO DY thresholds
+            "dividendRate": 1.20,
+            "longName": "Fundo Agro Teste RD",
+        }
+        result = analyze_fiagro("AGRO11.SA", info)
+        assert result["ticker"] == "AGRO11.SA"
+        assert result["price"] == 90.00
+        assert result["pb_ratio"] == 0.95
+        assert result["dividend_yield"] == 0.14
+        assert result["dividend_rate"] == 1.20
+        # C2 ✓ +1, C1 ✓ +1, DY ≥ 10% ✓ +1, DY ≥ 12% ✓ +1, Rate > 0 ✓ +1
+        assert result["score"] == 5, f"Expected 5, got {result['score']}"
+
+    def test_fiagro_low_dy(self):
+        """DY that passes FII thresholds but not FIAGRO thresholds."""
+        info = {
+            "currentPrice": 90.00,
+            "priceToBook": 0.95,
+            "dividendYield": 9.0,  # 9% — good for FII, NOT for FIAGRO
+            "dividendRate": 0.70,
+            "longName": "Agro Low DY",
+        }
+        result = analyze_fiagro("AGRO11.SA", info)
+        # C2 ✓ +1, C1 ✓ +1, DY ≥ 10% ✗ +0, DY ≥ 12% ✗ +0, Rate > 0 ✓ +1
+        assert result["score"] == 3, f"Expected 3, got {result['score']}"
+
+    def test_fiagro_minimal_info(self):
+        info = {
+            "currentPrice": 80.00,
+            "shortName": "Agro Minimal",
+        }
+        result = analyze_fiagro("AGRO11.SA", info)
+        assert result["ticker"] == "AGRO11.SA"
+        assert result["price"] == 80.00
+        assert result["score"] == 0
+
+
+# ======================================================================
+# Stock PEG Ratio Tests (new criterion 5 alternative)
+# ======================================================================
+
+class TestStockPegScore:
+    def test_tech_stock_with_good_peg(self):
+        """Technology stock with PEG <= 1.0 passes C5 via PEG path."""
+        score = calculate_stock_score(
+            price=100.0, eps=5.0, book_value=20.0,
+            pe_ratio=10.0, pb_ratio=1.0, dividend_yield=0.06,
+            roe=0.12, graham_price=0.0, bazin_price=0.0,  # graham=0 → no margin
+            peg_ratio=0.8, sector='Technology'
+        )
+        # DY ✓, PE ✓, PB ✓, ROE ✓, PEG ✓ (Graham bypassed)
+        assert score == 5
+
+    def test_tech_stock_bad_peg_falls_back_to_graham(self):
+        """Tech stock with PEG > 1.0 falls back to Graham margin check."""
+        score = calculate_stock_score(
+            price=100.0, eps=5.0, book_value=20.0,
+            pe_ratio=10.0, pb_ratio=1.0, dividend_yield=0.06,
+            roe=0.12, graham_price=0.0, bazin_price=0.0,  # graham=0 → no margin
+            peg_ratio=1.5, sector='Technology'
+        )
+        # DY ✓, PE ✓, PB ✓, ROE ✓, PEG ✗, Graham ✗ → 4
+        assert score == 4
+
+    def test_tech_stock_with_margin_of_safety(self):
+        """Tech with PEG > 1.0 but price < Graham can still pass C5."""
+        score = calculate_stock_score(
+            price=30.0, eps=5.0, book_value=20.0,
+            pe_ratio=6.0, pb_ratio=1.0, dividend_yield=0.06,
+            roe=0.15, graham_price=47.43, bazin_price=41.67,
+            peg_ratio=1.5, sector='Technology'
+        )
+        # DY ✓, PE ✓, PB ✓, ROE ✓, PEG ✗, Graham (30 < 47.43) ✓ → 5
+        assert score == 5
+
+    def test_communication_services_peg(self):
+        """Communication Services also qualifies for PEG path."""
+        score = calculate_stock_score(
+            price=50.0, eps=3.0, book_value=15.0,
+            pe_ratio=16.0, pb_ratio=1.2, dividend_yield=0.06,
+            roe=0.10, graham_price=0.0, bazin_price=0.0,
+            peg_ratio=0.9, sector='Communication Services'
+        )
+        # DY ✓, PE ✗ (16>15), PB ✓ (1.2 <= 1.5), ROE ✓, PEG ✓
+        assert score == 4
+
+    def test_non_tech_ignores_peg(self):
+        """Non-tech sectors ignore PEG and use Graham only."""
+        score = calculate_stock_score(
+            price=100.0, eps=5.0, book_value=20.0,
+            pe_ratio=10.0, pb_ratio=1.0, dividend_yield=0.06,
+            roe=0.12, graham_price=0.0, bazin_price=0.0,
+            peg_ratio=0.8, sector='Financial Services'
+        )
+        # DY ✓, PE ✓, PB ✓, ROE ✓, PEG ignored, Graham ✗ → 4
+        assert score == 4
 
 
 # ======================================================================

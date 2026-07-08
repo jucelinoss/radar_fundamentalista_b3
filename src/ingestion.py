@@ -234,11 +234,12 @@ def _fetch_with_retry(ticker: str, resolved_ticker: str, asset_type: str,
         info = fetch_asset_info(resolved_ticker, asset_type, config)
 
         if info and ("longName" in info or "shortName" in info):
-            analysis = (
-                analyzer.analyze_stock(resolved_ticker, info)
-                if asset_type == "stock"
-                else analyzer.analyze_fii(resolved_ticker, info)
-            )
+            if asset_type == "stock":
+                analysis = analyzer.analyze_stock(resolved_ticker, info)
+            elif asset_type == "fiagro":
+                analysis = analyzer.analyze_fiagro(resolved_ticker, info)
+            else:
+                analysis = analyzer.analyze_fii(resolved_ticker, info)
             analysis["history_json"] = fetch_history(
                 resolved_ticker, config,
                 period=pipeline_cfg.get("history_years", "10y"),

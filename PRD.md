@@ -2,8 +2,8 @@
 
 ## Radar Fundamentalista B3
 
-**Versão:** 2.1.1  
-**Data:** 2026-07-05  
+**Versão:** 2.3.0  
+**Data:** 2026-07-08  
 **Status:** Fases 0-7 Concluídas ✅
 
 ---
@@ -42,7 +42,7 @@ Democratizar o acesso à análise fundamentalista de qualidade para investidores
 
 ## 4. Funcionalidades
 
-### 4.1 MVP Atual (v2.1)
+### 4.1 MVP Atual (v2.3)
 
 | Funcionalidade | Prioridade | Status |
 |---|---|---|
@@ -56,11 +56,14 @@ Democratizar o acesso à análise fundamentalista de qualidade para investidores
 | **Gráficos interativos** de histórico (preço, P/L, P/VP, DY) | P1 | ✅ |
 | **Análise setorial** com drill-down | P1 | ✅ |
 | **Índices de mercado** (IBOV, IDIV, SMLL) por ticker | P1 | ✅ |
+| **PEG Ratio** como alternativa para setores Tech/Comunicação | P1 | ✅ |
+| **True Yield** (dividendos reais 365d com fallback) | P1 | ✅ |
+| **Scorecard separado para FIAGROs** (DY elevado: 10%/12%) | P2 | ✅ |
 | **Tema claro/escuro** persistente | P2 | ✅ |
 | **Responsividade mobile** | P2 | ✅ |
 | **PWA** (instalável, offline, service worker) | P2 | ✅ |
 | **CI/CD** (GitHub Actions + Pages) | P0 | ✅ |
-| **Testes unitários** (121 testes, 100% passando) | P1 | ✅ |
+| **Testes unitários** (63 testes, 100% passando) | P1 | ✅ |
 
 ### 4.2 Futuro (Roadmap)
 
@@ -136,16 +139,33 @@ Democratizar o acesso à análise fundamentalista de qualidade para investidores
 | P/VP ≤ 1.5 (Graham) | `0 < pb <= 1.5` | 1 |
 | ROE ≥ 10% | `roe >= 0.10` | 1 |
 | Margem de Segurança | `price < graham_price` | 1 |
+| PEG Ratio (Tecnologia/Comunicação) | `peg_ratio <= 1.0` (alternativa ao Graham) | — |
 
-### 6.2 FIIs / FIAGROs (0-5)
+> **Nota:** Setores de Tecnologia e Communication Services podem usar PEG Ratio ≤ 1.0 como alternativa ao critério de Margem de Segurança de Graham. Se o PEG não estiver disponível ou for > 1.0, o fallback é o Graham normal.
+
+### 6.2 FIIs (0-5)
+
+Critérios de valuation são **hierárquicos**: C2 (P/VP ≤ 1.15) é a base; C1 (0.70-1.05) é um bônus aninhado dentro da base. P/VP na faixa ideal pontua nos dois.
 
 | Critério | Fórmula | Peso |
 |---|---|---|
-| P/VP entre 0.85 e 1.05 | `0.85 <= pb <= 1.05` | 1 |
-| P/VP ≤ 1.15 | `pb <= 1.15` | 1 |
-| DY ≥ 8% | `dy >= 0.08` | 1 |
-| DY ≥ 10% | `dy >= 0.10` | 1 |
-| Distribuição Ativa | `dividend_rate > 0` | 1 |
+| P/VP ≤ 1.15 (Base — Preço Justo) | `pb <= 1.15` | 1 |
+| P/VP 0.70 a 1.05 (Bônus — Ideal) | `0.70 <= pb <= 1.05` | 1 |
+| DY ≥ 8% (Base — Mínimo) | `dy >= 0.08` | 1 |
+| DY ≥ 10% (Bônus — Excelente) | `dy >= 0.10` | 1 |
+| Distribuição Ativa | `dividend_rate > 0` ou `historical_dividends_365d > 0` | 1 |
+
+### 6.3 FIAGROs (0-5)
+
+Mesma estrutura hierárquica dos FIIs, porém com thresholds de Dividend Yield elevados devido ao risco de crédito agropecuário.
+
+| Critério | Fórmula | Peso |
+|---|---|---|
+| P/VP ≤ 1.15 (Base — Preço Justo) | `pb <= 1.15` | 1 |
+| P/VP 0.70 a 1.05 (Bônus — Ideal) | `0.70 <= pb <= 1.05` | 1 |
+| DY ≥ 10% (Base — Mínimo) | `dy >= 0.10` | 1 |
+| DY ≥ 12% (Bônus — Excelente) | `dy >= 0.12` | 1 |
+| Distribuição Ativa | `dividend_rate > 0` ou `historical_dividends_365d > 0` | 1 |
 
 ---
 
@@ -217,6 +237,7 @@ Democratizar o acesso à análise fundamentalista de qualidade para investidores
 | 1.0 | 2025-Q4 | MVP inicial: ingestão sequencial, dashboard estático |
 | 1.1 | 2026-Q1 | Scorecards FII/FIAGRO, análise setorial, tema escuro |
 | 2.0 | 2026-Q3 | Pipeline paralelo, retry, logging, config externa, testes, CI/CD |
+| 2.3 | 2026-07-08 | Scorecards revisados: P/VP 0.70 para FIIs, scorecard separado FIAGRO com DY 10%/12%, PEG Ratio tech, True Yield, C1/C2 mutuamente exclusivos |
 | 2.1 | 2026-Q3 | Carga incremental, PWA, export IA, refatoração, limpeza de código morto |
 | 2.1.1 | 2026-Q3 | Fases 0-7 concluídas: refatoração completa, type hints, testes, CI/CD, documentação (CHANGELOG + CONTRIBUTING), validação de configs |
 
