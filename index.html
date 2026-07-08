@@ -2500,6 +2500,26 @@
         `;
             container.insertBefore(pdfHeader, container.firstChild);
 
+            // ── Forçar largura A4 landscape no container (corrige mobile: tabela não fica cortada) ──
+            const scrollContainers = document.querySelectorAll('.table-scroll');
+            const scrollOrigins = [];
+            scrollContainers.forEach(el => {
+                scrollOrigins.push({
+                    el: el,
+                    overflowX: el.style.overflowX,
+                    overflowY: el.style.overflowY,
+                    maxWidth: el.style.maxWidth
+                });
+                el.style.overflowX = 'visible';
+                el.style.overflowY = 'visible';
+                el.style.maxWidth = 'none';
+            });
+
+            const origContainerWidth = container.style.width;
+            const origContainerMaxWidth = container.style.maxWidth;
+            container.style.width = '1122px';    // ~297mm (A4 landscape) a ~96dpi
+            container.style.maxWidth = '1122px';
+
             // ── Compactar layout para PDF ──
             document.body.classList.add('pdf-export');
 
@@ -2523,19 +2543,34 @@
                 if (el) el.style.display = 'none';
             });
 
-            document.body.classList.add('pdf-export');
+            const LANDSCAPE_WIDTH = 1122; // px para windowWidth do html2canvas
 
             const opt = {
                 margin: [0.15, 0.3, 0.3, 0.3],   // top, right, bottom, left (inches)
                 filename: pdfFilename,
                 image: { type: 'jpeg', quality: 0.9 },
-                html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0, y: 0 },
+                html2canvas: {
+                    scale: 2, useCORS: true, letterRendering: true,
+                    scrollY: 0, y: 0,
+                    width: LANDSCAPE_WIDTH,
+                    windowWidth: LANDSCAPE_WIDTH
+                },
                 jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' },
                 pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
 
-            html2pdf().set(opt).from(container).save().then(() => {
-                // Restaurar estilos
+            function restoreStyles() {
+                // Restaurar scroll containers
+                scrollContainers.forEach((el, i) => {
+                    const orig = scrollOrigins[i];
+                    el.style.overflowX = orig.overflowX;
+                    el.style.overflowY = orig.overflowY;
+                    el.style.maxWidth = orig.maxWidth;
+                });
+                // Restaurar largura do container
+                container.style.width = origContainerWidth;
+                container.style.maxWidth = origContainerMaxWidth;
+                // Restaurar body
                 document.body.style.padding = '';
                 document.body.style.margin = '';
                 document.body.style.background = '';
@@ -2549,21 +2584,11 @@
                 pdfHeader.remove();
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-            }).catch(err => {
-                document.body.style.padding = '';
-                document.body.style.margin = '';
-                document.body.style.background = '';
-                if (headerEl) { headerEl.style.margin = ''; headerEl.style.padding = ''; headerEl.style.borderBottomWidth = ''; }
-                if (logoH1) { logoH1.style.margin = ''; logoH1.style.fontSize = ''; logoH1.style.lineHeight = ''; }
-                if (logoP) { logoP.style.margin = ''; logoP.style.fontSize = ''; logoP.style.lineHeight = ''; }
-                document.querySelectorAll('#export-btn, #help-toggle-btn, #theme-toggle-btn, .timestamp').forEach(el => {
-                    if (el) el.style.display = '';
-                });
-                document.body.classList.remove('pdf-export');
-                pdfHeader.remove();
+            }
+
+            html2pdf().set(opt).from(container).save().then(restoreStyles).catch(err => {
+                restoreStyles();
                 console.error('PDF error:', err);
-                btn.innerHTML = originalText;
-                btn.disabled = false;
                 alert('Erro ao gerar PDF. Tente novamente.');
             });
         }
