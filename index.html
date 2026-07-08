@@ -614,6 +614,20 @@
             color: var(--text-primary);
         }
 
+        .ticker-line {
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+        .ticker-line + .ticker-line {
+            margin-top: 0.15rem;
+        }
+        .ticker-symbol {
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+            margin-right: 0.15rem;
+        }
+
         .name-col {
             min-width: 120px;
             max-width: 220px;
@@ -2164,33 +2178,34 @@
             const gridColor = isLight ? 'rgba(15, 23, 42, 0.06)' : 'rgba(255, 255, 255, 0.05)';
             const tickColor = isLight ? '#475569' : '#9ca3af';
 
-            // Plugin customizado: desenha labels de data em 4 pontos do gráfico
-            if (!Chart.registry.plugins.get('dateLabels')) {
+            // Plugin customizado: desenha o valor numérico em ~4 pontos da linha
+            if (!Chart.registry.plugins.get('valueLabels')) {
                 Chart.register({
-                    id: 'dateLabels',
+                    id: 'valueLabels',
                     afterDraw(chart) {
                         const c = chart.ctx;
                         const meta = chart.getDatasetMeta(0);
                         const pts = meta.data;
                         const ds = chart.data.datasets[0].data;
-                        const lbs = chart.data.labels;
                         if (!pts || pts.length < 4) return;
                         const step = Math.max(1, Math.floor(pts.length / 4));
                         c.save();
-                        c.font = '9px Inter, sans-serif';
+                        c.font = 'bold 10px Inter, sans-serif';
                         c.textAlign = 'center';
                         c.textBaseline = 'bottom';
                         for (let i = step; i < pts.length - 1; i += step) {
                             const pt = pts[i];
-                            if (!pt || ds[i] === null || ds[i] === undefined) continue;
-                            const x = pt.x;
-                            const y = pt.y;
-                            const label = lbs[i];
-                            const tw = c.measureText(label).width;
+                            const val = ds[i];
+                            if (!pt || val === null || val === undefined) continue;
+                            let txt;
+                            if (indicator === 'price') txt = `R$ ${val.toFixed(2)}`;
+                            else if (indicator === 'dy') txt = `${val.toFixed(2)}%`;
+                            else txt = val.toFixed(2);
+                            const tw = c.measureText(txt).width;
                             c.fillStyle = isLight ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.7)';
-                            c.fillRect(x - tw / 2 - 2, y - 12, tw + 4, 12);
-                            c.fillStyle = tickColor;
-                            c.fillText(label, x, y - 2);
+                            c.fillRect(pt.x - tw / 2 - 3, pt.y - 14, tw + 6, 14);
+                            c.fillStyle = borderColor;
+                            c.fillText(txt, pt.x, pt.y - 3);
                         }
                         c.restore();
                     }
@@ -2313,9 +2328,24 @@
                     // 6. Stocks Table
                     const stocksTbody = document.getElementById('stocks-tbody');
                     stocksTbody.innerHTML = data.stocks.map(stock => {
-                        const indexPills = (stock.indices || []).map(index => `
-                            <span class="index-pill ${index.toLowerCase()}">${index}</span>
-                        `).join('');
+                        const indices = stock.indices || [];
+                        // Agrupa os selos: linha1 = ticker + 1o indice, demais = pares
+                        function tickerHtml(ticker, idxArr) {
+                            let h = `<div class="ticker-line"><span class="ticker-symbol">${ticker}</span>`;
+                            if (idxArr.length > 0) {
+                                h += `<span class="index-pill ${idxArr[0].toLowerCase()}">${idxArr[0]}</span>`;
+                            }
+                            h += `</div>`;
+                            for (let i = 1; i < idxArr.length; i += 2) {
+                                h += `<div class="ticker-line">`;
+                                h += `<span class="index-pill ${idxArr[i].toLowerCase()}">${idxArr[i]}</span>`;
+                                if (i + 1 < idxArr.length) {
+                                    h += `<span class="index-pill ${idxArr[i+1].toLowerCase()}">${idxArr[i+1]}</span>`;
+                                }
+                                h += `</div>`;
+                            }
+                            return h;
+                        }
                         
                         const priceFormatted = stock.price ? `R$ ${stock.price.toFixed(2)}` : 'N/A';
                         const peFormatted = stock.pe_ratio ? stock.pe_ratio.toFixed(2) : 'N/A';
@@ -2348,10 +2378,7 @@
                             data-vpa="${stock.book_value !== null ? stock.book_value : 'null'}"
                             data-history='${stock.history_json || "[]"}'>
                             <td class="ticker-col">
-                                ${stock.ticker}
-                                <div style="display: flex; gap: 0.2rem; margin-top: 0.25rem;">
-                                    ${indexPills}
-                                </div>
+                                ${tickerHtml(stock.ticker, indices)}
                             </td>
                             <td class="name-col">${stock.name}</td>
                             <td>${stock.sector}</td>

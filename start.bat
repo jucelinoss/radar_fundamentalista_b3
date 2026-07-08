@@ -14,7 +14,11 @@ if not exist ".venv" (
     exit /b 1
 )
 
-echo Iniciando o servidor local na porta 8000...
+echo 1/2 Atualizando data.json com dados locais (VPA, ...) sem API...
+.\.venv\Scripts\python.exe src/pipeline.py --generate-only
+echo.
+
+echo 2/2 Iniciando o servidor local na porta 8000...
 echo Acesse: http://127.0.0.1:8000/index.html
 echo.
 

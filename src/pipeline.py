@@ -96,12 +96,68 @@ def run_ingestion(max_age_hours: int = 6, force: bool = False) -> dict[str, Any]
     return result
 
 
+def _update_vpa_from_cache() -> None:
+    """Popula book_value (VPA) no DB usando caches CVM + fallback price/pb.
+    Zero chamadas a API — opera apenas sobre dados ja existentes."""
+    try:
+        import json, sqlite3
+        import database
+        database.init_db()
+        db_path: str = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "investments.db")
+        data_dir: str = os.path.dirname(db_path)
+
+        for table_key, table_name in [("fiis", "fiis"), ("fiagros", "fiagros")]:
+            cache_path: str = os.path.join(data_dir, f"{table_key}_vpa.json")
+            vpa_cache: dict[str, float] = {}
+            if os.path.exists(cache_path):
+                with open(cache_path, encoding="utf-8") as f:
+                    vpa_cache = json.load(f)
+
+            conn: sqlite3.Connection = sqlite3.connect(db_path)
+            conn.row_factory = sqlite3.Row
+            cursor: sqlite3.Cursor = conn.cursor()
+
+            # Garante coluna book_value
+            cursor.execute(f"PRAGMA table_info({table_name})")
+            cols: set[str] = {r[1] for r in cursor.fetchall()}
+            if "book_value" not in cols:
+                cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN book_value REAL")
+
+            cursor.execute(f"SELECT ticker, price, pb_ratio, book_value FROM {table_name}")
+            n: int = 0
+            for row in cursor.fetchall():
+                ticker_raw: str = row["ticker"]
+                ticker_clean: str = ticker_raw.replace(".SA", "")
+                price: float | None = row["price"]
+                pb_ratio: float | None = row["pb_ratio"]
+                current_bv: float | None = row["book_value"]
+
+                if current_bv is not None and current_bv > 0:
+                    continue
+
+                book_value: float | None = vpa_cache.get(ticker_clean)
+                if book_value is None and price is not None and pb_ratio is not None and pb_ratio > 0:
+                    book_value = round(price / pb_ratio, 2)
+
+                if book_value is not None and book_value > 0:
+                    cursor.execute(f"UPDATE {table_name} SET book_value = ? WHERE ticker = ?", (book_value, ticker_raw))
+                    n += 1
+
+            conn.commit()
+            conn.close()
+            if n:
+                logger.info(f"  VPA atualizado para {n} {table_name}")
+    except Exception as e:
+        logger.warning(f"VPA update skipped: {e}")
+
+
 def run_generator() -> bool:
     """Execute the dashboard generator."""
     import generator
     logger.info("=" * 60)
     logger.info("  STEP 2/2: DASHBOARD GENERATION")
     logger.info("=" * 60)
+    _update_vpa_from_cache()
     generator.generate_dashboard()
     logger.info("Dashboard generation complete.")
     return True
