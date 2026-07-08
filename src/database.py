@@ -48,10 +48,11 @@ def _create_fiis_table(cursor: sqlite3.Cursor, table: str) -> None:
     CREATE TABLE IF NOT EXISTS {table} (
         ticker TEXT PRIMARY KEY, name TEXT, price REAL,
         pb_ratio REAL, dividend_yield REAL, dividend_rate REAL,
-        score REAL, history_json TEXT, updated_at TEXT
+        book_value REAL, score REAL, history_json TEXT, updated_at TEXT
     )
     """)
     _add_column_if_not_exists(cursor, table, "score", "REAL")
+    _add_column_if_not_exists(cursor, table, "book_value", "REAL")
 
 
 def _create_pipeline_log_table(cursor: sqlite3.Cursor) -> None:
@@ -138,12 +139,13 @@ def save_fii(data: dict[str, Any]) -> None:
         conn.execute("""
         INSERT OR REPLACE INTO fiis (
             ticker, name, price, pb_ratio, dividend_yield, dividend_rate,
-            score, history_json, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            book_value, score, history_json, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             data['ticker'], data.get('name'), data.get('price'),
             data.get('pb_ratio'), data.get('dividend_yield'),
-            data.get('dividend_rate'), data.get('score', 0),
+            data.get('dividend_rate'), data.get('book_value'),
+            data.get('score', 0),
             data.get('history_json'), datetime.now().isoformat()
         ))
 
@@ -168,12 +170,13 @@ def save_fiagro(data: dict[str, Any]) -> None:
         conn.execute("""
         INSERT OR REPLACE INTO fiagros (
             ticker, name, price, pb_ratio, dividend_yield, dividend_rate,
-            score, history_json, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            book_value, score, history_json, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             data['ticker'], data.get('name'), data.get('price'),
             data.get('pb_ratio'), data.get('dividend_yield'),
-            data.get('dividend_rate'), data.get('score', 0),
+            data.get('dividend_rate'), data.get('book_value'),
+            data.get('score', 0),
             data.get('history_json'), datetime.now().isoformat()
         ))
 

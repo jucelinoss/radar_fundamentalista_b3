@@ -363,6 +363,11 @@ def analyze_fii(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
     price = _parse_price(info)
     pb_ratio = safe_float(info.get('priceToBook'))
     
+    # VPA (book value per share) — reference only, not used in scoring
+    book_value = safe_float(info.get('bookValue'))
+    if book_value is None and price is not None and pb_ratio is not None and pb_ratio > 0:
+        book_value = round(price / pb_ratio, 2)
+    
     dy, dividend_rate = _derive_dividend_fields(
         info.get('dividendYield'),
         info.get('dividendRate'),
@@ -379,6 +384,7 @@ def analyze_fii(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
         'ticker': ticker,
         'name': name,
         'price': price,
+        'book_value': book_value,
         'pb_ratio': pb_ratio,
         'dividend_yield': dy,
         'dividend_rate': dividend_rate,
@@ -393,6 +399,11 @@ def analyze_fiagro(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
     """
     price = _parse_price(info)
     pb_ratio = safe_float(info.get('priceToBook'))
+    
+    # VPA (book value per share) — reference only, not used in scoring
+    book_value = safe_float(info.get('bookValue'))
+    if book_value is None and price is not None and pb_ratio is not None and pb_ratio > 0:
+        book_value = round(price / pb_ratio, 2)
     
     dy, dividend_rate = _derive_dividend_fields(
         info.get('dividendYield'),
@@ -410,6 +421,7 @@ def analyze_fiagro(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
         'ticker': ticker,
         'name': name,
         'price': price,
+        'book_value': book_value,
         'pb_ratio': pb_ratio,
         'dividend_yield': dy,
         'dividend_rate': dividend_rate,

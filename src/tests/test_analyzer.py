@@ -368,6 +368,8 @@ class TestAnalyzeFii:
         assert result["pb_ratio"] == 0.95
         assert result["dividend_yield"] == 0.095
         assert result["dividend_rate"] == 0.85
+        # VPA não está no info → fallback p/ price / pb_ratio = 105 / 0.95
+        assert result["book_value"] == 110.53
         # Score: C2 (≤1.15) ✓ +1, C1 (0.70-1.05) ✓ +1, DY ≥ 8% ✓ +1, DY ≥ 10% ✗ (9.5%) +0, Rate >0 ✓ +1 → 4
         assert result["score"] == 4, f"Expected 4, got {result['score']}"
 
@@ -550,6 +552,8 @@ class TestAnalyzeFiagro:
         assert result["pb_ratio"] == 0.95
         assert result["dividend_yield"] == 0.14
         assert result["dividend_rate"] == 1.20
+        # VPA não está no info → fallback p/ price / pb_ratio = 90 / 0.95
+        assert result["book_value"] == 94.74
         # C2 ✓ +1, C1 ✓ +1, DY ≥ 10% ✓ +1, DY ≥ 12% ✓ +1, Rate > 0 ✓ +1
         assert result["score"] == 5, f"Expected 5, got {result['score']}"
 

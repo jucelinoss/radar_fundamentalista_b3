@@ -1300,24 +1300,27 @@
                         <th onclick="sortTable('stocks', 2)">Setor</th>
                         <th onclick="sortTable('stocks', 3)">Preço Atual</th>
                         <th onclick="sortTable('stocks', 4)">
-                            <span class="hint" data-tip="Preço sobre Lucro (P/E). Quanto o mercado paga por cada R$ 1,00 de lucro. Quanto menor, mais barata. Ideal: &lt; 15.">P/L</span>
+                            <span class="hint" data-tip="Valor Patrimonial por Ação. Patrimônio líquido dividido pelo número de ações. Referência para o P/VP.">VPA</span>
                         </th>
                         <th onclick="sortTable('stocks', 5)">
-                            <span class="hint" data-tip="Preço sobre Valor Patrimonial (P/B). Compara o preço ao patrimônio líquido por ação. Abaixo de 1,00 = desconto. Ideal: &lt; 1,5.">P/VP</span>
+                            <span class="hint" data-tip="Preço sobre Lucro (P/E). Quanto o mercado paga por cada R$ 1,00 de lucro. Quanto menor, mais barata. Ideal: &lt; 15.">P/L</span>
                         </th>
                         <th onclick="sortTable('stocks', 6)">
-                            <span class="hint" data-tip="Dividend Yield. Retorno em dividendos nos últimos 12 meses dividido pelo preço atual. Ideal: &ge; 6%.">Div. Yield</span>
+                            <span class="hint" data-tip="Preço sobre Valor Patrimonial (P/B). Compara o preço ao patrimônio líquido por ação. Abaixo de 1,00 = desconto. Ideal: &lt; 1,5.">P/VP</span>
                         </th>
                         <th onclick="sortTable('stocks', 7)">
-                            <span class="hint" data-tip="Return on Equity. Rentabilidade: lucro líquido &divide; patrimônio líquido. Mede a eficiência da gestão. Ideal: &ge; 10%.">ROE</span>
+                            <span class="hint" data-tip="Dividend Yield. Retorno em dividendos nos últimos 12 meses dividido pelo preço atual. Ideal: &ge; 6%.">Div. Yield</span>
                         </th>
                         <th onclick="sortTable('stocks', 8)">
-                            <span class="hint" data-tip="Preço Teto de Décio Bazin. Máximo que se deve pagar para garantir retorno de 6% a.a. em dividendos: Dividendo Anual &divide; 0,06.">Teto Bazin</span>
+                            <span class="hint" data-tip="Return on Equity. Rentabilidade: lucro líquido &divide; patrimônio líquido. Mede a eficiência da gestão. Ideal: &ge; 10%.">ROE</span>
                         </th>
                         <th onclick="sortTable('stocks', 9)">
-                            <span class="hint" data-tip="Valor Justo de Benjamin Graham. Preço intrínseco = &radic;(22,5 &times; LPA &times; VPA). Abaixo dele = margem de segurança.">Justo Graham</span>
+                            <span class="hint" data-tip="Preço Teto de Décio Bazin. Máximo que se deve pagar para garantir retorno de 6% a.a. em dividendos: Dividendo Anual &divide; 0,06.">Teto Bazin</span>
                         </th>
                         <th onclick="sortTable('stocks', 10)">
+                            <span class="hint" data-tip="Valor Justo de Benjamin Graham. Preço intrínseco = &radic;(22,5 &times; LPA &times; VPA). Abaixo dele = margem de segurança.">Justo Graham</span>
+                        </th>
+                        <th onclick="sortTable('stocks', 11)">
                             <span class="hint" data-tip="Nota de 0 a 5 baseada em 5 critérios: DY, P/L, P/VP, ROE e Margem de Graham. Quanto maior, mais saudável.">Score</span>
                         </th>
                     </tr>
@@ -1339,15 +1342,18 @@
                         <th onclick="sortTable('fiis', 1)">Nome</th>
                         <th onclick="sortTable('fiis', 2)">Preço Atual</th>
                         <th onclick="sortTable('fiis', 3)">
-                            <span class="hint" data-tip="Preço sobre Valor Patrimonial do fundo. Entre 0,70 e 1,05 é considerado ideal (desconto moderado a valor justo).">P/VP</span>
+                            <span class="hint" data-tip="Valor Patrimonial por cota. Patrimônio líquido do fundo dividido pelo total de cotas. Referência para o P/VP.">VPA</span>
                         </th>
                         <th onclick="sortTable('fiis', 4)">
-                            <span class="hint" data-tip="Dividend Yield anual do fundo. Mede o retorno em dividendos sobre o preço da cota. Mínimo ideal: 8%.">Div. Yield</span>
+                            <span class="hint" data-tip="Preço sobre Valor Patrimonial do fundo. Entre 0,70 e 1,05 é considerado ideal (desconto moderado a valor justo).">P/VP</span>
                         </th>
                         <th onclick="sortTable('fiis', 5)">
-                            <span class="hint" data-tip="Valor total estimado de dividendos pagos pelo fundo nos últimos 12 meses por cota.">Dividendo Anual</span>
+                            <span class="hint" data-tip="Dividend Yield anual do fundo. Mede o retorno em dividendos sobre o preço da cota. Mínimo ideal: 8%.">Div. Yield</span>
                         </th>
                         <th onclick="sortTable('fiis', 6)">
+                            <span class="hint" data-tip="Valor total estimado de dividendos pagos pelo fundo nos últimos 12 meses por cota.">Dividendo Anual</span>
+                        </th>
+                        <th onclick="sortTable('fiis', 7)">
                             <span class="hint" data-tip="Nota de 0 a 5. Critérios: P/VP ≤ 1,15 (base), P/VP ideal 0,70-1,05 (bônus), DY mínimo (8%), DY excelente (10%) e distribuição ativa.">Score</span>
                         </th>
                     </tr>
@@ -1369,15 +1375,18 @@
                         <th onclick="sortTable('fiagros', 1)">Nome</th>
                         <th onclick="sortTable('fiagros', 2)">Preço Atual</th>
                         <th onclick="sortTable('fiagros', 3)">
-                            <span class="hint" data-tip="Preço sobre Valor Patrimonial do fundo. Entre 0,70 e 1,05 é considerado ideal (desconto moderado a valor justo).">P/VP</span>
+                            <span class="hint" data-tip="Valor Patrimonial por cota. Patrimônio líquido do fundo dividido pelo total de cotas. Referência para o P/VP.">VPA</span>
                         </th>
                         <th onclick="sortTable('fiagros', 4)">
-                            <span class="hint" data-tip="Dividend Yield anual do fundo. FIAGROs exigem retorno maior: mínimo ideal de 10% (vs 8% dos FIIs) devido ao risco de crédito agropecuário.">Div. Yield</span>
+                            <span class="hint" data-tip="Preço sobre Valor Patrimonial do fundo. Entre 0,70 e 1,05 é considerado ideal (desconto moderado a valor justo).">P/VP</span>
                         </th>
                         <th onclick="sortTable('fiagros', 5)">
-                            <span class="hint" data-tip="Valor total estimado de dividendos pagos pelo fundo nos últimos 12 meses por cota.">Dividendo Anual</span>
+                            <span class="hint" data-tip="Dividend Yield anual do fundo. FIAGROs exigem retorno maior: mínimo ideal de 10% (vs 8% dos FIIs) devido ao risco de crédito agropecuário.">Div. Yield</span>
                         </th>
                         <th onclick="sortTable('fiagros', 6)">
+                            <span class="hint" data-tip="Valor total estimado de dividendos pagos pelo fundo nos últimos 12 meses por cota.">Dividendo Anual</span>
+                        </th>
+                        <th onclick="sortTable('fiagros', 7)">
                             <span class="hint" data-tip="Nota de 0 a 5. Critérios: P/VP ≤ 1,15 (base), P/VP ideal 0,70-1,05 (bônus), DY mínimo (10%), DY excelente (12%) e distribuição ativa.">Score</span>
                         </th>
                     </tr>
@@ -1958,7 +1967,7 @@
                 const pb = parseFloat(row.getAttribute('data-pb')) || null;
                 const dy = parseFloat(row.getAttribute('data-dy')) || 0;
                 const rate = parseFloat(row.getAttribute('data-rate')) || 0;
-                const vpa = pb && pb > 0 ? (price / pb) : null;
+                const vpa = parseFloat(row.getAttribute('data-vpa')) || (pb && pb > 0 ? (price / pb) : null);
                 const score = parseInt(row.getAttribute('data-score')) || 0;
 
                 currentAssetMetrics = {
@@ -2314,6 +2323,7 @@
                             <td class="name-col">${stock.name}</td>
                             <td>${stock.sector}</td>
                             <td class="metric-highlight">${priceFormatted}</td>
+                            <td>${stock.book_value ? `R$ ${stock.book_value.toFixed(2)}` : 'N/A'}</td>
                             <td class="${peClass}">${peFormatted}</td>
                             <td class="${pbClass}">${pbFormatted}</td>
                             <td class="${dyClass}">${dyFormatted}</td>
@@ -2344,10 +2354,12 @@
                             data-dy="${fii.dividend_yield || 0}"
                             data-rate="${fii.dividend_rate || 0}"
                             data-score="${fii.score || 0}"
+                            data-vpa="${fii.book_value !== null ? fii.book_value : 'null'}"
                             data-history='${fii.history_json || "[]"}'>
                             <td class="ticker-col">${fii.ticker}</td>
                             <td class="name-col">${fii.name}</td>
                             <td class="metric-highlight">${priceFormatted}</td>
+                            <td>${fii.book_value ? `R$ ${fii.book_value.toFixed(2)}` : 'N/A'}</td>
                             <td class="${pbClass}">${pbFormatted}</td>
                             <td class="${dyClass}">${dyFormatted}</td>
                             <td class="metric-highlight">${rateFormatted}</td>
@@ -2375,10 +2387,12 @@
                             data-dy="${fiagro.dividend_yield || 0}"
                             data-rate="${fiagro.dividend_rate || 0}"
                             data-score="${fiagro.score || 0}"
+                            data-vpa="${fiagro.book_value !== null ? fiagro.book_value : 'null'}"
                             data-history='${fiagro.history_json || "[]"}'>
                             <td class="ticker-col">${fiagro.ticker}</td>
                             <td class="name-col">${fiagro.name}</td>
                             <td class="metric-highlight">${priceFormatted}</td>
+                            <td>${fiagro.book_value ? `R$ ${fiagro.book_value.toFixed(2)}` : 'N/A'}</td>
                             <td class="${pbClass}">${pbFormatted}</td>
                             <td class="${dyClass}">${dyFormatted}</td>
                             <td class="metric-highlight">${rateFormatted}</td>
