@@ -125,12 +125,13 @@ def _compute_top_picks(stocks: list[dict[str, Any]], fiis: list[dict[str, Any]],
     top_stocks: list[dict[str, Any]] = sorted(stocks, key=lambda x: x["score"], reverse=True)[:5]
 
     valid_fiis: list[dict[str, Any]] = [f for f in fiis if f.get("pb_ratio") and f.get("dividend_yield")]
-    top_fiis: list[dict[str, Any]] = sorted(valid_fiis, key=lambda x: (x["pb_ratio"], -x["dividend_yield"]))[:5]
+    top_fiis: list[dict[str, Any]] = sorted(valid_fiis, key=lambda x: x["score"], reverse=True)[:5]
 
     valid_fiagros: list[dict[str, Any]] = [f for f in fiagros if f.get("pb_ratio") and f.get("dividend_yield")]
     top_fiagros: list[dict[str, Any]] = sorted(
         valid_fiagros,
-        key=lambda x: (-x["dividend_yield"], x.get("pb_ratio") or 999.0)
+        key=lambda x: x["score"],
+        reverse=True
     )[:5]
 
     return top_stocks, top_fiis, top_fiagros

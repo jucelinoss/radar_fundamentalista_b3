@@ -967,30 +967,33 @@ class TestCrossModuleConsistency:
         except OSError:
             pass
 
-    def test_analyze_fii_used_for_both(self):
-        """Both FIIs and FIAGROs use analyze_fii — verify it works for both types."""
+    def test_analyze_fii_and_fiagro_separate(self):
+        """FIIs and FIAGROs use separate scoring functions with different DY thresholds."""
         import analyzer as an
 
-        # You could debate whether FIAGROs should have slightly different criteria,
-        # but currently the code uses analyze_fii for both. This test documents that.
+        # FII: DY 9.5% → passes FII thresholds (≥8%) but not excellent (≥10%)
         fii_result = an.analyze_fii("TEST11.SA", {
             "currentPrice": 100.0, "priceToBook": 0.95,
             "dividendYield": 9.5, "dividendRate": 0.85,
             "longName": "FII Test"
         })
-        fiagro_result = an.analyze_fii("AGRO11.SA", {
+        # FIAGRO: DY 11% → passes FIAGRO minimum (≥10%) but not excellent (≥12%)
+        fiagro_result = an.analyze_fiagro("AGRO11.SA", {
             "currentPrice": 95.0, "priceToBook": 0.90,
             "dividendYield": 11.0, "dividendRate": 0.90,
             "longName": "FIAGRO Test"
         })
-        # Both use the same scoring function
         assert isinstance(fii_result["score"], int)
         assert isinstance(fiagro_result["score"], int)
-        # Both should have all FII fields
+        # Both should have all standard fields
         for key in ("ticker", "name", "price", "pb_ratio",
                     "dividend_yield", "dividend_rate", "score"):
             assert key in fii_result
             assert key in fiagro_result
+        # FII: C2 ✓, C1 ✓, DY≥8% ✓, DY≥10% ✗ (9.5%), Rate ✓ → 4
+        assert fii_result["score"] == 4, f"Expected FII score 4, got {fii_result['score']}"
+        # FIAGRO: C2 ✓, C1 ✓ (0.90 in 0.70-1.05), DY≥10% ✓, DY≥12% ✗ (11%), Rate ✓ → 4
+        assert fiagro_result["score"] == 4, f"Expected FIAGRO score 4, got {fiagro_result['score']}"
 
 
 # ======================================================================
