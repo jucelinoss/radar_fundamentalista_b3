@@ -2480,6 +2480,14 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            left: 15,
+                            right: 35, // Garante que rótulos e tooltips no ponto final (direita) não sejam cortados
+                            top: 20,    // Garante que rótulos nos picos do topo (máximos) não sejam cortados
+                            bottom: 5
+                        }
+                    },
                     plugins: {
                         legend: { display: false },
                         tooltip: {
@@ -2503,6 +2511,7 @@
                     },
                     scales: {
                         x: {
+                            offset: true, // Afasta o primeiro e o último ponto das extremidades físicas
                             grid: { display: false },
                             ticks: { color: tickColor, maxTicksLimit: 6 }
                         },

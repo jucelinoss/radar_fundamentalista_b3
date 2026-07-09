@@ -33,7 +33,7 @@ if os.path.exists(cert_file) and os.path.exists(key_file):
 else:
     logger.warning("Certificados SSL nao encontrados — rodando HTTP")
 
-logger.info(f"  https://192.168.15.64:{PORT}/index.html")
+logger.info(f"  https://192.168.15.64:{PORT}/index-v2.html")
 logger.info("  Aceite o aviso de seguranca no navegador")
 logger.info("  Ctrl+C para parar")
 

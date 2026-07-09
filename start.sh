@@ -13,12 +13,16 @@ if [ ! -d ".venv" ]; then
     exit 1
 fi
 
-echo "Iniciando o servidor local na porta 8000..."
-echo "Acesse: http://127.0.0.1:8000/index.html"
+echo "1/2 Atualizando data.json com dados locais (VPA, ...) sem API..."
+./.venv/bin/python src/pipeline.py --generate-only
+echo ""
+
+echo "2/2 Iniciando o servidor local na porta 8000..."
+echo "Acesse: http://127.0.0.1:8000/index-v2.html"
 echo ""
 
 # Open browser after a short delay
-(sleep 2 && (xdg-open http://127.0.0.1:8000/index.html || open http://127.0.0.1:8000/index.html || termux-open http://127.0.0.1:8000/index.html) 2>/dev/null) &
+(sleep 2 && (xdg-open http://127.0.0.1:8000/index-v2.html || open http://127.0.0.1:8000/index-v2.html || termux-open http://127.0.0.1:8000/index-v2.html) 2>/dev/null) &
 
 # Run the server using python in .venv
 ./.venv/bin/python src/server.py

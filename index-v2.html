@@ -23,1101 +23,537 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
+        /* ── v2 Theme: fiel ao b3-radar-main (React/Tailwind/shadcn) ── */
         :root {
-            --bg-color: #0b0f19;
-            --card-bg: rgba(20, 27, 45, 0.7);
-            --card-border: rgba(255, 255, 255, 0.08);
-            --text-primary: #f3f4f6;
-            --text-secondary: #9ca3af;
-            --primary: #3b82f6;
-            --primary-glow: rgba(59, 130, 246, 0.15);
-            --accent-green: #10b981;
-            --accent-green-glow: rgba(16, 185, 129, 0.15);
-            --accent-gold: #f59e0b;
-            --accent-gold-glow: rgba(245, 158, 11, 0.15);
-            --danger: #ef4444;
-            --table-header: rgba(15, 22, 38, 0.9);
-            --table-hover: rgba(255, 255, 255, 0.02);
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-            --modal-bg: rgba(22, 30, 49, 0.95);
-            --modal-overlay: rgba(10, 14, 23, 0.85);
-            --modal-shadow: rgba(0, 0, 0, 0.5);
-            --breakdown-bg: rgba(255, 255, 255, 0.02);
-            --breakdown-border: rgba(255, 255, 255, 0.04);
-            --section-subtitle-border: rgba(255, 255, 255, 0.05);
-            --dropdown-bg: rgba(15, 22, 38, 0.9);
+            --bg: #f5f6fa;
+            --card: #ffffff;
+            --card-border: #e2e4ea;
+            --text-primary: #1a1d27;
+            --text-secondary: #6b7084;
+            --text-muted: #8b8fa3;
+            --primary: #3b3f54;
+            --primary-glow: rgba(59, 63, 84, 0.08);
+            --positive: #3d8b68;
+            --positive-bg: rgba(61, 139, 104, 0.08);
+            --negative: #c95a5a;
+            --negative-bg: rgba(201, 90, 90, 0.08);
+            --gold: #b5802e;
+            --gold-bg: rgba(181, 128, 46, 0.08);
+            --accent-bg: #f0f1f5;
+            --surface: #f0f1f5;
+            --surface-2: #e8e9ef;
+            --overlay: rgba(15, 23, 42, 0.4);
+            --shadow: rgba(15, 23, 42, 0.06);
+            --radius: 6px;
+            --transition: all 0.15s ease;
         }
 
-        body.light-theme {
-            --bg-color: #f8fafc;
-            --card-bg: rgba(255, 255, 255, 0.8);
-            --card-border: rgba(15, 23, 42, 0.08);
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --primary: #2563eb;
-            --primary-glow: rgba(37, 99, 235, 0.12);
-            --accent-green: #059669;
-            --accent-green-glow: rgba(5, 150, 105, 0.1);
-            --accent-gold: #d97706;
-            --accent-gold-glow: rgba(217, 119, 6, 0.1);
-            --danger: #dc2626;
-            --table-header: rgba(241, 245, 249, 0.95);
-            --table-hover: rgba(15, 23, 42, 0.02);
-
-            --modal-bg: rgba(255, 255, 255, 0.98);
-            --modal-overlay: rgba(15, 23, 42, 0.6);
-            --modal-shadow: rgba(15, 23, 42, 0.15);
-            --breakdown-bg: rgba(15, 23, 42, 0.02);
-            --breakdown-border: rgba(15, 23, 42, 0.04);
-            --section-subtitle-border: rgba(15, 23, 42, 0.08);
-            --dropdown-bg: rgba(241, 245, 249, 0.95);
+        .dark {
+            --bg: #12141c;
+            --card: #181b24;
+            --card-border: #282c38;
+            --text-primary: #ecedee;
+            --text-secondary: #8b8fa3;
+            --text-muted: #6b7084;
+            --primary: #8b8fa3;
+            --primary-glow: rgba(139, 143, 163, 0.1);
+            --positive: #5aad84;
+            --positive-bg: rgba(90, 173, 132, 0.1);
+            --negative: #d47a7a;
+            --negative-bg: rgba(212, 122, 122, 0.1);
+            --gold: #d4a84a;
+            --gold-bg: rgba(212, 168, 74, 0.1);
+            --accent-bg: #22252e;
+            --surface: #1e2129;
+            --surface-2: #252833;
+            --overlay: rgba(0, 0, 0, 0.6);
+            --shadow: rgba(0, 0, 0, 0.3);
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
+            background: var(--bg);
             color: var(--text-primary);
             min-height: 100vh;
-            padding: 2rem 1.5rem;
-            background-image:
-                radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 40%);
-            background-attachment: fixed;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        body.light-theme {
-            background-image:
-                radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.04) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.04) 0%, transparent 40%);
-        }
-
-        .action-btn {
-            background: var(--card-bg);
-            border: 1.5px solid var(--text-secondary);
-            color: var(--text-primary);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-weight: 600;
-            cursor: pointer;
+            padding: 0;
             transition: var(--transition);
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            outline: none;
-            font-family: 'Outfit', sans-serif;
-            backdrop-filter: blur(6px);
-            text-decoration: none;
-            font-size: inherit;
-            line-height: inherit;
         }
 
-        .action-btn:hover {
-            background: color-mix(in srgb, var(--primary) 15%, var(--card-bg));
-            border-color: var(--primary);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px var(--primary-glow);
-        }
+        .font-mono { font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace; }
+        .tabular { font-variant-numeric: tabular-nums; }
+        .keep-all { word-break: keep-all; overflow-wrap: break-word; }
 
-        .action-btn:active {
-            transform: translateY(0);
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 1rem; }
 
-        .action-btn:focus-visible {
-            outline: 2px solid var(--primary);
-            outline-offset: 2px;
-        }
-
-
-
-        h1,
-        h2,
-        h3,
-        .font-outfit {
-            font-family: 'Outfit', sans-serif;
-        }
-
-        .container {
-            max-width: 1300px;
-            margin: 0 auto;
-        }
-
-        /* PDF export: remove ALL excess whitespace */
-        @page {
-            margin: 0;
-        }
-
-        body.pdf-export {
-            padding: 0 !important;
-            margin: 0 !important;
-        }
-
-        body.pdf-export .container {
-            padding-top: 0 !important;
-            margin-top: 0 !important;
-        }
-
-        body.pdf-export header {
-            margin: 0 0 0.25rem 0 !important;
-            padding: 0.25rem 0 !important;
-            border-bottom-width: 1px;
-        }
-
-        body.pdf-export .logo-area h1 {
-            font-size: 1rem !important;
-            line-height: 1.2 !important;
-            margin: 0 !important;
-        }
-
-        body.pdf-export .logo-area p {
-            font-size: 0.65rem !important;
-            line-height: 1.2 !important;
-            margin: 0 !important;
-        }
-
-        body.pdf-export #pdf-temp-header {
-            display: block !important;
-        }
-
-        body.pdf-export #export-btn,
-        body.pdf-export #help-toggle-btn,
-        body.pdf-export #theme-toggle-btn,
-        body.pdf-export .timestamp,
-        body.pdf-export .disclaimer {
-            display: none !important;
-        }
-
-        body.pdf-export .controls-row {
-            margin-bottom: 0.2rem !important;
-        }
-
-        body.pdf-export .tab-bar {
-            margin-bottom: 0.2rem !important;
-        }
-
-        body.pdf-export table {
-            font-size: 0.6rem !important;
-        }
-
-        body.pdf-export th,
-        body.pdf-export td {
-            padding: 0.2rem 0.35rem !important;
-        }
-
-        body.pdf-export .score-badge {
-            font-size: 0.55rem !important;
-            padding: 0.1rem 0.3rem !important;
-            min-width: 1rem !important;
-        }
-
-        body.pdf-export .card {
-            padding: 0.5rem !important;
-        }
-
-        body.pdf-export .table-container {
-            overflow: visible !important;
-            overflow-x: visible !important;
-        }
-
+        /* ── Header compacto ── */
         header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2.5rem;
             border-bottom: 1px solid var(--card-border);
-            padding-bottom: 1.5rem;
+            background: var(--card);
         }
-
-        .logo-area h1 {
-            font-size: 2.2rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #60a5fa 0%, #34d399 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -0.5px;
+        .header-inner {
+            max-width: 1400px; margin: 0 auto;
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.6rem 1rem;
         }
-
-        .logo-area p {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            margin-top: 0.25rem;
-        }
-
-        .timestamp {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            background: var(--card-bg);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
+        .logo-icon {
+            display: grid; place-items: center;
+            width: 2.4rem; height: 2.4rem;
+            border-radius: 4px;
             border: 1px solid var(--card-border);
-        }
-
-        .disclaimer {
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-            opacity: 0.7;
-            max-width: 280px;
-            line-height: 1.3;
-            text-align: right;
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .controls-filters {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        /* Tabs & Controls */
-        .controls-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .tabs {
-            display: flex;
-            background: var(--card-bg);
-            padding: 0.35rem;
-            border-radius: 12px;
-            border: 1px solid var(--card-border);
-            backdrop-filter: blur(10px);
-        }
-
-        .tab-btn {
-            background: transparent;
-            border: 1.5px solid transparent;
-            color: var(--text-secondary);
-            padding: 0.6rem 1.5rem;
-            font-size: 0.95rem;
-            font-weight: 600;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: var(--transition);
-            font-family: 'Outfit', sans-serif;
-        }
-
-        .tab-btn:hover {
-            color: var(--text-primary);
-            border-color: var(--text-secondary);
-        }
-
-        .tab-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-            box-shadow: 0 4px 12px var(--primary-glow);
-        }
-
-        .search-container {
-            position: relative;
-        }
-
-        .search-input {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            color: var(--text-primary);
-            padding: 0.6rem 1rem 0.6rem 2.5rem;
-            border-radius: 10px;
-            width: 250px;
-            font-size: 0.9rem;
-            outline: none;
-            transition: var(--transition);
-        }
-
-        .search-input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 10px var(--primary-glow);
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 0.85rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-secondary);
-            pointer-events: none;
-            font-size: 0.9rem;
-        }
-
-        /* Cards Summary */
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2.5rem;
-        }
-
-        .summary-card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 16px;
-            padding: 1.5rem;
-            backdrop-filter: blur(10px);
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .summary-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-        }
-
-        .card-stock::before {
-            background: linear-gradient(90deg, var(--primary) 0%, #60a5fa 100%);
-        }
-
-        .card-fii::before {
-            background: linear-gradient(90deg, var(--accent-green) 0%, #34d399 100%);
-        }
-
-        .summary-card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        }
-
-        .card-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .top-list {
-            list-style: none;
-        }
-
-        .top-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.5rem 0.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            cursor: pointer;
-            border-radius: 8px;
-            transition: background 0.2s ease;
-            margin: 0 -0.5rem;
-            gap: 0.5rem;
-        }
-
-        .top-item:hover {
-            background: var(--table-hover);
-        }
-
-        .top-item:last-child {
-            border-bottom: none;
-            padding-bottom: 0.5rem;
-        }
-
-        .top-ticker {
-            font-weight: 700;
-            font-family: 'Outfit', sans-serif;
+            background: var(--surface-2);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem; font-weight: 700;
             color: var(--text-primary);
             flex-shrink: 0;
         }
+        .logo-text h1 {
+            font-size: 1.3rem; font-weight: 700; letter-spacing: -0.2px;
+        }
+        .logo-text p {
+            font-size: 0.95rem; color: var(--text-muted);
+        }
+        .header-right {
+            margin-left: auto;
+            display: flex; align-items: center; gap: 0.9rem;
+        }
+        .header-ts {
+            font-size: 0.85rem; color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+        .disclaimer {
+            font-size: 0.8rem; color: var(--text-muted);
+            max-width: 240px; line-height: 1.3; text-align: right;
+        }
+        @media (max-width: 640px) {
+            .disclaimer { display: none; }
+        }
 
+        /* ── Action / Ghost button ── */
+        .action-btn {
+            background: transparent;
+            border: 1px solid var(--card-border);
+            color: var(--text-secondary);
+            padding: 0.5rem 0.9rem;
+            border-radius: var(--radius);
+            font-size: 0.9rem; font-weight: 500;
+            cursor: pointer; transition: var(--transition);
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            font-family: 'Inter', sans-serif;
+            text-decoration: none;
+            line-height: 1.2;
+        }
+        .action-btn:hover {
+            background: var(--accent-bg);
+            color: var(--text-primary);
+        }
+
+        /* ── Summary Cards ── */
+        .summary-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem; margin: 1rem 0;
+        }
+        @media (max-width: 900px) { .summary-grid { grid-template-columns: 1fr; } }
+
+        .summary-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 0.75rem;
+        }
+        .card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 0.4rem; margin-bottom: 0.5rem;
+        }
+        .card-header h3 {
+            font-size: 0.85rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; color: var(--text-muted);
+        }
+        .card-header span { font-size: 0.8rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+
+        .top-list { list-style: none; }
+        .top-item {
+            display: flex; align-items: center; gap: 0.5rem;
+            padding: 0.35rem 0.35rem;
+            border-bottom: 1px solid var(--card-border);
+            cursor: pointer; border-radius: 3px;
+            transition: background 0.1s;
+        }
+        .top-item:last-child { border-bottom: none; }
+        .top-item:hover { background: var(--accent-bg); }
+        .top-rank { width: 1.4rem; font-size: 0.8rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; text-align: center; }
+        .top-ticker { font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; }
+        .top-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.9rem; color: var(--text-muted); }
+        .top-dy { font-size: 0.9rem; color: var(--positive); font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; font-weight: 600; }
         .top-val {
             font-weight: 600;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             text-align: right;
+            font-family: 'JetBrains Mono', monospace;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+            color: var(--text-secondary);
         }
 
-        .badge {
-            padding: 0.2rem 0.5rem;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 700;
+        /* ── Tabs (underline style) ── */
+        .tabs-row {
+            border-bottom: 1px solid var(--card-border);
+            display: flex; gap: 0; margin-bottom: 0.75rem;
         }
-
-        .badge-green {
-            background-color: var(--accent-green-glow);
-            color: var(--accent-green);
+        .tab-btn {
+            background: transparent; border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-muted);
+            padding: 0.7rem 1.4rem;
+            font-size: 1rem; font-weight: 600;
+            cursor: pointer; transition: var(--transition);
+            font-family: 'Inter', sans-serif;
+            margin-bottom: -1px;
         }
+        .tab-btn:hover { color: var(--text-primary); }
+        .tab-btn.active { color: var(--text-primary); border-bottom-color: var(--text-primary); }
 
-        .badge-gold {
-            background-color: var(--accent-gold-glow);
-            color: var(--accent-gold);
+        /* ── Filters ── */
+        .filters-row {
+            display: flex; flex-wrap: wrap; gap: 0.5rem;
+            align-items: center; margin-bottom: 0.75rem;
         }
-
-        /* Tables */
-        .table-container {
-            background: var(--card-bg);
+        .filter-input {
+            background: var(--card);
             border: 1px solid var(--card-border);
-            border-radius: 16px;
-            overflow: visible;
-            backdrop-filter: blur(10px);
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            color: var(--text-primary);
+            padding: 0.5rem 0.8rem;
+            border-radius: var(--radius);
+            font-size: 1rem;
+            outline: none; transition: var(--transition);
+            font-family: 'Inter', sans-serif;
+        }
+        .filter-input:focus { border-color: var(--text-secondary); }
+        .filter-select {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            padding: 0.5rem 0.8rem;
+            border-radius: var(--radius);
+            font-size: 1rem;
+            outline: none; cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: var(--transition);
+        }
+        .filter-select:hover { border-color: var(--text-secondary); }
+        .filter-select.hidden { display: none !important; }
+
+        .search-wrap { position: relative; }
+        .search-wrap input { padding-left: 1.6rem; width: 180px; }
+        .search-icon {
+            position: absolute; left: 0.5rem; top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.85rem; pointer-events: none;
+            color: var(--text-muted);
+        }
+
+        .score-filter {
+            display: flex; align-items: center; gap: 0.3rem;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 0.2rem 0.4rem;
+            background: var(--card);
+        }
+        .score-filter label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; }
+
+        /* ── Table ── */
+        .table-wrap {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+        .table-header-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid var(--card-border);
+            font-size: 0.65rem; color: var(--text-muted);
         }
         .table-scroll {
-            overflow-x: auto;
-            overflow-y: visible;
+            overflow-x: auto; overflow-y: visible;
             -webkit-overflow-scrolling: touch;
         }
-
         table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-            font-size: 0.85rem;
+            width: 100%; border-collapse: collapse;
+            font-size: 1rem;
+        }
+        th {
+            padding: 0.6rem 0.8rem;
+            background: var(--surface);
+            color: var(--text-muted);
+            font-weight: 600; font-size: 0.8rem;
+            text-transform: uppercase; letter-spacing: 0.4px;
+            border-bottom: 1px solid var(--card-border);
+            cursor: pointer; user-select: none;
+            white-space: nowrap;
+            transition: var(--transition);
+        }
+        th:hover { color: var(--text-primary); }
+        td {
+            padding: 0.6rem 0.8rem;
+            border-bottom: 1px solid var(--card-border);
+            color: var(--text-secondary);
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+        }
+        tr:last-child td { border-bottom: none; }
+        tbody tr { cursor: pointer; transition: var(--transition); }
+        tbody tr:hover td { background: var(--accent-bg); color: var(--text-primary); }
+
+        th:first-child, td:first-child {
+            position: sticky; left: 0; z-index: 2;
+            background: var(--card);
+            border-right: 1px solid var(--card-border);
+        }
+        th:first-child { background: var(--surface); z-index: 3; }
+        tbody tr:hover td:first-child { background: var(--accent-bg); }
+
+        .ticker-cell {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600; color: var(--text-primary);
+        }
+        .ticker-line {
+            display: flex; align-items: center; gap: 0.25rem;
+            margin-bottom: 0.1rem;
+        }
+        .ticker-line:last-child { margin-bottom: 0; }
+        .ticker-symbol {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700; font-size: 1rem;
+            color: var(--text-primary);
+        }
+        .name-cell {
+            min-width: 120px; max-width: 200px;
+            overflow-wrap: break-word; word-break: keep-all;
+            white-space: normal; line-height: 1.3;
+            font-size: 0.9rem;
         }
 
-        /* ── Tooltips temáticos ── */
-        .hint {
+        /* Score badge — quadrado, mono, igual ao React v2 */
+        .score-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 1.75rem; height: 1.75rem;
+            padding: 0 0.4rem;
+            border-radius: 3px;
+            border: 1px solid var(--card-border);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem; font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            background: var(--card);
+            color: var(--text-secondary);
+        }
+        .score-badge.b4 { border-color: var(--positive); color: var(--positive); background: var(--positive-bg); }
+        .score-badge.b3 { border-color: var(--positive); color: var(--positive); background: var(--positive-bg); }
+        .score-badge.b2 { border-color: var(--gold); color: var(--gold); background: var(--gold-bg); }
+        .score-badge.b1 { border-color: var(--negative); color: var(--negative); background: var(--negative-bg); }
+        .score-badge.b0 { border-color: var(--negative); color: var(--negative); background: var(--negative-bg); }
+
+        /* ── Versão pill para badge contínuo (score-pill) ── */
+        .score-pill {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 2rem; height: 2rem;
+            padding: 0 0.5rem;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem; font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+        .score-premium { background: var(--positive-bg); color: var(--positive); border: 1px solid var(--positive); }
+        .score-good { background: var(--positive-bg); color: var(--positive); border: 1px solid transparent; }
+        .score-alert { background: var(--gold-bg); color: var(--gold); border: 1px solid transparent; }
+        .score-risk { background: var(--negative-bg); color: var(--negative); border: 1px solid transparent; }
+
+        .positive { color: var(--positive); }
+        .negative { color: var(--negative); }
+        .warning { color: var(--gold); }
+        .hidden { display: none !important; }
+
+        /* ── Index pills ── */
+        .index-pill {
+            font-size: 0.65rem; padding: 0.08rem 0.3rem;
+            border-radius: 2px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.3px;
+            display: inline-block;
+        }
+        .index-pill.ibov { background: rgba(59,130,246,0.12); color: #4a7fcf; border: 1px solid rgba(59,130,246,0.2); }
+        .index-pill.idiv { background: rgba(61,139,104,0.12); color: var(--positive); border: 1px solid rgba(61,139,104,0.2); }
+        .index-pill.smll { background: var(--gold-bg); color: var(--gold); border: 1px solid rgba(181,128,46,0.2); }
+        .index-pill.iee { background: rgba(6,182,212,0.1); color: #1a9db8; border: 1px solid rgba(6,182,212,0.2); }
+        .index-pill.ifnc { background: rgba(139,92,246,0.1); color: #8b7fd4; border: 1px solid rgba(139,92,246,0.2); }
+
+        /* ── Modal ── */
+        .modal {
+            position: fixed; z-index: 100;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background: var(--overlay);
+            backdrop-filter: blur(4px);
+            display: flex; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            width: 90%; max-width: 800px;
+            padding: 1.5rem;
+            box-shadow: 0 16px 40px var(--shadow);
             position: relative;
-            cursor: help;
-            border-bottom: 1px dashed var(--text-secondary);
+            animation: fadeIn 0.15s ease;
+            max-height: 90vh; overflow-y: auto;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+        .close-btn {
+            position: absolute; right: 1rem; top: 1rem;
+            font-size: 1.5rem; cursor: pointer;
+            color: var(--text-muted); line-height: 1;
+            background: none; border: none;
+            font-family: 'Inter', sans-serif;
+        }
+        .close-btn:hover { color: var(--text-primary); }
+        .modal-header h2 {
+            font-size: 1.15rem; font-weight: 700;
+            margin-bottom: 0.15rem;
+        }
+        .modal-header p { font-size: 1rem; color: var(--text-muted); margin-bottom: 1rem; }
+
+        .modal-body-grid {
+            display: grid; grid-template-columns: 1fr 1.2fr;
+            gap: 1.5rem;
+        }
+        @media (max-width: 700px) { .modal-body-grid { grid-template-columns: 1fr; } }
+
+        .section-title {
+            font-size: 1rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; color: var(--text-muted);
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 0.4rem; margin-bottom: 0.75rem;
+        }
+
+        /* ── Breakdown items (modal) ── */
+        .breakdown-list { display: flex; flex-direction: column; gap: 0.5rem; }
+        .breakdown-item {
+            padding: 0.6rem 0.85rem;
+            border-radius: 6px;
+            background: var(--surface);
+            border: 1px solid var(--card-border);
+            font-size: 0.95rem;
+        }
+        .breakdown-item.legacy {
+            display: flex; flex-direction: row;
+            align-items: center; justify-content: space-between;
+        }
+        .breakdown-check { font-weight: 700; }
+        .bar-container {
+            width: 100%; height: 4px;
+            background: rgba(148,163,184,0.15);
+            border-radius: 2px; overflow: hidden;
+            margin: 0.1rem 0;
+        }
+        .bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s ease; min-width: 0; }
+
+        /* ── Export menu ── */
+        .export-menu {
+            position: absolute; top: 100%; right: 0;
+            margin-top: 0.3rem;
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 0.3rem;
+            min-width: 180px;
+            box-shadow: 0 8px 24px var(--shadow);
+            z-index: 50;
+        }
+
+        /* ── PDF export ── */
+        @page { margin: 0; }
+        body.pdf-export { padding: 0 !important; margin: 0 !important; }
+        body.pdf-export .container { padding: 0 !important; }
+        body.pdf-export header { margin: 0 !important; padding: 0.2rem 0 !important; }
+        body.pdf-export .logo-text h1 { font-size: 0.8rem !important; }
+        body.pdf-export .logo-text p { font-size: 0.55rem !important; }
+        body.pdf-export .header-ts { display: none !important; }
+        body.pdf-export #export-btn, body.pdf-export #help-toggle-btn, body.pdf-export #theme-toggle-btn { display: none !important; }
+        body.pdf-export .summary-grid { margin: 0.3rem 0 !important; }
+        body.pdf-export table { font-size: 0.55rem !important; }
+        body.pdf-export th, body.pdf-export td { padding: 0.15rem 0.3rem !important; }
+        body.pdf-export .table-wrap { margin-bottom: 0.3rem !important; }
+
+        /* ── Hint tooltips ── */
+        .hint {
+            position: relative; cursor: help;
+            border-bottom: 1px dashed var(--text-muted);
         }
         .hint::after {
             content: attr(data-tip);
-            position: absolute;
-            top: calc(100% + 8px);
-            left: 50%;
-            transform: translateX(-50%) scale(0.9);
+            position: absolute; top: calc(100% + 6px); left: 50%;
+            transform: translateX(-50%) scale(0.95);
             transform-origin: top center;
-            background: var(--card-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            background: var(--card);
             color: var(--text-primary);
             border: 1px solid var(--card-border);
-            padding: 0.6rem 0.9rem;
-            border-radius: 10px;
-            font-size: 0.8rem;
-            font-weight: 400;
+            padding: 0.4rem 0.7rem;
+            border-radius: var(--radius);
+            font-size: 0.8rem; font-weight: 400;
             font-family: 'Inter', sans-serif;
-            white-space: normal;
-            width: 260px;
-            text-align: left;
-            line-height: 1.4;
-            box-shadow: 0 8px 32px var(--modal-shadow);
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.2s ease, transform 0.2s ease;
+            white-space: normal; width: 240px;
+            text-align: left; line-height: 1.4;
+            box-shadow: 0 8px 24px var(--shadow);
+            pointer-events: none; opacity: 0;
+            transition: opacity 0.15s ease, transform 0.15s ease;
             z-index: 50;
         }
         .hint::before {
             content: '';
-            position: absolute;
-            top: calc(100% + 4px);
-            left: 50%;
+            position: absolute; top: calc(100% + 2px); left: 50%;
             transform: translateX(-50%);
-            border: 6px solid transparent;
+            border: 5px solid transparent;
             border-bottom-color: var(--card-border);
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-            z-index: 51;
+            pointer-events: none; opacity: 0;
+            transition: opacity 0.15s ease; z-index: 51;
         }
-        .hint:hover::after,
-        .hint:focus::after {
-            opacity: 1;
-            transform: translateX(-50%) scale(1);
-        }
-        .hint:hover::before,
-        .hint:focus::before {
-            opacity: 1;
-        }
+        .hint:hover::after, .hint:focus::after { opacity: 1; transform: translateX(-50%) scale(1); }
+        .hint:hover::before, .hint:focus::before { opacity: 1; }
+        .hint:focus { outline: none; }
+        th:last-child .hint::after { left: auto; right: 0; transform: none; }
+        th:last-child .hint::before { left: auto; right: 1rem; transform: none; }
 
-        /* ── Remove outline transparente do hint em foco ── */
-        .hint:focus {
-            outline: none;
+        /* ── Range btns ── */
+        .range-group {
+            display: flex; gap: 0; overflow: hidden;
+            border: 1px solid var(--card-border); border-radius: var(--radius);
         }
-
-        /* ── Evita tooltip da última coluna vazar pra direita ── */
-        th:last-child .hint::after {
-            left: auto;
-            right: 0;
-            transform: none;
-        }
-        th:last-child .hint::before {
-            left: auto;
-            right: 1.2rem;
-            transform: none;
-        }
-
-        th {
-            background: var(--table-header);
-            color: var(--text-primary);
-            font-family: 'Outfit', sans-serif;
-            font-weight: 600;
-            padding: 0.75rem 0.9rem;
-            border-bottom: 1px solid var(--card-border);
-            cursor: pointer;
-            user-select: none;
-            transition: var(--transition);
-            white-space: nowrap;
-        }
-
-        th:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--primary);
-        }
-
-        td {
-            padding: 0.7rem 0.9rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-            color: var(--text-secondary);
-            font-weight: 500;
-            white-space: nowrap;
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        tr:hover td {
-            background: var(--table-hover);
-            color: var(--text-primary);
-        }
-
-        th:first-child {
-            position: sticky;
-            left: 0;
-            z-index: 12;
-            background: var(--table-header);
-            border-right: 1px solid var(--card-border);
-        }
-
-        td:first-child {
-            position: sticky;
-            left: 0;
-            z-index: 10;
-            background: var(--bg-color);
-            border-right: 1px solid var(--card-border);
-        }
-
-        tr:hover td:first-child {
-            background: var(--table-hover) !important;
-        }
-
-        .ticker-col {
-            font-weight: 700;
-            font-family: 'Outfit', sans-serif;
-            color: var(--text-primary);
-        }
-
-        .ticker-line {
-            display: flex;
-            align-items: center;
-            gap: 0.2rem;
-        }
-        .ticker-line + .ticker-line {
-            margin-top: 0.15rem;
-        }
-        .ticker-symbol {
-            font-weight: 700;
-            font-family: 'Outfit', sans-serif;
-            margin-right: 0.15rem;
-        }
-
-        .name-col {
-            min-width: 120px;
-            max-width: 220px;
-            overflow-wrap: break-word;
-            word-break: keep-all;
-            white-space: normal;
-            line-height: 1.3;
-        }
-
-        .metric-highlight {
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-
-        .positive {
-            color: var(--accent-green);
-        }
-
-        .negative {
-            color: var(--danger);
-        }
-
-        .warning {
-            color: var(--accent-gold);
-        }
-
-        .score-pill {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            font-weight: 700;
-            font-size: 0.85rem;
-            font-family: 'Outfit', sans-serif;
-        }
-
-        .score-premium {
-            background: rgba(16, 185, 129, 0.2) !important;
-            color: #10b981 !important;
-            border-color: rgba(16, 185, 129, 0.4) !important;
-        }
-        .score-good {
-            background: rgba(52, 211, 153, 0.12) !important;
-            color: #34d399 !important;
-            border-color: rgba(52, 211, 153, 0.25) !important;
-        }
-        .score-alert {
-            background: rgba(251, 191, 36, 0.12) !important;
-            color: #f59e0b !important;
-            border-color: rgba(251, 191, 36, 0.25) !important;
-        }
-        .score-risk {
-            background: rgba(239, 68, 68, 0.15) !important;
-            color: #ef4444 !important;
-            border-color: rgba(239, 68, 68, 0.3) !important;
-        }
-
-        .score-5 {
-            background: rgba(16, 185, 129, 0.2);
-            color: var(--accent-green);
-            border: 1px solid var(--accent-green);
-        }
-
-        .score-4 {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--accent-green);
-        }
-
-        .score-3 {
-            background: rgba(245, 158, 11, 0.1);
-            color: var(--accent-gold);
-        }
-
-        .score-2 {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger);
-        }
-
-        .score-1 {
-            background: rgba(239, 68, 68, 0.2);
-            color: var(--danger);
-            border: 1px solid var(--danger);
-        }
-
-        .score-0 {
-            background: rgba(239, 68, 68, 0.2);
-            color: var(--danger);
-            border: 1px solid var(--danger);
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        .time-ranges {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1.2rem;
-        }
-
         .range-btn {
-            background: var(--card-bg);
-            border: 1.5px solid var(--text-secondary);
-            color: var(--text-secondary);
-            padding: 0.35rem 0.75rem;
-            font-size: 0.8rem;
-            font-weight: 600;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: var(--transition);
-            font-family: 'Outfit', sans-serif;
-            outline: none;
+            background: transparent; border: none;
+            color: var(--text-muted);
+            padding: 0.4rem 0.75rem;
+            font-size: 0.85rem; font-weight: 600;
+            cursor: pointer; transition: var(--transition);
+            font-family: 'Inter', sans-serif;
+            border-right: 1px solid var(--card-border);
         }
+        .range-btn:last-child { border-right: none; }
+        .range-btn:hover { background: var(--accent-bg); color: var(--text-primary); }
+        .range-btn.active { background: var(--text-primary); color: var(--card); }
 
-        .range-btn:hover {
-            color: var(--text-primary);
-            border-color: var(--primary);
-            background: color-mix(in srgb, var(--primary) 10%, var(--card-bg));
-        }
-
-        .range-btn.active {
-            background: var(--primary);
-            color: white !important;
-            border-color: var(--primary);
-            box-shadow: 0 4px 10px var(--primary-glow);
-        }
-
-        .index-pill {
-            font-size: 0.65rem;
-            padding: 0.1rem 0.35rem;
-            border-radius: 4px;
-            font-weight: 700;
-            text-transform: uppercase;
-            display: inline-block;
-        }
-
-        .index-pill.ibov {
-            background: rgba(59, 130, 246, 0.15);
-            color: #60a5fa;
-            border: 1px solid rgba(59, 130, 246, 0.25);
-        }
-
-        .index-pill.idiv {
-            background: rgba(16, 185, 129, 0.15);
-            color: #32a179;
-            border: 1px solid rgba(16, 185, 129, 0.25);
-        }
-
-        .index-pill.smll {
-            background: rgba(245, 158, 11, 0.15);
-            color: #fbbf24;
-            border: 1px solid rgba(245, 158, 11, 0.25);
-        }
-
-        .index-pill.iee {
-            background: rgba(6, 182, 212, 0.15);
-            color: #22d3ee;
-            border: 1px solid rgba(6, 182, 212, 0.25);
-        }
-
-        .index-pill.ifnc {
-            background: rgba(139, 92, 246, 0.15);
-            color: #a78bfa;
-            border: 1px solid rgba(139, 92, 246, 0.25);
-        }
-
-        .filter-select {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            color: var(--text-primary);
-            padding: 0.6rem 1rem;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            outline: none;
-            cursor: pointer;
-            font-family: 'Outfit', sans-serif;
-            transition: var(--transition);
-        }
-
-        .filter-select:hover {
-            border-color: var(--primary);
-            box-shadow: 0 4px 12px var(--primary-glow);
-        }
-
-        .filter-select.hidden {
-            display: none !important;
-        }
-
-        .score-range-filter {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            padding: 0.35rem 0.75rem;
-            border-radius: 10px;
-            transition: var(--transition);
-        }
-
-        .score-range-filter:hover {
-            border-color: var(--primary);
-            box-shadow: 0 4px 12px var(--primary-glow);
-        }
-
-        .score-range-filter.hidden {
-            display: none !important;
-        }
-
-        .filter-label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            font-family: 'Outfit', sans-serif;
-        }
-
-        .score-range-filter select {
-            min-width: 180px;
-        }
-
-        /* Responsive styling */
+        /* ── Responsivo ── */
         @media (max-width: 768px) {
-            body {
-                padding: 1rem;
-            }
-
-            header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
-            }
-
-            .logo-area h1 {
-                font-size: 1.8rem;
-            }
-
-            .header-actions {
-                flex-wrap: wrap;
-                width: 100%;
-                gap: 0.5rem;
-            }
-
-            .header-actions>* {
-                flex: 1 1 auto;
-            }
-
-            .disclaimer {
-                text-align: left;
-                max-width: 100%;
-            }
-
-            .summary-grid {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-
-            .controls-row {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .controls-filters {
-                flex-direction: column;
-                align-items: stretch;
-                width: 100%;
-                gap: 0.75rem;
-            }
-
-            .filter-select {
-                width: 100%;
-                box-sizing: border-box;
-            }
-
-            .score-range-filter {
-                width: 100%;
-                box-sizing: border-box;
-                justify-content: space-between;
-                padding: 0.5rem 0.75rem;
-            }
-
-            .search-container {
-                width: 100%;
-            }
-
-            .search-input {
-                width: 100%;
-                box-sizing: border-box;
-            }
-
-            .tabs {
-                width: 100%;
-                display: flex;
-                justify-content: space-between;
-            }
-
-            .tab-btn {
-                padding: 0.5rem 0.5rem;
-                font-size: 0.8rem;
-                flex: 1;
-                text-align: center;
-            }
-
-            table {
-                font-size: 0.8rem;
-            }
-
-            th,
-            td {
-                padding: 0.75rem 0.5rem;
-            }
-        }
-
-        tbody tr {
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        /* Modal Glassmorphism */
-        .modal {
-            position: fixed;
-            z-index: 100;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--modal-overlay);
-            backdrop-filter: blur(8px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: var(--transition);
-        }
-
-        .modal-content {
-            background: var(--modal-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 20px;
-            width: 90%;
-            max-width: 850px;
-            padding: 2.5rem;
-            box-shadow: 0 20px 50px var(--modal-shadow);
-            position: relative;
-            animation: modalFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            transition: background 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        @keyframes modalFadeIn {
-            from {
-                transform: scale(0.95);
-                opacity: 0;
-            }
-
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        .close-btn {
-            position: absolute;
-            right: 1.5rem;
-            top: 1.5rem;
-            font-size: 2rem;
-            cursor: pointer;
-            color: var(--text-secondary);
-            transition: var(--transition);
-        }
-
-        .close-btn:hover {
-            color: var(--text-primary);
-        }
-
-        .modal-header h2 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: var(--text-primary);
-            margin-bottom: 0.2rem;
-        }
-
-        .modal-header p {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .modal-body-grid {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 2rem;
-        }
-
-        @media (max-width: 768px) {
-            .modal-body-grid {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
-            }
-
-            .modal-content {
-                padding: 1.5rem;
-                margin-top: 2rem;
-                max-height: 90vh;
-                overflow-y: auto;
-            }
-        }
-
-        .section-subtitle {
-            font-size: 1.2rem;
-            font-weight: 700;
-            border-bottom: 1px solid var(--section-subtitle-border);
-            padding-bottom: 0.5rem;
-            margin-bottom: 1rem;
-            transition: border-color 0.3s ease;
-        }
-
-        .breakdown-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .breakdown-item {
-            display: flex;
-            flex-direction: column;
-            padding: 0.6rem 0.85rem;
-            border-radius: 8px;
-            background: var(--breakdown-bg);
-            border: 1px solid var(--breakdown-border);
-            font-size: 0.9rem;
-            transition: background 0.3s ease, border-color 0.3s ease;
-        }
-
-        .breakdown-item.legacy {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .breakdown-check {
-            font-weight: 700;
-        }
-
-        /* v2.5 progress bars */
-        .bar-container {
-            width: 100%;
-            height: 6px;
-            background: var(--border-color, rgba(148, 163, 184, 0.2));
-            border-radius: 4px;
-            overflow: hidden;
-            margin: 0.15rem 0;
-        }
-        .bar-fill {
-            height: 100%;
-            border-radius: 4px;
-            transition: width 0.4s ease;
-            min-width: 0;
-        }
-
-        .export-menu {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            margin-top: 0.5rem;
-            background: var(--modal-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 0.5rem;
-            min-width: 230px;
-            box-shadow: 0 10px 30px var(--modal-shadow);
-            z-index: 50;
-            backdrop-filter: blur(10px);
-        }
-
-        @media (max-width: 768px) {
-            .export-menu {
-                left: 0;
-                right: auto;
-            }
+            .header-inner { flex-wrap: wrap; gap: 0.4rem; }
+            .header-ts { font-size: 0.6rem; }
+            .summary-grid { grid-template-columns: 1fr; }
+            .filters-row { flex-direction: column; align-items: stretch; }
+            .search-wrap input { width: 100%; }
+            .filter-select { width: 100%; }
+            .tabs-row { overflow-x: auto; }
+            .tab-btn { padding: 0.6rem 1rem; font-size: 0.9rem; flex-shrink: 0; }
+            .modal-content { padding: 1rem; margin: 0.5rem; }
         }
     </style>
 </head>
@@ -1126,82 +562,53 @@
     <script>
         (function () {
             const savedTheme = localStorage.getItem('theme');
-            if (savedTheme === 'light') {
-                document.body.classList.add('light-theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark');
             }
         })();
     </script>
 
     <div class="container">
         <header>
-            <div class="logo-area">
-                <h1>Radar Fundamentalista B3</h1>
-                <p>Análise automatizada baseada em Graham, Bazin e Indicadores de Saúde Financeira</p>
-            </div>
-            <div class="header-actions">
-
-                <div style="position: relative; display: inline-block;">
-                    <button id="export-btn" onclick="toggleExportMenu()" class="action-btn">
-                        <span>📥</span>
-                        <span>Exportar</span>
-                    </button>
-                    <div id="export-menu" class="export-menu" style="display: none;">
-                        <div
-                            style="padding: 0.4rem 0.75rem; font-size: 0.75rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                            Dados Brutos</div>
-                        <a href="export_stocks.csv" download
-                            style="display: block; padding: 0.5rem 0.75rem; color: var(--text-primary); text-decoration: none; border-radius: 8px; font-size: 0.9rem; transition: var(--transition);"
-                            onmouseover="this.style.background='var(--table-hover)'"
-                            onmouseout="this.style.background='transparent'">📊 CSV - Ações</a>
-                        <a href="export_ativos.json" download
-                            style="display: block; padding: 0.5rem 0.75rem; color: var(--text-primary); text-decoration: none; border-radius: 8px; font-size: 0.9rem; transition: var(--transition);"
-                            onmouseover="this.style.background='var(--table-hover)'"
-                            onmouseout="this.style.background='transparent'">📋 JSON - Todos os Ativos</a>
-                        <a href="export_fiis.csv" download
-                            style="display: block; padding: 0.5rem 0.75rem; color: var(--text-primary); text-decoration: none; border-radius: 8px; font-size: 0.9rem; transition: var(--transition);"
-                            onmouseover="this.style.background='var(--table-hover)'"
-                            onmouseout="this.style.background='transparent'">🏢 CSV - FIIs</a>
-                        <a href="export_fiagros.csv" download
-                            style="display: block; padding: 0.5rem 0.75rem; color: var(--text-primary); text-decoration: none; border-radius: 8px; font-size: 0.9rem; transition: var(--transition);"
-                            onmouseover="this.style.background='var(--table-hover)'"
-                            onmouseout="this.style.background='transparent'">🌱 CSV - FIAGROs</a>
-                        <div style="height: 1px; background: var(--card-border); margin: 0.25rem 0;"></div>
-                        <div
-                            style="padding: 0.4rem 0.75rem; font-size: 0.75rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                            Relatório</div>
-                        <a href="#" onclick="exportPDF(); return false;"
-                            style="display: block; padding: 0.5rem 0.75rem; color: var(--text-primary); text-decoration: none; border-radius: 8px; font-size: 0.9rem; transition: var(--transition);"
-                            onmouseover="this.style.background='var(--table-hover)'"
-                            onmouseout="this.style.background='transparent'">📄 PDF - <span id="pdf-label">Ações</span>
-                            (aba atual)</a>
-                        <div style="height: 1px; background: var(--card-border); margin: 0.25rem 0;"></div>
-                        <div
-                            style="padding: 0.4rem 0.75rem; font-size: 0.75rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                            Para IA</div>
-                        <a href="export_top_picks.json" download
-                            style="display: block; padding: 0.5rem 0.75rem; color: var(--accent-gold); text-decoration: none; border-radius: 8px; font-size: 0.9rem; transition: var(--transition);"
-                            onmouseover="this.style.background='var(--table-hover)'"
-                            onmouseout="this.style.background='transparent'">🤖 Top Picks JSON (pronto pra IA)</a>
+            <div class="header-inner">
+                <div class="logo-icon">RB</div>
+                <div class="logo-text">
+                    <h1>Radar Fundamentalista B3</h1>
+                    <p>Graham · Bazin · FIIs · FIAGROs · Score Contínuo v2.5</p>
+                </div>
+                <div class="header-right">
+                    <div style="position: relative; display: inline-block;">
+                        <button id="export-btn" onclick="toggleExportMenu()" class="action-btn">
+                            <span>📥</span>
+                            <span>Exportar</span>
+                        </button>
+                        <div id="export-menu" class="export-menu" style="display: none;">
+                            <div style="padding:0.4rem 0.75rem;font-size:0.7rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Dados Brutos</div>
+                            <a href="#" onclick="downloadStocksCSV(); return false;" style="display:block;padding:0.4rem 0.75rem;color:var(--text-primary);text-decoration:none;font-size:0.75rem;border-radius:4px;transition:var(--transition);" onmouseover="this.style.background='var(--accent-bg)'" onmouseout="this.style.background='transparent'">📊 CSV - Ações</a>
+                            <a href="#" onclick="downloadAllJSON(); return false;" style="display:block;padding:0.4rem 0.75rem;color:var(--text-primary);text-decoration:none;font-size:0.75rem;border-radius:4px;transition:var(--transition);" onmouseover="this.style.background='var(--accent-bg)'" onmouseout="this.style.background='transparent'">📋 JSON - Todos os Ativos</a>
+                            <a href="#" onclick="downloadFiisCSV(); return false;" style="display:block;padding:0.4rem 0.75rem;color:var(--text-primary);text-decoration:none;font-size:0.75rem;border-radius:4px;transition:var(--transition);" onmouseover="this.style.background='var(--accent-bg)'" onmouseout="this.style.background='transparent'">🏢 CSV - FIIs</a>
+                            <a href="#" onclick="downloadFiagrosCSV(); return false;" style="display:block;padding:0.4rem 0.75rem;color:var(--text-primary);text-decoration:none;font-size:0.75rem;border-radius:4px;transition:var(--transition);" onmouseover="this.style.background='var(--accent-bg)'" onmouseout="this.style.background='transparent'">🌱 CSV - FIAGROs</a>
+                            <hr style="border:none;border-top:1px solid var(--card-border);margin:0.25rem 0;">
+                            <div style="padding:0.4rem 0.75rem;font-size:0.7rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Relatório</div>
+                            <a href="#" onclick="exportPDF(); return false;" style="display:block;padding:0.4rem 0.75rem;color:var(--text-primary);text-decoration:none;font-size:0.75rem;border-radius:4px;transition:var(--transition);" onmouseover="this.style.background='var(--accent-bg)'" onmouseout="this.style.background='transparent'">📄 PDF - <span id="pdf-label">Ações</span> (aba atual)</a>
+                            <hr style="border:none;border-top:1px solid var(--card-border);margin:0.25rem 0;">
+                            <div style="padding:0.4rem 0.75rem;font-size:0.7rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Para IA</div>
+                            <a href="#" onclick="downloadTopPicks(); return false;" style="display:block;padding:0.4rem 0.75rem;color:var(--text-primary);text-decoration:none;font-size:0.75rem;border-radius:4px;transition:var(--transition);" onmouseover="this.style.background='var(--accent-bg)'" onmouseout="this.style.background='transparent'">🤖 Top Picks JSON (pronto pra IA)</a>
+                        </div>
                     </div>
-                </div>
-                <button id="help-toggle-btn" onclick="openHelpModal()" class="action-btn">
-                    <span>💡</span>
-                    <span>Como Funciona?</span>
-                </button>
-                <a href="index-v2.html" class="action-btn" aria-label="Usar nova UI"
-                    style="border-color: var(--accent-gold); color: var(--accent-gold); font-size: 0.7rem; padding: 0.3rem 0.6rem; border-radius: 12px;">
-                    ✨ Nova UI
-                </a>
-                <button id="theme-toggle-btn" onclick="toggleTheme()" class="action-btn">
-                    <span id="theme-toggle-icon">🌙</span>
-                    <span>Tema</span>
-                </button>
-                <div class="timestamp">
-                    Atualizado em: <span id="timestamp-container">Carregando...</span>
-                </div>
-                <div class="disclaimer">
-                    ⚠️ Não é recomendação de investimento. Dados coletados via APIs públicas B3 + regras de análise
-                    fundamentalista (Graham, Bazin).
+                    <button id="help-toggle-btn" onclick="openHelpModal()" class="action-btn">
+                        <span>💡</span>
+                        <span>Como Funciona?</span>
+                    </button>
+                    <a href="index.html" class="action-btn" aria-label="Voltar para UI clássica" style="border-color:var(--positive);color:var(--positive);font-size:0.65rem;padding:0.2rem 0.4rem;">
+                        ← UI Clássica
+                    </a>
+                    <button id="theme-toggle-btn" onclick="toggleTheme()" class="action-btn">
+                        <span id="theme-toggle-icon">🌙</span>
+                        <span>Tema</span>
+                    </button>
+                    <span class="header-ts">Atualizado em: <span id="timestamp-container">Carregando...</span></span>
+                    <span class="disclaimer">⚠️ Não é recomendação de investimento. Dados via APIs públicas B3 + análise fundamentalista.</span>
                 </div>
             </div>
         </header>
@@ -1209,10 +616,10 @@
         <!-- Summary Cards Section -->
         <div class="summary-grid">
             <!-- Stock Summary -->
-            <div class="summary-card card-stock">
-                <div class="card-title">
-                    <span>Top Ações (Maiores Scores)</span>
-                    <span class="badge badge-gold">Value Investing</span>
+            <div class="summary-card">
+                <div class="card-header">
+                    <h3>Top Ações (Maiores Scores)</h3>
+                    <span>Value Investing</span>
                 </div>
                 <ul class="top-list" id="top-stocks-list">
                     <!-- Carregado via JS -->
@@ -1220,10 +627,10 @@
             </div>
 
             <!-- FII Summary -->
-            <div class="summary-card card-fii">
-                <div class="card-title">
-                    <span>Top FIIs (Maiores Scores)</span>
-                    <span class="badge badge-green">Imobiliário</span>
+            <div class="summary-card">
+                <div class="card-header">
+                    <h3>Top FIIs (Maiores Scores)</h3>
+                    <span>Imobiliário</span>
                 </div>
                 <ul class="top-list" id="top-fiis-list">
                     <!-- Carregado via JS -->
@@ -1231,10 +638,10 @@
             </div>
 
             <!-- FIAGRO Summary -->
-            <div class="summary-card card-fii" id="top-fiagros-card" style="display: none;">
-                <div class="card-title">
-                    <span>Top FIAGROs (Maiores Scores)</span>
-                    <span class="badge badge-green">Agronegócio</span>
+            <div class="summary-card" id="top-fiagros-card" style="display: none;">
+                <div class="card-header">
+                    <h3>Top FIAGROs (Maiores Scores)</h3>
+                    <span>Agronegócio</span>
                 </div>
                 <ul class="top-list" id="top-fiagros-list">
                     <!-- Carregado via JS -->
@@ -1242,52 +649,55 @@
             </div>
         </div>
 
-        <!-- Controls Row -->
-        <div class="controls-row">
-            <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('stocks')">Ações</button>
-                <button class="tab-btn" onclick="switchTab('fiis')">Fundos Imobiliários (FIIs)</button>
-                <button class="tab-btn" onclick="switchTab('fiagros')">FIAGROs</button>
-                <button class="tab-btn" onclick="switchTab('sectors')">Análise Setorial</button>
-            </div>
+        <!-- Tabs -->
+        <div class="tabs-row">
+            <button class="tab-btn active" onclick="switchTab('stocks')">Ações</button>
+            <button class="tab-btn" onclick="switchTab('fiis')">Fundos Imobiliários (FIIs)</button>
+            <button class="tab-btn" onclick="switchTab('fiagros')">FIAGROs</button>
+            <button class="tab-btn" onclick="switchTab('sectors')">Análise Setorial</button>
+        </div>
 
-            <div class="controls-filters">
-                <select id="index-filter" onchange="filterTable()" class="filter-select">
-                    <option value="all">Todos os Índices</option>
-                    <option value="IBOV">Índice IBOV</option>
-                    <option value="IDIV">Índice IDIV</option>
-                    <option value="SMLL">Índice SMLL</option>
-                    <option value="IEE">Índice IEE (Elétricas)</option>
-                    <option value="IFNC">Índice IFNC (Financeiro)</option>
-                </select>
+        <!-- Filters -->
+        <div class="filters-row">
+            <select id="index-filter" onchange="filterTable()" class="filter-select">
+                <option value="all">Todos os Índices</option>
+                <option value="IBOV">Índice IBOV</option>
+                <option value="IDIV">Índice IDIV</option>
+                <option value="SMLL">Índice SMLL</option>
+                <option value="IEE">Índice IEE (Elétricas)</option>
+                <option value="IFNC">Índice IFNC (Financeiro)</option>
+            </select>
 
-                <select id="sector-filter" onchange="filterTable()" class="filter-select">
-                    <option value="all">Todos os Setores</option>
-                </select>
+            <select id="sector-filter" onchange="filterTable()" class="filter-select">
+                <option value="all">Todos os Setores</option>
+            </select>
 
-                <select id="score-range-filter" onchange="filterTable()" class="filter-select">
-                    <option value="all">Todos os Scores</option>
-                    <option value="premium">🟢 Premium (≥ 8.0)</option>
-                    <option value="good">🟡 Bom (6.0 a 7.9)</option>
-                    <option value="alert">🟠 Alerta (4.0 a 5.9)</option>
-                    <option value="risk">🔴 Risco (&lt; 4.0)</option>
-                </select>
+            <select id="score-range-filter" onchange="filterTable()" class="filter-select">
+                <option value="all">Todos os Scores</option>
+                <option value="premium">🟢 Premium (≥ 8.0)</option>
+                <option value="good">🟡 Bom (6.0 a 7.9)</option>
+                <option value="alert">🟠 Alerta (4.0 a 5.9)</option>
+                <option value="risk">🔴 Risco (&lt; 4.0)</option>
+            </select>
 
-                <select id="discount-filter" onchange="filterTable()" class="filter-select">
-                    <option value="all">Preço: Todos</option>
-                    <option value="discounted">Preço: Com Desconto</option>
-                </select>
+            <select id="discount-filter" onchange="filterTable()" class="filter-select">
+                <option value="all">Preço: Todos</option>
+                <option value="discounted">Preço: Com Desconto</option>
+            </select>
 
-                <div class="search-container">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" id="search-bar" class="search-input" placeholder="Buscar ativo..."
-                        onkeyup="filterTable()">
-                </div>
+            <div class="search-wrap">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="search-bar" class="filter-input" placeholder="Buscar ativo..."
+                    onkeyup="filterTable()">
             </div>
         </div>
 
         <!-- Stocks Panel -->
-        <div id="panel-stocks" class="table-container">
+        <div id="panel-stocks" class="table-wrap">
+            <div class="table-header-bar">
+                <span>Ações listadas na B3</span>
+                <span class="font-mono tabular" id="stocks-count">0 ativos</span>
+            </div>
             <div class="table-scroll">
             <table>
                 <thead>
@@ -1295,7 +705,7 @@
                         <th onclick="sortTable('stocks', 0)">Ticker</th>
                         <th onclick="sortTable('stocks', 1)">Nome</th>
                         <th onclick="sortTable('stocks', 2)">Setor</th>
-                        <th onclick="sortTable('stocks', 3)">Preço Atual</th>
+                        <th onclick="sortTable('stocks', 3)">Preço</th>
                         <th onclick="sortTable('stocks', 4)">
                             <span class="hint" tabindex="0" data-tip="Valor Patrimonial por Ação. Patrimônio líquido dividido pelo número de ações. Referência para o P/VP.">VPA</span>
                         </th>
@@ -1306,7 +716,7 @@
                             <span class="hint" tabindex="0" data-tip="Preço sobre Valor Patrimonial (P/B). Compara o preço ao patrimônio líquido por ação. Abaixo de 1,00 = desconto. Ideal: &lt; 1,5.">P/VP</span>
                         </th>
                         <th onclick="sortTable('stocks', 7)">
-                            <span class="hint" tabindex="0" data-tip="Dividend Yield. Retorno em dividendos nos últimos 12 meses dividido pelo preço atual. Ideal: &ge; 6%.">Div. Yield</span>
+                            <span class="hint" tabindex="0" data-tip="Dividend Yield. Retorno em dividendos nos últimos 12 meses dividido pelo preço atual. Ideal: &ge; 6%.">DY</span>
                         </th>
                         <th onclick="sortTable('stocks', 8)">
                             <span class="hint" tabindex="0" data-tip="Return on Equity. Rentabilidade: lucro líquido &divide; patrimônio líquido. Mede a eficiência da gestão. Ideal: &ge; 10%.">ROE</span>
@@ -1318,7 +728,7 @@
                             <span class="hint" tabindex="0" data-tip="Valor Justo de Benjamin Graham. Preço intrínseco = &radic;(22,5 &times; LPA &times; VPA). Abaixo dele = margem de segurança.">Justo Graham</span>
                         </th>
                         <th onclick="sortTable('stocks', 11)">
-                            <span class="hint" tabindex="0" data-tip="Nota de 0 a 5 baseada em 5 critérios: DY, P/L, P/VP, ROE e Margem de Graham. Quanto maior, mais saudável.">Score</span>
+                            <span class="hint" tabindex="0" data-tip="Score contínuo 0-10. 5 critérios: DY, P/L, P/VP, ROE e Margem de Graham (cada 0-2). Quanto maior, mais a ação atende aos critérios de value investing (empresa lucrativa, saudável e barata).">Score</span>
                         </th>
                     </tr>
                 </thead>
@@ -1330,14 +740,18 @@
         </div>
 
         <!-- FIIs Panel -->
-        <div id="panel-fiis" class="table-container hidden">
+        <div id="panel-fiis" class="table-wrap hidden">
+            <div class="table-header-bar">
+                <span>Fundos Imobiliários (FIIs)</span>
+                <span class="font-mono tabular" id="fiis-count">0 ativos</span>
+            </div>
             <div class="table-scroll">
             <table>
                 <thead>
                     <tr>
                         <th onclick="sortTable('fiis', 0)">Ticker</th>
                         <th onclick="sortTable('fiis', 1)">Nome</th>
-                        <th onclick="sortTable('fiis', 2)">Preço Atual</th>
+                        <th onclick="sortTable('fiis', 2)">Preço</th>
                         <th onclick="sortTable('fiis', 3)">
                             <span class="hint" tabindex="0" data-tip="Valor Patrimonial por cota. Patrimônio líquido do fundo dividido pelo total de cotas. Referência para o P/VP.">VPA</span>
                         </th>
@@ -1345,13 +759,13 @@
                             <span class="hint" tabindex="0" data-tip="Preço sobre Valor Patrimonial do fundo. Entre 0,70 e 1,05 é considerado ideal (desconto moderado a valor justo).">P/VP</span>
                         </th>
                         <th onclick="sortTable('fiis', 5)">
-                            <span class="hint" tabindex="0" data-tip="Dividend Yield anual do fundo. Mede o retorno em dividendos sobre o preço da cota. Mínimo ideal: 8%.">Div. Yield</span>
+                            <span class="hint" tabindex="0" data-tip="Dividend Yield anual do fundo. Mede o retorno em dividendos sobre o preço da cota. Mínimo ideal: 8%.">DY</span>
                         </th>
                         <th onclick="sortTable('fiis', 6)">
                             <span class="hint" tabindex="0" data-tip="Valor total estimado de dividendos pagos pelo fundo nos últimos 12 meses por cota.">Dividendo Anual</span>
                         </th>
                         <th onclick="sortTable('fiis', 7)">
-                            <span class="hint" tabindex="0" data-tip="Nota de 0 a 5. Critérios: P/VP ≤ 1,15 (base), P/VP ideal 0,70-1,05 (bônus), DY mínimo (8%), DY excelente (10%) e distribuição ativa.">Score</span>
+                            <span class="hint" tabindex="0" data-tip="Score contínuo 0-10. 4 critérios: P/VP Unificado, DY Mínimo, Trava de Risco (Yield Cap) e Consistência (cada 0-2,5). Avalia retorno, preço justo e sustentabilidade dos proventos.">Score</span>
                         </th>
                     </tr>
                 </thead>
@@ -1363,14 +777,18 @@
         </div>
 
         <!-- FIAGROs Panel -->
-        <div id="panel-fiagros" class="table-container hidden">
+        <div id="panel-fiagros" class="table-wrap hidden">
+            <div class="table-header-bar">
+                <span>FIAGROs</span>
+                <span class="font-mono tabular" id="fiagros-count">0 ativos</span>
+            </div>
             <div class="table-scroll">
             <table>
                 <thead>
                     <tr>
                         <th onclick="sortTable('fiagros', 0)">Ticker</th>
                         <th onclick="sortTable('fiagros', 1)">Nome</th>
-                        <th onclick="sortTable('fiagros', 2)">Preço Atual</th>
+                        <th onclick="sortTable('fiagros', 2)">Preço</th>
                         <th onclick="sortTable('fiagros', 3)">
                             <span class="hint" tabindex="0" data-tip="Valor Patrimonial por cota. Patrimônio líquido do fundo dividido pelo total de cotas. Referência para o P/VP.">VPA</span>
                         </th>
@@ -1378,13 +796,13 @@
                             <span class="hint" tabindex="0" data-tip="Preço sobre Valor Patrimonial do fundo. Entre 0,70 e 1,05 é considerado ideal (desconto moderado a valor justo).">P/VP</span>
                         </th>
                         <th onclick="sortTable('fiagros', 5)">
-                            <span class="hint" tabindex="0" data-tip="Dividend Yield anual do fundo. FIAGROs exigem retorno maior: mínimo ideal de 10% (vs 8% dos FIIs) devido ao risco de crédito agropecuário.">Div. Yield</span>
+                            <span class="hint" tabindex="0" data-tip="Dividend Yield anual do fundo. FIAGROs exigem retorno maior: mínimo ideal de 10% (vs 8% dos FIIs) devido ao risco de crédito agropecuário.">DY</span>
                         </th>
                         <th onclick="sortTable('fiagros', 6)">
                             <span class="hint" tabindex="0" data-tip="Valor total estimado de dividendos pagos pelo fundo nos últimos 12 meses por cota.">Dividendo Anual</span>
                         </th>
                         <th onclick="sortTable('fiagros', 7)">
-                            <span class="hint" tabindex="0" data-tip="Nota de 0 a 5. Critérios: P/VP ≤ 1,15 (base), P/VP ideal 0,70-1,05 (bônus), DY mínimo (10%), DY excelente (12%) e distribuição ativa.">Score</span>
+                            <span class="hint" tabindex="0" data-tip="Score contínuo 0-10. 4 critérios: P/VP Unificado, DY Mínimo (10%), Trava de Risco (Yield Cap ≤33%) e Consistência (cada 0-2,5). Avalia retorno, preço justo e sustentabilidade dos proventos.">Score</span>
                         </th>
                     </tr>
                 </thead>
@@ -1396,7 +814,11 @@
         </div>
 
         <!-- Sector Analysis Panel -->
-        <div id="panel-sectors" class="table-container hidden">
+        <div id="panel-sectors" class="table-wrap hidden">
+            <div class="table-header-bar">
+                <span>Análise Setorial</span>
+                <span class="font-mono tabular" id="sectors-count">0 setores</span>
+            </div>
             <div class="table-scroll">
             <table>
                 <thead>
@@ -1407,7 +829,7 @@
                             <span class="hint" tabindex="0" data-tip="Média do Score Fundamentalista (0-5) das empresas do setor. Quanto maior, melhor a saúde financeira média.">Score Médio</span>
                         </th>
                         <th onclick="sortTable('sectors', 3)">
-                            <span class="hint" tabindex="0" data-tip="Dividend Yield médio do setor. Indica o retorno médio em dividendos do conjunto de empresas.">Div. Yield Médio</span>
+                            <span class="hint" tabindex="0" data-tip="Dividend Yield médio do setor. Indica o retorno médio em dividendos do conjunto de empresas.">DY Médio</span>
                         </th>
                         <th onclick="sortTable('sectors', 4)">
                             <span class="hint" tabindex="0" data-tip="Preço sobre Lucro (P/L) médio do setor. Ajuda a comparar valuation entre setores.">P/L Médio</span>
@@ -1426,13 +848,11 @@
             <div class="modal-content" style="max-width: 900px;">
                 <span class="close-btn" onclick="closeSectorDetailModal()">&times;</span>
                 <div class="modal-header">
-                    <h2 id="sector-modal-name" class="font-outfit">SETOR</h2>
+                    <h2 id="sector-modal-name">SETOR</h2>
                     <p>Empresas classificadas neste setor (ordenadas por maior pontuação)</p>
                 </div>
 
-                <div class="table-container"
-                    style="box-shadow: none; margin-bottom: 0; background: transparent; border: none; max-height: 400px; overflow-y: auto;">
-                    <div class="table-scroll">
+                <div class="table-scroll" style="max-height: 400px; overflow-y: auto;">
                     <table>
                         <thead>
                             <tr>
@@ -1446,7 +866,7 @@
                                     <span class="hint" tabindex="0" data-tip="Preço sobre Valor Patrimonial (P/B). Compara o preço ao patrimônio líquido por ação. Abaixo de 1,00 = desconto.">P/VP</span>
                                 </th>
                                 <th>
-                                    <span class="hint" tabindex="0" data-tip="Dividend Yield. Retorno em dividendos nos últimos 12 meses dividido pelo preço atual.">Div. Yield</span>
+                                    <span class="hint" tabindex="0" data-tip="Dividend Yield. Retorno em dividendos nos últimos 12 meses dividido pelo preço atual.">DY</span>
                                 </th>
                                 <th>
                                     <span class="hint" tabindex="0" data-tip="Nota de 0 a 5 baseada em critérios fundamentalistas. Quanto maior, mais saudável o ativo.">Score</span>
@@ -1457,7 +877,6 @@
                             <!-- Dynamically populated -->
                         </tbody>
                     </table>
-                    </div>
                 </div>
             </div>
         </div>
@@ -1467,14 +886,14 @@
             <div class="modal-content">
                 <span class="close-btn" onclick="closeDetailModal()">&times;</span>
                 <div class="modal-header">
-                    <h2 id="modal-ticker" class="font-outfit">TICKER</h2>
+                    <h2 id="modal-ticker">TICKER</h2>
                     <p id="modal-name">Nome da Empresa</p>
                 </div>
 
                 <div class="modal-body-grid">
                     <!-- Left Column: Details & Score breakdown -->
                     <div class="modal-details-col">
-                        <h3 class="font-outfit section-subtitle">Análise Fundamentalista</h3>
+                        <div class="section-title">Análise Fundamentalista</div>
                         <div id="modal-score-badge-container" style="margin: 0.5rem 0 1rem 0;"></div>
 
                         <div id="modal-scorecard-breakdown" class="breakdown-list">
@@ -1484,27 +903,24 @@
 
                     <!-- Right Column: Price History Chart -->
                     <div class="modal-chart-col">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; border-bottom: 1px solid var(--section-subtitle-border); padding-bottom: 0.5rem;">
-                            <h3 class="font-outfit section-subtitle"
-                                style="margin-bottom: 0; border: none; padding: 0;">Histórico</h3>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;border-bottom:1px solid var(--card-border);padding-bottom:0.5rem;">
+                            <div class="section-title" style="margin-bottom:0;border:none;padding:0;">Histórico</div>
                             <select id="chart-indicator-select" onchange="updateChartIndicator()"
-                                style="background: var(--dropdown-bg); border: 1px solid var(--card-border); color: var(--text-primary); padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; outline: none; cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.3s ease, color 0.3s ease;">
+                                class="filter-select" style="padding:0.3rem 0.5rem;font-size:0.7rem;">
                                 <option value="price">Preço (R$)</option>
                                 <option value="pe">P/L</option>
                                 <option value="pb">P/VP</option>
                                 <option value="dy">Dividend Yield</option>
                             </select>
                         </div>
-                        <div class="time-ranges">
+                        <div class="range-group">
                             <button class="range-btn" onclick="updateChartRange(1)" id="btn-range-1">1 Ano</button>
                             <button class="range-btn" onclick="updateChartRange(2)" id="btn-range-2">2 Anos</button>
                             <button class="range-btn" onclick="updateChartRange(3)" id="btn-range-3">3 Anos</button>
                             <button class="range-btn" onclick="updateChartRange(5)" id="btn-range-5">5 Anos</button>
-                            <button class="range-btn active" onclick="updateChartRange(10)" id="btn-range-10">10
-                                Anos</button>
+                            <button class="range-btn active" onclick="updateChartRange(10)" id="btn-range-10">10 Anos</button>
                         </div>
-                        <div class="chart-container" style="position: relative; height: 250px; width: 100%;">
+                        <div style="position: relative; height: 250px; width: 100%; margin-top: 0.75rem;">
                             <canvas id="history-chart"></canvas>
                         </div>
                     </div>
@@ -1517,43 +933,36 @@
             <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
                 <span class="close-btn" onclick="closeHelpModal()">&times;</span>
                 <div class="modal-header" style="margin-bottom: 1.5rem;">
-                    <h2 class="font-outfit"
-                        style="font-size: 2.2rem; background: linear-gradient(135deg, #60a5fa 0%, #34d399 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+                    <h2 style="font-size: 1.8rem; font-weight: 700; color: var(--text-primary);">
                         Guia Metodológico</h2>
                     <p>Entenda as fórmulas e critérios fundamentalistas utilizados neste Radar</p>
                 </div>
 
                 <div class="help-section" style="margin-bottom: 2rem;">
-                    <h3 class="font-outfit"
-                        style="color: var(--primary); font-size: 1.3rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <h3 style="color: var(--text-primary); font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem;">
                         <span>📐</span> Fórmula de Valor Justo de Benjamin Graham
                     </h3>
-                    <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); margin-bottom: 1rem;">
+                    <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary); margin-bottom: 1rem;">
                         Benjamin Graham, o pai do <em>Value Investing</em> e mentor de Warren Buffett, propôs uma
                         fórmula para calcular o valor intrínseco (justo) de uma ação com base no lucro corrente e no
                         valor patrimonial, estabelecendo limites conservadores para os múltiplos P/L e P/VP.
                     </p>
                     <div
-                        style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--card-border); padding: 1rem; border-radius: 12px; font-family: monospace; font-size: 1.1rem; text-align: center; margin-bottom: 1rem; color: var(--text-primary);">
-                        Valor Justo = √ ( 22.5 * LPA * VPA )
+                        style="background: var(--surface); border: 1px solid var(--card-border); padding: 0.75rem; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 1rem; text-align: center; margin-bottom: 1rem; color: var(--text-primary);">
+                        Valor Justo = √ ( 22.5 × LPA × VPA )
                     </div>
                     <ul
-                        style="list-style-type: none; font-size: 0.9rem; color: var(--text-secondary); padding-left: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                        <li>📌 <strong>LPA (Lucro por Ação):</strong> Quanto a empresa lucra por cada ação em
-                            circulação.</li>
-                        <li>📌 <strong>VPA (Valor Patrimonial por Ação):</strong> O patrimônio líquido total dividido
-                            pelo número de ações.</li>
-                        <li>📌 <strong>Constante 22.5:</strong> Corresponde ao limite aceitável do produto de P/L máximo
-                            de 15 e P/VP máximo de 1.5 (15 * 1.5 = 22.5).</li>
-                        <li>✅ <strong>Regra de Desconto:</strong> Se o preço atual for <strong>inferior</strong> ao
-                            Valor Justo de Graham, a ação possui margem de segurança para compra.</li>
+                        style="list-style-type: none; font-size: 0.85rem; color: var(--text-secondary); padding-left: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                        <li>📌 <strong>LPA (Lucro por Ação):</strong> Quanto a empresa lucra por cada ação em circulação.</li>
+                        <li>📌 <strong>VPA (Valor Patrimonial por Ação):</strong> O patrimônio líquido total dividido pelo número de ações.</li>
+                        <li>📌 <strong>Constante 22.5:</strong> Corresponde ao limite aceitável do produto de P/L máximo de 15 e P/VP máximo de 1.5 (15 × 1.5 = 22.5).</li>
+                        <li>✅ <strong>Regra de Desconto:</strong> Se o preço atual for <strong>inferior</strong> ao Valor Justo de Graham, a ação possui margem de segurança para compra.</li>
                     </ul>
                 </div>
 
                 <div class="help-section"
-                    style="margin-bottom: 2rem; border-top: 1px solid var(--section-subtitle-border); padding-top: 1.5rem;">
-                    <h3 class="font-outfit"
-                        style="color: var(--accent-green); font-size: 1.3rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    style="margin-bottom: 2rem; border-top: 1px solid var(--card-border); padding-top: 1.5rem;">
+                    <h3 style="color: var(--positive); font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem;">
                         <span>💸</span> Método de Preço Teto de Décio Bazin
                     </h3>
                     <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); margin-bottom: 1rem;">
@@ -1562,41 +971,35 @@
                         bom pagamento de proventos, exigindo um rendimento mínimo anual de 6%.
                     </p>
                     <div
-                        style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--card-border); padding: 1rem; border-radius: 12px; font-family: monospace; font-size: 1.1rem; text-align: center; margin-bottom: 1rem; color: var(--text-primary);">
+                        style="background: var(--surface); border: 1px solid var(--card-border); padding: 0.75rem; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 1rem; text-align: center; margin-bottom: 1rem; color: var(--text-primary);">
                         Preço Teto = Dividendo Anual Médio / 0.06
                     </div>
                     <ul
-                        style="list-style-type: none; font-size: 0.9rem; color: var(--text-secondary); padding-left: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                        <li>📌 <strong>Dividendo Anual Médio:</strong> Valor total pago em proventos nos últimos
-                            períodos acumulados.</li>
-                        <li>📌 <strong>Taxa 6% (0.06):</strong> Taxa de rentabilidade mínima desejada em dividendos para
-                            justificar o investimento em renda variável.</li>
-                        <li>✅ <strong>Regra de Desconto:</strong> Se o preço atual for <strong>inferior</strong> ao
-                            Preço Teto de Bazin, o ativo está barato na ótica de dividendos, garantindo retorno mínimo
-                            projetado de 6% a.a.</li>
+                        style="list-style-type: none; font-size: 0.85rem; color: var(--text-secondary); padding-left: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                        <li>📌 <strong>Dividendo Anual Médio:</strong> Valor total pago em proventos nos últimos períodos acumulados.</li>
+                        <li>📌 <strong>Taxa 6% (0.06):</strong> Taxa de rentabilidade mínima desejada em dividendos para justificar o investimento em renda variável.</li>
+                        <li>✅ <strong>Regra de Desconto:</strong> Se o preço atual for <strong>inferior</strong> ao Preço Teto de Bazin, o ativo está barato na ótica de dividendos, garantindo retorno mínimo projetado de 6% a.a.</li>
                     </ul>
                 </div>
 
                 <div class="help-section"
-                    style="border-top: 1px solid var(--section-subtitle-border); padding-top: 1.5rem;">
-                    <h3 class="font-outfit"
-                        style="color: var(--accent-gold); font-size: 1.3rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    style="border-top: 1px solid var(--card-border); padding-top: 1.5rem;">
+                    <h3 style="color: var(--gold); font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem;">
                         <span>📊</span> Score Fundamentalista (0 a 5)
                     </h3>
-                    <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); margin-bottom: 1rem;">
+                    <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary); margin-bottom: 1rem;">
                         O <strong>Score Fundamentalista</strong> resume a saúde financeira da empresa ou fundo em uma
                         nota de 0 a 5 pontos baseada em checklist rígido:
                     </p>
                     <div
-                        style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; font-size: 0.85rem; color: var(--text-secondary);">
+                        style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; font-size: 0.8rem; color: var(--text-secondary);">
                         <div>
-                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">Ações
-                                B3:</strong>
+                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">Ações B3:</strong>
                             • <strong>P/L Saudável:</strong> P/L positivo e menor que 15 (+1)<br>
                             • <strong>Endividamento:</strong> Dívida Líquida / Patrimônio < 1 (+1)<br>
-                                • <strong>Crescimento:</strong> Receita crescente nos últimos 5 anos (+1)<br>
-                                • <strong>Rentabilidade:</strong> ROE anual maior ou igual a 10% (+1)<br>
-                                • <strong>Proventos:</strong> Dividend Yield nos últimos 12 meses >= 6% (+1)
+                            • <strong>Crescimento:</strong> Receita crescente nos últimos 5 anos (+1)<br>
+                            • <strong>Rentabilidade:</strong> ROE anual maior ou igual a 10% (+1)<br>
+                            • <strong>Proventos:</strong> Dividend Yield nos últimos 12 meses >= 6% (+1)
                         </div>
                         <div>
                             <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">FIIs (0-5):</strong>
@@ -1946,9 +1349,9 @@
                     };
 
                     tr.innerHTML = `
-                    <td class="ticker-col">${stock.ticker}</td>
+                    <td class="ticker-cell">${stock.ticker}</td>
                     <td>${stock.name}</td>
-                    <td class="metric-highlight">R$ ${stock.price.toFixed(2)}</td>
+                    <td>R$ ${stock.price.toFixed(2)}</td>
                     <td class="${stock.pe !== null && stock.pe > 0 && stock.pe <= 15 ? 'positive' : 'warning'}">
                         ${stock.pe !== null ? stock.pe.toFixed(2) : 'N/A'}
                     </td>
@@ -2024,20 +1427,25 @@
                 // Continuous Score Breakdown (v2.5) — each criterion 0.0-2.0
                 const breakdownItems = [
                     { label: 'Dividend Yield', key: 'dy', score: scoreDYStock(dy),
-                      desc: `DY: ${(dy * 100).toFixed(2)}%`, pct: dy * 100 },
+                      desc: `DY: ${(dy * 100).toFixed(2)}%`, pct: dy * 100,
+                      tip: 'Mínimo: 6% = 1,0 pts. Cada 1% extra acima de 6% adiciona ~0,11 pts. Máximo 2,0 pts em ~15%.' },
                     { label: 'P/L (Preço / Lucro)', key: 'pe', score: scorePEStock(pe),
-                      desc: `P/L: ${pe !== null ? pe.toFixed(2) : 'N/A'}`, pct: pe },
+                      desc: `P/L: ${pe !== null ? pe.toFixed(2) : 'N/A'}`, pct: pe,
+                      tip: 'P/L entre 0 e 15 = nota base 1,0. Quanto menor o P/L, maior o bônus (até 2,0 pts). P/L > 15 ou negativo = 0.' },
                     { label: 'P/VP (Preço / V.P.)', key: 'pb', score: scorePBStock(pb),
-                      desc: `P/VP: ${pb !== null ? pb.toFixed(2) : 'N/A'}`, pct: pb },
+                      desc: `P/VP: ${pb !== null ? pb.toFixed(2) : 'N/A'}`, pct: pb,
+                      tip: 'P/VP entre 0,50 e 1,50. Nota = 2,0 × (1,50 - P/VP). Quanto menor, melhor. Abaixo de 0,50 ou acima de 1,50 = 0.' },
                     { label: 'ROE (Retorno s/ Patr.)', key: 'roe', score: scoreROEStock(roe),
-                      desc: `ROE: ${roe !== null ? (roe * 100).toFixed(2) : 'N/A'}%`, pct: roe !== null ? roe * 100 : null },
+                      desc: `ROE: ${roe !== null ? (roe * 100).toFixed(2) : 'N/A'}%`, pct: roe !== null ? roe * 100 : null,
+                      tip: 'Mínimo: 10% = 1,0 pts. Cada 10% extra adiciona 0,5 pts. Máximo 2,0 pts em 30%. Abaixo de 10% = 0.' },
                     { label: 'Margem de Graham', key: 'graham', score: scoreGrahamStock(price, graham),
-                      desc: `Justo: R$${graham.toFixed(2)} vs R$${price.toFixed(2)}`, pct: graham > 0 ? ((graham - price) / price) * 100 : null }
+                      desc: `Justo: R$${graham.toFixed(2)} vs R$${price.toFixed(2)}`, pct: graham > 0 ? ((graham - price) / price) * 100 : null,
+                      tip: 'Preço abaixo do valor justo = nota base 1,0. Cada 100% de margem adicional soma +1,0 pts. Máximo 2,0 pts.' }
                 ];
                 var computedScore = breakdownItems.reduce(function(s, i) { return s + i.score; }, 0);
 
                 // Score Badge — computed from breakdown sum for consistency
-                scoreContainer.innerHTML = `<span class="score-pill ${getScoreRangeClass(computedScore)}" style="width: auto; height: auto; border-radius: 12px; padding: 0.4rem 1rem; font-size: 0.9rem;">Score: ${formatScore(computedScore)}/10</span>`;
+                scoreContainer.innerHTML = `<span class="score-pill ${getScoreRangeClass(computedScore)}" style="width: auto; height: auto; border-radius: 12px; padding: 0.5rem 1.2rem; font-size: 1.05rem;">Score: ${formatScore(computedScore)}/10</span>`;
 
                 breakdownItems.forEach(function(item) {
                     var pct = Math.round((item.score / 2.0) * 100);
@@ -2046,16 +1454,21 @@
                     el.className = 'breakdown-item';
                     el.innerHTML = [
                         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem;">',
-                        '  <span style="font-weight:600;font-size:0.85rem;">', item.label, '</span>',
-                        '  <span style="font-size:0.8rem;color:var(--text-secondary);">', item.score.toFixed(2), ' / 2.0</span>',
+                        '  <span class="hint" tabindex="0" data-tip="', item.tip, '" style="font-weight:700;font-size:0.85rem;">', item.label, ' ⓘ</span>',
+                        '  <span style="font-size:0.85rem;color:var(--text-secondary);font-weight:600;">', item.score.toFixed(2), ' / 2.0</span>',
                         '</div>',
                         '<div class="bar-container">',
                         '  <div class="bar-fill" style="width:', pct, '%;background:', barColor, ';"></div>',
                         '</div>',
-                        '<small style="color:var(--text-secondary);display:block;margin-top:0.1rem;font-size:0.7rem;">', item.desc, '</small>'
+                        '<small style="color:var(--text-secondary);display:block;margin-top:0.15rem;font-size:0.8rem;">', item.desc, '</small>'
                     ].join('');
                     scorecard.appendChild(el);
                 });
+                // Value investing disclaimer
+                var disc = document.createElement('div');
+                disc.style.cssText = 'margin-top:0.75rem;padding:0.7rem;background:var(--surface);border-radius:4px;font-size:0.8rem;color:var(--text-muted);line-height:1.4;border:1px solid var(--card-border);';
+                disc.textContent = '⚡ Esta é uma avaliação sob a ótica do value investing: busca por empresas lucrativas, saudáveis e negociadas com desconto. Uma nota baixa não significa que a empresa seja ruim, apenas que não atende aos critérios rigorosos de oportunidade value no momento.';
+                scorecard.appendChild(disc);
 
                 // For Stocks: enable P/L option in the dropdown and show it
                 const peOption = document.querySelector('#chart-indicator-select option[value="pe"]');
@@ -2086,21 +1499,25 @@
                 var breakdownItems = [
                     { label: 'P/VP (Unificado: Ideal + Limite)', key: 'pb_unified',
                       score: scorePBFii(pb),
-                      desc: 'P/VP: ' + (pb !== null ? pb.toFixed(2) : 'N/A') },
+                      desc: 'P/VP: ' + (pb !== null ? pb.toFixed(2) : 'N/A'),
+                      tip: 'Máximo entre P/VP Ideal (0,70-1,05) e Limite (0,60-1,15), reescalonado ×1,25. Nota máxima 2,5 pts quando P/VP está na faixa ideal.' },
                     { label: (isFiagro ? 'DY ≥ 10% (Mínimo FIAGRO)' : 'DY ≥ 8% (Mínimo FII)'), key: 'dy_min',
                       score: scoreDYFiiV2(dy, isFiagro),
-                      desc: 'DY: ' + (dy * 100).toFixed(2) + '%' },
+                      desc: 'DY: ' + (dy * 100).toFixed(2) + '%',
+                      tip: (isFiagro ? 'DY mínimo 10% = 1,25 pts. Bônus até 2,5 pts conforme DY se aproxima de 16,5%.' : 'DY mínimo 8% = 1,25 pts. Bônus até 2,5 pts conforme DY se aproxima de 14,5%.') },
                     { label: (isFiagro ? 'Yield ≤ 33% (Trava Risco Suave)' : 'Yield ≤ 29% (Trava Risco Suave)'), key: 'yield_cap',
                       score: scoreYieldCapV2(dy, isFiagro),
-                      desc: 'DY: ' + (dy * 100).toFixed(2) + '%' },
+                      desc: 'DY: ' + (dy * 100).toFixed(2) + '%',
+                      tip: (isFiagro ? 'DY acima de 33% reduz a nota (risco de insustentabilidade). Zera em 33% × 2 = 66%%. Escala progressiva de 0 a 2,5 pts.' : 'DY acima de 29% reduz a nota (risco de insustentabilidade). Zera em 29% × 2 = 58%%. Escala progressiva de 0 a 2,5 pts.') },
                     { label: 'Consistência Proventos (≥95%)', key: 'consistency',
                       score: scoreConsistencyV2(consistency),
-                      desc: consistency !== null ? (consistency * 100).toFixed(2) + '%' : 'N/D (neutro 1.5)' }
+                      desc: consistency !== null ? (consistency * 100).toFixed(2) + '%' : 'N/D (neutro 1.5)',
+                      tip: 'Proporção de meses com distribuição de dividendos ≥ 95% = 2,5 pts. Sem dados históricos: nota neutra 1,5 pts.' }
                 ];
                 var computedScore = breakdownItems.reduce(function(s, i) { return s + i.score; }, 0);
 
                 // Score Badge — computed from breakdown sum for consistency
-                scoreContainer.innerHTML = `<span class="score-pill ${getScoreRangeClass(computedScore)}" style="width: auto; height: auto; border-radius: 12px; padding: 0.4rem 1rem; font-size: 0.9rem;">Score: ${formatScore(computedScore)}/10</span>`;
+                scoreContainer.innerHTML = `<span class="score-pill ${getScoreRangeClass(computedScore)}" style="width: auto; height: auto; border-radius: 12px; padding: 0.5rem 1.2rem; font-size: 1.05rem;">Score: ${formatScore(computedScore)}/10</span>`;
 
                 breakdownItems.forEach(function(item) {
                     var pct = Math.round((item.score / 2.5) * 100);
@@ -2109,16 +1526,21 @@
                     el.className = 'breakdown-item';
                     el.innerHTML = [
                         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem;">',
-                        '  <span style="font-weight:600;font-size:0.85rem;">', item.label, '</span>',
-                        '  <span style="font-size:0.8rem;color:var(--text-secondary);">', item.score.toFixed(2), ' / 2.5</span>',
+                        '  <span class="hint" tabindex="0" data-tip="', item.tip, '" style="font-weight:700;font-size:0.85rem;">', item.label, ' ⓘ</span>',
+                        '  <span style="font-size:0.85rem;color:var(--text-secondary);font-weight:600;">', item.score.toFixed(2), ' / 2.5</span>',
                         '</div>',
                         '<div class="bar-container">',
                         '  <div class="bar-fill" style="width:', pct, '%;background:', barColor, ';"></div>',
                         '</div>',
-                        '<small style="color:var(--text-secondary);display:block;margin-top:0.1rem;font-size:0.7rem;">', item.desc, '</small>'
+                        '<small style="color:var(--text-secondary);display:block;margin-top:0.15rem;font-size:0.8rem;">', item.desc, '</small>'
                     ].join('');
                     scorecard.appendChild(el);
                 });
+                // Value investing disclaimer
+                var disc = document.createElement('div');
+                disc.style.cssText = 'margin-top:0.75rem;padding:0.7rem;background:var(--surface);border-radius:4px;font-size:0.8rem;color:var(--text-muted);line-height:1.4;border:1px solid var(--card-border);';
+                disc.textContent = '⚡ Esta é uma avaliação sob a ótica do value investing: busca por ativos com bom retorno em dividendos, preço justo e consistência. Uma nota baixa não significa que o fundo seja ruim, apenas que não atende aos critérios rigorosos de oportunidade value no momento.';
+                scorecard.appendChild(disc);
 
                 // For FIIs/FIAGROs: disable P/L option and hide it
                 const peOption = document.querySelector('#chart-indicator-select option[value="pe"]');
@@ -2283,7 +1705,7 @@
                 backgroundColor = 'rgba(16, 185, 129, 0.05)';
             }
 
-            const isLight = document.body.classList.contains('light-theme');
+            const isLight = !document.body.classList.contains('dark');
             const gridColor = isLight ? 'rgba(15, 23, 42, 0.06)' : 'rgba(255, 255, 255, 0.05)';
             const tickColor = isLight ? '#475569' : '#9ca3af';
 
@@ -2399,21 +1821,42 @@
                             let textBaseline;
 
                             if (cand.type === 'peak') {
-                                // Desenha acima do ponto
                                 boxX1 = pt.x - tw / 2 - 3;
                                 boxY1 = pt.y - 17;
                                 boxX2 = pt.x + tw / 2 + 3;
                                 boxY2 = pt.y - 3;
                                 textY = pt.y - 5;
                                 textBaseline = 'bottom';
+                                // Se estourar o topo, inverte pra baixo
+                                if (boxY1 < chart.chartArea.top) {
+                                    boxY1 = pt.y + 3;
+                                    boxY2 = pt.y + 17;
+                                    textY = pt.y + 5;
+                                    textBaseline = 'top';
+                                }
                             } else {
-                                // Desenha abaixo do ponto
                                 boxX1 = pt.x - tw / 2 - 3;
                                 boxY1 = pt.y + 3;
                                 boxX2 = pt.x + tw / 2 + 3;
                                 boxY2 = pt.y + 17;
                                 textY = pt.y + 5;
                                 textBaseline = 'top';
+                                // Se estourar a base, inverte pra cima
+                                if (boxY2 > chart.chartArea.bottom) {
+                                    boxY1 = pt.y - 17;
+                                    boxY2 = pt.y - 3;
+                                    textY = pt.y - 5;
+                                    textBaseline = 'bottom';
+                                }
+                            }
+                            // Garante que a caixa e o texto não ultrapassem as bordas LATERAIS do gráfico
+                            let textX = pt.x;
+                            if (boxX1 < chart.chartArea.left) {
+                                const dx = chart.chartArea.left - boxX1;
+                                boxX1 += dx; boxX2 += dx; textX += dx;
+                            } else if (boxX2 > chart.chartArea.right) {
+                                const dx = boxX2 - chart.chartArea.right;
+                                boxX1 -= dx; boxX2 -= dx; textX -= dx;
                             }
 
                             // Define caixa de colisão expandida com padding
@@ -2448,10 +1891,10 @@
                                 c.fillRect(boxX1, boxY1, boxX2 - boxX1, boxY2 - boxY1);
                             }
 
-                            // Desenha o texto
+                            // Desenha o texto (usa textX, que foi ajustado junto com a caixa)
                             c.fillStyle = borderColor;
                             c.textBaseline = textBaseline;
-                            c.fillText(txt, pt.x, textY);
+                            c.fillText(txt, textX, textY);
 
                             // Registra o box desenhado
                             drawnBoxes.push(collisionBox);
@@ -2473,8 +1916,9 @@
                         fill: true,
                         tension: 0.3,
                         borderWidth: 2,
-                        pointRadius: 1,
-                        pointHoverRadius: 4
+                        pointRadius: 2.5,
+                        pointHoverRadius: 6,
+                        pointHitRadius: 12
                     }]
                 },
                 options: {
@@ -2483,7 +1927,17 @@
                     plugins: {
                         legend: { display: false },
                         tooltip: {
+                            intersect: false,
+                            mode: 'index',
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleFont: { size: 11, weight: '600' },
+                            bodyFont: { size: 13, weight: '700' },
+                            padding: 8,
+                            cornerRadius: 4,
                             callbacks: {
+                                title: function (items) {
+                                    return items[0] ? items[0].label : '';
+                                },
                                 label: function (context) {
                                     let val = context.parsed.y;
                                     if (val === null || isNaN(val)) return 'N/A';
@@ -2491,7 +1945,7 @@
                                     if (indicator === 'pe') return `P/L: ${val.toFixed(2)}`;
                                     if (indicator === 'pb') return `P/VP: ${val.toFixed(2)}`;
                                     if (indicator === 'dy') return `DY: ${val.toFixed(2)}%`;
-                                    return val;
+                                    return `Valor: ${val.toFixed(2)}`;
                                 }
                             }
                         },
@@ -2504,11 +1958,12 @@
                     scales: {
                         x: {
                             grid: { display: false },
-                            ticks: { color: tickColor, maxTicksLimit: 6 }
+                            ticks: { color: tickColor, maxTicksLimit: 6, maxRotation: 30 }
                         },
                         y: {
                             grid: { color: gridColor },
-                            ticks: { color: tickColor }
+                            ticks: { color: tickColor },
+                            grace: '20%'
                         }
                     }
                 }
@@ -2516,13 +1971,12 @@
         }
 
         function toggleTheme() {
-            document.body.classList.toggle('light-theme');
-            const isLight = document.body.classList.contains('light-theme');
-            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            const isDark = document.body.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
 
             const themeIcon = document.getElementById('theme-toggle-icon');
             if (themeIcon) {
-                themeIcon.textContent = isLight ? '☀️' : '🌙';
+                themeIcon.textContent = isDark ? '🌙' : '☀️';
             }
 
             if (activeChart && currentAssetHistory && currentAssetHistory.length > 0) {
@@ -2534,13 +1988,15 @@
             fetch('data.json')
                 .then(response => response.json())
                 .then(data => {
+                    window.dashboardData = data; // store for export downloads
                     // 1. Timestamp
                     document.getElementById('timestamp-container').textContent = data.timestamp;
 
                     // 2. Top Picks: Stocks
                     const topStocksList = document.getElementById('top-stocks-list');
-                    topStocksList.innerHTML = data.top_stocks.map(stock => `
+                    topStocksList.innerHTML = data.top_stocks.map((stock, i) => `
                         <li class="top-item" onclick="openDetailModal('${stock.ticker}', 'stock')">
+                            <span class="top-rank">${i + 1}</span>
                             <span class="top-ticker">${stock.ticker}</span>
                             <span class="top-val positive">Score: ${formatScore(stock.score)}/10 | DY: ${(stock.dividend_yield * 100).toFixed(2)}% | P/VP: ${stock.pb_ratio ? stock.pb_ratio.toFixed(2) : 'N/A'}</span>
                         </li>
@@ -2548,10 +2004,11 @@
 
                     // 3. Top Picks: FIIs
                     const topFiisList = document.getElementById('top-fiis-list');
-                    topFiisList.innerHTML = data.top_fiis.map(fii => `
+                    topFiisList.innerHTML = data.top_fiis.map((fii, i) => `
                         <li class="top-item" onclick="openDetailModal('${fii.ticker}', 'fii')">
+                            <span class="top-rank">${i + 1}</span>
                             <span class="top-ticker">${fii.ticker}</span>
-                            <span class="top-val positive">Score: ${formatScore(fii.score)}/10 | DY: ${(fii.dividend_yield * 100).toFixed(2)}% | P/VP: ${fii.pb_ratio.toFixed(2)}</span>
+                            <span class="top-val positive">Score: ${formatScore(fii.score)}/10 | DY: ${(fii.dividend_yield * 100).toFixed(2)}% | P/VP: ${fii.pb_ratio ? fii.pb_ratio.toFixed(2) : 'N/A'}</span>
                         </li>
                     `).join('');
 
@@ -2560,8 +2017,9 @@
                     if (data.top_fiagros && data.top_fiagros.length > 0) {
                         topFiagrosCard.style.display = 'block';
                         const topFiagrosList = document.getElementById('top-fiagros-list');
-                        topFiagrosList.innerHTML = data.top_fiagros.map(fiagro => `
+                        topFiagrosList.innerHTML = data.top_fiagros.map((fiagro, i) => `
                             <li class="top-item" onclick="openDetailModal('${fiagro.ticker}', 'fiagro')">
+                                <span class="top-rank">${i + 1}</span>
                                 <span class="top-ticker">${fiagro.ticker}</span>
                                 <span class="top-val positive">Score: ${formatScore(fiagro.score)}/10 | DY: ${(fiagro.dividend_yield * 100).toFixed(2)}% | P/VP: ${fiagro.pb_ratio ? fiagro.pb_ratio.toFixed(2) : 'N/A'}</span>
                             </li>
@@ -2631,19 +2089,19 @@
                             data-eps="${stock.eps !== null ? stock.eps : 'null'}"
                             data-vpa="${stock.book_value !== null ? stock.book_value : 'null'}"
                             data-history='${stock.history_json || "[]"}'>
-                            <td class="ticker-col">
+                            <td class="ticker-cell">
                                 ${tickerHtml(stock.ticker, indices)}
                             </td>
-                            <td class="name-col">${stock.name}</td>
+                            <td class="name-cell">${stock.name}</td>
                             <td>${stock.sector}</td>
-                            <td class="metric-highlight">${priceFormatted}</td>
+                            <td>${priceFormatted}</td>
                             <td>${stock.book_value ? `R$ ${stock.book_value.toFixed(2)}` : 'N/A'}</td>
                             <td class="${peClass}">${peFormatted}</td>
                             <td class="${pbClass}">${pbFormatted}</td>
                             <td class="${dyClass}">${dyFormatted}</td>
                             <td class="${roeClass}">${roeFormatted}</td>
-                            <td class="metric-highlight ${bazinClass}">${bazinFormatted}</td>
-                            <td class="metric-highlight ${grahamClass}">${grahamFormatted}</td>
+                            <td class="${bazinClass}">${bazinFormatted}</td>
+                            <td class="${grahamClass}">${grahamFormatted}</td>
                             <td>
                         <span class="score-pill ${getScoreRangeClass(stock.score)}">${formatScore(stock.score)}</span>
                             </td>
@@ -2671,13 +2129,13 @@
                             data-vpa="${fii.book_value !== null ? fii.book_value : 'null'}"
                             data-consistency="${fii.dividend_consistency !== null && fii.dividend_consistency !== undefined ? fii.dividend_consistency : ''}"
                             data-history='${fii.history_json || "[]"}'>
-                            <td class="ticker-col">${fii.ticker}</td>
-                            <td class="name-col">${fii.name}</td>
-                            <td class="metric-highlight">${priceFormatted}</td>
+                            <td class="ticker-cell">${fii.ticker}</td>
+                            <td class="name-cell">${fii.name}</td>
+                            <td>${priceFormatted}</td>
                             <td>${fii.book_value ? `R$ ${fii.book_value.toFixed(2)}` : 'N/A'}</td>
                             <td class="${pbClass}">${pbFormatted}</td>
                             <td class="${dyClass}">${dyFormatted}</td>
-                            <td class="metric-highlight">${rateFormatted}</td>
+                            <td>${rateFormatted}</td>
                             <td>
                                 <span class="score-pill ${getScoreRangeClass(fii.score)}">${formatScore(fii.score)}</span>
                             </td>
@@ -2705,13 +2163,13 @@
                             data-vpa="${fiagro.book_value !== null ? fiagro.book_value : 'null'}"
                             data-consistency="${fiagro.dividend_consistency !== null && fiagro.dividend_consistency !== undefined ? fiagro.dividend_consistency : ''}"
                             data-history='${fiagro.history_json || "[]"}'>
-                            <td class="ticker-col">${fiagro.ticker}</td>
-                            <td class="name-col">${fiagro.name}</td>
-                            <td class="metric-highlight">${priceFormatted}</td>
+                            <td class="ticker-cell">${fiagro.ticker}</td>
+                            <td class="name-cell">${fiagro.name}</td>
+                            <td>${priceFormatted}</td>
                             <td>${fiagro.book_value ? `R$ ${fiagro.book_value.toFixed(2)}` : 'N/A'}</td>
                             <td class="${pbClass}">${pbFormatted}</td>
                             <td class="${dyClass}">${dyFormatted}</td>
-                            <td class="metric-highlight">${rateFormatted}</td>
+                            <td>${rateFormatted}</td>
                             <td>
                                 <span class="score-pill ${getScoreRangeClass(fiagro.score)}">${formatScore(fiagro.score)}</span>
                             </td>
@@ -2725,13 +2183,13 @@
                         
                         return `
                         <tr onclick="openSectorDetailModal('${sector.name}')" style="cursor: pointer;">
-                            <td class="ticker-col">${sector.name}</td>
-                            <td class="metric-highlight">${sector.count}</td>
+                            <td class="ticker-cell">${sector.name}</td>
+                            <td>${sector.count}</td>
                             <td>
                                 <span class="score-pill ${getScoreRangeClass(sector.avg_score)}">${formatScore(sector.avg_score)}</span>
                             </td>
                             <td class="positive">${sector.avg_dy}%</td>
-                            <td class="metric-highlight">${avgPeFormatted}</td>
+                            <td>${avgPeFormatted}</td>
                         </tr>`;
                     }).join('');
 
@@ -2741,10 +2199,10 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const isLight = document.body.classList.contains('light-theme');
+            const isDark = document.body.classList.contains('dark');
             const themeIcon = document.getElementById('theme-toggle-icon');
             if (themeIcon) {
-                themeIcon.textContent = isLight ? '☀️' : '🌙';
+                themeIcon.textContent = isDark ? '🌙' : '☀️';
             }
             // Inicializar label do PDF
             const pdfLabel = document.getElementById('pdf-label');
@@ -2754,6 +2212,132 @@
             }
             loadDashboardData();
         });
+
+        /* ── Download functions (client-side, no server dependency) ── */
+
+        function downloadAsBlob(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function csvEscape(val) {
+            if (val === null || val === undefined) return '';
+            const s = String(val);
+            if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+                return '"' + s.replace(/"/g, '""') + '"';
+            }
+            return s;
+        }
+
+        function csvRow(fields) {
+            return fields.map(csvEscape).join(',') + '\n';
+        }
+
+        function makeAssetCSV(assets, extraFields) {
+            let csv = csvRow(['Ticker','Nome','Setor','Preço','P/L','P/VP','Dividend Yield','ROE','LPA','VPA','Preço Justo Graham','Preço Teto Bazin','Score']);
+            assets.forEach(function(a) {
+                csv += csvRow([
+                    a.ticker, a.name, a.sector,
+                    a.price || '',
+                    a.pe_ratio != null ? a.pe_ratio.toFixed(2) : '',
+                    a.pb_ratio != null ? a.pb_ratio.toFixed(2) : '',
+                    a.dividend_yield != null ? (a.dividend_yield * 100).toFixed(2) + '%' : '',
+                    a.roe != null ? (a.roe * 100).toFixed(2) + '%' : '',
+                    a.eps != null ? a.eps.toFixed(2) : '',
+                    a.book_value != null ? a.book_value.toFixed(2) : '',
+                    a.graham_price != null ? a.graham_price.toFixed(2) : '',
+                    a.bazin_price != null ? a.bazin_price.toFixed(2) : '',
+                    a.score != null ? a.score.toFixed(2) : ''
+                ]);
+            });
+            return csv;
+        }
+
+        function makeFiisCSV(fiis) {
+            let csv = csvRow(['Ticker','Nome','Preço','P/VP','Dividend Yield','Dividend Rate','VPA','Score']);
+            fiis.forEach(function(f) {
+                csv += csvRow([
+                    f.ticker, f.name,
+                    f.price || '',
+                    f.pb_ratio != null ? f.pb_ratio.toFixed(2) : '',
+                    f.dividend_yield != null ? (f.dividend_yield * 100).toFixed(2) + '%' : '',
+                    f.dividend_rate != null ? f.dividend_rate.toFixed(2) : '',
+                    f.book_value != null ? f.book_value.toFixed(2) : '',
+                    f.score != null ? f.score.toFixed(2) : ''
+                ]);
+            });
+            return csv;
+        }
+
+        function makeFiagrosCSV(fiagros) {
+            // Same columns as FIIs
+            return makeFiisCSV(fiagros);
+        }
+
+        function downloadStocksCSV() {
+            closeExportMenu();
+            var data = window.dashboardData;
+            if (!data || !data.stocks) { alert('Dados ainda não carregados.'); return; }
+            downloadAsBlob(makeAssetCSV(data.stocks), 'radar-b3-acoes.csv', 'text/csv;charset=utf-8');
+        }
+
+        function downloadFiisCSV() {
+            closeExportMenu();
+            var data = window.dashboardData;
+            if (!data || !data.fiis) { alert('Dados ainda não carregados.'); return; }
+            downloadAsBlob(makeFiisCSV(data.fiis), 'radar-b3-fiis.csv', 'text/csv;charset=utf-8');
+        }
+
+        function downloadFiagrosCSV() {
+            closeExportMenu();
+            var data = window.dashboardData;
+            if (!data || !data.fiagros) { alert('Dados ainda não carregados.'); return; }
+            downloadAsBlob(makeFiagrosCSV(data.fiagros), 'radar-b3-fiagros.csv', 'text/csv;charset=utf-8');
+        }
+
+        function downloadAllJSON() {
+            closeExportMenu();
+            var data = window.dashboardData;
+            if (!data) { alert('Dados ainda não carregados.'); return; }
+            var exportData = {
+                exported_at: new Date().toISOString(),
+                total_assets: (data.stocks ? data.stocks.length : 0) + (data.fiis ? data.fiis.length : 0) + (data.fiagros ? data.fiagros.length : 0),
+                stocks: data.stocks,
+                fiis: data.fiis,
+                fiagros: data.fiagros
+            };
+            downloadAsBlob(JSON.stringify(exportData, null, 2), 'radar-b3-ativos.json', 'application/json');
+        }
+
+        function downloadTopPicks() {
+            closeExportMenu();
+            var data = window.dashboardData;
+            if (!data) { alert('Dados ainda não carregados.'); return; }
+            var exportData = {
+                meta: {
+                    exported_at: new Date().toISOString(),
+                    source: 'Radar Fundamentalista B3 - Top Picks',
+                    description: 'Melhores ativos por score fundamentalista.',
+                    suggested_prompt: 'Analise minha carteira de investimentos...'
+                },
+                top_stocks: data.top_stocks,
+                top_fiis: data.top_fiis,
+                top_fiagros: data.top_fiagros || []
+            };
+            downloadAsBlob(JSON.stringify(exportData, null, 2), 'radar-b3-top-picks.json', 'application/json');
+        }
+
+        function closeExportMenu() {
+            var menu = document.getElementById('export-menu');
+            if (menu) menu.style.display = 'none';
+        }
 
         function toggleExportMenu() {
             const menu = document.getElementById('export-menu');
@@ -2840,8 +2424,8 @@
 
             // ── Forçar estilos inline para captura sem whitespace ──
             const headerEl = container.querySelector('header');
-            const logoH1 = container.querySelector('.logo-area h1');
-            const logoP = container.querySelector('.logo-area p');
+            const logoH1 = container.querySelector('.logo-text h1');
+            const logoP = container.querySelector('.logo-text p');
 
             // Aplicar compactação DIRETAMENTE nos elementos (inline, sem depender de classe CSS)
             document.body.style.padding = '0';
@@ -2854,7 +2438,7 @@
             if (logoP) { logoP.style.margin = '0'; logoP.style.fontSize = '9px'; logoP.style.lineHeight = '1.1'; }
 
             // Esconder botões
-            document.querySelectorAll('#export-btn, #help-toggle-btn, #theme-toggle-btn, .timestamp').forEach(el => {
+            document.querySelectorAll('#export-btn, #help-toggle-btn, #theme-toggle-btn, .header-ts').forEach(el => {
                 if (el) el.style.display = 'none';
             });
 

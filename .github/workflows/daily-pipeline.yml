@@ -110,8 +110,9 @@ jobs:
         if: steps.check-changes.outputs.changed == 'true'
         run: |
           mkdir -p _site
-          # Dashboard & Data
-          cp index.html _site/
+          # Dashboard & Data (v2 como padrão, v1 como fallback)
+          cp index-v2.html _site/index.html
+          cp index.html _site/index-classic.html
           cp data.json _site/
           # PWA assets
           cp manifest.json _site/ 2>/dev/null || true

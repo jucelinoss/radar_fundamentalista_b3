@@ -152,14 +152,19 @@ def _update_vpa_from_cache() -> None:
 
 
 def run_generator() -> bool:
-    """Execute the dashboard generator."""
+    """Execute the dashboard generator + export files."""
     import generator
     logger.info("=" * 60)
     logger.info("  STEP 2/2: DASHBOARD GENERATION")
     logger.info("=" * 60)
     _update_vpa_from_cache()
     generator.generate_dashboard()
-    logger.info("Dashboard generation complete.")
+    # Also generate export files so download links always work locally
+    from exporter import export_csv, export_json, export_top_picks
+    export_csv()
+    export_json()
+    export_top_picks()
+    logger.info("Dashboard generation + exports complete.")
     return True
 
 
