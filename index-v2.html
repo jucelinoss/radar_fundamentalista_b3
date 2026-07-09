@@ -584,16 +584,16 @@
                         </button>
                         <div id="export-menu" class="export-menu" style="display: none;">
                             <div style="padding:0.4rem 0.75rem;font-size:0.7rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Dados Brutos</div>
-                            <a href="#" onclick="downloadStocksCSV(); return false;" style="display:block;padding:0.4rem 0.75rem;color:var(--text-primary);text-decoration:none;font-size:0.75rem;border-radius:4px;transition:var(--transition);" onmouseover="this.style.background='var(--accent-bg)'" onmouseout="this.style.background='transparent'">📊 CSV - Ações</a>
-                            <a href="#" onclick="downloadAllJSON(); return false;" style="display:block;padding:0.4rem 0.75rem;color:var(--text-primary);text-decoration:none;font-size:0.75rem;border-radius:4px;transition:var(--transition);" onmouseover="this.style.background='var(--accent-bg)'" onmouseout="this.style.background='transparent'">📋 JSON - Todos os Ativos</a>
-                            <a href="#" onclick="downloadFiisCSV(); return false;" style="display:block;padding:0.4rem 0.75rem;color:var(--text-primary);text-decoration:none;font-size:0.75rem;border-radius:4px;transition:var(--transition);" onmouseover="this.style.background='var(--accent-bg)'" onmouseout="this.style.background='transparent'">🏢 CSV - FIIs</a>
-                            <a href="#" onclick="downloadFiagrosCSV(); return false;" style="display:block;padding:0.4rem 0.75rem;color:var(--text-primary);text-decoration:none;font-size:0.75rem;border-radius:4px;transition:var(--transition);" onmouseover="this.style.background='var(--accent-bg)'" onmouseout="this.style.background='transparent'">🌱 CSV - FIAGROs</a>
+                            <a href="export_stocks.csv" download style="display:block;padding:0.4rem 0.75rem;color:var(--text-primary);text-decoration:none;font-size:0.75rem;border-radius:4px;transition:var(--transition);" onmouseover="this.style.background='var(--accent-bg)'" onmouseout="this.style.background='transparent'">📊 CSV - Ações</a>
+                            <a href="export_ativos.json" download style="display:block;padding:0.4rem 0.75rem;color:var(--text-primary);text-decoration:none;font-size:0.75rem;border-radius:4px;transition:var(--transition);" onmouseover="this.style.background='var(--accent-bg)'" onmouseout="this.style.background='transparent'">📋 JSON - Todos os Ativos</a>
+                            <a href="export_fiis.csv" download style="display:block;padding:0.4rem 0.75rem;color:var(--text-primary);text-decoration:none;font-size:0.75rem;border-radius:4px;transition:var(--transition);" onmouseover="this.style.background='var(--accent-bg)'" onmouseout="this.style.background='transparent'">🏢 CSV - FIIs</a>
+                            <a href="export_fiagros.csv" download style="display:block;padding:0.4rem 0.75rem;color:var(--text-primary);text-decoration:none;font-size:0.75rem;border-radius:4px;transition:var(--transition);" onmouseover="this.style.background='var(--accent-bg)'" onmouseout="this.style.background='transparent'">🌱 CSV - FIAGROs</a>
                             <hr style="border:none;border-top:1px solid var(--card-border);margin:0.25rem 0;">
                             <div style="padding:0.4rem 0.75rem;font-size:0.7rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Relatório</div>
                             <a href="#" onclick="exportPDF(); return false;" style="display:block;padding:0.4rem 0.75rem;color:var(--text-primary);text-decoration:none;font-size:0.75rem;border-radius:4px;transition:var(--transition);" onmouseover="this.style.background='var(--accent-bg)'" onmouseout="this.style.background='transparent'">📄 PDF - <span id="pdf-label">Ações</span> (aba atual)</a>
                             <hr style="border:none;border-top:1px solid var(--card-border);margin:0.25rem 0;">
                             <div style="padding:0.4rem 0.75rem;font-size:0.7rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Para IA</div>
-                            <a href="#" onclick="downloadTopPicks(); return false;" style="display:block;padding:0.4rem 0.75rem;color:var(--text-primary);text-decoration:none;font-size:0.75rem;border-radius:4px;transition:var(--transition);" onmouseover="this.style.background='var(--accent-bg)'" onmouseout="this.style.background='transparent'">🤖 Top Picks JSON (pronto pra IA)</a>
+                            <a href="export_top_picks.json" download style="display:block;padding:0.4rem 0.75rem;color:var(--text-primary);text-decoration:none;font-size:0.75rem;border-radius:4px;transition:var(--transition);" onmouseover="this.style.background='var(--accent-bg)'" onmouseout="this.style.background='transparent'">🤖 Top Picks JSON (pronto pra IA)</a>
                         </div>
                     </div>
                     <button id="help-toggle-btn" onclick="openHelpModal()" class="action-btn">
@@ -2212,127 +2212,6 @@
             }
             loadDashboardData();
         });
-
-        /* ── Download functions (client-side, no server dependency) ── */
-
-        function downloadAsBlob(content, filename, mimeType) {
-            const blob = new Blob([content], { type: mimeType });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        function csvEscape(val) {
-            if (val === null || val === undefined) return '';
-            const s = String(val);
-            if (s.includes(',') || s.includes('"') || s.includes('\n')) {
-                return '"' + s.replace(/"/g, '""') + '"';
-            }
-            return s;
-        }
-
-        function csvRow(fields) {
-            return fields.map(csvEscape).join(',') + '\n';
-        }
-
-        function makeAssetCSV(assets, extraFields) {
-            let csv = csvRow(['Ticker','Nome','Setor','Preço','P/L','P/VP','Dividend Yield','ROE','LPA','VPA','Preço Justo Graham','Preço Teto Bazin','Score']);
-            assets.forEach(function(a) {
-                csv += csvRow([
-                    a.ticker, a.name, a.sector,
-                    a.price || '',
-                    a.pe_ratio != null ? a.pe_ratio.toFixed(2) : '',
-                    a.pb_ratio != null ? a.pb_ratio.toFixed(2) : '',
-                    a.dividend_yield != null ? (a.dividend_yield * 100).toFixed(2) + '%' : '',
-                    a.roe != null ? (a.roe * 100).toFixed(2) + '%' : '',
-                    a.eps != null ? a.eps.toFixed(2) : '',
-                    a.book_value != null ? a.book_value.toFixed(2) : '',
-                    a.graham_price != null ? a.graham_price.toFixed(2) : '',
-                    a.bazin_price != null ? a.bazin_price.toFixed(2) : '',
-                    a.score != null ? a.score.toFixed(2) : ''
-                ]);
-            });
-            return csv;
-        }
-
-        function makeFiisCSV(fiis) {
-            let csv = csvRow(['Ticker','Nome','Preço','P/VP','Dividend Yield','Dividend Rate','VPA','Score']);
-            fiis.forEach(function(f) {
-                csv += csvRow([
-                    f.ticker, f.name,
-                    f.price || '',
-                    f.pb_ratio != null ? f.pb_ratio.toFixed(2) : '',
-                    f.dividend_yield != null ? (f.dividend_yield * 100).toFixed(2) + '%' : '',
-                    f.dividend_rate != null ? f.dividend_rate.toFixed(2) : '',
-                    f.book_value != null ? f.book_value.toFixed(2) : '',
-                    f.score != null ? f.score.toFixed(2) : ''
-                ]);
-            });
-            return csv;
-        }
-
-        function makeFiagrosCSV(fiagros) {
-            // Same columns as FIIs
-            return makeFiisCSV(fiagros);
-        }
-
-        function downloadStocksCSV() {
-            closeExportMenu();
-            var data = window.dashboardData;
-            if (!data || !data.stocks) { alert('Dados ainda não carregados.'); return; }
-            downloadAsBlob(makeAssetCSV(data.stocks), 'radar-b3-acoes.csv', 'text/csv;charset=utf-8');
-        }
-
-        function downloadFiisCSV() {
-            closeExportMenu();
-            var data = window.dashboardData;
-            if (!data || !data.fiis) { alert('Dados ainda não carregados.'); return; }
-            downloadAsBlob(makeFiisCSV(data.fiis), 'radar-b3-fiis.csv', 'text/csv;charset=utf-8');
-        }
-
-        function downloadFiagrosCSV() {
-            closeExportMenu();
-            var data = window.dashboardData;
-            if (!data || !data.fiagros) { alert('Dados ainda não carregados.'); return; }
-            downloadAsBlob(makeFiagrosCSV(data.fiagros), 'radar-b3-fiagros.csv', 'text/csv;charset=utf-8');
-        }
-
-        function downloadAllJSON() {
-            closeExportMenu();
-            var data = window.dashboardData;
-            if (!data) { alert('Dados ainda não carregados.'); return; }
-            var exportData = {
-                exported_at: new Date().toISOString(),
-                total_assets: (data.stocks ? data.stocks.length : 0) + (data.fiis ? data.fiis.length : 0) + (data.fiagros ? data.fiagros.length : 0),
-                stocks: data.stocks,
-                fiis: data.fiis,
-                fiagros: data.fiagros
-            };
-            downloadAsBlob(JSON.stringify(exportData, null, 2), 'radar-b3-ativos.json', 'application/json');
-        }
-
-        function downloadTopPicks() {
-            closeExportMenu();
-            var data = window.dashboardData;
-            if (!data) { alert('Dados ainda não carregados.'); return; }
-            var exportData = {
-                meta: {
-                    exported_at: new Date().toISOString(),
-                    source: 'Radar Fundamentalista B3 - Top Picks',
-                    description: 'Melhores ativos por score fundamentalista.',
-                    suggested_prompt: 'Analise minha carteira de investimentos...'
-                },
-                top_stocks: data.top_stocks,
-                top_fiis: data.top_fiis,
-                top_fiagros: data.top_fiagros || []
-            };
-            downloadAsBlob(JSON.stringify(exportData, null, 2), 'radar-b3-top-picks.json', 'application/json');
-        }
 
         function closeExportMenu() {
             var menu = document.getElementById('export-menu');
