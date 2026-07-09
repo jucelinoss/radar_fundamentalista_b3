@@ -1,159 +1,88 @@
-# **Regras de Análise Fundamentalista — Scorecard 0-5**
+# **Regras de Análise Fundamentalista — Scorecard 0-10**
 
 **Radar Fundamentalista B3**  
-**Versão do documento:** 2.3  
+**Versão do documento:** 2.5  
 **Última atualização:** 2026-07-08  
-**Cobertura:** 91 ações, 120 FIIs, 36 FIAGROs
+**Cobertura:** 91 ações, 120 FIIs, 36 FIAGROs  
 
-## ---
+---
 
-**1\. Estrutura do Scorecard**
+## **1. Estrutura do Scorecard Contínuo (0 a 10)**
 
-Cada ativo recebe uma **nota de 0 a 5** baseada em critérios objetivos binários (ganha 1 ponto ou 0).  
-Não há pesos diferenciados — cada critério vale exatamente **1 ponto**.
+Para solucionar o problema de baixa granularidade (múltiplos ativos empatados no topo), o modelo migra de uma lógica binária rígida para um **sistema de pontuação contínua com casas decimais (não arredondadas)**. 
 
-| Pontos | Significado   |
-| :---- | :---- |
-| 5/5 | Excelente — atende todos os critérios fundamentalistas |
-| 4/5 | Bom — apenas um critério não atende |
-| 3/5 | Regular — metade dos critérios |
-| 2/5 | Fraco — maioria dos critérios falha |
-| 1/5 | Ruim — apenas um critério atende |
-| 0/5 | Crítico — nenhum critério atende |
+O sistema mantém os **5 critérios fundamentais** por classe de ativo, mas cada indicador passa a pontuar proporcionalmente em uma escala de **0,0 a 2,0 pontos** com base na distância da meta. A soma dos 5 critérios gera a nota final no range de **0,0 a 10,0**.
 
-Os critérios seguem as filosofias de **Benjamin Graham** (value investing, margem de segurança) e **Décio Bazin** (dividendos sustentáveis), adaptados e calibrados para a realidade prática do mercado financeiro brasileiro.
+### **A Lógica Matemática do Desempate (`analyzer.py`)**
+1. **Filtro de Ruína (Piso):** Se o ativo falhar nos limites de segurança absoluta (ex: P/VP abaixo do piso), ele recebe **nota 0,0 automática** naquele critério.
+2. **Aproveitamento Proporcional:** Se passar no piso, a nota decimal é calculada baseada em o quão acima da meta mínima o indicador está (premiando os ativos altamente eficientes com frações decimais extras).
 
-## ---
+---
 
-**2\. Ações (B3) — 5 Critérios**
+## **2. Ações (B3) — 5 Critérios Oficiais (Até 2,0 pontos cada)**
 
-**Fonte dos dados brutos:** Yahoo Finance (yfinance)  
-**Função no código:** calculate\_stock\_score() em analyzer.py  
-**Abrangência:** 91 ações
+**Fonte dos dados brutos:** Yahoo Finance (yfinance)[cite: 2]  
+**Função no código:** `calculate_stock_score()` em `analyzer.py`[cite: 2]
 
-### **2.1 Dividend Yield ≥ 6% (Bazin)**
+### **2.1 Dividend Yield Médio (3 anos) — Meta: ≥ 6%**
+- **Cálculo da Nota (Max 2,0):** 
+  - Se `dy_medio_3y < 0.06` $\rightarrow$ `0.0` pontos.
+  - Se `dy_medio_3y >= 0.06` $\rightarrow$ `1.0 + (dy_medio_3y - 0.06) * fator_proporcional`.
+- **Descrição:** Média dos dividendos distribuídos nos últimos 3 anos dividida pelo preço atual[cite: 2]. Neutraliza o efeito distorção de empresas cíclicas no topo do ciclo[cite: 2].
 
-* **Fórmula:** dy\_normalizado \>= 0.06  
-* **Label no modal:** Dividend Yield \>= 6%  
-* **Descrição:** O Dividend Yield dos últimos 12 meses deve ser igual ou superior a 6% ao ano. Baseado no método de Décio Bazin, que considera 6% a taxa mínima de retorno em proventos para justificar o investimento em renda variável.
+### **2.2 P/L Médio (5 anos) — Meta: ≤ 15**
+- **Cálculo da Nota (Max 2,0):** 
+  - Se `pe_medio_5y <= 0` ou `pe_medio_5y > 15` $\rightarrow$ `0.0` pontos[cite: 1, 2].
+  - Se `0 < pe_medio_5y <= 15` $\rightarrow$ `1.0 + ((15 - pe_medio_5y) / 15) * fator_proporcional`[cite: 1, 2].
+- **Descrição:** Preço atual dividido pela média do Lucro por Ação (LPA) de 5 anos[cite: 2]. Evita classificar ações como baratas baseando-se em lucros não recorrentes temporários[cite: 2].
 
-### **2.2 P/L (Preço sobre Lucro) Corrente ≤ 15**
+### **2.3 P/VP Blindado — Intervalo Seguro: 0,50 a 1,50**
+- **Cálculo da Nota (Max 2,0):**
+  - Se `pb_ratio < 0.50` ou `pb_ratio > 1.50` $\rightarrow$ `0.0` pontos (Filtro de Ruína / *MGLU Proteção*)[cite: 1, 2].
+  - Se `0.50 <= pb_ratio <= 1.50` $\rightarrow$ Pontuação calculada com base na proximidade do valor justo ideal.
 
-* **Fórmula:** 0 \< pe\_ratio \<= 15  
-* **Label no modal:** P/L (Preço / Lucro) \<= 15  
-* **Descrição:** O múltiplo Preço/Lucro (trailing P/E) deve ser positivo e menor ou igual a 15\. A trava superior evita ativos sobreprecificados, enquanto a checagem \> 0 garante lucros positivos recorrentes, mitigando distorções de empresas com prejuízos contábeis.
+### **2.4 ROE Corrente — Meta: ≥ 10%**
+- **Cálculo da Nota (Max 2,0):**
+  - Se `roe_corrente < 0.10` $\rightarrow$ `0.0` pontos[cite: 1, 2].
+  - Se `roe_corrente >= 0.10` $\rightarrow$ `1.0 + (roe_corrente - 0.10) * fator_proporcional`[cite: 1, 2].
+- **Descrição:** Validador do P/VP[cite: 2]. Impede notas altas para empresas com desconto patrimonial aparente, mas que estão destruindo capital com prejuízos[cite: 2].
 
-### **2.3 P/VP (Preço sobre Valor Patrimonial) ≤ 1,5 (Graham)**
+### **2.5 Margem de Segurança Clássica (Graham / PEG)**
+- **Cálculo da Nota (Max 2,0):**
+  - Se `price >= graham_price` $\rightarrow$ `0.0` pontos.
+  - Se `price < graham_price` $\rightarrow$ Ponto base + fração da margem de desconto em relação ao preço justo.
+- **Descrição:** O preço atual deve ser inferior ao Preço Justo de Graham ou apresentar PEG Ratio $\le 1,0$ em empresas de tecnologia/capital leve[cite: 2].
 
-* **Fórmula:** 0 \< pb\_ratio \<= 1.5  
-* **Label no modal:** P/VP (Preço / V.P.) \<= 1.5  
-* **Descrição:** O múltiplo Preço/Valor Patrimonial (Price-to-Book) deve ser positivo e menor ou igual a 1,5. Baseado no limite prudencial de Graham.
+### **[Indicador de Suporte Visual] Saúde Financeira (Sem peso no Score)**
+- **Métrica no Modal:** `Dívida Líquida / EBITDA` (Alvo: `≤ 3,0x`)[cite: 2]. Exibido de forma puramente informativa para monitorar o risco de juros altos[cite: 2].
 
-### **2.4 ROE ≥ 10%**
+---
 
-* **Fórmula:** roe \>= 0.10  
-* **Label no modal:** ROE (Retorno s/ Patr.) \>= 10%  
-* **Descrição:** O Retorno sobre o Patrimônio Líquido (Return on Equity) deve ser igual ou superior a 10% ao ano. A empresa deve demonstrar eficiência na geração de valor sobre o capital próprio investido.
+## **3. FIIs e FIAGROs — Lógica de Pontuação Decimal**
 
-### **2.5 Margem de Segurança (Graham / PEG Alternativo)**
+Os 5 critérios abaixo somam até 10,0 pontos, aplicando os novos pisos e as travas superiores contra risco predatório de crédito (*High Yield* podre)[cite: 2].
 
-* **Fórmula:** price \< graham\_price (para setores tradicionais) OR peg\_ratio \<= 1.0 (para tecnologia/serviços leves)  
-* **Label no modal:** Margem de Segurança (Preço \< Justo / PEG)  
-* **Descrição:** Garante margem de segurança na aquisição. Ativos industriais/financeiros usam o Preço Justo de Graham. Empresas de tecnologia ou de capital leve usam o PEG Ratio para não penalizar VPAs estruturalmente baixos.
+1. **P/VP Ajustado (Piso 0,70 / Teto 1,05):** Ativos abaixo de 0,70 recebem `0.0` automático no critério para evitar fundos em *distress*[cite: 1, 2].
+2. **P/VP Limite e Não Excludente:** Pontua de forma fracionada ativos em zonas de borda de preço (0,60 a 0,70 ou 1,05 a 1,15)[cite: 2].
+3. **Dividend Yield Anual Mínimo:** Base decimal calculada a partir de 8% para FIIs e 10% para FIAGROs[cite: 2].
+4. **Trava de Risco de Crédito (Yield Equilibrado):** Se o yield ultrapassar **14,5% em FIIs** ou **16,5% em FIAGROs**, o critério zera (`0.0`)[cite: 2]. Yields excessivos indicam risco severo de inadimplência mascarado[cite: 2].
+5. **Consistência de Proventos:** Pontuação proporcional baseada na estabilidade da distribuição semestral (mínimo de 95% de retenção em relação ao período anterior)[cite: 2].
 
-## ---
+---
 
-**3\. FIIs (Fundos Imobiliários) — 5 Critérios**
+## **4. Requisitos de Interface e Regra Visual do Filtro (Opção 2)**
 
-**Fonte dos dados brutos:** Yahoo Finance (yfinance)  
-**Função no código:** calculate\_fii\_score() em analyzer.py  
-**Abrangência:** 120 Fundos de Investimento Imobiliário
+Para acomodar as notas fracionadas (ex: `3.8`, `7.65`, `9.42`) sem estourar o layout ou criar uma barra poluída com 11 botões horizontais no mobile, o sistema adota oficialmente a **Opção 2: Filtro por Faixas Estilizadas via Dropdown**.
 
-### **3.1 P/VP Ajustado entre 0,70 e 1,05 (Desconto Saudável)**
+### **4.1 Componente do Filtro na Barra de Ferramentas**
+Substituir os botões circulares numéricos atuais por um componente Dropdown (*Select*) estilizado[cite: 1], posicionado simetricamente ao lado dos filtros de "Setores" e "Índices"[cite: 1].
 
-* **Fórmula:** 0.70 \<= pb\_ratio \<= 1.05  
-* **Label no modal:** Múltiplo P/VP entre 0.70 e 1.05 (Ideal)  
-* **Descrição:** O P/VP deve estar entre 0,70 e 1,05. O piso elevado para 0,70 serve como blindagem matemática automática contra armadilhas de valor (*value traps*) e fundos em situação de estresse severo de crédito ou vacância estrutural (*distress*).
-
-### **3.2 P/VP Limite e Não Excludente**
-
-* **Fórmula:** (pb\_ratio \< 0.70) OR (1.05 \< pb\_ratio \<= 1.15)  
-* **Label no modal:** Múltiplo P/VP em Região Limite ou Estresse  
-* **Descrição:** Avalia as bordas de preço do mercado. Este critério pontua fundos fora da faixa ideal (0,70-1,05), mas que estão em zonas transitórias de ágio aceitável (até 1,15) ou desconto profundo de tijolos cíclicos, atuando como um contrapeso de risco.
-
-### **3.3 Dividend Yield Anual ≥ 8%**
-
-* **Fórmula:** dy\_normalizado \>= 0.08  
-* **Label no modal:** Dividend Yield Anual \>= 8% (Mínimo)  
-* **Descrição:** O retorno em proventos nos últimos 12 meses deve ser de no mínimo 8% ao ano, adequado à exigência legal de distribuição de 95% do lucro caixa dos FIIs.
-
-### **3.4 Dividend Yield Anual ≥ 10% (Excelente)**
-
-* **Fórmula:** dy\_normalizado \>= 0.10  
-* **Label no modal:** Dividend Yield Anual \>= 10% (Excelente)  
-* **Descrição:** Premia os fundos com excelente prêmio de distribuição de renda imobiliária.
-
-### **3.5 Histórico Acumulado de Distribuição Ativa**
-
-* **Fórmula:** sum(historical\_dividends\_365d) \> 0  
-* **Label no modal:** Distribuição Real 12M \> R$ 0,00  
-* **Descrição:** O fundo deve registrar pagamentos efetivos. Evita distorções de caixas estáticos ou fundos que interromperam totalmente seus rendimentos por inadimplência.
-
-## ---
-
-**4\. FIAGROs — 5 Critérios**
-
-**Função no código:** calculate\_fiagro\_score() em analyzer.py  
-**Abrangência:** 36 Fundos do Agronegócio  
-*Nota de Calibração: Embora possuam dinâmica regulatória parecida, os FIAGROs não possuem a mesma obrigação imutável de 95% de distribuição dos FIIs pela Lei nº 14.130/2021. Devido ao maior risco de crédito envolvido na cadeia agropecuária (clima, variação de commodities), os limites de dividendos exigidos pelo score são elevados para compensar o prêmio de risco exigido pelo consenso de mercado.*
-
-| Critério FIAGRO | Fórmula de Validação | Pontos   |
-| :---- | :---- | :---- |
-| **P/VP Ideal Agro** | 0.70 \<= pb\_ratio \<= 1.05 | 1 |
-| **P/VP Limite Agro** | (pb\_ratio \< 0.70) OR (1.05 \< pb\_ratio \<= 1.15) | 1 |
-| **Dividend Yield Mínimo Agro** | dy\_normalizado \<= 0.10 (10% a.a.) | 1 |
-| **Dividend Yield Excelente Agro** | dy\_normalizado \<= 0.12 (12% a.a.) | 1 |
-| **Distribuição Ativa 12M** | sum(historical\_dividends\_365d) \> 0 | 1 |
-
-## ---
-
-**5\. Métodos de Engenharia de Dados e Ajustes de API**
-
-### **5.1 Processamento Antifalha de Dividendos via yfinance**
-
-Para evitar as falhas ou congelamentos do campo estático dividendRate e blindar o sistema contra distribuições não recorrentes isoladas (como grandes amortizações), a extração de proventos deve seguir o fluxo lógico abaixo:  
-\# Abordagem de Engenharia de Dados para o analyzer.py  
-def get\_true\_yield(ticker):  
-    history \= ticker.actions  
-    if not history.empty and 'Dividends' in history.columns:  
-        \# Filtra os proventos pagos estritamente nos últimos 365 dias  
-        last\_12m\_dividends \= history\['Dividends'\].last('365D').sum()  
-        return last\_12m\_dividends / current\_price  
-    return ticker.info.get('dividendYield', 0.0)
-
-### **5.2 Validação de Múltiplos Negativos**
-
-Para barrar distorções em empresas com patrimônio líquido negativo ou passivos a descoberto (onde operadores lógicos de menor ou igual podem retornar falsos positivos), o código obrigatoriamente aplica uma trava maior que zero antes de testar os limites:  
-if pb\_ratio and pb\_ratio \> 0:  
-    \# Executa a validação do Scorecard  
-else:  
-    \# Ativo falha automaticamente no critério (0 pontos)
-
-### **5.3 Normalização de Amostragem do Dividend Yield**
-
-Ajuste unificado aplicado previamente em todas as checagens operacionais:  
-se dy \> 1.0:  
-    dy \= dy / 100  
-senao:  
-    dy \= dy
-
-## ---
-
-**6\. Apêndice: Mapa de Constantes Atualizadas (Versão 2.3)**
-
-| Constante no Código | Valor Antigo (v2.2) | Valor Atualizado (v2.3) | Objetivo Técnico do Ajuste   |
-| :---- | :---- | :---- | :---- |
-| PB\_FII\_IDEAL\_LOW | 0.50 | **0.70** | Blindar o scorecard contra fundos imobiliários em *distress* ou colapso de crédito. |
-| DY\_FIAGRO\_GOOD | 0.08 | **0.10** | Adequar o prêmio mínimo exigido pelo mercado para o risco de crédito agropecuário. |
-| DY\_FIAGRO\_EXCELLENT | 0.10 | **0.12** | Premiar FIAGROs com excelente eficiência de distribuição histórica. |
-
+```text
++--------------------------------------------------------+
+| Todos os Índices | Todos os Setores | Todos os Scores ▾|
++--------------------------------------------------------+
+                                       | Todos os Scores |
+                                       | 🟢 Premium (≥ 8.0)
+                                       | 🟡 Bom (6.0 a 7.9)
+                                       | 🟠 Alerta (4.0 a 5.9)
+                                       | 🔴 Risco (< 4.0)

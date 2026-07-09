@@ -18,6 +18,25 @@ from analyzer import (
     analyze_fiagro,
     get_true_yield,
     SECTOR_MAP,
+    # v2.5 continuous scoring
+    calculate_stock_score_continuous,
+    calculate_fii_score_continuous,
+    calculate_fiagro_score_continuous,
+    _score_dy_stock,
+    _score_pe_stock,
+    _score_pb_stock,
+    _score_roe_stock,
+    _score_graham_stock,
+    _score_pb_fii_ideal,
+    _score_pb_fii_limite,
+    _score_dy_fii,
+    _score_yield_cap,
+    _score_dividend_consistency,
+    # v2.5.1 — 4 criteria × 2.5 pts
+    _score_pb_fii_unified,
+    _score_dy_fii_v2,
+    _score_yield_cap_v2,
+    _score_dividend_consistency_v2,
 )
 
 
@@ -368,6 +387,8 @@ class TestAnalyzeFii:
         assert result["pb_ratio"] == 0.95
         assert result["dividend_yield"] == 0.095
         assert result["dividend_rate"] == 0.85
+        # VPA não está no info → fallback p/ price / pb_ratio = 105 / 0.95
+        assert result["book_value"] == 110.53
         # Score: C2 (≤1.15) ✓ +1, C1 (0.70-1.05) ✓ +1, DY ≥ 8% ✓ +1, DY ≥ 10% ✗ (9.5%) +0, Rate >0 ✓ +1 → 4
         assert result["score"] == 4, f"Expected 4, got {result['score']}"
 
@@ -550,6 +571,8 @@ class TestAnalyzeFiagro:
         assert result["pb_ratio"] == 0.95
         assert result["dividend_yield"] == 0.14
         assert result["dividend_rate"] == 1.20
+        # VPA não está no info → fallback p/ price / pb_ratio = 90 / 0.95
+        assert result["book_value"] == 94.74
         # C2 ✓ +1, C1 ✓ +1, DY ≥ 10% ✓ +1, DY ≥ 12% ✓ +1, Rate > 0 ✓ +1
         assert result["score"] == 5, f"Expected 5, got {result['score']}"
 
@@ -636,6 +659,618 @@ class TestStockPegScore:
         )
         # DY ✓, PE ✓, PB ✓, ROE ✓, PEG ignored, Graham ✗ → 4
         assert score == 4
+
+
+# ======================================================================
+# v2.5 Continuous Stock Score Tests
+# ======================================================================
+
+class TestStockScoreContinuous:
+    """Tests for the new 0-10 continuous stock scoring."""
+
+    def test_dy_below_threshold(self):
+        """DY < 6% → 0.0 pts no critério."""
+        s = _score_dy_stock(0.05)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_dy_at_threshold(self):
+        """DY = 6% → 1.0 pt (base)."""
+        s = _score_dy_stock(0.06)
+        assert s == 1.0, f"Expected 1.0, got {s}"
+
+    def test_dy_mid_range(self):
+        """DY = 10.5% → 1.5 pts (1.0 + 0.045 * 11.111 = 1.5)."""
+        s = _score_dy_stock(0.105)
+        assert s == 1.5, f"Expected 1.5, got {s}"
+
+    def test_dy_max(self):
+        """DY = 15% → 2.0 pts."""
+        s = _score_dy_stock(0.15)
+        assert s == 2.0, f"Expected 2.0, got {s}"
+
+    def test_dy_above_max(self):
+        """DY > 15% → capped at 2.0 pts."""
+        s = _score_dy_stock(0.20)
+        assert s == 2.0, f"Expected 2.0, got {s}"
+
+    def test_dy_none(self):
+        """DY None → 0.0."""
+        s = _score_dy_stock(None)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_pe_at_limit(self):
+        """P/E = 15 → 1.0 pt (base)."""
+        s = _score_pe_stock(15.0)
+        assert s == 1.0, f"Expected 1.0, got {s}"
+
+    def test_pe_mid(self):
+        """P/E = 5 → 1.666... ≈ 1.67 pts."""
+        s = _score_pe_stock(5.0)
+        assert abs(s - 1.67) < 0.01, f"Expected ~1.67, got {s}"
+
+    def test_pe_low(self):
+        """P/E = 1 → ~1.93 pts."""
+        s = _score_pe_stock(1.0)
+        assert abs(s - 1.93) < 0.01, f"Expected ~1.93, got {s}"
+
+    def test_pe_above_max(self):
+        """P/E > 15 → 0.0 pts."""
+        s = _score_pe_stock(20.0)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_pe_negative(self):
+        """P/E <= 0 → 0.0 pts."""
+        s = _score_pe_stock(-5.0)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+        s2 = _score_pe_stock(0.0)
+        assert s2 == 0.0, f"Expected 0.0, got {s2}"
+
+    def test_pe_none(self):
+        """P/E None → 0.0."""
+        s = _score_pe_stock(None)
+        assert s == 0.0
+
+    def test_pb_at_floor(self):
+        """P/VP = 0.50 → 2.0 pts (max discount)."""
+        s = _score_pb_stock(0.50)
+        assert s == 2.0, f"Expected 2.0, got {s}"
+
+    def test_pb_at_fair(self):
+        """P/VP = 1.00 → 1.0 pt."""
+        s = _score_pb_stock(1.00)
+        assert s == 1.0, f"Expected 1.0, got {s}"
+
+    def test_pb_at_ceiling(self):
+        """P/VP = 1.50 → 0.0 pts (max allowed)."""
+        s = _score_pb_stock(1.50)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_pb_below_floor(self):
+        """P/VP < 0.50 → 0.0 pts (MGLU Proteção)."""
+        s = _score_pb_stock(0.30)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_pb_above_ceiling(self):
+        """P/VP > 1.50 → 0.0 pts."""
+        s = _score_pb_stock(1.80)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_pb_asymmetric(self):
+        """P/VP assimétrico: 0.75 → 1.5 pts, 1.25 → 0.5 pts."""
+        s_low = _score_pb_stock(0.75)
+        s_high = _score_pb_stock(1.25)
+        assert s_low == 1.5, f"Expected 1.5, got {s_low}"
+        assert s_high == 0.5, f"Expected 0.5, got {s_high}"
+
+    def test_pb_none(self):
+        """P/VP None → 0.0."""
+        s = _score_pb_stock(None)
+        assert s == 0.0
+
+    def test_roe_at_threshold(self):
+        """ROE = 10% → 1.0 pt."""
+        s = _score_roe_stock(0.10)
+        assert s == 1.0, f"Expected 1.0, got {s}"
+
+    def test_roe_mid(self):
+        """ROE = 20% → 1.5 pts."""
+        s = _score_roe_stock(0.20)
+        assert s == 1.5, f"Expected 1.5, got {s}"
+
+    def test_roe_max(self):
+        """ROE = 30% → 2.0 pts."""
+        s = _score_roe_stock(0.30)
+        assert s == 2.0, f"Expected 2.0, got {s}"
+
+    def test_roe_above_max(self):
+        """ROE > 30% → capped at 2.0."""
+        s = _score_roe_stock(0.50)
+        assert s == 2.0, f"Expected 2.0, got {s}"
+
+    def test_roe_below_threshold(self):
+        """ROE < 10% → 0.0."""
+        s = _score_roe_stock(0.05)
+        assert s == 0.0
+
+    def test_roe_none(self):
+        """ROE None → 0.0."""
+        s = _score_roe_stock(None)
+        assert s == 0.0
+
+    def test_graham_at_price(self):
+        """price = graham_price → 0.0 pts (no margin of safety).
+        Document says: 'Se price >= graham_price → 0.0 pontos'."""
+        s = _score_graham_stock(100.0, 100.0)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_graham_25_discount(self):
+        """price = 0.75 * graham → 1.33 pts."""
+        s = _score_graham_stock(75.0, 100.0)
+        assert abs(s - 1.33) < 0.01, f"Expected ~1.33, got {s}"
+
+    def test_graham_50_discount(self):
+        """price = 0.50 * graham → 2.0 pts (max)."""
+        s = _score_graham_stock(50.0, 100.0)
+        assert s == 2.0, f"Expected 2.0, got {s}"
+
+    def test_graham_no_discount(self):
+        """price > graham_price → 0.0 pts."""
+        s = _score_graham_stock(120.0, 100.0)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_graham_none_price(self):
+        """price None → 0.0."""
+        s = _score_graham_stock(None, 100.0)
+        assert s == 0.0
+
+    def test_graham_none_graham(self):
+        """graham_price None → 0.0."""
+        s = _score_graham_stock(100.0, None)
+        assert s == 0.0
+
+    def test_graham_peg_tech(self):
+        """Tech sector with PEG=0.5 → use PEG path."""
+        s = _score_graham_stock(100.0, 50.0, peg_ratio=0.5, sector='Technology')
+        # PEG path: 1.0 + (1.0 - 0.5)/1.0 * 1.0 = 1.5
+        assert s == 1.5, f"Expected 1.5, got {s}"
+
+    def test_graham_peg_comm(self):
+        """Communication Services with PEG=0.8 → use PEG path."""
+        s = _score_graham_stock(100.0, 50.0, peg_ratio=0.8, sector='Communication Services')
+        assert abs(s - 1.2) < 0.01, f"Expected ~1.2, got {s}"
+
+    def test_graham_peg_non_tech(self):
+        """Non-tech ignores PEG → graham path."""
+        s = _score_graham_stock(80.0, 100.0, peg_ratio=0.5, sector='Financial Services')
+        # Graham path: price=80 < 100 → 1.0 + (100-80)/80 = 1.25
+        assert abs(s - 1.25) < 0.01, f"Expected ~1.25, got {s}"
+
+    def test_total_perfect_score(self):
+        """All criteria at max → 10.0 pts."""
+        score = calculate_stock_score_continuous(
+            dy_medio_3y=0.15, pe_medio_5y=0.01, pb_ratio=0.50,
+            roe=0.30, price=50.0, graham_price=100.0
+        )
+        # DY=2.0 + PE=1.99 + PB=2.0 + ROE=2.0 + Graham=2.0 = 9.99 ≈ 10.0
+        assert score == 10.0, f"Expected 10.0, got {score}"
+
+    def test_total_zero_score(self):
+        """No criteria met → 0.0 pts."""
+        score = calculate_stock_score_continuous(
+            dy_medio_3y=0.05, pe_medio_5y=20.0, pb_ratio=2.0,
+            roe=0.05, price=100.0, graham_price=50.0
+        )
+        assert score == 0.0, f"Expected 0.0, got {score}"
+
+    def test_total_mid_score(self):
+        """Mid-range values."""
+        score = calculate_stock_score_continuous(
+            dy_medio_3y=0.09, pe_medio_5y=10.0, pb_ratio=1.0,
+            roe=0.15, price=80.0, graham_price=100.0
+        )
+        # DY: (0.09-0.06)*11.111+1 = 1.33
+        # PE: (15-10)/15+1 = 1.33
+        # PB: 2*(1.5-1.0) = 1.0
+        # ROE: (0.15-0.10)*5+1 = 1.25
+        # Graham: (100-80)/80+1 = 1.25
+        # Total ≈ 6.16
+        assert 6.0 < score < 6.5, f"Expected ~6.16, got {score}"
+
+
+# ======================================================================
+# v2.5 Continuous FII Score Tests
+# ======================================================================
+
+class TestFiiScoreContinuous:
+    """Tests for the new 0-10 continuous FII scoring."""
+
+    def test_pb_ideal_discount(self):
+        """P/VP = 0.70 (max discount in ideal range) → 2.0 pts."""
+        s = _score_pb_fii_ideal(0.70)
+        assert s == 2.0, f"Expected 2.0, got {s}"
+
+    def test_pb_ideal_mid(self):
+        """P/VP = 0.875 → ~1.0 pt."""
+        s = _score_pb_fii_ideal(0.875)
+        assert abs(s - 1.0) < 0.01, f"Expected ~1.0, got {s}"
+
+    def test_pb_ideal_at_ceiling(self):
+        """P/VP = 1.05 → 0.0 pts."""
+        s = _score_pb_fii_ideal(1.05)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_pb_ideal_below_floor(self):
+        """P/VP = 0.60 (< 0.70) → 0.0 pts."""
+        s = _score_pb_fii_ideal(0.60)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_pb_ideal_none(self):
+        """P/VP None → 0.0."""
+        s = _score_pb_fii_ideal(None)
+        assert s == 0.0
+
+    def test_pb_limite_distress_low(self):
+        """P/VP = 0.60 → 0.0 pts (edge of distress zone)."""
+        s = _score_pb_fii_limite(0.60)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_pb_limite_distress_mid(self):
+        """P/VP = 0.65 → 1.0 pt."""
+        s = _score_pb_fii_limite(0.65)
+        assert s == 1.0, f"Expected 1.0, got {s}"
+
+    def test_pb_limite_distress_high(self):
+        """P/VP = 0.699 → ~1.98 pts (near ideal floor)."""
+        s = _score_pb_fii_limite(0.699)
+        assert s > 1.9, f"Expected >1.9, got {s}"
+
+    def test_pb_limite_premium_low(self):
+        """P/VP = 1.06 → ~1.8 pts."""
+        s = _score_pb_fii_limite(1.06)
+        assert abs(s - 1.8) < 0.1, f"Expected ~1.8, got {s}"
+
+    def test_pb_limite_premium_high(self):
+        """P/VP = 1.15 → 0.0 pts."""
+        s = _score_pb_fii_limite(1.15)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_pb_limite_ideal_zone(self):
+        """P/VP = 0.80 (in ideal zone) → 0.0 pts (not in edge zone)."""
+        s = _score_pb_fii_limite(0.80)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_pb_limite_none(self):
+        """P/VP None → 0.0."""
+        s = _score_pb_fii_limite(None)
+        assert s == 0.0
+
+    def test_dy_below_min(self):
+        """DY < 8% → 0.0 pts."""
+        s = _score_dy_fii(0.07, is_fiagro=False)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_dy_at_min_fii(self):
+        """DY = 8% → 1.0 pt."""
+        s = _score_dy_fii(0.08, is_fiagro=False)
+        assert s == 1.0, f"Expected 1.0, got {s}"
+
+    def test_dy_mid_fii(self):
+        """DY = 11% → ~1.46 pts."""
+        s = _score_dy_fii(0.11, is_fiagro=False)
+        assert abs(s - 1.46) < 0.01, f"Expected ~1.46, got {s}"
+
+    def test_dy_at_cap_fii(self):
+        """DY = 14.5% (cap) → 2.0 pts."""
+        s = _score_dy_fii(0.145, is_fiagro=False)
+        assert abs(s - 2.0) < 0.01, f"Expected ~2.0, got {s}"
+
+    def test_dy_below_min_fiagro(self):
+        """FIAGRO DY < 10% → 0.0 pts."""
+        s = _score_dy_fii(0.09, is_fiagro=True)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_dy_at_min_fiagro(self):
+        """FIAGRO DY = 10% → 1.0 pt."""
+        s = _score_dy_fii(0.10, is_fiagro=True)
+        assert s == 1.0, f"Expected 1.0, got {s}"
+
+    def test_dy_at_cap_fiagro(self):
+        """FIAGRO DY = 16.5% (cap) → 2.0 pts."""
+        s = _score_dy_fii(0.165, is_fiagro=True)
+        assert abs(s - 2.0) < 0.01, f"Expected ~2.0, got {s}"
+
+    def test_yield_cap_below(self):
+        """DY = 5% → ~1.31 pts (very sustainable)."""
+        s = _score_yield_cap(0.05, is_fiagro=False)
+        assert abs(s - 1.31) < 0.01, f"Expected ~1.31, got {s}"
+
+    def test_yield_cap_at_limit(self):
+        """DY at exact cap → 0.0 pts."""
+        s = _score_yield_cap(0.145, is_fiagro=False)
+        assert abs(s) < 0.01, f"Expected ~0.0, got {s}"
+
+    def test_yield_cap_exceeded(self):
+        """DY > 14.5% → 0.0 pts."""
+        s = _score_yield_cap(0.16, is_fiagro=False)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_yield_cap_fiagro_exceeded(self):
+        """FIAGRO DY > 16.5% → 0.0 pts."""
+        s = _score_yield_cap(0.18, is_fiagro=True)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_yield_cap_none(self):
+        """DY None → 0.0."""
+        s = _score_yield_cap(None)
+        assert s == 0.0
+
+    def test_consistency_perfect(self):
+        """100% retention → 2.0 pts."""
+        s = _score_dividend_consistency(1.0)
+        assert s == 2.0, f"Expected 2.0, got {s}"
+
+    def test_consistency_at_target(self):
+        """95% retention → 2.0 pts."""
+        s = _score_dividend_consistency(0.95)
+        assert s == 2.0, f"Expected 2.0, got {s}"
+
+    def test_consistency_below_target(self):
+        """80% retention → ~1.68 pts."""
+        s = _score_dividend_consistency(0.80)
+        assert abs(s - 1.68) < 0.01, f"Expected ~1.68, got {s}"
+
+    def test_consistency_zero(self):
+        """0% retention → 0.0 pts."""
+        s = _score_dividend_consistency(0.0)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_consistency_none(self):
+        """No data → 1.0 pts (neutral)."""
+        s = _score_dividend_consistency(None)
+        assert s == 1.0, f"Expected 1.0 (neutral), got {s}"
+
+    def test_total_perfect_fii(self):
+        """Perfect FII → 8.28 pts (4 criteria × 2.5)."""
+        score = calculate_fii_score_continuous(
+            pb_ratio=0.70, dividend_yield=0.10, dividend_consistency=1.0
+        )
+        # v2.5.1: 4 criteria × 2.5
+        # s1 (unified pb):  2.5
+        # s2 (dy min v2):   1.64 (1.3077 * 1.25)
+        # s3 (yield cap v2): 1.64 (2.5 * (1 - 0.10/0.29))
+        # s4 (consist v2):  2.5
+        # Total: ~8.28
+        assert 8.0 < score < 8.6, f"Expected ~8.28, got {score}"
+
+    def test_total_perfect_fiagro(self):
+        """Perfect FIAGRO → ~8.23 pts (4 criteria × 2.5)."""
+        score = calculate_fiagro_score_continuous(
+            pb_ratio=0.70, dividend_yield=0.12, dividend_consistency=1.0
+        )
+        # s1 (unified pb):   2.5
+        # s2 (dy min v2):    1.63 (1.3077 * 1.25)
+        # s3 (yield cap v2): 1.59 (2.5 * (1 - 0.12/0.33))
+        # s4 (consist v2):   2.5
+        # Total: ~8.23
+        assert 8.0 < score < 8.6, f"Expected ~8.23, got {score}"
+
+
+# ======================================================================
+# v2.5.1 Continuous FII/FIAGRO Score Tests (4 criteria × 2.5 pts)
+# ======================================================================
+
+class TestFiiScoreContinuousV2:
+    """Tests for the new v2.5.1 4×2.5 scoring functions."""
+
+    # _score_pb_fii_unified -------------------------------------------------
+    def test_pb_unified_ideal_discount(self):
+        """P/VP = 0.70 (max ideal) → 2.5 pts."""
+        s = _score_pb_fii_unified(0.70)
+        assert s == 2.5, f"Expected 2.5, got {s}"
+
+    def test_pb_unified_ideal_mid(self):
+        """P/VP = 0.875 → 1.25 pts."""
+        s = _score_pb_fii_unified(0.875)
+        assert s == 1.25, f"Expected 1.25, got {s}"
+
+    def test_pb_unified_ideal_ceiling(self):
+        """P/VP = 1.05 → 0.0 pts."""
+        s = _score_pb_fii_unified(1.05)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_pb_unified_below_floor(self):
+        """P/VP = 0.60 (< 0.70) → 0.0 from ideal, takes limite=0.0 → 0.0."""
+        s = _score_pb_fii_unified(0.60)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_pb_unified_distress_zone(self):
+        """P/VP = 0.65 (distress) → limite gives 1.0 × 1.25 = 1.25."""
+        s = _score_pb_fii_unified(0.65)
+        assert s == 1.25, f"Expected 1.25, got {s}"
+
+    def test_pb_unified_premium_zone(self):
+        """P/VP = 1.10 (premium) → limite gives 1.0 × 1.25 = 1.25."""
+        s = _score_pb_fii_unified(1.10)
+        assert s == 1.25, f"Expected 1.25, got {s}"
+
+    def test_pb_unified_at_limit_ceiling(self):
+        """P/VP = 1.15 → 0.0 pts."""
+        s = _score_pb_fii_unified(1.15)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_pb_unified_none(self):
+        """P/VP None → 0.0."""
+        s = _score_pb_fii_unified(None)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    # _score_dy_fii_v2 ------------------------------------------------------
+    def test_dy_v2_below_min_fii(self):
+        """FII DY < 8% → 0.0 pts."""
+        s = _score_dy_fii_v2(0.07, is_fiagro=False)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_dy_v2_at_min_fii(self):
+        """FII DY = 8% → 1.25 pts."""
+        s = _score_dy_fii_v2(0.08, is_fiagro=False)
+        assert s == 1.25, f"Expected 1.25, got {s}"
+
+    def test_dy_v2_mid_fii(self):
+        """FII DY = 10% → ~1.64 pts."""
+        s = _score_dy_fii_v2(0.10, is_fiagro=False)
+        assert abs(s - 1.64) < 0.01, f"Expected ~1.64, got {s}"
+
+    def test_dy_v2_cap_fii(self):
+        """FII DY = 14.5% (cap) → 2.5 pts."""
+        s = _score_dy_fii_v2(0.145, is_fiagro=False)
+        assert s == 2.5, f"Expected 2.5, got {s}"
+
+    def test_dy_v2_above_cap_fii(self):
+        """FII DY > cap → capped at 2.5."""
+        s = _score_dy_fii_v2(0.15, is_fiagro=False)
+        assert s == 2.5, f"Expected 2.5, got {s}"
+
+    def test_dy_v2_below_min_fiagro(self):
+        """FIAGRO DY < 10% → 0.0 pts."""
+        s = _score_dy_fii_v2(0.09, is_fiagro=True)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_dy_v2_at_min_fiagro(self):
+        """FIAGRO DY = 10% → 1.25 pts."""
+        s = _score_dy_fii_v2(0.10, is_fiagro=True)
+        assert s == 1.25, f"Expected 1.25, got {s}"
+
+    def test_dy_v2_cap_fiagro(self):
+        """FIAGRO DY = 16.5% (cap) → 2.5 pts."""
+        s = _score_dy_fii_v2(0.165, is_fiagro=True)
+        assert s == 2.5, f"Expected 2.5, got {s}"
+
+    def test_dy_v2_none(self):
+        """DY None → 0.0."""
+        s = _score_dy_fii_v2(None)
+        assert s == 0.0
+
+    # _score_yield_cap_v2 ---------------------------------------------------
+    def test_yield_cap_v2_zero_dy(self):
+        """DY = 0% → 2.5 pts (zero risk)."""
+        s = _score_yield_cap_v2(0.0, is_fiagro=False)
+        assert s == 2.5, f"Expected 2.5, got {s}"
+
+    def test_yield_cap_v2_at_nominal_cap(self):
+        """DY at nominal cap (14.5% FII) → 1.25 pts (mid)."""
+        s = _score_yield_cap_v2(0.145, is_fiagro=False)
+        assert s == 1.25, f"Expected 1.25, got {s}"
+
+    def test_yield_cap_v2_at_double_cap(self):
+        """DY at 2× cap (29% FII) → 0.0 pts (zera)."""
+        s = _score_yield_cap_v2(0.29, is_fiagro=False)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_yield_cap_v2_above_double_cap(self):
+        """DY > 2× cap → 0.0 pts."""
+        s = _score_yield_cap_v2(0.30, is_fiagro=False)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_yield_cap_v2_fiagro_at_nominal(self):
+        """FIAGRO DY at 16.5% (nominal cap) → 1.25 pts (0.5 × 2.5)."""
+        s = _score_yield_cap_v2(0.165, is_fiagro=True)
+        assert s == 1.25, f"Expected 1.25, got {s}"
+
+    def test_yield_cap_v2_fiagro_double(self):
+        """FIAGRO DY at 2× cap (33%) → 0.0 pts."""
+        s = _score_yield_cap_v2(0.33, is_fiagro=True)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_yield_cap_v2_none(self):
+        """DY None → 0.0."""
+        s = _score_yield_cap_v2(None)
+        assert s == 0.0
+
+    # _score_dividend_consistency_v2 ----------------------------------------
+    def test_consistency_v2_perfect(self):
+        """100% retention → 2.5 pts."""
+        s = _score_dividend_consistency_v2(1.0)
+        assert s == 2.5, f"Expected 2.5, got {s}"
+
+    def test_consistency_v2_at_target(self):
+        """95% retention → 2.5 pts."""
+        s = _score_dividend_consistency_v2(0.95)
+        assert s == 2.5, f"Expected 2.5, got {s}"
+
+    def test_consistency_v2_below_target(self):
+        """80% retention → ~2.11 pts."""
+        s = _score_dividend_consistency_v2(0.80)
+        assert abs(s - 2.11) < 0.01, f"Expected ~2.11, got {s}"
+
+    def test_consistency_v2_zero(self):
+        """0% retention → 0.0 pts."""
+        s = _score_dividend_consistency_v2(0.0)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_consistency_v2_none(self):
+        """No data → 1.5 pts (neutro mais generoso)."""
+        s = _score_dividend_consistency_v2(None)
+        assert s == 1.5, f"Expected 1.5 (neutro), got {s}"
+
+    # Total scores ----------------------------------------------------------
+    def test_total_perfect_fii_v2(self):
+        """Perfect FII v2.5.1 → 8.28 pts."""
+        score = calculate_fii_score_continuous(
+            pb_ratio=0.70, dividend_yield=0.10, dividend_consistency=1.0
+        )
+        assert 8.0 < score < 8.6, f"Expected ~8.28, got {score}"
+
+    def test_total_perfect_fiagro_v2(self):
+        """Perfect FIAGRO v2.5.1 → 8.23 pts."""
+        score = calculate_fiagro_score_continuous(
+            pb_ratio=0.70, dividend_yield=0.12, dividend_consistency=1.0
+        )
+        assert 8.0 < score < 8.6, f"Expected ~8.23, got {score}"
+
+    def test_total_zero_fii_v2(self):
+        """Zero FII → ~2.5 pts (yield cap still gives pts for 0 risk)."""
+        score = calculate_fii_score_continuous(
+            pb_ratio=2.0, dividend_yield=0.0, dividend_consistency=0.0
+        )
+        assert 2.0 < score < 3.0, f"Expected ~2.5, got {score}"
+
+
+# ======================================================================
+# v2.5 analyze_stock with continuous score
+# ======================================================================
+
+class TestAnalyzeStockV2:
+    """Test that analyze_stock returns v2.5 fields."""
+
+    def test_v2_fields_present(self):
+        """Should include dy_medio_3y, pe_medio_5y, net_debt_ebitda, score_v2."""
+        info = {
+            "currentPrice": 45.50,
+            "trailingEps": 4.20,
+            "bookValue": 25.00,
+            "trailingPE": 10.83,
+            "priceToBook": 1.82,
+            "dividendYield": 5.8,
+            "dividendRate": 2.64,
+            "returnOnEquity": 0.168,
+            "longName": "Empresa Teste SA",
+            "sector": "Financial Services",
+        }
+        result = analyze_stock("TEST3.SA", info)
+        assert "score_v2" in result, "Missing score_v2"
+        assert "dy_medio_3y" in result, "Missing dy_medio_3y"
+        assert "pe_medio_5y" in result, "Missing pe_medio_5y"
+        assert "net_debt_ebitda" in result, "Missing net_debt_ebitda"
+        # Without _yf_ticker, should fallback to current values
+        assert result["dy_medio_3y"] == 0.058  # fallback to current DY
+        assert result["pe_medio_5y"] == 10.83   # fallback to current P/E
+        assert isinstance(result["score_v2"], float)
+        assert 0 <= result["score_v2"] <= 10.0
+
+    def test_v2_legacy_score_present(self):
+        """Should still return legacy score."""
+        result = analyze_stock("TEST3.SA", {"currentPrice": 10.0, "longName": "Test"})
+        assert "score" in result
+        assert isinstance(result["score"], int)
 
 
 # ======================================================================

@@ -229,11 +229,21 @@ def _fetch_with_retry(ticker: str, resolved_ticker: str, asset_type: str,
     Returns the analysis dict on success, None on failure.
     """
     pipeline_cfg = config.get("pipeline", {})
+    import yfinance as yf
 
     for attempt in range(1, retry_attempts + 1):
         info = fetch_asset_info(resolved_ticker, asset_type, config)
 
         if info and ("longName" in info or "shortName" in info):
+            # Attach yfinance Ticker for historical data (v2.5 continuous score)
+            try:
+                yf_ticker = yf.Ticker(resolved_ticker)
+                # Quick sanity check that it resolved
+                _ = yf_ticker.info.get('longName') or yf_ticker.info.get('shortName', '')
+                info['_yf_ticker'] = yf_ticker
+            except Exception:
+                info['_yf_ticker'] = None
+
             if asset_type == "stock":
                 analysis = analyzer.analyze_stock(resolved_ticker, info)
             elif asset_type == "fiagro":

@@ -14,12 +14,16 @@ if not exist ".venv" (
     exit /b 1
 )
 
-echo Iniciando o servidor local na porta 8000...
-echo Acesse: http://127.0.0.1:8000/index.html
+echo 1/2 Atualizando data.json com dados locais (VPA, ...) sem API...
+.\.venv\Scripts\python.exe src/pipeline.py --generate-only
+echo.
+
+echo 2/2 Iniciando o servidor local na porta 8000...
+echo Acesse: http://127.0.0.1:8000/index-v2.html
 echo.
 
 :: Open browser after a short delay (2 seconds) to let server start
-start /b cmd /c "timeout /t 2 >nul && start http://127.0.0.1:8000/index.html"
+start /b cmd /c "timeout /t 2 >nul && start http://127.0.0.1:8000/index-v2.html"
 
 :: Run the server using python in .venv
 .\.venv\Scripts\python.exe src/server.py
