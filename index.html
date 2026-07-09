@@ -9,6 +9,7 @@
     <meta name="theme-color" content="#1e3a5f">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="icons/icon.svg">
     <!-- Google Fonts: Inter & Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -425,6 +426,7 @@
             border-radius: 8px;
             transition: background 0.2s ease;
             margin: 0 -0.5rem;
+            gap: 0.5rem;
         }
 
         .top-item:hover {
@@ -440,11 +442,13 @@
             font-weight: 700;
             font-family: 'Outfit', sans-serif;
             color: var(--text-primary);
+            flex-shrink: 0;
         }
 
         .top-val {
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.8rem;
+            text-align: right;
         }
 
         .badge {
@@ -533,12 +537,19 @@
             transition: opacity 0.2s ease;
             z-index: 51;
         }
-        .hint:hover::after {
+        .hint:hover::after,
+        .hint:focus::after {
             opacity: 1;
             transform: translateX(-50%) scale(1);
         }
-        .hint:hover::before {
+        .hint:hover::before,
+        .hint:focus::before {
             opacity: 1;
+        }
+
+        /* ── Remove outline transparente do hint em foco ── */
+        .hint:focus {
+            outline: none;
         }
 
         /* ── Evita tooltip da última coluna vazar pra direita ── */
@@ -1314,28 +1325,28 @@
                         <th onclick="sortTable('stocks', 2)">Setor</th>
                         <th onclick="sortTable('stocks', 3)">Preço Atual</th>
                         <th onclick="sortTable('stocks', 4)">
-                            <span class="hint" data-tip="Valor Patrimonial por Ação. Patrimônio líquido dividido pelo número de ações. Referência para o P/VP.">VPA</span>
+                            <span class="hint" tabindex="0" data-tip="Valor Patrimonial por Ação. Patrimônio líquido dividido pelo número de ações. Referência para o P/VP.">VPA</span>
                         </th>
                         <th onclick="sortTable('stocks', 5)">
-                            <span class="hint" data-tip="Preço sobre Lucro (P/E). Quanto o mercado paga por cada R$ 1,00 de lucro. Quanto menor, mais barata. Ideal: &lt; 15.">P/L</span>
+                            <span class="hint" tabindex="0" data-tip="Preço sobre Lucro (P/E). Quanto o mercado paga por cada R$ 1,00 de lucro. Quanto menor, mais barata. Ideal: &lt; 15.">P/L</span>
                         </th>
                         <th onclick="sortTable('stocks', 6)">
-                            <span class="hint" data-tip="Preço sobre Valor Patrimonial (P/B). Compara o preço ao patrimônio líquido por ação. Abaixo de 1,00 = desconto. Ideal: &lt; 1,5.">P/VP</span>
+                            <span class="hint" tabindex="0" data-tip="Preço sobre Valor Patrimonial (P/B). Compara o preço ao patrimônio líquido por ação. Abaixo de 1,00 = desconto. Ideal: &lt; 1,5.">P/VP</span>
                         </th>
                         <th onclick="sortTable('stocks', 7)">
-                            <span class="hint" data-tip="Dividend Yield. Retorno em dividendos nos últimos 12 meses dividido pelo preço atual. Ideal: &ge; 6%.">Div. Yield</span>
+                            <span class="hint" tabindex="0" data-tip="Dividend Yield. Retorno em dividendos nos últimos 12 meses dividido pelo preço atual. Ideal: &ge; 6%.">Div. Yield</span>
                         </th>
                         <th onclick="sortTable('stocks', 8)">
-                            <span class="hint" data-tip="Return on Equity. Rentabilidade: lucro líquido &divide; patrimônio líquido. Mede a eficiência da gestão. Ideal: &ge; 10%.">ROE</span>
+                            <span class="hint" tabindex="0" data-tip="Return on Equity. Rentabilidade: lucro líquido &divide; patrimônio líquido. Mede a eficiência da gestão. Ideal: &ge; 10%.">ROE</span>
                         </th>
                         <th onclick="sortTable('stocks', 9)">
-                            <span class="hint" data-tip="Preço Teto de Décio Bazin. Máximo que se deve pagar para garantir retorno de 6% a.a. em dividendos: Dividendo Anual &divide; 0,06.">Teto Bazin</span>
+                            <span class="hint" tabindex="0" data-tip="Preço Teto de Décio Bazin. Máximo que se deve pagar para garantir retorno de 6% a.a. em dividendos: Dividendo Anual &divide; 0,06.">Teto Bazin</span>
                         </th>
                         <th onclick="sortTable('stocks', 10)">
-                            <span class="hint" data-tip="Valor Justo de Benjamin Graham. Preço intrínseco = &radic;(22,5 &times; LPA &times; VPA). Abaixo dele = margem de segurança.">Justo Graham</span>
+                            <span class="hint" tabindex="0" data-tip="Valor Justo de Benjamin Graham. Preço intrínseco = &radic;(22,5 &times; LPA &times; VPA). Abaixo dele = margem de segurança.">Justo Graham</span>
                         </th>
                         <th onclick="sortTable('stocks', 11)">
-                            <span class="hint" data-tip="Nota de 0 a 5 baseada em 5 critérios: DY, P/L, P/VP, ROE e Margem de Graham. Quanto maior, mais saudável.">Score</span>
+                            <span class="hint" tabindex="0" data-tip="Nota de 0 a 5 baseada em 5 critérios: DY, P/L, P/VP, ROE e Margem de Graham. Quanto maior, mais saudável.">Score</span>
                         </th>
                     </tr>
                 </thead>
@@ -1356,19 +1367,19 @@
                         <th onclick="sortTable('fiis', 1)">Nome</th>
                         <th onclick="sortTable('fiis', 2)">Preço Atual</th>
                         <th onclick="sortTable('fiis', 3)">
-                            <span class="hint" data-tip="Valor Patrimonial por cota. Patrimônio líquido do fundo dividido pelo total de cotas. Referência para o P/VP.">VPA</span>
+                            <span class="hint" tabindex="0" data-tip="Valor Patrimonial por cota. Patrimônio líquido do fundo dividido pelo total de cotas. Referência para o P/VP.">VPA</span>
                         </th>
                         <th onclick="sortTable('fiis', 4)">
-                            <span class="hint" data-tip="Preço sobre Valor Patrimonial do fundo. Entre 0,70 e 1,05 é considerado ideal (desconto moderado a valor justo).">P/VP</span>
+                            <span class="hint" tabindex="0" data-tip="Preço sobre Valor Patrimonial do fundo. Entre 0,70 e 1,05 é considerado ideal (desconto moderado a valor justo).">P/VP</span>
                         </th>
                         <th onclick="sortTable('fiis', 5)">
-                            <span class="hint" data-tip="Dividend Yield anual do fundo. Mede o retorno em dividendos sobre o preço da cota. Mínimo ideal: 8%.">Div. Yield</span>
+                            <span class="hint" tabindex="0" data-tip="Dividend Yield anual do fundo. Mede o retorno em dividendos sobre o preço da cota. Mínimo ideal: 8%.">Div. Yield</span>
                         </th>
                         <th onclick="sortTable('fiis', 6)">
-                            <span class="hint" data-tip="Valor total estimado de dividendos pagos pelo fundo nos últimos 12 meses por cota.">Dividendo Anual</span>
+                            <span class="hint" tabindex="0" data-tip="Valor total estimado de dividendos pagos pelo fundo nos últimos 12 meses por cota.">Dividendo Anual</span>
                         </th>
                         <th onclick="sortTable('fiis', 7)">
-                            <span class="hint" data-tip="Nota de 0 a 5. Critérios: P/VP ≤ 1,15 (base), P/VP ideal 0,70-1,05 (bônus), DY mínimo (8%), DY excelente (10%) e distribuição ativa.">Score</span>
+                            <span class="hint" tabindex="0" data-tip="Nota de 0 a 5. Critérios: P/VP ≤ 1,15 (base), P/VP ideal 0,70-1,05 (bônus), DY mínimo (8%), DY excelente (10%) e distribuição ativa.">Score</span>
                         </th>
                     </tr>
                 </thead>
@@ -1389,19 +1400,19 @@
                         <th onclick="sortTable('fiagros', 1)">Nome</th>
                         <th onclick="sortTable('fiagros', 2)">Preço Atual</th>
                         <th onclick="sortTable('fiagros', 3)">
-                            <span class="hint" data-tip="Valor Patrimonial por cota. Patrimônio líquido do fundo dividido pelo total de cotas. Referência para o P/VP.">VPA</span>
+                            <span class="hint" tabindex="0" data-tip="Valor Patrimonial por cota. Patrimônio líquido do fundo dividido pelo total de cotas. Referência para o P/VP.">VPA</span>
                         </th>
                         <th onclick="sortTable('fiagros', 4)">
-                            <span class="hint" data-tip="Preço sobre Valor Patrimonial do fundo. Entre 0,70 e 1,05 é considerado ideal (desconto moderado a valor justo).">P/VP</span>
+                            <span class="hint" tabindex="0" data-tip="Preço sobre Valor Patrimonial do fundo. Entre 0,70 e 1,05 é considerado ideal (desconto moderado a valor justo).">P/VP</span>
                         </th>
                         <th onclick="sortTable('fiagros', 5)">
-                            <span class="hint" data-tip="Dividend Yield anual do fundo. FIAGROs exigem retorno maior: mínimo ideal de 10% (vs 8% dos FIIs) devido ao risco de crédito agropecuário.">Div. Yield</span>
+                            <span class="hint" tabindex="0" data-tip="Dividend Yield anual do fundo. FIAGROs exigem retorno maior: mínimo ideal de 10% (vs 8% dos FIIs) devido ao risco de crédito agropecuário.">Div. Yield</span>
                         </th>
                         <th onclick="sortTable('fiagros', 6)">
-                            <span class="hint" data-tip="Valor total estimado de dividendos pagos pelo fundo nos últimos 12 meses por cota.">Dividendo Anual</span>
+                            <span class="hint" tabindex="0" data-tip="Valor total estimado de dividendos pagos pelo fundo nos últimos 12 meses por cota.">Dividendo Anual</span>
                         </th>
                         <th onclick="sortTable('fiagros', 7)">
-                            <span class="hint" data-tip="Nota de 0 a 5. Critérios: P/VP ≤ 1,15 (base), P/VP ideal 0,70-1,05 (bônus), DY mínimo (10%), DY excelente (12%) e distribuição ativa.">Score</span>
+                            <span class="hint" tabindex="0" data-tip="Nota de 0 a 5. Critérios: P/VP ≤ 1,15 (base), P/VP ideal 0,70-1,05 (bônus), DY mínimo (10%), DY excelente (12%) e distribuição ativa.">Score</span>
                         </th>
                     </tr>
                 </thead>
@@ -1421,13 +1432,13 @@
                         <th onclick="sortTable('sectors', 0)">Setor</th>
                         <th onclick="sortTable('sectors', 1)">Nº Empresas</th>
                         <th onclick="sortTable('sectors', 2)">
-                            <span class="hint" data-tip="Média do Score Fundamentalista (0-5) das empresas do setor. Quanto maior, melhor a saúde financeira média.">Score Médio</span>
+                            <span class="hint" tabindex="0" data-tip="Média do Score Fundamentalista (0-5) das empresas do setor. Quanto maior, melhor a saúde financeira média.">Score Médio</span>
                         </th>
                         <th onclick="sortTable('sectors', 3)">
-                            <span class="hint" data-tip="Dividend Yield médio do setor. Indica o retorno médio em dividendos do conjunto de empresas.">Div. Yield Médio</span>
+                            <span class="hint" tabindex="0" data-tip="Dividend Yield médio do setor. Indica o retorno médio em dividendos do conjunto de empresas.">Div. Yield Médio</span>
                         </th>
                         <th onclick="sortTable('sectors', 4)">
-                            <span class="hint" data-tip="Preço sobre Lucro (P/L) médio do setor. Ajuda a comparar valuation entre setores.">P/L Médio</span>
+                            <span class="hint" tabindex="0" data-tip="Preço sobre Lucro (P/L) médio do setor. Ajuda a comparar valuation entre setores.">P/L Médio</span>
                         </th>
                     </tr>
                 </thead>
@@ -1457,16 +1468,16 @@
                                 <th>Nome</th>
                                 <th>Preço</th>
                                 <th>
-                                    <span class="hint" data-tip="Preço sobre Lucro (P/E). Quanto o mercado paga por cada R$ 1,00 de lucro. Quanto menor, mais barata. Ideal: &lt; 15.">P/L</span>
+                                    <span class="hint" tabindex="0" data-tip="Preço sobre Lucro (P/E). Quanto o mercado paga por cada R$ 1,00 de lucro. Quanto menor, mais barata. Ideal: &lt; 15.">P/L</span>
                                 </th>
                                 <th>
-                                    <span class="hint" data-tip="Preço sobre Valor Patrimonial (P/B). Compara o preço ao patrimônio líquido por ação. Abaixo de 1,00 = desconto.">P/VP</span>
+                                    <span class="hint" tabindex="0" data-tip="Preço sobre Valor Patrimonial (P/B). Compara o preço ao patrimônio líquido por ação. Abaixo de 1,00 = desconto.">P/VP</span>
                                 </th>
                                 <th>
-                                    <span class="hint" data-tip="Dividend Yield. Retorno em dividendos nos últimos 12 meses dividido pelo preço atual.">Div. Yield</span>
+                                    <span class="hint" tabindex="0" data-tip="Dividend Yield. Retorno em dividendos nos últimos 12 meses dividido pelo preço atual.">Div. Yield</span>
                                 </th>
                                 <th>
-                                    <span class="hint" data-tip="Nota de 0 a 5 baseada em critérios fundamentalistas. Quanto maior, mais saudável o ativo.">Score</span>
+                                    <span class="hint" tabindex="0" data-tip="Nota de 0 a 5 baseada em critérios fundamentalistas. Quanto maior, mais saudável o ativo.">Score</span>
                                 </th>
                             </tr>
                         </thead>
@@ -2118,6 +2129,16 @@
                 filteredHistory = history.filter(h => h.date >= cutoffDateStr);
             }
 
+            // Reduz a quantidade de pontos pela metade para evitar poluição visual no gráfico (mantendo o último ponto)
+            if (filteredHistory.length > 6) {
+                const sampled = [];
+                for (let i = 0; i < filteredHistory.length - 1; i += 2) {
+                    sampled.push(filteredHistory[i]);
+                }
+                sampled.push(filteredHistory[filteredHistory.length - 1]);
+                filteredHistory = sampled;
+            }
+
             if (filteredHistory.length === 0) {
                 ctx.clearRect(0, 0, 400, 250);
                 ctx.fillStyle = '#9ca3af';
@@ -2178,34 +2199,174 @@
             const gridColor = isLight ? 'rgba(15, 23, 42, 0.06)' : 'rgba(255, 255, 255, 0.05)';
             const tickColor = isLight ? '#475569' : '#9ca3af';
 
-            // Plugin customizado: desenha o valor numérico em ~4 pontos da linha
+            // Plugin customizado: desenha labels nos picos e vales (máx/min locais) sem colisão e com posicionamento dinâmico
             if (!Chart.registry.plugins.get('valueLabels')) {
                 Chart.register({
                     id: 'valueLabels',
                     afterDraw(chart) {
+                        const options = chart.options.plugins?.valueLabels;
+                        if (!options) return;
+
+                        const indicator = options.indicator;
+                        const borderColor = options.borderColor;
+                        const isLight = options.isLight;
+
                         const c = chart.ctx;
                         const meta = chart.getDatasetMeta(0);
                         const pts = meta.data;
                         const ds = chart.data.datasets[0].data;
-                        if (!pts || pts.length < 4) return;
-                        const step = Math.max(1, Math.floor(pts.length / 4));
+                        if (!pts || pts.length < 2) return;
+
+                        // Índices válidos (ignora null/undefined)
+                        const valid = [];
+                        for (let i = 0; i < ds.length; i++) {
+                            if (ds[i] !== null && ds[i] !== undefined && pts[i]) {
+                                valid.push({ idx: i, val: ds[i] });
+                            }
+                        }
+                        if (valid.length < 2) return;
+
+                        // 1. Encontrar máximo e mínimo global
+                        let maxVal = valid[0].val, maxIdx = valid[0].idx;
+                        let minVal = valid[0].val, minIdx = valid[0].idx;
+                        for (let i = 1; i < valid.length; i++) {
+                            const { idx, val } = valid[i];
+                            if (val > maxVal) { maxVal = val; maxIdx = idx; }
+                            if (val < minVal) { minVal = val; minIdx = idx; }
+                        }
+
+                        // 2. Coletar candidatos com prioridades
+                        const candidates = [];
+                        const seenIdx = new Set();
+
+                        function addCandidate(idx, priority, type) {
+                            if (seenIdx.has(idx)) return;
+                            seenIdx.add(idx);
+                            candidates.push({ idx, priority, type });
+                        }
+
+                        // Prioridade 1: Máximo Global (acima) e Mínimo Global (abaixo)
+                        addCandidate(maxIdx, 1, 'peak');
+                        addCandidate(minIdx, 1, 'valley');
+
+                        // Prioridade 2: Último ponto (valor recente)
+                        const lastItem = valid[valid.length - 1];
+                        let lastType = 'peak';
+                        if (valid.length > 1 && lastItem.val < valid[valid.length - 2].val) {
+                            lastType = 'valley';
+                        }
+                        addCandidate(lastItem.idx, 2, lastType);
+
+                        // Prioridade 3: Primeiro ponto
+                        const firstItem = valid[0];
+                        let firstType = 'valley';
+                        if (valid.length > 1 && firstItem.val > valid[1].val) {
+                            firstType = 'peak';
+                        }
+                        addCandidate(firstItem.idx, 3, firstType);
+
+                        // Prioridade 4: Picos e vales locais intermediários
+                        if (valid.length > 2) {
+                            for (let i = 1; i < valid.length - 1; i++) {
+                                const prev = valid[i - 1].val;
+                                const curr = valid[i].val;
+                                const next = valid[i + 1].val;
+                                if (curr > prev && curr > next) {
+                                    addCandidate(valid[i].idx, 4, 'peak');
+                                } else if (curr < prev && curr < next) {
+                                    addCandidate(valid[i].idx, 4, 'valley');
+                                }
+                            }
+                        }
+
+                        // Ordenar candidatos por maior prioridade (menor número primeiro)
+                        candidates.sort((a, b) => a.priority - b.priority);
+
+                        // 3. Desenhar candidatos evitando colisão física
+                        const drawnBoxes = [];
+                        const padX = 6;  // margem de segurança horizontal
+                        const padY = 3;  // margem de segurança vertical
+
                         c.save();
                         c.font = 'bold 10px Inter, sans-serif';
                         c.textAlign = 'center';
-                        c.textBaseline = 'bottom';
-                        for (let i = step; i < pts.length - 1; i += step) {
+
+                        for (const cand of candidates) {
+                            const i = cand.idx;
                             const pt = pts[i];
                             const val = ds[i];
                             if (!pt || val === null || val === undefined) continue;
+
+                            // Formata o texto apropriadamente
                             let txt;
                             if (indicator === 'price') txt = `R$ ${val.toFixed(2)}`;
                             else if (indicator === 'dy') txt = `${val.toFixed(2)}%`;
                             else txt = val.toFixed(2);
+
                             const tw = c.measureText(txt).width;
-                            c.fillStyle = isLight ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.7)';
-                            c.fillRect(pt.x - tw / 2 - 3, pt.y - 14, tw + 6, 14);
+                            const boxH = 14;
+
+                            let boxX1, boxY1, boxX2, boxY2;
+                            let textY;
+                            let textBaseline;
+
+                            if (cand.type === 'peak') {
+                                // Desenha acima do ponto
+                                boxX1 = pt.x - tw / 2 - 3;
+                                boxY1 = pt.y - 17;
+                                boxX2 = pt.x + tw / 2 + 3;
+                                boxY2 = pt.y - 3;
+                                textY = pt.y - 5;
+                                textBaseline = 'bottom';
+                            } else {
+                                // Desenha abaixo do ponto
+                                boxX1 = pt.x - tw / 2 - 3;
+                                boxY1 = pt.y + 3;
+                                boxX2 = pt.x + tw / 2 + 3;
+                                boxY2 = pt.y + 17;
+                                textY = pt.y + 5;
+                                textBaseline = 'top';
+                            }
+
+                            // Define caixa de colisão expandida com padding
+                            const collisionBox = {
+                                x1: boxX1 - padX,
+                                y1: boxY1 - padY,
+                                x2: boxX2 + padX,
+                                y2: boxY2 + padY
+                            };
+
+                            // Verifica colisão
+                            let collides = false;
+                            for (const box of drawnBoxes) {
+                                if (collisionBox.x1 < box.x2 &&
+                                    collisionBox.x2 > box.x1 &&
+                                    collisionBox.y1 < box.y2 &&
+                                    collisionBox.y2 > box.y1) {
+                                    collides = true;
+                                    break;
+                                }
+                            }
+
+                            if (collides) continue;
+
+                            // Desenha box de fundo com cantos levemente arredondados
+                            c.fillStyle = isLight ? 'rgba(255, 255, 255, 0.85)' : 'rgba(15, 23, 42, 0.85)';
+                            if (c.roundRect) {
+                                c.beginPath();
+                                c.roundRect(boxX1, boxY1, boxX2 - boxX1, boxY2 - boxY1, 3);
+                                c.fill();
+                            } else {
+                                c.fillRect(boxX1, boxY1, boxX2 - boxX1, boxY2 - boxY1);
+                            }
+
+                            // Desenha o texto
                             c.fillStyle = borderColor;
-                            c.fillText(txt, pt.x, pt.y - 3);
+                            c.textBaseline = textBaseline;
+                            c.fillText(txt, pt.x, textY);
+
+                            // Registra o box desenhado
+                            drawnBoxes.push(collisionBox);
                         }
                         c.restore();
                     }
@@ -2245,6 +2406,11 @@
                                     return val;
                                 }
                             }
+                        },
+                        valueLabels: {
+                            indicator: indicator,
+                            borderColor: borderColor,
+                            isLight: isLight
                         }
                     },
                     scales: {
@@ -2675,6 +2841,27 @@
                 closeHelpModal();
             }
         }
+
+        /* ── Tooltips funcionais no mobile (focus via tap) ── */
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.hint').forEach(function (el) {
+                el.addEventListener('click', function (e) {
+                    e.stopPropagation(); // não dispara sortTable no th
+                    // Se já está em foco, tira o foco (toggle)
+                    if (document.activeElement === this) {
+                        this.blur();
+                    } else {
+                        this.focus();
+                    }
+                });
+            });
+            // Tocar fora de um hint tira o foco (esconde tooltip)
+            document.addEventListener('touchstart', function (e) {
+                if (!e.target.closest('.hint') && document.activeElement) {
+                    document.activeElement.blur();
+                }
+            });
+        });
     </script>
 
     <!-- Service Worker: enable PWA offline support -->

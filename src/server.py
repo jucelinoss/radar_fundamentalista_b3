@@ -37,14 +37,48 @@ DIRECT_EXPORTS: dict[str, str] = {
 class Handler(http.server.SimpleHTTPRequestHandler):
     """Serves static files with export aliases."""
 
+    # Client disconnects mid-request are common on Windows (refresh, cancel, prefetch).
+    _CLIENT_GONE = (ConnectionResetError, BrokenPipeError, ConnectionAbortedError)
+
+    def handle(self) -> None:
+        try:
+            super().handle()
+        except self._CLIENT_GONE:
+            pass
+
+    def finish(self) -> None:
+        try:
+            super().finish()
+        except self._CLIENT_GONE:
+            pass
+
     def do_GET(self) -> None:
-        # Serve export files at short paths (e.g. /export_stocks.csv)
-        if self.path in DIRECT_EXPORTS:
-            abspath: str = os.path.join(PROJECT_ROOT, DIRECT_EXPORTS[self.path])
+        path: str = self.path.split("?", 1)[0]
+
+        # Browser default favicon probe → project SVG icon
+        if path in ("/favicon.ico", "/favicon.ico/"):
+            abspath: str = os.path.join(PROJECT_ROOT, "icons", "icon.svg")
             if os.path.exists(abspath):
                 with open(abspath, "rb") as f:
                     data: bytes = f.read()
-                mime: str = "application/json" if self.path.endswith(".json") else "text/csv"
+                self.send_response(200)
+                self.send_header("Content-Type", "image/svg+xml")
+                self.send_header("Content-Length", str(len(data)))
+                self.send_header("Cache-Control", "public, max-age=86400")
+                self.end_headers()
+                self.wfile.write(data)
+                return
+            self.send_response(404)
+            self.end_headers()
+            return
+
+        # Serve export files at short paths (e.g. /export_stocks.csv)
+        if path in DIRECT_EXPORTS:
+            abspath = os.path.join(PROJECT_ROOT, DIRECT_EXPORTS[path])
+            if os.path.exists(abspath):
+                with open(abspath, "rb") as f:
+                    data = f.read()
+                mime: str = "application/json" if path.endswith(".json") else "text/csv"
                 self.send_response(200)
                 self.send_header("Content-Type", mime)
                 self.send_header("Content-Length", str(len(data)))
@@ -66,12 +100,23 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         logger.info(f"{self.client_address[0]} — {fmt % args}")
 
 
+class QuietThreadingTCPServer(socketserver.ThreadingTCPServer):
+    """Threading server that ignores client disconnect noise on Windows."""
+
+    allow_reuse_address = True
+
+    def handle_error(self, request, client_address) -> None:
+        exc = sys.exc_info()[1]
+        if isinstance(exc, (ConnectionResetError, BrokenPipeError, ConnectionAbortedError)):
+            return
+        super().handle_error(request, client_address)
+
+
 def run_server(port: int = 8000) -> None:
     """Start the HTTP server."""
     os.chdir(PROJECT_ROOT)
-    socketserver.ThreadingTCPServer.allow_reuse_address = True
 
-    with socketserver.ThreadingTCPServer(("", port), Handler) as httpd:
+    with QuietThreadingTCPServer(("", port), Handler) as httpd:
         logger.info(f"  🌐 http://localhost:{port}")
         logger.info(f"  📊 http://localhost:{port}/index.html")
         logger.info("Press Ctrl+C to stop.")
