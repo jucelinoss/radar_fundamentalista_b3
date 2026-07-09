@@ -280,6 +280,14 @@ def generate_dashboard() -> None:
         s.get("sector") for s in stocks if s.get("sector")
     })
 
+    # Use v2.5 score for sorting if available, fallback to legacy score
+    for s in stocks:
+        s["score"] = s.get("score_v2") or s.get("score") or 0
+    for f in fiis:
+        f["score"] = f.get("score_v2") or f.get("score") or 0
+    for g in fiagros:
+        g["score"] = g.get("score_v2") or g.get("score") or 0
+
     sectors_summary: list[dict[str, Any]] = _compute_sector_summaries(stocks)
     top_stocks, top_fiis, top_fiagros = _compute_top_picks(stocks, fiis, fiagros)
 
