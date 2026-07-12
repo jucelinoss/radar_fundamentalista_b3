@@ -115,17 +115,23 @@ jobs:
       - name: Prepare Pages artifact (only if data changed)
         if: steps.check-changes.outputs.changed == 'true'
         run: |
-          mkdir -p _site
+          # Em dev, deploy em subdiretório /dev/ para preview
+          # Em main, deploy na raiz
+          SUBDIR=""
+          if [[ "${{ github.ref_name }}" == "dev" ]]; then
+            SUBDIR="dev/"
+          fi
+          mkdir -p "_site/$SUBDIR"
           # Dashboard & Data (v2 como padrão, v1 como fallback)
-          cp index-v2.html _site/index.html
-          cp index.html _site/index-classic.html
-          cp data.json _site/
+          cp index-v2.html "_site/${SUBDIR}index.html"
+          cp index.html "_site/${SUBDIR}index-classic.html"
+          cp data.json "_site/$SUBDIR"
           # PWA assets
-          cp manifest.json _site/ 2>/dev/null || true
-          cp service-worker.js _site/ 2>/dev/null || true
-          cp -r icons _site/ 2>/dev/null || true
+          cp manifest.json "_site/$SUBDIR" 2>/dev/null || true
+          cp service-worker.js "_site/$SUBDIR" 2>/dev/null || true
+          cp -r icons "_site/$SUBDIR" 2>/dev/null || true
           # Export files
-          cp data/export_*.csv data/export_*.json _site/ 2>/dev/null || true
+          cp data/export_*.csv data/export_*.json "_site/$SUBDIR" 2>/dev/null || true
 
       - name: Upload Pages artifact (only if data changed)
         if: steps.check-changes.outputs.changed == 'true'
@@ -181,4 +187,20 @@ jobs:
     steps:
       - name: Deploy to Pages
         id: deployment
+        uses: actions/deploy-pages@v4
+
+  deploy-dev:
+    name: Deploy dev preview to GitHub Pages
+    needs: pipeline
+    if: needs.pipeline.result == 'success' && needs.pipeline.outputs.changed == 'true' && github.ref_name == 'dev'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages-dev
+      cancel-in-progress: false
+    steps:
+      - name: Deploy dev preview to Pages
+        id: deployment-dev
         uses: actions/deploy-pages@v4
