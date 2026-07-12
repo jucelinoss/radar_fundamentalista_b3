@@ -64,11 +64,16 @@ jobs:
       - name: Ensure data directory exists
         run: mkdir -p data
 
-      - name: Restore database cache (keyed on tickers.json hash)
+      - name: Restore database & CVM cache (keyed on tickers.json hash)
         id: db-cache
         uses: actions/cache@v4
         with:
-          path: data/investments.db
+          path: |
+            data/investments.db
+            data/fiagro_vpa.json
+            data/fii_vpa.json
+            data/fiagro_dy.json
+            data/fii_dy.json
           key: b3-db-${{ hashFiles('config/tickers.json') }}
           restore-keys: |
             b3-db-
@@ -115,17 +120,27 @@ jobs:
       - name: Prepare Pages artifact (only if data changed)
         if: steps.check-changes.outputs.changed == 'true'
         run: |
+          # Always deploy root files first (para raiz do site)
           mkdir -p _site
-          # Dashboard & Data (v2 como padrão, v1 como fallback)
           cp index-v2.html _site/index.html
           cp index.html _site/index-classic.html
           cp data.json _site/
-          # PWA assets
           cp manifest.json _site/ 2>/dev/null || true
           cp service-worker.js _site/ 2>/dev/null || true
           cp -r icons _site/ 2>/dev/null || true
-          # Export files
           cp data/export_*.csv data/export_*.json _site/ 2>/dev/null || true
+          
+          # Em dev, também deploy em /dev/ para preview
+          if [[ "${{ github.ref_name }}" == "dev" ]]; then
+            mkdir -p _site/dev
+            cp index-v2.html _site/dev/index.html
+            cp index.html _site/dev/index-classic.html
+            cp data.json _site/dev/
+            cp manifest.json _site/dev/ 2>/dev/null || true
+            cp service-worker.js _site/dev/ 2>/dev/null || true
+            cp -r icons _site/dev/ 2>/dev/null || true
+            cp data/export_*.csv data/export_*.json _site/dev/ 2>/dev/null || true
+          fi
 
       - name: Upload Pages artifact (only if data changed)
         if: steps.check-changes.outputs.changed == 'true'
@@ -170,7 +185,7 @@ jobs:
   deploy:
     name: Deploy to GitHub Pages
     needs: pipeline
-    if: needs.pipeline.result == 'success' && needs.pipeline.outputs.changed == 'true'
+    if: needs.pipeline.result == 'success' && needs.pipeline.outputs.changed == 'true' && github.ref_name == 'main'
     runs-on: ubuntu-latest
     permissions:
       pages: write
@@ -181,4 +196,20 @@ jobs:
     steps:
       - name: Deploy to Pages
         id: deployment
+        uses: actions/deploy-pages@v4
+
+  deploy-dev:
+    name: Deploy dev preview to GitHub Pages
+    needs: pipeline
+    if: needs.pipeline.result == 'success' && needs.pipeline.outputs.changed == 'true' && github.ref_name == 'dev'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages-dev
+      cancel-in-progress: false
+    steps:
+      - name: Deploy dev preview to Pages
+        id: deployment-dev
         uses: actions/deploy-pages@v4

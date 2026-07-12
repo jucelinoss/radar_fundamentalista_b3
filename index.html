@@ -162,76 +162,76 @@
             margin: 0 !important;
         }
 
-        body.pdf-export .container {
-            padding-top: 0 !important;
-            margin-top: 0 !important;
+        .container.pdf-export {
+            padding: 0 !important;
+            margin: 0 !important;
+            max-width: 1080px !important;
+            width: 1080px !important;
         }
 
-        body.pdf-export header {
-            margin: 0 0 0.25rem 0 !important;
-            padding: 0.25rem 0 !important;
-            border-bottom-width: 1px;
+        .container.pdf-export header {
+            display: none !important;
         }
 
-        body.pdf-export .logo-area h1 {
+        .container.pdf-export .logo-area h1 {
             font-size: 1rem !important;
             line-height: 1.2 !important;
             margin: 0 !important;
         }
 
-        body.pdf-export .logo-area p {
+        .container.pdf-export .logo-area p {
             font-size: 0.65rem !important;
             line-height: 1.2 !important;
             margin: 0 !important;
         }
 
-        body.pdf-export #pdf-temp-header {
+        .container.pdf-export #pdf-temp-header {
             display: block !important;
         }
 
-        body.pdf-export #export-btn,
-        body.pdf-export #help-toggle-btn,
-        body.pdf-export #theme-toggle-btn,
-        body.pdf-export .header-actions a,
-        body.pdf-export .timestamp,
-        body.pdf-export .disclaimer {
+        .container.pdf-export #export-btn,
+        .container.pdf-export #help-toggle-btn,
+        .container.pdf-export #theme-toggle-btn,
+        .container.pdf-export .header-actions a,
+        .container.pdf-export .timestamp,
+        .container.pdf-export .disclaimer {
             display: none !important;
         }
 
-        body.pdf-export .controls-row {
+        .container.pdf-export .controls-row {
             display: none !important;
         }
 
-        body.pdf-export .summary-card {
+        .container.pdf-export .summary-card {
             page-break-inside: avoid;
             break-inside: avoid;
         }
 
-        body.pdf-export tr {
+        .container.pdf-export tr {
             page-break-inside: avoid;
             break-inside: avoid;
         }
 
-        body.pdf-export table {
+        .container.pdf-export table {
             font-size: 0.6rem !important;
         }
 
-        body.pdf-export th,
-        body.pdf-export td {
+        .container.pdf-export th,
+        .container.pdf-export td {
             padding: 0.2rem 0.35rem !important;
         }
 
-        body.pdf-export .score-badge {
+        .container.pdf-export .score-badge {
             font-size: 0.55rem !important;
             padding: 0.1rem 0.3rem !important;
             min-width: 1rem !important;
         }
 
-        body.pdf-export .card {
+        .container.pdf-export .card {
             padding: 0.5rem !important;
         }
 
-        body.pdf-export .table-container {
+        .container.pdf-export .table-container {
             overflow: visible !important;
             overflow-x: visible !important;
         }
@@ -1198,7 +1198,7 @@
                     <span>💡</span>
                     <span>Como Funciona?</span>
                 </button>
-                <a href="index-v2.html" class="action-btn" aria-label="Usar nova UI"
+                <a href="index.html" class="action-btn" aria-label="Usar nova UI"
                     style="border-color: var(--accent-gold); color: var(--accent-gold); font-size: 0.7rem; padding: 0.3rem 0.6rem; border-radius: 12px;">
                     ✨ Nova UI
                 </a>
@@ -2587,7 +2587,7 @@
                     topStocksList.innerHTML = data.top_stocks.map(stock => `
                         <li class="top-item" onclick="openDetailModal('${stock.ticker}', 'stock')">
                             <span class="top-ticker">${stock.ticker}</span>
-                            <span class="top-val positive">Score: ${formatScore(stock.score)} | DY: ${(stock.dividend_yield * 100).toFixed(2)}% | P/VP: ${stock.pb_ratio ? stock.pb_ratio.toFixed(2) : 'N/A'}</span>
+                            <span class="top-val positive" title="Score: ${formatScore(stock.score)}">${formatScore(stock.score)} | DY: ${(stock.dividend_yield * 100).toFixed(2)}% | P/VP: ${stock.pb_ratio ? stock.pb_ratio.toFixed(2) : 'N/A'}</span>
                         </li>
                     `).join('');
 
@@ -2596,7 +2596,7 @@
                     topFiisList.innerHTML = data.top_fiis.map(fii => `
                         <li class="top-item" onclick="openDetailModal('${fii.ticker}', 'fii')">
                             <span class="top-ticker">${fii.ticker}</span>
-                            <span class="top-val positive">Score: ${formatScore(fii.score)} | DY: ${(fii.dividend_yield * 100).toFixed(2)}% | P/VP: ${fii.pb_ratio.toFixed(2)}</span>
+                            <span class="top-val positive" title="Score: ${formatScore(fii.score)}">${formatScore(fii.score)} | DY: ${(fii.dividend_yield * 100).toFixed(2)}% | P/VP: ${fii.pb_ratio.toFixed(2)}</span>
                         </li>
                     `).join('');
 
@@ -2608,7 +2608,7 @@
                         topFiagrosList.innerHTML = data.top_fiagros.map(fiagro => `
                             <li class="top-item" onclick="openDetailModal('${fiagro.ticker}', 'fiagro')">
                                 <span class="top-ticker">${fiagro.ticker}</span>
-                                <span class="top-val positive">Score: ${formatScore(fiagro.score)} | DY: ${(fiagro.dividend_yield * 100).toFixed(2)}% | P/VP: ${fiagro.pb_ratio ? fiagro.pb_ratio.toFixed(2) : 'N/A'}</span>
+                                <span class="top-val positive" title="Score: ${formatScore(fiagro.score)}">${formatScore(fiagro.score)} | DY: ${(fiagro.dividend_yield * 100).toFixed(2)}% | P/VP: ${fiagro.pb_ratio ? fiagro.pb_ratio.toFixed(2) : 'N/A'}</span>
                             </li>
                         `).join('');
                     } else {
@@ -2781,7 +2781,7 @@
                     }).join('');
 
                     // Initialize view and tab filters
-                    checkRefreshStatus();
+                    if (typeof checkRefreshStatus === 'function') checkRefreshStatus();
                 });
         }
 
@@ -2808,6 +2808,9 @@
         function exportPDF() {
             // Fechar menu de export
             document.getElementById('export-menu').style.display = 'none';
+
+            // Garantir que a página não está scrollada para não deslocar a captura
+            window.scrollTo(0, 0);
 
             const btn = document.querySelector('#export-btn');
             const originalText = btn.innerHTML;
@@ -2877,11 +2880,12 @@
 
             const origContainerWidth = container.style.width;
             const origContainerMaxWidth = container.style.maxWidth;
-            container.style.width = '1122px';    // ~297mm (A4 landscape) a ~96dpi
-            container.style.maxWidth = '1122px';
+            container.style.width = '1080px';    // ~297mm (A4 landscape) a ~96dpi
+            container.style.maxWidth = '1080px';
 
             // ── Compactar layout para PDF ──
             document.body.classList.add('pdf-export');
+            container.classList.add('pdf-export');
 
             // ── Forçar estilos inline para captura sem whitespace ──
             const headerEl = container.querySelector('header');
@@ -2892,31 +2896,30 @@
             document.body.style.padding = '0';
             document.body.style.margin = '0';
             document.body.style.background = 'none';
-            headerEl.style.margin = '0';
-            headerEl.style.padding = '0.1rem 0';
-            headerEl.style.borderBottomWidth = '1px';
-            if (logoH1) { logoH1.style.margin = '0'; logoH1.style.fontSize = '13px'; logoH1.style.lineHeight = '1.1'; }
-            if (logoP) { logoP.style.margin = '0'; logoP.style.fontSize = '9px'; logoP.style.lineHeight = '1.1'; }
+            if (headerEl) {
+                headerEl.style.display = 'none';
+            }
 
             // Esconder botões
             document.querySelectorAll('#export-btn, #help-toggle-btn, #theme-toggle-btn, .timestamp').forEach(el => {
                 if (el) el.style.display = 'none';
             });
 
-            const LANDSCAPE_WIDTH = 1122; // px para windowWidth do html2canvas
+            const LANDSCAPE_WIDTH = 1080; // px para windowWidth do html2canvas
 
             const opt = {
-                margin: [0.15, 0.3, 0.3, 0.3],   // top, right, bottom, left (inches)
+                margin: [0.15, 0.15, 0.3, 0.15],   // top, right, bottom, left (inches)
                 filename: pdfFilename,
                 image: { type: 'jpeg', quality: 0.9 },
                 html2canvas: {
                     scale: 2, useCORS: true, letterRendering: true,
-                    scrollY: 0, y: 0,
+                    scrollX: 0, scrollY: 0,
+                    x: 0, y: 0,
                     width: LANDSCAPE_WIDTH,
                     windowWidth: LANDSCAPE_WIDTH
                 },
                 jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' },
-                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'], avoid: 'tr, .summary-card' }
             };
 
             function restoreStyles() {
@@ -2934,13 +2937,14 @@
                 document.body.style.padding = '';
                 document.body.style.margin = '';
                 document.body.style.background = '';
-                if (headerEl) { headerEl.style.margin = ''; headerEl.style.padding = ''; headerEl.style.borderBottomWidth = ''; }
-                if (logoH1) { logoH1.style.margin = ''; logoH1.style.fontSize = ''; logoH1.style.lineHeight = ''; }
-                if (logoP) { logoP.style.margin = ''; logoP.style.fontSize = ''; logoP.style.lineHeight = ''; }
+                if (headerEl) {
+                    headerEl.style.display = '';
+                }
                 document.querySelectorAll('#export-btn, #help-toggle-btn, #theme-toggle-btn, .timestamp').forEach(el => {
                     if (el) el.style.display = '';
                 });
                 document.body.classList.remove('pdf-export');
+                container.classList.remove('pdf-export');
                 pdfHeader.remove();
                 btn.innerHTML = originalText;
                 btn.disabled = false;
