@@ -2919,7 +2919,7 @@
                     windowWidth: LANDSCAPE_WIDTH
                 },
                 jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' },
-                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'], avoid: 'tr, .summary-card' }
             };
 
             function restoreStyles() {

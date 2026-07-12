@@ -489,7 +489,10 @@
         .container.pdf-export .summary-grid { margin: 0.3rem 0 !important; }
         .container.pdf-export table { font-size: 0.55rem !important; }
         .container.pdf-export th, .container.pdf-export td { padding: 0.15rem 0.3rem !important; }
-        .container.pdf-export .table-wrap { margin-bottom: 0.3rem !important; }
+        .container.pdf-export .table-wrap {
+            margin-bottom: 0.3rem !important;
+            overflow: visible !important;
+        }
 
         /* ── Hint tooltips (JS tooltip — evita clipping por overflow) ── */
         .hint { cursor: help; border-bottom: 1px dashed var(--text-muted); }
@@ -2428,7 +2431,7 @@
                     windowWidth: LANDSCAPE_WIDTH
                 },
                 jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' },
-                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'], avoid: 'tr, .summary-card' }
             };
 
             function restoreStyles() {

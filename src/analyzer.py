@@ -379,16 +379,18 @@ def _score_dy_fii_v2(dy: float | None, is_fiagro: bool = False) -> float:
 def _score_yield_cap_v2(dy: float | None, is_fiagro: bool = False) -> float:
     """
     FII/FIAGRO Trava de Risco suavizada (0-2.5 pts).
-    Curva: zera apenas em 2× o cap nominal. Ex:
-    - DY=0%   → 2.5 (máximo)
-    - DY=cap  → 1.25 (meio)
-    - DY=2×cap→ 0.0 (zera)
+    Corte de distorção de dados (High Yield severo).
+    - DY <= cap_nominal → 2.5 (máximo, não penaliza yield bom)
+    - DY >= cap_efetivo (2× cap) → 0.0 (zera)
+    - Entre cap_nominal e cap_efetivo: queda linear suave
     """
     cap_nominal = DY_FIAGRO_CAP if is_fiagro else DY_FII_CAP
     cap_efetivo = cap_nominal * 2.0
-    if dy is None or dy > cap_efetivo:
+    if dy is None or dy >= cap_efetivo:
         return 0.0
-    proportion = 1.0 - (dy / cap_efetivo)
+    if dy <= cap_nominal:
+        return 2.5
+    proportion = 1.0 - ((dy - cap_nominal) / (cap_efetivo - cap_nominal))
     return round(_clamp(proportion * 2.5, 0.0, 2.5), SCORE_DECIMALS)
 
 
