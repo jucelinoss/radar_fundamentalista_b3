@@ -170,7 +170,7 @@ jobs:
   deploy:
     name: Deploy to GitHub Pages
     needs: pipeline
-    if: needs.pipeline.result == 'success' && needs.pipeline.outputs.changed == 'true'
+    if: needs.pipeline.result == 'success' && needs.pipeline.outputs.changed == 'true' && github.ref_name == 'main'
     runs-on: ubuntu-latest
     permissions:
       pages: write
