@@ -77,6 +77,8 @@ jobs:
           key: b3-db-${{ hashFiles('config/tickers.json') }}
           restore-keys: |
             b3-db-
+          # Salva sempre — necessário para que CVM files gerados sejam cacheados
+          save-always: true
 
       - name: Run full pipeline (incremental or forced)
         id: pipeline-run
