@@ -64,11 +64,16 @@ jobs:
       - name: Ensure data directory exists
         run: mkdir -p data
 
-      - name: Restore database cache (keyed on tickers.json hash)
+      - name: Restore database & CVM cache (keyed on tickers.json hash)
         id: db-cache
         uses: actions/cache@v4
         with:
-          path: data/investments.db
+          path: |
+            data/investments.db
+            data/fiagro_vpa.json
+            data/fii_vpa.json
+            data/fiagro_dy.json
+            data/fii_dy.json
           key: b3-db-${{ hashFiles('config/tickers.json') }}
           restore-keys: |
             b3-db-
