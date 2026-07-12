@@ -192,17 +192,24 @@
         body.pdf-export #export-btn,
         body.pdf-export #help-toggle-btn,
         body.pdf-export #theme-toggle-btn,
+        body.pdf-export .header-actions a,
         body.pdf-export .timestamp,
         body.pdf-export .disclaimer {
             display: none !important;
         }
 
         body.pdf-export .controls-row {
-            margin-bottom: 0.2rem !important;
+            display: none !important;
         }
 
-        body.pdf-export .tab-bar {
-            margin-bottom: 0.2rem !important;
+        body.pdf-export .summary-card {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        body.pdf-export tr {
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
 
         body.pdf-export table {
@@ -491,19 +498,16 @@
             font-size: 0.85rem;
         }
 
-        /* ── Tooltips temáticos ── */
+        /* ── Tooltips temáticos (JS tooltip, sem ::after/::before para evitar clipping por overflow) ── */
         .hint {
-            position: relative;
             cursor: help;
             border-bottom: 1px dashed var(--text-secondary);
         }
-        .hint::after {
-            content: attr(data-tip);
-            position: absolute;
-            top: calc(100% + 8px);
-            left: 50%;
-            transform: translateX(-50%) scale(0.9);
-            transform-origin: top center;
+        .hint:focus {
+            outline: none;
+        }
+        #hint-tooltip-el {
+            position: fixed;
             background: var(--card-bg);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
@@ -520,48 +524,23 @@
             line-height: 1.4;
             box-shadow: 0 8px 32px var(--modal-shadow);
             pointer-events: none;
+            z-index: 9999;
             opacity: 0;
-            transition: opacity 0.2s ease, transform 0.2s ease;
-            z-index: 50;
+            transition: opacity 0.15s ease;
         }
-        .hint::before {
+        #hint-tooltip-el.visible {
+            opacity: 1;
+        }
+        /* Seta do tooltip (posição via JS com custom properties) */
+        #hint-tooltip-el::before {
             content: '';
             position: absolute;
-            top: calc(100% + 4px);
-            left: 50%;
-            transform: translateX(-50%);
-            border: 6px solid transparent;
+            top: var(--arrow-top, -10px);
+            bottom: var(--arrow-bottom, auto);
+            left: var(--arrow-left, calc(50% - 5px));
+            transform: rotate(var(--arrow-rotate, 0deg));
+            border: 5px solid transparent;
             border-bottom-color: var(--card-border);
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-            z-index: 51;
-        }
-        .hint:hover::after,
-        .hint:focus::after {
-            opacity: 1;
-            transform: translateX(-50%) scale(1);
-        }
-        .hint:hover::before,
-        .hint:focus::before {
-            opacity: 1;
-        }
-
-        /* ── Remove outline transparente do hint em foco ── */
-        .hint:focus {
-            outline: none;
-        }
-
-        /* ── Evita tooltip da última coluna vazar pra direita ── */
-        th:last-child .hint::after {
-            left: auto;
-            right: 0;
-            transform: none;
-        }
-        th:last-child .hint::before {
-            left: auto;
-            right: 1.2rem;
-            transform: none;
         }
 
         th {
@@ -604,6 +583,8 @@
             left: 0;
             z-index: 12;
             background: var(--table-header);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             border-right: 1px solid var(--card-border);
         }
 
@@ -611,12 +592,14 @@
             position: sticky;
             left: 0;
             z-index: 10;
-            background: var(--bg-color);
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             border-right: 1px solid var(--card-border);
         }
 
         tr:hover td:first-child {
-            background: var(--table-hover) !important;
+            background: color-mix(in srgb, var(--primary) 10%, var(--card-bg)) !important;
         }
 
         .ticker-col {
@@ -902,10 +885,10 @@
             }
 
             .controls-filters {
-                flex-direction: column;
-                align-items: stretch;
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.5rem;
                 width: 100%;
-                gap: 0.75rem;
             }
 
             .filter-select {
@@ -921,6 +904,7 @@
             }
 
             .search-container {
+                grid-column: span 2;
                 width: 100%;
             }
 
@@ -949,6 +933,32 @@
             th,
             td {
                 padding: 0.75rem 0.5rem;
+            }
+
+            .modal-header {
+                padding-right: 2rem;
+            }
+
+            .top-val {
+                font-size: 0.78rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logo-area h1 {
+                font-size: 1.4rem;
+            }
+            .logo-area p {
+                font-size: 0.8rem;
+            }
+            .top-item {
+                align-items: flex-start;
+            }
+            .top-val {
+                font-size: 0.7rem;
+            }
+            .top-ticker {
+                font-size: 0.9rem;
             }
         }
 
@@ -1211,7 +1221,7 @@
             <!-- Stock Summary -->
             <div class="summary-card card-stock">
                 <div class="card-title">
-                    <span>Top Ações (Maiores Scores)</span>
+                    <span>Top Ações</span>
                     <span class="badge badge-gold">Value Investing</span>
                 </div>
                 <ul class="top-list" id="top-stocks-list">
@@ -1222,7 +1232,7 @@
             <!-- FII Summary -->
             <div class="summary-card card-fii">
                 <div class="card-title">
-                    <span>Top FIIs (Maiores Scores)</span>
+                    <span>Top FIIs</span>
                     <span class="badge badge-green">Imobiliário</span>
                 </div>
                 <ul class="top-list" id="top-fiis-list">
@@ -1233,7 +1243,7 @@
             <!-- FIAGRO Summary -->
             <div class="summary-card card-fii" id="top-fiagros-card" style="display: none;">
                 <div class="card-title">
-                    <span>Top FIAGROs (Maiores Scores)</span>
+                    <span>Top FIAGROs</span>
                     <span class="badge badge-green">Agronegócio</span>
                 </div>
                 <ul class="top-list" id="top-fiagros-list">
@@ -2024,20 +2034,25 @@
                 // Continuous Score Breakdown (v2.5) — each criterion 0.0-2.0
                 const breakdownItems = [
                     { label: 'Dividend Yield', key: 'dy', score: scoreDYStock(dy),
-                      desc: `DY: ${(dy * 100).toFixed(2)}%`, pct: dy * 100 },
+                      desc: `DY: ${(dy * 100).toFixed(2)}%`, pct: dy * 100,
+                      tip: 'Mínimo: 6% = 1,0 pts. Cada 1% extra acima de 6% adiciona ~0,11 pts. Máximo 2,0 pts em ~15%.' },
                     { label: 'P/L (Preço / Lucro)', key: 'pe', score: scorePEStock(pe),
-                      desc: `P/L: ${pe !== null ? pe.toFixed(2) : 'N/A'}`, pct: pe },
+                      desc: `P/L: ${pe !== null ? pe.toFixed(2) : 'N/A'}`, pct: pe,
+                      tip: 'P/L entre 0 e 15 = nota base 1,0. Quanto menor o P/L, maior o bônus (até 2,0 pts). P/L > 15 ou negativo = 0.' },
                     { label: 'P/VP (Preço / V.P.)', key: 'pb', score: scorePBStock(pb),
-                      desc: `P/VP: ${pb !== null ? pb.toFixed(2) : 'N/A'}`, pct: pb },
+                      desc: `P/VP: ${pb !== null ? pb.toFixed(2) : 'N/A'}`, pct: pb,
+                      tip: 'P/VP entre 0,50 e 1,50. Nota = 2,0 × (1,50 - P/VP). Quanto menor, melhor. Abaixo de 0,50 ou acima de 1,50 = 0.' },
                     { label: 'ROE (Retorno s/ Patr.)', key: 'roe', score: scoreROEStock(roe),
-                      desc: `ROE: ${roe !== null ? (roe * 100).toFixed(2) : 'N/A'}%`, pct: roe !== null ? roe * 100 : null },
+                      desc: `ROE: ${roe !== null ? (roe * 100).toFixed(2) : 'N/A'}%`, pct: roe !== null ? roe * 100 : null,
+                      tip: 'Mínimo: 10% = 1,0 pts. Cada 10% extra adiciona 0,5 pts. Máximo 2,0 pts em 30%. Abaixo de 10% = 0.' },
                     { label: 'Margem de Graham', key: 'graham', score: scoreGrahamStock(price, graham),
-                      desc: `Justo: R$${graham.toFixed(2)} vs R$${price.toFixed(2)}`, pct: graham > 0 ? ((graham - price) / price) * 100 : null }
+                      desc: `Justo: R$${graham.toFixed(2)} vs R$${price.toFixed(2)}`, pct: graham > 0 ? ((graham - price) / price) * 100 : null,
+                      tip: 'Preço abaixo do valor justo = nota base 1,0. Cada 100% de margem adicional soma +1,0 pts. Máximo 2,0 pts.' }
                 ];
                 var computedScore = breakdownItems.reduce(function(s, i) { return s + i.score; }, 0);
 
                 // Score Badge — computed from breakdown sum for consistency
-                scoreContainer.innerHTML = `<span class="score-pill ${getScoreRangeClass(computedScore)}" style="width: auto; height: auto; border-radius: 12px; padding: 0.4rem 1rem; font-size: 0.9rem;">Score: ${formatScore(computedScore)}/10</span>`;
+                scoreContainer.innerHTML = `<span class="score-pill ${getScoreRangeClass(computedScore)}" style="width: auto; height: auto; border-radius: 12px; padding: 0.4rem 1rem; font-size: 0.9rem;">Score: ${formatScore(computedScore)}</span>`;
 
                 breakdownItems.forEach(function(item) {
                     var pct = Math.round((item.score / 2.0) * 100);
@@ -2046,7 +2061,7 @@
                     el.className = 'breakdown-item';
                     el.innerHTML = [
                         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem;">',
-                        '  <span style="font-weight:600;font-size:0.85rem;">', item.label, '</span>',
+                        '  <span class="hint" tabindex="0" data-tip="', item.tip, '" style="font-weight:600;font-size:0.85rem;">', item.label, ' ⓘ</span>',
                         '  <span style="font-size:0.8rem;color:var(--text-secondary);">', item.score.toFixed(2), ' / 2.0</span>',
                         '</div>',
                         '<div class="bar-container">',
@@ -2056,6 +2071,12 @@
                     ].join('');
                     scorecard.appendChild(el);
                 });
+
+                // Value investing disclaimer
+                var disc = document.createElement('div');
+                disc.style.cssText = 'margin-top:0.75rem;padding:0.7rem;background:var(--breakdown-bg);border-radius:8px;font-size:0.75rem;color:var(--text-secondary);line-height:1.4;border:1px solid var(--breakdown-border);';
+                disc.textContent = '⚡ Esta é uma avaliação sob a ótica do value investing: busca por empresas lucrativas, saudáveis e negociadas com desconto. Uma nota baixa não significa que a empresa seja ruim, apenas que não atende aos critérios rigorosos de oportunidade value no momento.';
+                scorecard.appendChild(disc);
 
                 // For Stocks: enable P/L option in the dropdown and show it
                 const peOption = document.querySelector('#chart-indicator-select option[value="pe"]');
@@ -2086,21 +2107,25 @@
                 var breakdownItems = [
                     { label: 'P/VP (Unificado: Ideal + Limite)', key: 'pb_unified',
                       score: scorePBFii(pb),
-                      desc: 'P/VP: ' + (pb !== null ? pb.toFixed(2) : 'N/A') },
+                      desc: 'P/VP: ' + (pb !== null ? pb.toFixed(2) : 'N/A'),
+                      tip: 'Máximo entre P/VP Ideal (0,70-1,05) e Limite (0,60-1,15), reescalonado ×1,25. Nota máxima 2,5 pts quando P/VP está na faixa ideal.' },
                     { label: (isFiagro ? 'DY ≥ 10% (Mínimo FIAGRO)' : 'DY ≥ 8% (Mínimo FII)'), key: 'dy_min',
                       score: scoreDYFiiV2(dy, isFiagro),
-                      desc: 'DY: ' + (dy * 100).toFixed(2) + '%' },
+                      desc: 'DY: ' + (dy * 100).toFixed(2) + '%',
+                      tip: (isFiagro ? 'DY mínimo 10% = 1,25 pts. Bônus até 2,5 pts conforme DY se aproxima de 16,5%.' : 'DY mínimo 8% = 1,25 pts. Bônus até 2,5 pts conforme DY se aproxima de 14,5%.') },
                     { label: (isFiagro ? 'Yield ≤ 33% (Trava Risco Suave)' : 'Yield ≤ 29% (Trava Risco Suave)'), key: 'yield_cap',
                       score: scoreYieldCapV2(dy, isFiagro),
-                      desc: 'DY: ' + (dy * 100).toFixed(2) + '%' },
+                      desc: 'DY: ' + (dy * 100).toFixed(2) + '%',
+                      tip: (isFiagro ? 'DY acima de 33% reduz a nota (risco de insustentabilidade). Zera em 33% × 2 = 66%. Escala progressiva de 0 a 2,5 pts.' : 'DY acima de 29% reduz a nota (risco de insustentabilidade). Zera em 29% × 2 = 58%. Escala progressiva de 0 a 2,5 pts.') },
                     { label: 'Consistência Proventos (≥95%)', key: 'consistency',
                       score: scoreConsistencyV2(consistency),
-                      desc: consistency !== null ? (consistency * 100).toFixed(2) + '%' : 'N/D (neutro 1.5)' }
+                      desc: consistency !== null ? (consistency * 100).toFixed(2) + '%' : 'N/D (neutro 1.5)',
+                      tip: 'Proporção de meses com distribuição de dividendos ≥ 95% = 2,5 pts. Sem dados históricos: nota neutra 1,5 pts.' }
                 ];
                 var computedScore = breakdownItems.reduce(function(s, i) { return s + i.score; }, 0);
 
                 // Score Badge — computed from breakdown sum for consistency
-                scoreContainer.innerHTML = `<span class="score-pill ${getScoreRangeClass(computedScore)}" style="width: auto; height: auto; border-radius: 12px; padding: 0.4rem 1rem; font-size: 0.9rem;">Score: ${formatScore(computedScore)}/10</span>`;
+                scoreContainer.innerHTML = `<span class="score-pill ${getScoreRangeClass(computedScore)}" style="width: auto; height: auto; border-radius: 12px; padding: 0.4rem 1rem; font-size: 0.9rem;">Score: ${formatScore(computedScore)}</span>`;
 
                 breakdownItems.forEach(function(item) {
                     var pct = Math.round((item.score / 2.5) * 100);
@@ -2109,7 +2134,7 @@
                     el.className = 'breakdown-item';
                     el.innerHTML = [
                         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem;">',
-                        '  <span style="font-weight:600;font-size:0.85rem;">', item.label, '</span>',
+                        '  <span class="hint" tabindex="0" data-tip="', item.tip, '" style="font-weight:600;font-size:0.85rem;">', item.label, ' ⓘ</span>',
                         '  <span style="font-size:0.8rem;color:var(--text-secondary);">', item.score.toFixed(2), ' / 2.5</span>',
                         '</div>',
                         '<div class="bar-container">',
@@ -2119,6 +2144,12 @@
                     ].join('');
                     scorecard.appendChild(el);
                 });
+
+                // Value investing disclaimer
+                var disc = document.createElement('div');
+                disc.style.cssText = 'margin-top:0.75rem;padding:0.7rem;background:var(--breakdown-bg);border-radius:8px;font-size:0.75rem;color:var(--text-secondary);line-height:1.4;border:1px solid var(--breakdown-border);';
+                disc.textContent = '⚡ Esta é uma avaliação sob a ótica do value investing: busca por ativos com bom retorno em dividendos, preço justo e consistência. Uma nota baixa não significa que o fundo seja ruim, apenas que não atende aos critérios rigorosos de oportunidade value no momento.';
+                scorecard.appendChild(disc);
 
                 // For FIIs/FIAGROs: disable P/L option and hide it
                 const peOption = document.querySelector('#chart-indicator-select option[value="pe"]');
@@ -2145,6 +2176,11 @@
 
             // Show Modal
             document.getElementById('detail-modal').classList.remove('hidden');
+
+            // Initialize tooltips for dynamically generated elements
+            if (window.initHints) {
+                window.initHints(scorecard);
+            }
         }
 
         function closeDetailModal() {
@@ -2551,7 +2587,7 @@
                     topStocksList.innerHTML = data.top_stocks.map(stock => `
                         <li class="top-item" onclick="openDetailModal('${stock.ticker}', 'stock')">
                             <span class="top-ticker">${stock.ticker}</span>
-                            <span class="top-val positive">Score: ${formatScore(stock.score)}/10 | DY: ${(stock.dividend_yield * 100).toFixed(2)}% | P/VP: ${stock.pb_ratio ? stock.pb_ratio.toFixed(2) : 'N/A'}</span>
+                            <span class="top-val positive">Score: ${formatScore(stock.score)} | DY: ${(stock.dividend_yield * 100).toFixed(2)}% | P/VP: ${stock.pb_ratio ? stock.pb_ratio.toFixed(2) : 'N/A'}</span>
                         </li>
                     `).join('');
 
@@ -2560,7 +2596,7 @@
                     topFiisList.innerHTML = data.top_fiis.map(fii => `
                         <li class="top-item" onclick="openDetailModal('${fii.ticker}', 'fii')">
                             <span class="top-ticker">${fii.ticker}</span>
-                            <span class="top-val positive">Score: ${formatScore(fii.score)}/10 | DY: ${(fii.dividend_yield * 100).toFixed(2)}% | P/VP: ${fii.pb_ratio.toFixed(2)}</span>
+                            <span class="top-val positive">Score: ${formatScore(fii.score)} | DY: ${(fii.dividend_yield * 100).toFixed(2)}% | P/VP: ${fii.pb_ratio.toFixed(2)}</span>
                         </li>
                     `).join('');
 
@@ -2572,7 +2608,7 @@
                         topFiagrosList.innerHTML = data.top_fiagros.map(fiagro => `
                             <li class="top-item" onclick="openDetailModal('${fiagro.ticker}', 'fiagro')">
                                 <span class="top-ticker">${fiagro.ticker}</span>
-                                <span class="top-val positive">Score: ${formatScore(fiagro.score)}/10 | DY: ${(fiagro.dividend_yield * 100).toFixed(2)}% | P/VP: ${fiagro.pb_ratio ? fiagro.pb_ratio.toFixed(2) : 'N/A'}</span>
+                                <span class="top-val positive">Score: ${formatScore(fiagro.score)} | DY: ${(fiagro.dividend_yield * 100).toFixed(2)}% | P/VP: ${fiagro.pb_ratio ? fiagro.pb_ratio.toFixed(2) : 'N/A'}</span>
                             </li>
                         `).join('');
                     } else {
@@ -2940,12 +2976,90 @@
             }
         }
 
-        /* ── Tooltips funcionais no mobile (focus via tap) ── */
-        document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('.hint').forEach(function (el) {
-                el.addEventListener('click', function (e) {
+        /* ── Tooltip dinâmico via JS (evita clipping por overflow dos containers) ── */
+        (function() {
+            // Cria um único elemento de tooltip reutilizável
+            var tip = document.createElement('div');
+            tip.id = 'hint-tooltip-el';
+            tip.style.display = 'none';
+            document.body.appendChild(tip);
+
+            var activeEl = null;
+            var hideTimeout = null;
+
+            function showTooltip(el) {
+                if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
+                var text = el.getAttribute('data-tip');
+                if (!text) return;
+                tip.textContent = '';
+                tip.innerHTML = text;
+                tip.style.display = 'block';
+                tip.classList.add('visible');
+                positionTooltip(el);
+                activeEl = el;
+            }
+
+            function positionTooltip(el) {
+                var rect = el.getBoundingClientRect();
+                var tipRect = tip.getBoundingClientRect();
+                var top = rect.bottom + 10;
+                var left = rect.left + rect.width / 2 - tipRect.width / 2;
+                // Evita que o tooltip saia da tela
+                if (left < 8) left = 8;
+                if (left + tipRect.width > window.innerWidth - 8) {
+                    left = window.innerWidth - tipRect.width - 8;
+                }
+                // Se não couber em baixo, mostra em cima
+                if (top + tipRect.height > window.innerHeight - 8) {
+                    top = rect.top - tipRect.height - 10;
+                    // Inverte a seta
+                    tip.style.setProperty('--arrow-rotate', '180deg');
+                    tip.style.setProperty('--arrow-top', 'auto');
+                    tip.style.setProperty('--arrow-bottom', '-10px');
+                } else {
+                    tip.style.setProperty('--arrow-rotate', '0deg');
+                    tip.style.setProperty('--arrow-top', '-10px');
+                    tip.style.setProperty('--arrow-bottom', 'auto');
+                }
+                // Ajusta posição da seta horizontalmente
+                var arrowLeft = Math.max(10, Math.min(rect.left + rect.width / 2 - left - 5, tipRect.width - 15));
+                tip.style.setProperty('--arrow-left', arrowLeft + 'px');
+                tip.style.top = top + 'px';
+                tip.style.left = left + 'px';
+            }
+
+            function hideTooltip() {
+                if (hideTimeout) { clearTimeout(hideTimeout); }
+                hideTimeout = setTimeout(function() {
+                    tip.classList.remove('visible');
+                    tip.style.display = 'none';
+                    activeEl = null;
+                    hideTimeout = null;
+                }, 100);
+            }
+
+            function cancelHide() {
+                if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
+            }
+
+            // Adiciona eventos a todos os hints
+            document.querySelectorAll('.hint').forEach(function(el) {
+                el.addEventListener('mouseenter', function(e) {
+                    cancelHide();
+                    showTooltip(this);
+                });
+                el.addEventListener('mouseleave', function(e) {
+                    hideTooltip();
+                });
+                el.addEventListener('focus', function(e) {
+                    cancelHide();
+                    showTooltip(this);
+                });
+                el.addEventListener('blur', function(e) {
+                    hideTooltip();
+                });
+                el.addEventListener('click', function(e) {
                     e.stopPropagation(); // não dispara sortTable no th
-                    // Se já está em foco, tira o foco (toggle)
                     if (document.activeElement === this) {
                         this.blur();
                     } else {
@@ -2953,13 +3067,60 @@
                     }
                 });
             });
-            // Tocar fora de um hint tira o foco (esconde tooltip)
-            document.addEventListener('touchstart', function (e) {
-                if (!e.target.closest('.hint') && document.activeElement) {
-                    document.activeElement.blur();
+
+            // Esconde tooltip se tocar/clicar fora
+            document.addEventListener('touchstart', function(e) {
+                if (!e.target.closest('.hint') && activeEl) {
+                    activeEl.blur();
+                    hideTooltip();
                 }
             });
-        });
+            document.addEventListener('mousedown', function(e) {
+                if (!e.target.closest('.hint') && activeEl) {
+                    hideTooltip();
+                }
+            });
+
+            // Reposiciona no scroll/resize
+            window.addEventListener('scroll', function() {
+                if (activeEl) positionTooltip(activeEl);
+            }, true);
+            window.addEventListener('resize', function() {
+                if (activeEl) positionTooltip(activeEl);
+            });
+
+            // Expõe utilitário para re-observar hints adicionados dinamicamente
+            window.initHints = function(root) {
+                (root || document).querySelectorAll('.hint').forEach(function(el) {
+                    // Eventos só são adicionados uma vez (verifica se já tem listener)
+                    if (!el.dataset.hintInited) {
+                        el.dataset.hintInited = '1';
+                        el.addEventListener('mouseenter', function(e) {
+                            cancelHide();
+                            showTooltip(this);
+                        });
+                        el.addEventListener('mouseleave', function(e) {
+                            hideTooltip();
+                        });
+                        el.addEventListener('focus', function(e) {
+                            cancelHide();
+                            showTooltip(this);
+                        });
+                        el.addEventListener('blur', function(e) {
+                            hideTooltip();
+                        });
+                        el.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            if (document.activeElement === this) {
+                                this.blur();
+                            } else {
+                                this.focus();
+                            }
+                        });
+                    }
+                });
+            };
+        })();
     </script>
 
     <!-- Service Worker: enable PWA offline support -->

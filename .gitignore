@@ -21,6 +21,12 @@ data/status.json
 data/failed_tickers.log
 data/*.log
 
+# Generated cache data (mudam todo pipeline — não versionar)
+data/fiagro_dy.json
+data/fiagro_vpa.json
+data/fii_dy.json
+data/fii_vpa.json
+
 # Generated output (root level)
 data.json
 /manifest.json
