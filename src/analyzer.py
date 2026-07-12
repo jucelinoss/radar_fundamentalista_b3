@@ -612,10 +612,10 @@ def _calc_dividend_consistency(yf_ticker: Any | None) -> float | None:
             from pandas import DateOffset
             from datetime import datetime, timezone
             now = datetime.now(timezone.utc)
-            # Last 6 months
-            div_6m = history['Dividends'].last('180D').sum()
-            # Previous 6 months (6-12 months ago)
+            # Last 6 months — mask-based (replaces deprecated .last())
             cutoff_6m = now - DateOffset(days=180)
+            div_6m = history['Dividends'][history.index >= cutoff_6m].sum()
+            # Previous 6 months (6-12 months ago)
             cutoff_12m = now - DateOffset(days=365)
             div_prev_6m = history[
                 (history.index >= cutoff_12m) & (history.index < cutoff_6m)

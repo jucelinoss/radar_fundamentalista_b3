@@ -624,8 +624,11 @@ class TestTimezoneAwareYield:
         now = datetime.now(tz)
         idx_recent = pd.date_range(end=now - timedelta(days=30), periods=3, freq='ME', tz=tz)
         idx_prev = pd.date_range(end=now - timedelta(days=200), periods=3, freq='ME', tz=tz)
-        all_idx = idx_prev.append(idx_recent)
-        all_divs = [8.0/3] * 3 + [10.0/3] * 3
+        # Use union() instead of deprecated append() — works cross-platform with tz-aware indices
+        all_idx = idx_prev.union(idx_recent)
+        # Map values to sorted union order
+        prev_set = set(idx_prev)
+        all_divs = [8.0/3 if d in prev_set else 10.0/3 for d in all_idx]
         df = pd.DataFrame({'Dividends': all_divs}, index=all_idx)
         mock = type('MockTicker', (), {'actions': df})()
         result = _calc_dividend_consistency(mock)
