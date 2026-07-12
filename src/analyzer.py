@@ -54,6 +54,15 @@ DY_FIAGRO_FACTOR = 1.0 / (DY_FIAGRO_CAP - DY_FIAGRO_MIN)  # ~15.38
 
 CONSISTENCY_TARGET = 0.95      # Meta de retenção semestral (95%)
 
+# Clamping — valores máximos para sanitizar dados do Yahoo
+# Yahoo retorna lixo para alguns tickers; o clamping impede que
+# valores absurdos (ex: DY de 16930%) cheguem ao banco e ao usuário.
+DY_MAX_STOCK = 0.30          # DY máximo para ações (30%)
+DY_MAX_FII = 0.25            # DY máximo para FIIs (25%)
+DY_MAX_FIAGRO = 0.30         # DY máximo para FIAGROs (30%)
+DY_MEDIO_3Y_MAX = 0.50       # dy_medio_3y máximo (50%)
+DIVIDEND_RATE_MAX = 100.0    # dividend_rate máximo (R$/cota)
+
 # Normalization
 DY_PERCENTAGE_THRESHOLD = 1.0  # Values > 1 are treated as percentages
 DY_PERCENTAGE_DIVISOR = 100.0
@@ -157,6 +166,32 @@ def get_true_yield(ticker_info: dict[str, Any], yf_ticker: Any | None = None, pr
 def _clamp(value: float, lo: float, hi: float) -> float:
     """Clamp value between lo and hi."""
     return max(lo, min(hi, value))
+
+
+def _sanitize_dy(dy: float | None, max_dy: float) -> float | None:
+    """Clamp dividend yield to avoid garbage data from Yahoo."""
+    if dy is None:
+        return None
+    if dy < 0:
+        return 0.0
+    if dy > max_dy:
+        import logging
+        logging.getLogger(__name__).warning("DY clamped: %.4f → %.4f", dy, max_dy)
+        return max_dy
+    return dy
+
+
+def _sanitize_rate(rate: float | None, max_rate: float = DIVIDEND_RATE_MAX) -> float | None:
+    """Clamp dividend rate to avoid garbage data from Yahoo."""
+    if rate is None:
+        return None
+    if rate < 0:
+        return 0.0
+    if rate > max_rate:
+        import logging
+        logging.getLogger(__name__).warning("Rate clamped: %.2f → %.2f", rate, max_rate)
+        return max_rate
+    return rate
 
 
 def _score_dy_stock(dy_medio_3y: float | None) -> float:
@@ -687,6 +722,11 @@ def analyze_stock(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
         peg_ratio=peg_ratio, sector=raw_sector
     )
     
+    # Sanitiza valores extremos do Yahoo antes de retornar
+    dy = _sanitize_dy(dy, DY_MAX_STOCK)
+    dividend_rate = _sanitize_rate(dividend_rate)
+    dy_medio_3y = _sanitize_dy(dy_medio_3y, DY_MEDIO_3Y_MAX)
+
     return {
         'ticker': ticker,
         'name': name,
@@ -837,7 +877,11 @@ def analyze_fii(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
     
     # v2.5 continuous score
     score_v2 = calculate_fii_score_continuous(pb_ratio, dy, dividend_consistency)
-        
+    
+    # Sanitiza valores extremos do Yahoo antes de retornar
+    dy = _sanitize_dy(dy, DY_MAX_FII)
+    dividend_rate = _sanitize_rate(dividend_rate)
+
     return {
         'ticker': ticker,
         'name': name,
@@ -892,7 +936,11 @@ def analyze_fiagro(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
     
     # v2.5 continuous score
     score_v2 = calculate_fiagro_score_continuous(pb_ratio, dy, dividend_consistency)
-        
+    
+    # Sanitiza valores extremos do Yahoo antes de retornar
+    dy = _sanitize_dy(dy, DY_MAX_FIAGRO)
+    dividend_rate = _sanitize_rate(dividend_rate)
+
     return {
         'ticker': ticker,
         'name': name,
