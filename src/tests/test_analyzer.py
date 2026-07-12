@@ -17,6 +17,8 @@ from analyzer import (
     analyze_fii,
     analyze_fiagro,
     get_true_yield,
+    _calc_dy_medio_3y,
+    _calc_dividend_consistency,
     SECTOR_MAP,
     # v2.5 continuous scoring
     calculate_stock_score_continuous,
@@ -508,13 +510,19 @@ class TestFiagroScore:
 # ======================================================================
 
 def _make_mock_ticker(total_dividends: float, days_ago: int = 180):
-    """Build a mock yfinance Ticker whose .actions returns a dividend DataFrame."""
+    """Build a mock yfinance Ticker whose .actions returns a dividend DataFrame
+    with a **timezone-aware** index (America/Sao_Paulo), matching real yfinance."""
     import pandas as pd
     from datetime import datetime, timedelta
-    idx = pd.date_range(end=datetime.now() - timedelta(days=days_ago),
-                        periods=3, freq='ME')
+    import pytz
+    tz = pytz.timezone('America/Sao_Paulo')
+    idx = pd.date_range(end=datetime.now(tz) - timedelta(days=days_ago),
+                        periods=3, freq='ME', tz=tz)
     actions_df = pd.DataFrame({'Dividends': [total_dividends / 3] * 3}, index=idx)
     return type('MockTicker', (), {'actions': actions_df})()
+
+
+
 
 
 class TestGetTrueYield:
@@ -550,6 +558,94 @@ class TestGetTrueYield:
         mock_ticker = _make_mock_ticker(total_dividends=6.0, days_ago=30)
         result = get_true_yield(info, yf_ticker=mock_ticker, price=0)
         assert result == 0.06
+
+
+# ======================================================================
+# Timezone-aware Tests (catch the yfinance timezone bug)
+# ======================================================================
+
+class TestTimezoneAwareYield:
+    """Tests that verify get_true_yield, _calc_dy_medio_3y and
+    _calc_dividend_consistency work with timezone-aware indices (the
+    real yfinance behavior). Without the fix, these would TypeError."""
+
+    # ── get_true_yield ──
+
+    def test_get_true_yield_tzaware_works(self):
+        """get_true_yield must not crash with tz-aware index."""
+        info = {}
+        mock_ticker = _make_mock_ticker(total_dividends=6.0, days_ago=30)
+        result = get_true_yield(info, yf_ticker=mock_ticker, price=100.0)
+        assert result == 0.06, f"Expected 0.06, got {result}"
+
+    def test_get_true_yield_tzaware_without_dividends(self):
+        """get_true_yield falls back when tz-aware index has no Dividends column."""
+        import pandas as pd
+        from datetime import datetime, timedelta
+        import pytz
+        tz = pytz.timezone('America/Sao_Paulo')
+        idx = pd.date_range(end=datetime.now(tz) - timedelta(days=30), periods=3, freq='ME', tz=tz)
+        df = pd.DataFrame({'Stock Splits': [1.0] * 3}, index=idx)  # no Dividends column
+        mock = type('MockTicker', (), {'actions': df})()
+        info = {'dividendYield': 0.05}
+        result = get_true_yield(info, yf_ticker=mock, price=100.0)
+        assert result == 0.05, f"Expected 0.05 (fallback), got {result}"
+
+    # ── _calc_dy_medio_3y ──
+
+    def test_dy_medio_3y_tzaware_works(self):
+        """_calc_dy_medio_3y must not crash with tz-aware index."""
+        mock_ticker = _make_mock_ticker(total_dividends=9.0, days_ago=30)
+        result = _calc_dy_medio_3y(mock_ticker, price=100.0)
+        # 9.0 / 100.0 = 0.09 (cumulative 3-year)
+        assert result == 0.09, f"Expected 0.09, got {result}"
+
+    def test_dy_medio_3y_tzaware_empty_returns_none(self):
+        """_calc_dy_medio_3y returns None when no dividends in window."""
+        # Dividends 1200 days ago — safely outside 3y window (1095d)
+        mock_ticker = _make_mock_ticker(total_dividends=6.0, days_ago=1200)
+        result = _calc_dy_medio_3y(mock_ticker, price=100.0)
+        assert result is None, f"Expected None (no divs in window), got {result}"
+
+    def test_dy_medio_3y_tzaware_none_ticker(self):
+        """_calc_dy_medio_3y returns None when ticker is None."""
+        result = _calc_dy_medio_3y(None, price=100.0)
+        assert result is None
+
+    # ── _calc_dividend_consistency ──
+
+    def test_dividend_consistency_tzaware_works(self):
+        """_calc_dividend_consistency must not crash with tz-aware index."""
+        import pandas as pd
+        from datetime import datetime, timedelta
+        import pytz
+        tz = pytz.timezone('America/Sao_Paulo')
+        # Create dividends: recent 6 months = 10, previous 6 months = 8
+        now = datetime.now(tz)
+        idx_recent = pd.date_range(end=now - timedelta(days=30), periods=3, freq='ME', tz=tz)
+        idx_prev = pd.date_range(end=now - timedelta(days=200), periods=3, freq='ME', tz=tz)
+        all_idx = idx_prev.append(idx_recent)
+        all_divs = [8.0/3] * 3 + [10.0/3] * 3
+        df = pd.DataFrame({'Dividends': all_divs}, index=all_idx)
+        mock = type('MockTicker', (), {'actions': df})()
+        result = _calc_dividend_consistency(mock)
+        # 10/8 = 1.25
+        assert result is not None, "Expected a value, got None"
+        assert abs(result - 1.25) < 0.01, f"Expected ~1.25, got {result}"
+
+    def test_dividend_consistency_tzaware_no_prev_divs(self):
+        """_calc_dividend_consistency returns None when no previous dividends."""
+        import pandas as pd
+        from datetime import datetime, timedelta
+        import pytz
+        tz = pytz.timezone('America/Sao_Paulo')
+        now = datetime.now(tz)
+        # Only recent dividends (last 3 months), no previous
+        idx = pd.date_range(end=now - timedelta(days=15), periods=3, freq='ME', tz=tz)
+        df = pd.DataFrame({'Dividends': [2.0, 2.0, 2.0]}, index=idx)
+        mock = type('MockTicker', (), {'actions': df})()
+        result = _calc_dividend_consistency(mock)
+        assert result is None
 
 
 # ======================================================================

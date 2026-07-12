@@ -139,8 +139,8 @@ def get_true_yield(ticker_info: dict[str, Any], yf_ticker: Any | None = None, pr
             history = yf_ticker.actions
             if history is not None and not history.empty and 'Dividends' in history.columns:
                 from pandas import DateOffset
-                from datetime import datetime
-                cutoff = datetime.now() - DateOffset(days=365)
+                from datetime import datetime, timezone
+                cutoff = datetime.now(timezone.utc) - DateOffset(days=365)
                 recent = history[history.index >= cutoff]
                 total_divs = recent['Dividends'].sum()
                 if total_divs > 0:
@@ -526,8 +526,8 @@ def _calc_dy_medio_3y(yf_ticker: Any | None, price: float | None) -> float | Non
         history = yf_ticker.actions
         if history is not None and not history.empty and 'Dividends' in history.columns:
             from pandas import DateOffset
-            from datetime import datetime
-            cutoff = datetime.now() - DateOffset(days=1095)
+            from datetime import datetime, timezone
+            cutoff = datetime.now(timezone.utc) - DateOffset(days=1095)
             recent = history[history.index >= cutoff]
             total_divs = recent['Dividends'].sum()
             if total_divs > 0:
@@ -610,8 +610,8 @@ def _calc_dividend_consistency(yf_ticker: Any | None) -> float | None:
         history = yf_ticker.actions
         if history is not None and not history.empty and 'Dividends' in history.columns:
             from pandas import DateOffset
-            from datetime import datetime
-            now = datetime.now()
+            from datetime import datetime, timezone
+            now = datetime.now(timezone.utc)
             # Last 6 months
             div_6m = history['Dividends'].last('180D').sum()
             # Previous 6 months (6-12 months ago)
@@ -639,11 +639,19 @@ def analyze_stock(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
     pe_ratio = safe_float(info.get('trailingPE'))
     pb_ratio = safe_float(info.get('priceToBook'))
     
-    dy, dividend_rate = _derive_dividend_fields(
-        info.get('dividendYield'),
-        info.get('dividendRate'),
-        price
-    )
+    # Tenta obter o DY real a partir do histórico de dividendos (soma 12 meses / preço)
+    # Fallback: usa o campo bruto do Yahoo Finance + derive fields
+    yf_ticker = info.get('_yf_ticker')
+    dy = get_true_yield(info, yf_ticker, price)
+    if dy > 0:
+        raw_rate = safe_float(info.get('dividendRate'))
+        dividend_rate = raw_rate if (raw_rate and raw_rate > 0) else (round(dy * price, 4) if price else None)
+    else:
+        dy, dividend_rate = _derive_dividend_fields(
+            info.get('dividendYield'),
+            info.get('dividendRate'),
+            price
+        )
     
     roe = safe_float(info.get('returnOnEquity'))
     name = info.get('longName') or info.get('shortName', ticker)
@@ -663,7 +671,6 @@ def analyze_stock(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
     )
     
     # v2.5 historical data (from yf_ticker passed via info)
-    yf_ticker = info.get('_yf_ticker')
     dy_medio_3y = _calc_dy_medio_3y(yf_ticker, price)
     pe_medio_5y = _calc_pe_medio_5y(yf_ticker, price)
     net_debt_ebitda = _calc_net_debt_ebitda(yf_ticker)
@@ -804,12 +811,19 @@ def analyze_fii(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
     if book_value is None and price is not None and pb_ratio is not None and pb_ratio > 0:
         book_value = round(price / pb_ratio, 2)
     
-    dy, dividend_rate = _derive_dividend_fields(
-        info.get('dividendYield'),
-        info.get('dividendRate'),
-        price,
-        last_div=info.get('lastDividendValue')
-    )
+    # Tenta obter o DY real a partir do histórico de dividendos (soma 12 meses / preço)
+    yf_ticker = info.get('_yf_ticker')
+    dy = get_true_yield(info, yf_ticker, price)
+    if dy > 0:
+        raw_rate = safe_float(info.get('dividendRate'))
+        dividend_rate = raw_rate if (raw_rate and raw_rate > 0) else (round(dy * price, 4) if price else None)
+    else:
+        dy, dividend_rate = _derive_dividend_fields(
+            info.get('dividendYield'),
+            info.get('dividendRate'),
+            price,
+            last_div=info.get('lastDividendValue')
+        )
     
     name = info.get('longName') or info.get('shortName', ticker)
     hist_divs = info.get('_dividends_365d')
@@ -819,7 +833,6 @@ def analyze_fii(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
                                        historical_dividends_365d=hist_divs)
     
     # v2.5 consistency data
-    yf_ticker = info.get('_yf_ticker')
     dividend_consistency = _calc_dividend_consistency(yf_ticker)
     
     # v2.5 continuous score
@@ -853,12 +866,19 @@ def analyze_fiagro(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
     if book_value is None and price is not None and pb_ratio is not None and pb_ratio > 0:
         book_value = round(price / pb_ratio, 2)
     
-    dy, dividend_rate = _derive_dividend_fields(
-        info.get('dividendYield'),
-        info.get('dividendRate'),
-        price,
-        last_div=info.get('lastDividendValue')
-    )
+    # Tenta obter o DY real a partir do histórico de dividendos (soma 12 meses / preço)
+    yf_ticker = info.get('_yf_ticker')
+    dy = get_true_yield(info, yf_ticker, price)
+    if dy > 0:
+        raw_rate = safe_float(info.get('dividendRate'))
+        dividend_rate = raw_rate if (raw_rate and raw_rate > 0) else (round(dy * price, 4) if price else None)
+    else:
+        dy, dividend_rate = _derive_dividend_fields(
+            info.get('dividendYield'),
+            info.get('dividendRate'),
+            price,
+            last_div=info.get('lastDividendValue')
+        )
     
     name = info.get('longName') or info.get('shortName', ticker)
     hist_divs = info.get('_dividends_365d')
@@ -868,7 +888,6 @@ def analyze_fiagro(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
                                           historical_dividends_365d=hist_divs)
     
     # v2.5 consistency data
-    yf_ticker = info.get('_yf_ticker')
     dividend_consistency = _calc_dividend_consistency(yf_ticker)
     
     # v2.5 continuous score
