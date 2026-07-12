@@ -115,23 +115,27 @@ jobs:
       - name: Prepare Pages artifact (only if data changed)
         if: steps.check-changes.outputs.changed == 'true'
         run: |
-          # Em dev, deploy em subdiretório /dev/ para preview
-          # Em main, deploy na raiz
-          SUBDIR=""
+          # Always deploy root files first (para raiz do site)
+          mkdir -p _site
+          cp index-v2.html _site/index.html
+          cp index.html _site/index-classic.html
+          cp data.json _site/
+          cp manifest.json _site/ 2>/dev/null || true
+          cp service-worker.js _site/ 2>/dev/null || true
+          cp -r icons _site/ 2>/dev/null || true
+          cp data/export_*.csv data/export_*.json _site/ 2>/dev/null || true
+          
+          # Em dev, também deploy em /dev/ para preview
           if [[ "${{ github.ref_name }}" == "dev" ]]; then
-            SUBDIR="dev/"
+            mkdir -p _site/dev
+            cp index-v2.html _site/dev/index.html
+            cp index.html _site/dev/index-classic.html
+            cp data.json _site/dev/
+            cp manifest.json _site/dev/ 2>/dev/null || true
+            cp service-worker.js _site/dev/ 2>/dev/null || true
+            cp -r icons _site/dev/ 2>/dev/null || true
+            cp data/export_*.csv data/export_*.json _site/dev/ 2>/dev/null || true
           fi
-          mkdir -p "_site/$SUBDIR"
-          # Dashboard & Data (v2 como padrão, v1 como fallback)
-          cp index-v2.html "_site/${SUBDIR}index.html"
-          cp index.html "_site/${SUBDIR}index-classic.html"
-          cp data.json "_site/$SUBDIR"
-          # PWA assets
-          cp manifest.json "_site/$SUBDIR" 2>/dev/null || true
-          cp service-worker.js "_site/$SUBDIR" 2>/dev/null || true
-          cp -r icons "_site/$SUBDIR" 2>/dev/null || true
-          # Export files
-          cp data/export_*.csv data/export_*.json "_site/$SUBDIR" 2>/dev/null || true
 
       - name: Upload Pages artifact (only if data changed)
         if: steps.check-changes.outputs.changed == 'true'
