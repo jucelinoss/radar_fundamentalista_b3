@@ -669,6 +669,11 @@
                 <div class="header-right">
                     <div style="position: relative; display: inline-block;">
                         <button id="export-btn" onclick="toggleExportMenu()" class="action-btn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
                             <span>Exportar</span>
                         </button>
                         <div id="export-menu" class="export-menu" style="display: none;">
@@ -686,9 +691,17 @@
                         </div>
                     </div>
                     <button id="help-toggle-btn" onclick="openHelpModal()" class="action-btn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
                         <span>Como Funciona?</span>
                     </button>
                     <button id="theme-toggle-btn" onclick="toggleTheme()" class="action-btn">
+                        <svg id="theme-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <!-- Dynamically populated outline path -->
+                        </svg>
                         <span>Tema</span>
                     </button>
                     <span class="header-ts">Atualizado em: <span id="timestamp-container">Carregando...</span></span>
@@ -1284,6 +1297,17 @@
         }
 
         function filterTable() {
+            if (currentTab === 'sectors') {
+                const tbody = document.getElementById('sectors-tbody');
+                if (tbody) {
+                    const rows = tbody.getElementsByTagName('tr');
+                    for (let row of rows) {
+                        row.classList.remove('hidden');
+                    }
+                }
+                return;
+            }
+
             const query = document.getElementById('search-bar').value.toLowerCase();
             let tbodyId = 'stocks-tbody';
             if (currentTab === 'fiis') tbodyId = 'fiis-tbody';
@@ -2023,7 +2047,11 @@
 
             const themeIcon = document.getElementById('theme-toggle-icon');
             if (themeIcon) {
-                themeIcon.textContent = isDark ? '🌙' : '☀️';
+                if (isDark) {
+                    themeIcon.innerHTML = `<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>`;
+                } else {
+                    themeIcon.innerHTML = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>`;
+                }
             }
 
             if (activeChart && currentAssetHistory && currentAssetHistory.length > 0) {
@@ -2252,7 +2280,11 @@
             const isDark = document.body.classList.contains('dark');
             const themeIcon = document.getElementById('theme-toggle-icon');
             if (themeIcon) {
-                themeIcon.textContent = isDark ? '🌙' : '☀️';
+                if (isDark) {
+                    themeIcon.innerHTML = `<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>`;
+                } else {
+                    themeIcon.innerHTML = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>`;
+                }
             }
             // Inicializar label do PDF
             const pdfLabel = document.getElementById('pdf-label');
