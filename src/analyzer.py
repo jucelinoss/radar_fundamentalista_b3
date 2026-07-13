@@ -353,45 +353,34 @@ def _score_dividend_consistency(consistency: float | None) -> float:
 
 
 # ---------------------------------------------------------------------------
-# v2.5.1 — 4 criteria × 2.5 pts each (recalibrated for better distribution)
+# v2.5.1 — 3 criteria × variables pts (recalibrated for better distribution)
 # ---------------------------------------------------------------------------
 
-_SCALE_TO_2_5: float = 2.5 / 2.0  # 1.25
+_SCALE_TO_3_5: float = 3.5 / 2.0  # 1.75
 
 
 def _score_pb_fii_unified(pb_ratio: float | None) -> float:
     """
-    FII/FIAGRO P/VP unificado (0-2.5 pts).
-    MAX(P/VP Ajustado, P/VP Limite), reescalonado de 0-2 para 0-2.5.
+    FII/FIAGRO P/VP unificado (0-3.5 pts).
+    MAX(P/VP Ajustado, P/VP Limite), reescalonado de 0-2 para 0-3.5.
     """
     return round(max(_score_pb_fii_ideal(pb_ratio),
-                     _score_pb_fii_limite(pb_ratio)) * _SCALE_TO_2_5,
+                     _score_pb_fii_limite(pb_ratio)) * _SCALE_TO_3_5,
                  SCORE_DECIMALS)
 
 
 def _score_dy_fii_v2(dy: float | None, is_fiagro: bool = False) -> float:
     """
-    FII/FIAGRO DY Minimum (0-2.5 pts). Reescalonado de 0-2 para 0-2.5.
+    FII/FIAGRO DY (0-4.0 pts) com Teto Rígido (Cap).
     """
-    return round(_score_dy_fii(dy, is_fiagro) * _SCALE_TO_2_5, SCORE_DECIMALS)
-
-
-def _score_yield_cap_v2(dy: float | None, is_fiagro: bool = False) -> float:
-    """
-    FII/FIAGRO Trava de Risco suavizada (0-2.5 pts).
-    Corte de distorção de dados (High Yield severo).
-    - DY <= cap_nominal → 2.5 (máximo, não penaliza yield bom)
-    - DY >= cap_efetivo (2× cap) → 0.0 (zera)
-    - Entre cap_nominal e cap_efetivo: queda linear suave
-    """
-    cap_nominal = DY_FIAGRO_CAP if is_fiagro else DY_FII_CAP
-    cap_efetivo = cap_nominal * 2.0
-    if dy is None or dy >= cap_efetivo:
+    min_dy = DY_FIAGRO_MIN if is_fiagro else DY_FII_MIN
+    cap_dy = DY_FIAGRO_CAP if is_fiagro else DY_FII_CAP
+    if dy is None or dy < min_dy:
         return 0.0
-    if dy <= cap_nominal:
-        return 2.5
-    proportion = 1.0 - ((dy - cap_nominal) / (cap_efetivo - cap_nominal))
-    return round(_clamp(proportion * 2.5, 0.0, 2.5), SCORE_DECIMALS)
+    if dy >= cap_dy:
+        return 4.0
+    proportion = (dy - min_dy) / (cap_dy - min_dy)
+    return round(_clamp(proportion * 4.0, 0.0, 4.0), SCORE_DECIMALS)
 
 
 def _score_dividend_consistency_v2(consistency: float | None) -> float:
@@ -412,18 +401,17 @@ def calculate_fii_score_continuous(
     dividend_consistency: float | None = None
 ) -> float:
     """
-    Calculates a continuous 0-10 scorecard for FIIs (v2.5.1).
-    4 criteria, each 0.0-2.5.
+    Calculates a continuous 0-10 scorecard for FIIs (v2.5.1 - 3 criteria).
+    P/VP: 0-3.5, DY: 0-4.0, Consistency: 0-2.5.
     """
     pb_ratio = safe_float(pb_ratio)
     dy = normalize_dividend_yield(dividend_yield)
 
-    s1 = _score_pb_fii_unified(pb_ratio)       # 0-2.5
-    s2 = _score_dy_fii_v2(dy, is_fiagro=False)  # 0-2.5
-    s3 = _score_yield_cap_v2(dy, is_fiagro=False)  # 0-2.5
+    s1 = _score_pb_fii_unified(pb_ratio)       # 0-3.5
+    s2 = _score_dy_fii_v2(dy, is_fiagro=False)  # 0-4.0
     s4 = _score_dividend_consistency_v2(dividend_consistency)  # 0-2.5
 
-    return round(s1 + s2 + s3 + s4, SCORE_DECIMALS)
+    return round(s1 + s2 + s4, SCORE_DECIMALS)
 
 
 def calculate_fiagro_score_continuous(
@@ -431,18 +419,17 @@ def calculate_fiagro_score_continuous(
     dividend_consistency: float | None = None
 ) -> float:
     """
-    Calculates a continuous 0-10 scorecard for FIAGROs (v2.5.1).
-    4 criteria, each 0.0-2.5.
+    Calculates a continuous 0-10 scorecard for FIAGROs (v2.5.1 - 3 criteria).
+    P/VP: 0-3.5, DY: 0-4.0, Consistency: 0-2.5.
     """
     pb_ratio = safe_float(pb_ratio)
     dy = normalize_dividend_yield(dividend_yield)
 
-    s1 = _score_pb_fii_unified(pb_ratio)      # 0-2.5
-    s2 = _score_dy_fii_v2(dy, is_fiagro=True)  # 0-2.5
-    s3 = _score_yield_cap_v2(dy, is_fiagro=True)  # 0-2.5
+    s1 = _score_pb_fii_unified(pb_ratio)      # 0-3.5
+    s2 = _score_dy_fii_v2(dy, is_fiagro=True)  # 0-4.0
     s4 = _score_dividend_consistency_v2(dividend_consistency)  # 0-2.5
 
-    return round(s1 + s2 + s3 + s4, SCORE_DECIMALS)
+    return round(s1 + s2 + s4, SCORE_DECIMALS)
 
 
 # ---------------------------------------------------------------------------
@@ -719,11 +706,51 @@ def analyze_stock(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
         pe_medio_5y = pe_ratio  # fallback to current P/E
     
     # v2.5 continuous score
-    score_v2 = calculate_stock_score_continuous(
-        dy_medio_3y, pe_medio_5y, pb_ratio, roe, price, graham_price,
-        peg_ratio=peg_ratio, sector=raw_sector
-    )
-    
+    s1 = _score_dy_stock(dy_medio_3y)
+    s2 = _score_pe_stock(pe_medio_5y)
+    s3 = _score_pb_stock(pb_ratio)
+    s4 = _score_roe_stock(roe)
+    s5 = _score_graham_stock(price, graham_price, peg_ratio=peg_ratio, sector=raw_sector)
+    score_v2 = round(s1 + s2 + s3 + s4 + s5, SCORE_DECIMALS)
+
+    score_breakdown = [
+        {
+            "label": "Dividend Yield Médio (3 Anos)",
+            "score": s1,
+            "max": 2.0,
+            "desc": f"DY: {(dy_medio_3y * 100):.2f}%" if dy_medio_3y is not None else "N/A",
+            "tip": "Mínimo: 6% = 1,0 pts. Cada 1% extra acima de 6% adiciona ~0,11 pts. Máximo 2,0 pts em ~15%."
+        },
+        {
+            "label": "P/L Médio (5 Anos)",
+            "score": s2,
+            "max": 2.0,
+            "desc": f"P/L: {pe_medio_5y:.2f}" if pe_medio_5y is not None else "N/A",
+            "tip": "P/L entre 0 e 15 = nota base 1,0. Quanto menor o P/L, maior o bônus (até 2,0 pts). P/L > 15 ou negativo = 0."
+        },
+        {
+            "label": "P/VP (Preço / V.P.)",
+            "score": s3,
+            "max": 2.0,
+            "desc": f"P/VP: {pb_ratio:.2f}" if pb_ratio is not None else "N/A",
+            "tip": "P/VP entre 0,50 e 1,50. Nota = 2,0 × (1,50 - P/VP). Quanto menor, melhor. Abaixo de 0,50 ou acima de 1,50 = 0."
+        },
+        {
+            "label": "ROE (Retorno s/ Patr.)",
+            "score": s4,
+            "max": 2.0,
+            "desc": f"ROE: {(roe * 100):.2f}%" if roe is not None else "N/A",
+            "tip": "Mínimo: 10% = 1,0 pts. Cada 10% extra adiciona 0,5 pts. Máximo 2,0 pts em 30%. Abaixo de 10% = 0."
+        },
+        {
+            "label": "Margem de Graham",
+            "score": s5,
+            "max": 2.0,
+            "desc": (f"Justo: R${graham_price:.2f} vs R${price:.2f}" if price and graham_price else "N/A") if (raw_sector not in {'Technology', 'Communication Services'} or peg_ratio is None) else f"PEG: {peg_ratio:.2f}",
+            "tip": "Preço abaixo do valor justo = nota base 1,0. Cada 100% de margem adicional soma +1,0 pts. Máximo 2,0 pts."
+        }
+    ]
+
     # Sanitiza valores extremos do Yahoo antes de retornar
     dy = _sanitize_dy(dy, DY_MAX_STOCK)
     dividend_rate = _sanitize_rate(dividend_rate)
@@ -747,7 +774,8 @@ def analyze_stock(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
         'dy_medio_3y': dy_medio_3y,
         'pe_medio_5y': pe_medio_5y,
         'net_debt_ebitda': net_debt_ebitda,
-        'score_v2': score_v2
+        'score_v2': score_v2,
+        'score_breakdown': score_breakdown
     }
 
 
@@ -878,8 +906,35 @@ def analyze_fii(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
     dividend_consistency = _calc_dividend_consistency(yf_ticker)
     
     # v2.5 continuous score
-    score_v2 = calculate_fii_score_continuous(pb_ratio, dy, dividend_consistency)
-    
+    s1 = _score_pb_fii_unified(pb_ratio)
+    s2 = _score_dy_fii_v2(dy, is_fiagro=False)
+    s4 = _score_dividend_consistency_v2(dividend_consistency)
+    score_v2 = round(s1 + s2 + s4, SCORE_DECIMALS)
+
+    score_breakdown = [
+        {
+            "label": "P/VP (Unificado: Ideal + Limite)",
+            "score": s1,
+            "max": 3.5,
+            "desc": f"P/VP: {pb_ratio:.2f}" if pb_ratio is not None else "N/A",
+            "tip": "Máximo entre P/VP Ideal (0,70-1,05) e Limite (0,60-1,15), reescalonado ×1,75. Nota máxima 3,5 pts quando P/VP está na faixa ideal."
+        },
+        {
+            "label": "DY ≥ 8% (Meta FII)",
+            "score": s2,
+            "max": 4.0,
+            "desc": f"DY: {(dy * 100):.2f}%" if dy is not None else "0.00%",
+            "tip": "DY mínimo 8% = 0 pts. Crescimento linear até atingir o Teto Rígido (Cap) de 14,5% = 4,0 pts."
+        },
+        {
+            "label": "Consistência Proventos (>=95%)",
+            "score": s4,
+            "max": 2.5,
+            "desc": f"{(dividend_consistency * 100):.2f}%" if dividend_consistency is not None else "N/D (neutro 1.5)",
+            "tip": "Proporção de meses com distribuição de dividendos ≥ 95% = 2,5 pts. Sem dados históricos: nota neutra 1,5 pts."
+        }
+    ]
+
     # Sanitiza valores extremos do Yahoo antes de retornar
     dy = _sanitize_dy(dy, DY_MAX_FII)
     dividend_rate = _sanitize_rate(dividend_rate)
@@ -895,7 +950,8 @@ def analyze_fii(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
         'score': score_legacy,
         # v2.5 fields
         'dividend_consistency': dividend_consistency,
-        'score_v2': score_v2
+        'score_v2': score_v2,
+        'score_breakdown': score_breakdown
     }
 
 
@@ -937,8 +993,35 @@ def analyze_fiagro(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
     dividend_consistency = _calc_dividend_consistency(yf_ticker)
     
     # v2.5 continuous score
-    score_v2 = calculate_fiagro_score_continuous(pb_ratio, dy, dividend_consistency)
-    
+    s1 = _score_pb_fii_unified(pb_ratio)
+    s2 = _score_dy_fii_v2(dy, is_fiagro=True)
+    s4 = _score_dividend_consistency_v2(dividend_consistency)
+    score_v2 = round(s1 + s2 + s4, SCORE_DECIMALS)
+
+    score_breakdown = [
+        {
+            "label": "P/VP (Unificado: Ideal + Limite)",
+            "score": s1,
+            "max": 3.5,
+            "desc": f"P/VP: {pb_ratio:.2f}" if pb_ratio is not None else "N/A",
+            "tip": "Máximo entre P/VP Ideal (0,70-1,05) e Limite (0,60-1,15), reescalonado ×1,75. Nota máxima 3,5 pts quando P/VP está na faixa ideal."
+        },
+        {
+            "label": "DY ≥ 10% (Meta FIAGRO)",
+            "score": s2,
+            "max": 4.0,
+            "desc": f"DY: {(dy * 100):.2f}%" if dy is not None else "0.00%",
+            "tip": "DY mínimo 10% = 0 pts. Crescimento linear até atingir o Teto Rígido (Cap) de 16,5% = 4,0 pts."
+        },
+        {
+            "label": "Consistência Proventos (>=95%)",
+            "score": s4,
+            "max": 2.5,
+            "desc": f"{(dividend_consistency * 100):.2f}%" if dividend_consistency is not None else "N/D (neutro 1.5)",
+            "tip": "Proporção de meses com distribuição de dividendos ≥ 95% = 2,5 pts. Sem dados históricos: nota neutra 1,5 pts."
+        }
+    ]
+
     # Sanitiza valores extremos do Yahoo antes de retornar
     dy = _sanitize_dy(dy, DY_MAX_FIAGRO)
     dividend_rate = _sanitize_rate(dividend_rate)
@@ -954,5 +1037,6 @@ def analyze_fiagro(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
         'score': score_legacy,
         # v2.5 fields
         'dividend_consistency': dividend_consistency,
-        'score_v2': score_v2
+        'score_v2': score_v2,
+        'score_breakdown': score_breakdown
     }

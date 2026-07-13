@@ -34,10 +34,9 @@ from analyzer import (
     _score_dy_fii,
     _score_yield_cap,
     _score_dividend_consistency,
-    # v2.5.1 — 4 criteria × 2.5 pts
+    # v2.5.1 — 3 criteria (recalibrated weights)
     _score_pb_fii_unified,
     _score_dy_fii_v2,
-    _score_yield_cap_v2,
     _score_dividend_consistency_v2,
 )
 
@@ -1128,49 +1127,26 @@ class TestFiiScoreContinuous:
         s = _score_dividend_consistency(None)
         assert s == 1.0, f"Expected 1.0 (neutral), got {s}"
 
-    def test_total_perfect_fii(self):
-        """Perfect FII → ~9.14 pts (4 criteria × 2.5)."""
-        score = calculate_fii_score_continuous(
-            pb_ratio=0.70, dividend_yield=0.10, dividend_consistency=1.0
-        )
-        # v2.5.1: 4 criteria × 2.5
-        # s1 (unified pb):  2.5
-        # s2 (dy min v2):   1.64 (1.3077 * 1.25)
-        # s3 (yield cap v2): 2.5 (since 10% <= 14.5% nominal cap)
-        # s4 (consist v2):  2.5
-        # Total: ~9.14
-        assert 9.0 < score < 9.3, f"Expected ~9.14, got {score}"
-
-    def test_total_perfect_fiagro(self):
-        """Perfect FIAGRO → ~9.13 pts (4 criteria × 2.5)."""
-        score = calculate_fiagro_score_continuous(
-            pb_ratio=0.70, dividend_yield=0.12, dividend_consistency=1.0
-        )
-        # s1 (unified pb):   2.5
-        # s2 (dy min v2):    1.63 (1.3077 * 1.25)
-        # s3 (yield cap v2): 2.5 (since 12% <= 16.5% nominal cap)
-        # s4 (consist v2):   2.5
-        # Total: ~9.13
-        assert 9.0 < score < 9.3, f"Expected ~9.13, got {score}"
+    # (Total continuous scores for v2.5.1 are tested in TestFiiScoreContinuousV2)
 
 
 # ======================================================================
-# v2.5.1 Continuous FII/FIAGRO Score Tests (4 criteria × 2.5 pts)
+# v2.5.1 Continuous FII/FIAGRO Score Tests (3 criteria: P/VP 3.5, DY 4.0, Cons 2.5)
 # ======================================================================
 
 class TestFiiScoreContinuousV2:
-    """Tests for the new v2.5.1 4×2.5 scoring functions."""
+    """Tests for the new v2.5.1 continuous scoring functions."""
 
     # _score_pb_fii_unified -------------------------------------------------
     def test_pb_unified_ideal_discount(self):
-        """P/VP = 0.70 (max ideal) → 2.5 pts."""
+        """P/VP = 0.70 (max ideal) → 3.5 pts."""
         s = _score_pb_fii_unified(0.70)
-        assert s == 2.5, f"Expected 2.5, got {s}"
+        assert s == 3.5, f"Expected 3.5, got {s}"
 
     def test_pb_unified_ideal_mid(self):
-        """P/VP = 0.875 → 1.25 pts."""
+        """P/VP = 0.875 → 1.75 pts."""
         s = _score_pb_fii_unified(0.875)
-        assert s == 1.25, f"Expected 1.25, got {s}"
+        assert s == 1.75, f"Expected 1.75, got {s}"
 
     def test_pb_unified_ideal_ceiling(self):
         """P/VP = 1.05 → 0.0 pts."""
@@ -1183,14 +1159,14 @@ class TestFiiScoreContinuousV2:
         assert s == 0.0, f"Expected 0.0, got {s}"
 
     def test_pb_unified_distress_zone(self):
-        """P/VP = 0.65 (distress) → limite gives 1.0 × 1.25 = 1.25."""
+        """P/VP = 0.65 (distress) → limite gives 1.0 × 1.75 = 1.75."""
         s = _score_pb_fii_unified(0.65)
-        assert s == 1.25, f"Expected 1.25, got {s}"
+        assert s == 1.75, f"Expected 1.75, got {s}"
 
     def test_pb_unified_premium_zone(self):
-        """P/VP = 1.10 (premium) → limite gives 1.0 × 1.25 = 1.25."""
+        """P/VP = 1.10 (premium) → limite gives 1.0 × 1.75 = 1.75."""
         s = _score_pb_fii_unified(1.10)
-        assert s == 1.25, f"Expected 1.25, got {s}"
+        assert s == 1.75, f"Expected 1.75, got {s}"
 
     def test_pb_unified_at_limit_ceiling(self):
         """P/VP = 1.15 → 0.0 pts."""
@@ -1208,25 +1184,30 @@ class TestFiiScoreContinuousV2:
         s = _score_dy_fii_v2(0.07, is_fiagro=False)
         assert s == 0.0, f"Expected 0.0, got {s}"
 
+    def test_dy_v2_below_min_fii(self):
+        """FII DY < 8% → 0.0 pts."""
+        s = _score_dy_fii_v2(0.07, is_fiagro=False)
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
     def test_dy_v2_at_min_fii(self):
-        """FII DY = 8% → 1.25 pts."""
+        """FII DY = 8% → 0.0 pts."""
         s = _score_dy_fii_v2(0.08, is_fiagro=False)
-        assert s == 1.25, f"Expected 1.25, got {s}"
+        assert s == 0.0, f"Expected 0.0, got {s}"
 
     def test_dy_v2_mid_fii(self):
-        """FII DY = 10% → ~1.64 pts."""
-        s = _score_dy_fii_v2(0.10, is_fiagro=False)
-        assert abs(s - 1.64) < 0.01, f"Expected ~1.64, got {s}"
+        """FII DY = 11.25% → 2.0 pts."""
+        s = _score_dy_fii_v2(0.1125, is_fiagro=False)
+        assert abs(s - 2.0) < 0.01, f"Expected ~2.0, got {s}"
 
     def test_dy_v2_cap_fii(self):
-        """FII DY = 14.5% (cap) → 2.5 pts."""
+        """FII DY = 14.5% (cap) → 4.0 pts."""
         s = _score_dy_fii_v2(0.145, is_fiagro=False)
-        assert s == 2.5, f"Expected 2.5, got {s}"
+        assert s == 4.0, f"Expected 4.0, got {s}"
 
     def test_dy_v2_above_cap_fii(self):
-        """FII DY > cap → capped at 2.5."""
+        """FII DY > cap → capped at 4.0."""
         s = _score_dy_fii_v2(0.15, is_fiagro=False)
-        assert s == 2.5, f"Expected 2.5, got {s}"
+        assert s == 4.0, f"Expected 4.0, got {s}"
 
     def test_dy_v2_below_min_fiagro(self):
         """FIAGRO DY < 10% → 0.0 pts."""
@@ -1234,54 +1215,28 @@ class TestFiiScoreContinuousV2:
         assert s == 0.0, f"Expected 0.0, got {s}"
 
     def test_dy_v2_at_min_fiagro(self):
-        """FIAGRO DY = 10% → 1.25 pts."""
+        """FIAGRO DY = 10% → 0.0 pts."""
         s = _score_dy_fii_v2(0.10, is_fiagro=True)
-        assert s == 1.25, f"Expected 1.25, got {s}"
+        assert s == 0.0, f"Expected 0.0, got {s}"
+
+    def test_dy_v2_mid_fiagro(self):
+        """FIAGRO DY = 13.25% → 2.0 pts."""
+        s = _score_dy_fii_v2(0.1325, is_fiagro=True)
+        assert abs(s - 2.0) < 0.01, f"Expected ~2.0, got {s}"
 
     def test_dy_v2_cap_fiagro(self):
-        """FIAGRO DY = 16.5% (cap) → 2.5 pts."""
+        """FIAGRO DY = 16.5% (cap) → 4.0 pts."""
         s = _score_dy_fii_v2(0.165, is_fiagro=True)
-        assert s == 2.5, f"Expected 2.5, got {s}"
+        assert s == 4.0, f"Expected 4.0, got {s}"
+
+    def test_dy_v2_above_cap_fiagro(self):
+        """FIAGRO DY > cap → capped at 4.0."""
+        s = _score_dy_fii_v2(0.18, is_fiagro=True)
+        assert s == 4.0, f"Expected 4.0, got {s}"
 
     def test_dy_v2_none(self):
         """DY None → 0.0."""
         s = _score_dy_fii_v2(None)
-        assert s == 0.0
-
-    # _score_yield_cap_v2 ---------------------------------------------------
-    def test_yield_cap_v2_zero_dy(self):
-        """DY = 0% → 2.5 pts (zero risk)."""
-        s = _score_yield_cap_v2(0.0, is_fiagro=False)
-        assert s == 2.5, f"Expected 2.5, got {s}"
-
-    def test_yield_cap_v2_at_nominal_cap(self):
-        """DY at nominal cap (14.5% FII) → 2.5 pts (max)."""
-        s = _score_yield_cap_v2(0.145, is_fiagro=False)
-        assert s == 2.5, f"Expected 2.5, got {s}"
-
-    def test_yield_cap_v2_at_double_cap(self):
-        """DY at 2× cap (29% FII) → 0.0 pts (zera)."""
-        s = _score_yield_cap_v2(0.29, is_fiagro=False)
-        assert s == 0.0, f"Expected 0.0, got {s}"
-
-    def test_yield_cap_v2_above_double_cap(self):
-        """DY > 2× cap → 0.0 pts."""
-        s = _score_yield_cap_v2(0.30, is_fiagro=False)
-        assert s == 0.0, f"Expected 0.0, got {s}"
-
-    def test_yield_cap_v2_fiagro_at_nominal(self):
-        """FIAGRO DY at 16.5% (nominal cap) → 2.5 pts (max)."""
-        s = _score_yield_cap_v2(0.165, is_fiagro=True)
-        assert s == 2.5, f"Expected 2.5, got {s}"
-
-    def test_yield_cap_v2_fiagro_double(self):
-        """FIAGRO DY at 2× cap (33%) → 0.0 pts."""
-        s = _score_yield_cap_v2(0.33, is_fiagro=True)
-        assert s == 0.0, f"Expected 0.0, got {s}"
-
-    def test_yield_cap_v2_none(self):
-        """DY None → 0.0."""
-        s = _score_yield_cap_v2(None)
         assert s == 0.0
 
     # _score_dividend_consistency_v2 ----------------------------------------
@@ -1312,25 +1267,32 @@ class TestFiiScoreContinuousV2:
 
     # Total scores ----------------------------------------------------------
     def test_total_perfect_fii_v2(self):
-        """Perfect FII v2.5.1 → ~9.14 pts."""
+        """Perfect FII v2.5.1 → ~7.23 pts (with pb=0.70, dy=0.10, consistency=1.0)."""
         score = calculate_fii_score_continuous(
             pb_ratio=0.70, dividend_yield=0.10, dividend_consistency=1.0
         )
-        assert 9.0 < score < 9.3, f"Expected ~9.14, got {score}"
+        assert abs(score - 7.23) < 0.05, f"Expected ~7.23, got {score}"
 
     def test_total_perfect_fiagro_v2(self):
-        """Perfect FIAGRO v2.5.1 → ~9.13 pts."""
+        """Perfect FIAGRO v2.5.1 → ~7.23 pts (with pb=0.70, dy=0.12, consistency=1.0)."""
         score = calculate_fiagro_score_continuous(
             pb_ratio=0.70, dividend_yield=0.12, dividend_consistency=1.0
         )
-        assert 9.0 < score < 9.3, f"Expected ~9.13, got {score}"
+        assert abs(score - 7.23) < 0.05, f"Expected ~7.23, got {score}"
+
+    def test_total_max_fii_v2(self):
+        """Maxed FII v2.5.1 → 10.0 pts (with pb=0.70, dy=0.145, consistency=1.0)."""
+        score = calculate_fii_score_continuous(
+            pb_ratio=0.70, dividend_yield=0.145, dividend_consistency=1.0
+        )
+        assert score == 10.0, f"Expected 10.0, got {score}"
 
     def test_total_zero_fii_v2(self):
-        """Zero FII → ~2.5 pts (yield cap still gives pts for 0 risk)."""
+        """Zero FII → 0.0 pts."""
         score = calculate_fii_score_continuous(
             pb_ratio=2.0, dividend_yield=0.0, dividend_consistency=0.0
         )
-        assert 2.0 < score < 3.0, f"Expected ~2.5, got {score}"
+        assert score == 0.0, f"Expected 0.0, got {score}"
 
 
 # ======================================================================

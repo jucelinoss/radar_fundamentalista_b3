@@ -1199,22 +1199,19 @@
             return clamp(consistency / 0.95 * 2.0, 0.0, 2.0);
         }
 
-        // FII/FIAGRO v2.5.1 — 4 criteria × 2.5 pts each
+        // FII/FIAGRO v2.5.1 — 3 criteria (recalibrated weights)
         function scorePBFii(pb) {
-            // Unified P/VP: MAX(ideal, limite) × 1.25 → 0-2.5
-            return clamp(Math.max(scorePBFiiIdeal(pb), scorePBFiiLimite(pb)) * 1.25, 0.0, 2.5);
+            // Unified P/VP: MAX(ideal, limite) × 1.75 → 0-3.5
+            return clamp(Math.max(scorePBFiiIdeal(pb), scorePBFiiLimite(pb)) * 1.75, 0.0, 3.5);
         }
         function scoreDYFiiV2(dy, isFiagro) {
-            // DY Minimum: reescalonado 0-2 → 0-2.5
-            return clamp(scoreDYFii(dy, isFiagro) * 1.25, 0.0, 2.5);
-        }
-        function scoreYieldCapV2(dy, isFiagro) {
-            // Trava de Risco suavizada: zera em 2× cap, escala 0-2.5
-            var capNominal = isFiagro ? 0.165 : 0.145;
-            var capEfetivo = capNominal * 2.0;
-            if (dy == null || dy > capEfetivo) return 0.0;
-            var proportion = 1.0 - (dy / capEfetivo);
-            return clamp(proportion * 2.5, 0.0, 2.5);
+            // DY (0-4.0 pts) with hard ceiling (Cap)
+            var minDY = isFiagro ? 0.10 : 0.08;
+            var capDY = isFiagro ? 0.165 : 0.145;
+            if (dy == null || dy < minDY) return 0.0;
+            if (dy >= capDY) return 4.0;
+            var proportion = (dy - minDY) / (capDY - minDY);
+            return clamp(proportion * 4.0, 0.0, 4.0);
         }
         function scoreConsistencyV2(consistency) {
             // Consistência: neutro = 1.5, escala 0-2.5
@@ -1514,38 +1511,20 @@
                     dividendRate: price * dy
                 };
 
-                // Continuous Score Breakdown (v2.5) — each criterion 0.0-2.0
-                const breakdownItems = [
-                    { label: 'Dividend Yield', key: 'dy', score: scoreDYStock(dy),
-                      desc: `DY: ${(dy * 100).toFixed(2)}%`, pct: dy * 100,
-                      tip: 'Mínimo: 6% = 1,0 pts. Cada 1% extra acima de 6% adiciona ~0,11 pts. Máximo 2,0 pts em ~15%.' },
-                    { label: 'P/L (Preço / Lucro)', key: 'pe', score: scorePEStock(pe),
-                      desc: `P/L: ${pe !== null ? pe.toFixed(2) : 'N/A'}`, pct: pe,
-                      tip: 'P/L entre 0 e 15 = nota base 1,0. Quanto menor o P/L, maior o bônus (até 2,0 pts). P/L > 15 ou negativo = 0.' },
-                    { label: 'P/VP (Preço / V.P.)', key: 'pb', score: scorePBStock(pb),
-                      desc: `P/VP: ${pb !== null ? pb.toFixed(2) : 'N/A'}`, pct: pb,
-                      tip: 'P/VP entre 0,50 e 1,50. Nota = 2,0 × (1,50 - P/VP). Quanto menor, melhor. Abaixo de 0,50 ou acima de 1,50 = 0.' },
-                    { label: 'ROE (Retorno s/ Patr.)', key: 'roe', score: scoreROEStock(roe),
-                      desc: `ROE: ${roe !== null ? (roe * 100).toFixed(2) : 'N/A'}%`, pct: roe !== null ? roe * 100 : null,
-                      tip: 'Mínimo: 10% = 1,0 pts. Cada 10% extra adiciona 0,5 pts. Máximo 2,0 pts em 30%. Abaixo de 10% = 0.' },
-                    { label: 'Margem de Graham', key: 'graham', score: scoreGrahamStock(price, graham),
-                      desc: `Justo: R$${graham.toFixed(2)} vs R$${price.toFixed(2)}`, pct: graham > 0 ? ((graham - price) / price) * 100 : null,
-                      tip: 'Preço abaixo do valor justo = nota base 1,0. Cada 100% de margem adicional soma +1,0 pts. Máximo 2,0 pts.' }
-                ];
-                var computedScore = breakdownItems.reduce(function(s, i) { return s + i.score; }, 0);
+                // Render breakdown
+                const scoreVal = parseFloat(row.getAttribute('data-score')) || 0;
+                const breakdown = JSON.parse(row.getAttribute('data-breakdown') || '[]');
+                scoreContainer.innerHTML = `<span class="score-pill ${getScoreRangeClass(scoreVal)}" style="width: auto; height: auto; border-radius: 12px; padding: 0.5rem 1.2rem; font-size: 1.05rem;">Score: ${formatScore(scoreVal)}</span>`;
 
-                // Score Badge — computed from breakdown sum for consistency
-                scoreContainer.innerHTML = `<span class="score-pill ${getScoreRangeClass(computedScore)}" style="width: auto; height: auto; border-radius: 12px; padding: 0.5rem 1.2rem; font-size: 1.05rem;">Score: ${formatScore(computedScore)}</span>`;
-
-                breakdownItems.forEach(function(item) {
-                    var pct = Math.round((item.score / 2.0) * 100);
-                    var barColor = item.score >= 1.5 ? '#10b981' : item.score >= 0.8 ? '#f59e0b' : '#ef4444';
+                breakdown.forEach(function(item) {
+                    var pct = Math.round((item.score / item.max) * 100);
+                    var barColor = item.score >= (item.max * 0.75) ? '#10b981' : item.score >= (item.max * 0.40) ? '#f59e0b' : '#ef4444';
                     var el = document.createElement('div');
                     el.className = 'breakdown-item';
                     el.innerHTML = [
                         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem;">',
                         '  <span class="hint" tabindex="0" data-tip="', item.tip, '" style="font-weight:700;font-size:0.85rem;">', item.label, ' ⓘ</span>',
-                        '  <span style="font-size:0.85rem;color:var(--text-secondary);font-weight:600;">', item.score.toFixed(2), ' / 2.0</span>',
+                        '  <span style="font-size:0.85rem;color:var(--text-secondary);font-weight:600;">', item.score.toFixed(2), ' / ', item.max.toFixed(1), '</span>',
                         '</div>',
                         '<div class="bar-container">',
                         '  <div class="bar-fill" style="width:', pct, '%;background:', barColor, ';"></div>',
@@ -1583,43 +1562,20 @@
                     dividendRate: rate || (price * dy)
                 };
 
-                const isFiagro = type === 'fiagro';
+                // Render breakdown
+                const scoreVal = parseFloat(row.getAttribute('data-score')) || 0;
+                const breakdown = JSON.parse(row.getAttribute('data-breakdown') || '[]');
+                scoreContainer.innerHTML = `<span class="score-pill ${getScoreRangeClass(scoreVal)}" style="width: auto; height: auto; border-radius: 12px; padding: 0.5rem 1.2rem; font-size: 1.05rem;">Score: ${formatScore(scoreVal)}</span>`;
 
-                // v2.5.1 Continuous Breakdown for FII/FIAGRO (4 criteria × 2.5 pts)
-                // Use data-consistency if available, otherwise default to null (neutro 1.5)
-                var consistency = parseFloat(row.getAttribute('data-consistency')) || null;
-                var breakdownItems = [
-                    { label: 'P/VP (Unificado: Ideal + Limite)', key: 'pb_unified',
-                      score: scorePBFii(pb),
-                      desc: 'P/VP: ' + (pb !== null ? pb.toFixed(2) : 'N/A'),
-                      tip: 'Máximo entre P/VP Ideal (0,70-1,05) e Limite (0,60-1,15), reescalonado ×1,25. Nota máxima 2,5 pts quando P/VP está na faixa ideal.' },
-                    { label: (isFiagro ? 'DY ≥ 10% (Mínimo FIAGRO)' : 'DY ≥ 8% (Mínimo FII)'), key: 'dy_min',
-                      score: scoreDYFiiV2(dy, isFiagro),
-                      desc: 'DY: ' + (dy * 100).toFixed(2) + '%',
-                      tip: (isFiagro ? 'DY mínimo 10% = 1,25 pts. Bônus até 2,5 pts conforme DY se aproxima de 16,5%.' : 'DY mínimo 8% = 1,25 pts. Bônus até 2,5 pts conforme DY se aproxima de 14,5%.') },
-                    { label: (isFiagro ? 'Yield ≤ 33% (Trava Risco Suave)' : 'Yield ≤ 29% (Trava Risco Suave)'), key: 'yield_cap',
-                      score: scoreYieldCapV2(dy, isFiagro),
-                      desc: 'DY: ' + (dy * 100).toFixed(2) + '%',
-                      tip: (isFiagro ? 'DY acima de 33% reduz a nota (risco de insustentabilidade). Zera em 33% × 2 = 66%%. Escala progressiva de 0 a 2,5 pts.' : 'DY acima de 29% reduz a nota (risco de insustentabilidade). Zera em 29% × 2 = 58%%. Escala progressiva de 0 a 2,5 pts.') },
-                    { label: 'Consistência Proventos (≥95%)', key: 'consistency',
-                      score: scoreConsistencyV2(consistency),
-                      desc: consistency !== null ? (consistency * 100).toFixed(2) + '%' : 'N/D (neutro 1.5)',
-                      tip: 'Proporção de meses com distribuição de dividendos ≥ 95% = 2,5 pts. Sem dados históricos: nota neutra 1,5 pts.' }
-                ];
-                var computedScore = breakdownItems.reduce(function(s, i) { return s + i.score; }, 0);
-
-                // Score Badge — computed from breakdown sum for consistency
-                scoreContainer.innerHTML = `<span class="score-pill ${getScoreRangeClass(computedScore)}" style="width: auto; height: auto; border-radius: 12px; padding: 0.5rem 1.2rem; font-size: 1.05rem;">Score: ${formatScore(computedScore)}</span>`;
-
-                breakdownItems.forEach(function(item) {
-                    var pct = Math.round((item.score / 2.5) * 100);
-                    var barColor = item.score >= 1.875 ? '#10b981' : item.score >= 1.0 ? '#f59e0b' : '#ef4444';
+                breakdown.forEach(function(item) {
+                    var pct = Math.round((item.score / item.max) * 100);
+                    var barColor = item.score >= (item.max * 0.75) ? '#10b981' : item.score >= (item.max * 0.40) ? '#f59e0b' : '#ef4444';
                     var el = document.createElement('div');
                     el.className = 'breakdown-item';
                     el.innerHTML = [
                         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem;">',
                         '  <span class="hint" tabindex="0" data-tip="', item.tip, '" style="font-weight:700;font-size:0.85rem;">', item.label, ' ⓘ</span>',
-                        '  <span style="font-size:0.85rem;color:var(--text-secondary);font-weight:600;">', item.score.toFixed(2), ' / 2.5</span>',
+                        '  <span style="font-size:0.85rem;color:var(--text-secondary);font-weight:600;">', item.score.toFixed(2), ' / ', item.max.toFixed(1), '</span>',
                         '</div>',
                         '<div class="bar-container">',
                         '  <div class="bar-fill" style="width:', pct, '%;background:', barColor, ';"></div>',
@@ -1807,7 +1763,7 @@
             if (!Chart.registry.plugins.get('valueLabels')) {
                 Chart.register({
                     id: 'valueLabels',
-                    afterDraw(chart) {
+                    afterDatasetsDraw(chart) {
                         const options = chart.options.plugins?.valueLabels;
                         if (!options) return;
 
@@ -2182,6 +2138,7 @@
                             data-score="${stock.score || 0}"
                             data-eps="${stock.eps !== null ? stock.eps : 'null'}"
                             data-vpa="${stock.book_value !== null ? stock.book_value : 'null'}"
+                            data-breakdown='${JSON.stringify(stock.score_breakdown || []).replace(/'/g, "&apos;")}'
                             data-history='${stock.history_json || "[]"}'>
                             <td class="ticker-cell">
                                 ${tickerHtml(stock.ticker, indices)}
@@ -2222,6 +2179,7 @@
                             data-score="${fii.score || 0}"
                             data-vpa="${fii.book_value !== null ? fii.book_value : 'null'}"
                             data-consistency="${fii.dividend_consistency !== null && fii.dividend_consistency !== undefined ? fii.dividend_consistency : ''}"
+                            data-breakdown='${JSON.stringify(fii.score_breakdown || []).replace(/'/g, "&apos;")}'
                             data-history='${fii.history_json || "[]"}'>
                             <td class="ticker-cell">${fii.ticker}</td>
                             <td class="name-cell">${fii.name}</td>
@@ -2256,6 +2214,7 @@
                             data-score="${fiagro.score || 0}"
                             data-vpa="${fiagro.book_value !== null ? fiagro.book_value : 'null'}"
                             data-consistency="${fiagro.dividend_consistency !== null && fiagro.dividend_consistency !== undefined ? fiagro.dividend_consistency : ''}"
+                            data-breakdown='${JSON.stringify(fiagro.score_breakdown || []).replace(/'/g, "&apos;")}'
                             data-history='${fiagro.history_json || "[]"}'>
                             <td class="ticker-cell">${fiagro.ticker}</td>
                             <td class="name-cell">${fiagro.name}</td>

@@ -46,6 +46,7 @@ def _create_stocks_table(cursor: sqlite3.Cursor) -> None:
     _add_column_if_not_exists(cursor, "stocks", "pe_medio_5y", "REAL")
     _add_column_if_not_exists(cursor, "stocks", "net_debt_ebitda", "REAL")
     _add_column_if_not_exists(cursor, "stocks", "score_v2", "REAL")
+    _add_column_if_not_exists(cursor, "stocks", "score_breakdown", "TEXT")
 
 
 def _create_fiis_table(cursor: sqlite3.Cursor, table: str) -> None:
@@ -61,6 +62,7 @@ def _create_fiis_table(cursor: sqlite3.Cursor, table: str) -> None:
     # v2.5 continuous score columns
     _add_column_if_not_exists(cursor, table, "dividend_consistency", "REAL")
     _add_column_if_not_exists(cursor, table, "score_v2", "REAL")
+    _add_column_if_not_exists(cursor, table, "score_breakdown", "TEXT")
 
 
 def _create_pipeline_log_table(cursor: sqlite3.Cursor) -> None:
@@ -101,13 +103,15 @@ def _add_column_if_not_exists(cursor: sqlite3.Cursor, table_name: str, column_na
 
 def save_stock(data: dict[str, Any]) -> None:
     """Insert or replace a stock record."""
+    import json
+    breakdown_json = json.dumps(data.get('score_breakdown') or [])
     with get_connection() as conn:
         conn.execute("""
         INSERT OR REPLACE INTO stocks (
             ticker, name, sector, price, pe_ratio, pb_ratio, dividend_yield,
             roe, eps, book_value, graham_price, bazin_price, score, history_json, updated_at,
-            dy_medio_3y, pe_medio_5y, net_debt_ebitda, score_v2
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            dy_medio_3y, pe_medio_5y, net_debt_ebitda, score_v2, score_breakdown
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             data['ticker'], data.get('name'), data.get('sector', 'Outros'),
             data.get('price'), data.get('pe_ratio'),
@@ -116,7 +120,8 @@ def save_stock(data: dict[str, Any]) -> None:
             data.get('bazin_price'), data.get('score'), data.get('history_json'),
             datetime.now().isoformat(),
             data.get('dy_medio_3y'), data.get('pe_medio_5y'),
-            data.get('net_debt_ebitda'), data.get('score_v2')
+            data.get('net_debt_ebitda'), data.get('score_v2'),
+            breakdown_json
         ))
 
 
@@ -146,20 +151,23 @@ def get_stock_by_ticker(ticker: str) -> dict[str, Any] | None:
 
 def save_fii(data: dict[str, Any]) -> None:
     """Insert or replace a FII record."""
+    import json
+    breakdown_json = json.dumps(data.get('score_breakdown') or [])
     with get_connection() as conn:
         conn.execute("""
         INSERT OR REPLACE INTO fiis (
             ticker, name, price, pb_ratio, dividend_yield, dividend_rate,
             book_value, score, history_json, updated_at,
-            dividend_consistency, score_v2
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            dividend_consistency, score_v2, score_breakdown
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             data['ticker'], data.get('name'), data.get('price'),
             data.get('pb_ratio'), data.get('dividend_yield'),
             data.get('dividend_rate'), data.get('book_value'),
             data.get('score', 0),
             data.get('history_json'), datetime.now().isoformat(),
-            data.get('dividend_consistency'), data.get('score_v2')
+            data.get('dividend_consistency'), data.get('score_v2'),
+            breakdown_json
         ))
 
 
@@ -179,20 +187,23 @@ def get_all_fiis() -> list[dict[str, Any]]:
 
 def save_fiagro(data: dict[str, Any]) -> None:
     """Insert or replace a FIAGRO record."""
+    import json
+    breakdown_json = json.dumps(data.get('score_breakdown') or [])
     with get_connection() as conn:
         conn.execute("""
         INSERT OR REPLACE INTO fiagros (
             ticker, name, price, pb_ratio, dividend_yield, dividend_rate,
             book_value, score, history_json, updated_at,
-            dividend_consistency, score_v2
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            dividend_consistency, score_v2, score_breakdown
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             data['ticker'], data.get('name'), data.get('price'),
             data.get('pb_ratio'), data.get('dividend_yield'),
             data.get('dividend_rate'), data.get('book_value'),
             data.get('score', 0),
             data.get('history_json'), datetime.now().isoformat(),
-            data.get('dividend_consistency'), data.get('score_v2')
+            data.get('dividend_consistency'), data.get('score_v2'),
+            breakdown_json
         ))
 
 
