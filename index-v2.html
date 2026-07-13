@@ -2847,8 +2847,10 @@
             const macro = data.macro_state;
             if (macro && macro.ettj_curve) {
                 const curveObj = macro.ettj_curve;
-                // Convert object { "1y": 0.1334, "3y": 0.1374, ... } to chart arrays
-                const keys = Object.keys(curveObj);
+                // Garantir ordenação cronológica estrita dos prazos
+                const order = ['1m', '3m', '6m', '1y', '2y', '3y', '5y', '10y', '20y', '30y'];
+                const keys = order.filter(k => curveObj[k] !== undefined && curveObj[k] !== null);
+
                 if (keys.length > 0) {
                     const canvas = document.getElementById('ettj-chart');
                     if (canvas) {
@@ -2862,7 +2864,16 @@
                         // Map object keys to readable labels, values to percentage
                         var labelMap = { '1m': '1 mês', '3m': '3 meses', '6m': '6 meses', '1y': '1 ano', '2y': '2 anos', '3y': '3 anos', '5y': '5 anos', '10y': '10 anos', '20y': '20 anos', '30y': '30 anos' };
                         var labels = keys.map(function(k) { return labelMap[k] || k; });
-                        var values = keys.map(function(k) { var v = curveObj[k]; return v != null ? v * 100 : 0; });
+                        var values = keys.map(function(k) { return curveObj[k] * 100; });
+
+                        // Calcular limites dinâmicos para o eixo Y com margem/padding
+                        const minVal = Math.min(...values);
+                        const maxVal = Math.max(...values);
+                        const valRange = maxVal - minVal;
+                        // Folga de 15% do range para cima e para baixo (mínimo de 0.5% se a curva for reta)
+                        const padding = Math.max(valRange * 0.15, 0.5);
+                        const yMin = Math.max(0, minVal - padding);
+                        const yMax = maxVal + padding;
 
                         const isLight = !document.body.classList.contains('dark');
                         const gridColor = isLight ? 'rgba(15, 23, 42, 0.06)' : 'rgba(255, 255, 255, 0.05)';
@@ -2877,12 +2888,12 @@
                                     data: values,
                                     borderColor: '#8b5cf6',
                                     backgroundColor: 'rgba(139, 92, 246, 0.08)',
-                                    borderWidth: 2,
-                                    pointRadius: 4,
-                                    pointHoverRadius: 6,
+                                    borderWidth: 2.5,
+                                    pointRadius: 5,
+                                    pointHoverRadius: 7,
                                     pointBackgroundColor: '#8b5cf6',
                                     fill: true,
-                                    tension: 0.3
+                                    tension: 0.25
                                 }]
                             },
                             options: {
@@ -2908,15 +2919,16 @@
                                 scales: {
                                     x: {
                                         grid: { display: false },
-                                        ticks: { color: tickColor, maxTicksLimit: 8, maxRotation: 30 }
+                                        ticks: { color: tickColor, maxTicksLimit: 8, maxRotation: 0 }
                                     },
                                     y: {
+                                        min: parseFloat(yMin.toFixed(2)),
+                                        max: parseFloat(yMax.toFixed(2)),
                                         grid: { color: gridColor },
                                         ticks: {
                                             color: tickColor,
-                                            callback: function(value) { return value.toFixed(1) + '%'; }
-                                        },
-                                        grace: '10%'
+                                            callback: function(value) { return value.toFixed(2) + '%'; }
+                                        }
                                     }
                                 }
                             }
@@ -2925,6 +2937,7 @@
                 }
             }
         }
+
 
         document.addEventListener('DOMContentLoaded', () => {
             const isDark = document.body.classList.contains('dark');
