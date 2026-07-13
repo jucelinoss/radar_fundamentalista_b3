@@ -1502,9 +1502,14 @@
                                 style="background: var(--dropdown-bg); border: 1px solid var(--card-border); color: var(--text-primary); padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; outline: none; cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.3s ease, color 0.3s ease;">
                                 <option value="score" selected>Score Radar</option>
                                 <option value="price">Preço (R$)</option>
+                                <option value="dy">Dividend Yield (12m)</option>
+                                <option value="dy_3y">DY Médio (3 Anos)</option>
                                 <option value="pe">P/L</option>
+                                <option value="pe_5y">P/L Médio (5 Anos)</option>
                                 <option value="pb">P/VP</option>
-                                <option value="dy">Dividend Yield</option>
+                                <option value="roe">ROE</option>
+                                <option value="graham">Margem de Graham</option>
+                                <option value="consistency">Consistência Proventos</option>
                             </select>
                         </div>
                         <div class="time-ranges">
@@ -1998,6 +2003,31 @@
             if (rows.length === 0) return;
             const row = rows[0];
 
+            // Configure dropdown options based on asset type
+            const selectEl = document.getElementById('chart-indicator-select');
+            if (selectEl) {
+                Array.from(selectEl.options).forEach(opt => {
+                    opt.disabled = false;
+                    opt.style.display = 'block';
+                });
+                if (type === 'stock') {
+                    const opt = selectEl.querySelector('option[value="consistency"]');
+                    if (opt) {
+                        opt.disabled = true;
+                        opt.style.display = 'none';
+                    }
+                } else {
+                    const hiddenOpts = ['pe', 'pe_5y', 'dy_3y', 'roe', 'graham'];
+                    hiddenOpts.forEach(val => {
+                        const opt = selectEl.querySelector(`option[value="${val}"]`);
+                        if (opt) {
+                            opt.disabled = true;
+                            opt.style.display = 'none';
+                        }
+                    });
+                }
+            }
+
             // Populate Header
             document.getElementById('modal-ticker').textContent = ticker;
             document.getElementById('modal-name').textContent = row.getAttribute('data-name');
@@ -2026,7 +2056,9 @@
                     dy: dy,
                     eps: eps,
                     vpa: vpa,
-                    dividendRate: price * dy
+                    dividendRate: price * dy,
+                    graham_price: graham,
+                    roe: roe
                 };
 
                 // Render breakdown
@@ -2058,12 +2090,7 @@
                 disc.textContent = '⚡ Esta é uma avaliação sob a ótica do value investing: busca por empresas lucrativas, saudáveis e negociadas com desconto. Uma nota baixa não significa que a empresa seja ruim, apenas que não atende aos critérios rigorosos de oportunidade value no momento.';
                 scorecard.appendChild(disc);
 
-                // For Stocks: enable P/L option in the dropdown and show it
-                const peOption = document.querySelector('#chart-indicator-select option[value="pe"]');
-                if (peOption) {
-                    peOption.disabled = false;
-                    peOption.style.display = 'block';
-                }
+
             } else {
                 // For FII / FIAGRO
                 const pb = parseFloat(row.getAttribute('data-pb')) || null;
@@ -2108,12 +2135,7 @@
                 disc.textContent = '⚡ Esta é uma avaliação sob a ótica do value investing: busca por ativos com bom retorno em dividendos, preço justo e consistência. Uma nota baixa não significa que o fundo seja ruim, apenas que não atende aos critérios rigorosos de oportunidade value no momento.';
                 scorecard.appendChild(disc);
 
-                // For FIIs/FIAGROs: disable P/L option and hide it
-                const peOption = document.querySelector('#chart-indicator-select option[value="pe"]');
-                if (peOption) {
-                    peOption.disabled = true;
-                    peOption.style.display = 'none';
-                }
+
             }
 
             // Handle History Chart
@@ -2249,6 +2271,20 @@
                 label = 'Preço (R$)';
                 borderColor = '#3b82f6';
                 backgroundColor = 'rgba(59, 130, 246, 0.05)';
+            } else if (indicator === 'dy') {
+                data = filteredHistory.map(h => {
+                    if (h.dy !== undefined && h.dy !== null) return h.dy;
+                    const divRate = currentAssetMetrics.dividendRate;
+                    return (divRate !== null && divRate > 0) ? roundValue((divRate / h.price) * 100, 2) : 0;
+                });
+                label = 'Dividend Yield (12m) (%)';
+                borderColor = '#10b981';
+                backgroundColor = 'rgba(16, 185, 129, 0.05)';
+            } else if (indicator === 'dy_3y') {
+                data = filteredHistory.map(h => h.dy_3y !== undefined ? h.dy_3y : null);
+                label = 'DY Médio (3 Anos) (%)';
+                borderColor = '#059669';
+                backgroundColor = 'rgba(5, 150, 105, 0.05)';
             } else if (indicator === 'pe') {
                 data = filteredHistory.map(h => {
                     if (h.pe !== undefined && h.pe !== null) return h.pe;
@@ -2258,6 +2294,11 @@
                 label = 'P/L';
                 borderColor = '#a855f7';
                 backgroundColor = 'rgba(168, 85, 247, 0.05)';
+            } else if (indicator === 'pe_5y') {
+                data = filteredHistory.map(h => h.pe_5y !== undefined ? h.pe_5y : null);
+                label = 'P/L Médio (5 Anos)';
+                borderColor = '#7c3aed';
+                backgroundColor = 'rgba(124, 58, 237, 0.05)';
             } else if (indicator === 'pb') {
                 data = filteredHistory.map(h => {
                     if (h.pb !== undefined && h.pb !== null) return h.pb;
@@ -2267,15 +2308,68 @@
                 label = 'P/VP';
                 borderColor = '#eab308';
                 backgroundColor = 'rgba(234, 179, 8, 0.05)';
-            } else if (indicator === 'dy') {
+            } else if (indicator === 'roe') {
+                data = filteredHistory.map(h => h.roe !== undefined ? h.roe : null);
+                label = 'ROE (%)';
+                borderColor = '#f59e0b';
+                backgroundColor = 'rgba(245, 158, 11, 0.05)';
+            } else if (indicator === 'graham') {
+                // Return Graham Fair Price
                 data = filteredHistory.map(h => {
-                    if (h.dy !== undefined && h.dy !== null) return h.dy;
-                    const divRate = currentAssetMetrics.dividendRate;
-                    return (divRate !== null && divRate > 0) ? roundValue((divRate / h.price) * 100, 2) : 0;
+                    if (h.graham !== undefined && h.graham !== null && h.graham > 2.0) {
+                        return h.graham;
+                    }
+                    return currentAssetMetrics.graham_price || null;
                 });
-                label = 'Dividend Yield (%)';
-                borderColor = '#10b981';
-                backgroundColor = 'rgba(16, 185, 129, 0.05)';
+                label = 'Preço Justo (Graham)';
+                borderColor = '#ef4444';
+                backgroundColor = 'rgba(239, 68, 68, 0.05)';
+            } else if (indicator === 'consistency') {
+                data = filteredHistory.map(h => h.consistency !== undefined ? h.consistency : null);
+                label = 'Consistência Proventos (%)';
+                borderColor = '#3b82f6';
+                backgroundColor = 'rgba(59, 130, 246, 0.05)';
+            }
+
+            let chartDatasets = [];
+            if (indicator === 'graham') {
+                chartDatasets = [
+                    {
+                        label: 'Preço de Mercado (R$)',
+                        data: filteredHistory.map(h => h.price),
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        pointRadius: filteredHistory.length > 30 ? 0 : 3,
+                        pointHoverRadius: 5,
+                        fill: false,
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Preço Justo de Graham (R$)',
+                        data: data,
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        pointHoverRadius: 0,
+                        fill: true,
+                        tension: 0
+                    }
+                ];
+            } else {
+                chartDatasets = [{
+                    label: label,
+                    data: data,
+                    borderColor: borderColor,
+                    backgroundColor: backgroundColor,
+                    borderWidth: 2,
+                    pointRadius: filteredHistory.length > 30 ? 0 : 3,
+                    pointHoverRadius: 5,
+                    fill: true,
+                    tension: 0.1
+                }];
             }
 
             const isLight = document.body.classList.contains('light-theme');
@@ -2460,17 +2554,7 @@
                 type: 'line',
                 data: {
                     labels: labels,
-                    datasets: [{
-                        label: label,
-                        data: data,
-                        borderColor: borderColor,
-                        backgroundColor: backgroundColor,
-                        fill: true,
-                        tension: 0.3,
-                        borderWidth: 2,
-                        pointRadius: 1,
-                        pointHoverRadius: 4
-                    }]
+                    datasets: chartDatasets
                 },
                 options: {
                     responsive: true,
@@ -2478,23 +2562,36 @@
                     layout: {
                         padding: {
                             left: 15,
-                            right: 35, // Garante que rótulos e tooltips no ponto final (direita) não sejam cortados
-                            top: 20,    // Garante que rótulos nos picos do topo (máximos) não sejam cortados
+                            right: 35,
+                            top: 20,
                             bottom: 5
                         }
                     },
                     plugins: {
-                        legend: { display: false },
+                        legend: {
+                            display: (indicator === 'graham'),
+                            labels: {
+                                color: tickColor,
+                                font: { size: 10, family: 'Inter, sans-serif' }
+                            }
+                        },
                         tooltip: {
                             callbacks: {
                                 label: function (context) {
                                     let val = context.parsed.y;
                                     if (val === null || isNaN(val)) return 'N/A';
+                                    if (indicator === 'graham') {
+                                        return `${context.dataset.label}: R$ ${val.toFixed(2)}`;
+                                    }
                                     if (indicator === 'price') return `Preço: R$ ${val.toFixed(2)}`;
                                     if (indicator === 'pe') return `P/L: ${val.toFixed(2)}`;
+                                    if (indicator === 'pe_5y') return `P/L Médio (5 Anos): ${val.toFixed(2)}`;
                                     if (indicator === 'pb') return `P/VP: ${val.toFixed(2)}`;
-                                    if (indicator === 'dy') return `DY: ${val.toFixed(2)}%`;
-                                    return val;
+                                    if (indicator === 'dy') return `DY (12m): ${val.toFixed(2)}%`;
+                                    if (indicator === 'dy_3y') return `DY Médio (3 Anos): ${val.toFixed(2)}%`;
+                                    if (indicator === 'roe') return `ROE: ${val.toFixed(2)}%`;
+                                    if (indicator === 'consistency') return `Consistência: ${val.toFixed(2)}%`;
+                                    return `Valor: ${val.toFixed(2)}`;
                                 }
                             }
                         },

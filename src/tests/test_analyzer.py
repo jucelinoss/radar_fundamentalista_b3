@@ -596,8 +596,8 @@ class TestTimezoneAwareYield:
         """_calc_dy_medio_3y must not crash with tz-aware index."""
         mock_ticker = _make_mock_ticker(total_dividends=9.0, days_ago=30)
         result = _calc_dy_medio_3y(mock_ticker, price=100.0)
-        # 9.0 / 100.0 = 0.09 (cumulative 3-year)
-        assert result == 0.09, f"Expected 0.09, got {result}"
+        # 9.0 / 3 / 100.0 = 0.03 (annual average)
+        assert result == 0.03, f"Expected 0.03, got {result}"
 
     def test_dy_medio_3y_tzaware_empty_returns_none(self):
         """_calc_dy_medio_3y returns None when no dividends in window."""

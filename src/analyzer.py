@@ -555,7 +555,7 @@ def _calc_dy_medio_3y(yf_ticker: Any | None, price: float | None) -> float | Non
             recent = history[history.index >= cutoff]
             total_divs = recent['Dividends'].sum()
             if total_divs > 0:
-                return round(total_divs / price, DY_DECIMALS)
+                return round((total_divs / 3.0) / price, DY_DECIMALS)
     except Exception:
         pass
     return None
@@ -1095,6 +1095,10 @@ def calculate_historical_scores(ticker: str, asset_type: str, current_metrics: d
             dy_t = current_dy * (current_price / price_t) if (current_dy is not None) else None
             item["dy"] = round(dy_t * 100, 2) if dy_t is not None else None
             item["pe"] = round(pe_t, 2) if pe_t is not None else None
+            item["dy_3y"] = round(dy_3y_t * 100, 2) if dy_3y_t is not None else None
+            item["pe_5y"] = round(pe_5y_t, 2) if pe_5y_t is not None else None
+            item["roe"] = round(roe * 100, 2) if roe is not None else None
+            item["graham"] = round(graham_price, 2) if graham_price else None
 
         else: # fii or fiagro
             is_fiagro = (asset_type == "fiagro")
@@ -1114,6 +1118,7 @@ def calculate_historical_scores(ticker: str, asset_type: str, current_metrics: d
             item["score"] = score_t
             item["pb"] = round(pb_t, 2) if pb_t is not None else None
             item["dy"] = round(dy_t * 100, 2) if dy_t is not None else None
+            item["consistency"] = round(consistency * 100, 2) if consistency is not None else None
 
         enriched_history.append(item)
 

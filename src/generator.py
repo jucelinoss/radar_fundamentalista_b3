@@ -283,13 +283,16 @@ def generate_dashboard() -> None:
     # Use v2.5 score for sorting if available, fallback to legacy score
     # Parse score_breakdown JSON field back to list of dicts
     for s in stocks:
-        s["score"] = s.get("score_v2") or s.get("score") or 0
+        score_v2 = s.get("score_v2")
+        s["score"] = score_v2 if score_v2 is not None else (s.get("score") or 0)
         s["score_breakdown"] = json.loads(s.get("score_breakdown") or "[]") if s.get("score_breakdown") else []
     for f in fiis:
-        f["score"] = f.get("score_v2") or f.get("score") or 0
+        score_v2 = f.get("score_v2")
+        f["score"] = score_v2 if score_v2 is not None else (f.get("score") or 0)
         f["score_breakdown"] = json.loads(f.get("score_breakdown") or "[]") if f.get("score_breakdown") else []
     for g in fiagros:
-        g["score"] = g.get("score_v2") or g.get("score") or 0
+        score_v2 = g.get("score_v2")
+        g["score"] = score_v2 if score_v2 is not None else (g.get("score") or 0)
         g["score_breakdown"] = json.loads(g.get("score_breakdown") or "[]") if g.get("score_breakdown") else []
 
     sectors_summary: list[dict[str, Any]] = _compute_sector_summaries(stocks)
