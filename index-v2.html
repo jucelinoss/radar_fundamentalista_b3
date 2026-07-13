@@ -117,15 +117,19 @@
         .header-right {
             margin-left: auto;
             display: flex; align-items: center; gap: 0.9rem;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
         .header-ts {
             font-size: 0.85rem; color: var(--text-muted);
             font-variant-numeric: tabular-nums;
             white-space: nowrap;
+            flex-shrink: 0;
         }
         .disclaimer {
             font-size: 0.8rem; color: var(--text-muted);
-            max-width: 240px; line-height: 1.3; text-align: right;
+            max-width: 240px; min-width: 180px; line-height: 1.3; text-align: right;
+            flex-shrink: 0;
         }
         @media (max-width: 640px) {
             .disclaimer { display: none; }
@@ -377,6 +381,186 @@
         .warning { color: var(--gold); }
         .hidden { display: none !important; }
 
+        /* ── v3 Home Grid ── */
+        .home-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .macro-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .macro-card.selic { border-left: 3px solid var(--positive); }
+        .macro-card.ipca { border-left: 3px solid var(--gold); }
+        .macro-card.cambio { border-left: 3px solid var(--primary); }
+        .macro-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        .macro-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            font-variant-numeric: tabular-nums;
+            line-height: 1.2;
+        }
+        .macro-trend {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .macro-trend.up { color: var(--negative); }
+        .macro-trend.down { color: var(--positive); }
+        .macro-trend.stable { color: var(--text-muted); }
+        .macro-sub {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 0.1rem;
+        }
+
+        /* ── Home top picks ── */
+        .home-picks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .home-pick-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 1rem;
+        }
+        .home-pick-header {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 0.4rem;
+            margin-bottom: 0.6rem;
+        }
+        .home-pick-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid var(--card-border);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .home-pick-item:last-child { border-bottom: none; }
+        .home-pick-item:hover {
+            background: var(--accent-bg);
+            margin: 0 -0.5rem;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+            border-radius: 4px;
+        }
+        .home-pick-ticker {
+            font-weight: 700;
+            font-size: 0.9rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .home-pick-detail {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+            font-variant-numeric: tabular-nums;
+        }
+        .home-pick-score {
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        /* ── Tesouro Direto table ── */
+        .td-table table { font-size: 0.85rem; }
+        .td-table .td-tipo {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* ── Fixed income badges ── */
+        .badge-premium {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: var(--positive-bg);
+            color: var(--positive);
+            border: 1px solid var(--positive);
+        }
+        .badge-bom {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: var(--positive-bg);
+            color: var(--positive);
+            border: 1px solid transparent;
+        }
+        .badge-regular {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: var(--gold-bg);
+            color: var(--gold);
+            border: 1px solid transparent;
+        }
+        .badge-alto_risco {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: var(--negative-bg);
+            color: var(--negative);
+            border: 1px solid transparent;
+        }
+
+        /* ── Renda Fixa panel ── */
+        .ettj-section {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .ettj-section h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .ettj-section p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 0.75rem;
+        }
+        #ettj-chart {
+            width: 100%;
+            height: 250px;
+        }
+
         /* ── Index pills ── */
         .index-pill {
             font-size: 0.65rem; padding: 0.08rem 0.3rem;
@@ -548,7 +732,7 @@
         .range-btn.active { background: var(--text-primary); color: var(--card); }
 
         /* ── Responsivo ── */
-        @media (max-width: 768px) {
+        @media (max-width: 1024px) {
             .header-inner {
                 flex-direction: column;
                 align-items: stretch;
@@ -567,6 +751,12 @@
                 width: 100%;
                 margin-top: 0.2rem;
                 color: var(--text-muted);
+            }
+            .disclaimer {
+                text-align: left;
+                max-width: none;
+                width: 100%;
+                margin-top: 0.1rem;
             }
             .header-right .action-btn {
                 font-size: 0.8rem;
@@ -710,48 +900,71 @@
             </div>
         </header>
 
-        <!-- Summary Cards Section -->
-        <div class="summary-grid">
-            <!-- Stock Summary -->
-            <div class="summary-card">
-                <div class="card-header">
-                    <h3>Top Ações</h3>
-                    <span>Value Investing</span>
-                </div>
-                <ul class="top-list" id="top-stocks-list">
-                    <!-- Carregado via JS -->
-                </ul>
+        <!-- Home: Macro Panel (visible by default) -->
+        <div id="panel-home" class="table-wrap">
+            <div class="table-header-bar">
+                <span>Painel Macroeconômico</span>
+                <span class="font-mono tabular" id="home-timestamp">Carregando...</span>
             </div>
 
-            <!-- FII Summary -->
-            <div class="summary-card">
-                <div class="card-header">
-                    <h3>Top FIIs</h3>
-                    <span>Imobiliário</span>
+            <!-- Macro Cards -->
+            <div class="home-grid" id="macro-grid">
+                <div class="macro-card selic">
+                    <span class="macro-label">Selic</span>
+                    <span class="macro-value" id="macro-selic">--</span>
+                    <span class="macro-trend" id="macro-selic-trend"></span>
+                    <span class="macro-sub" id="macro-selic-focus">Focus: --</span>
                 </div>
-                <ul class="top-list" id="top-fiis-list">
-                    <!-- Carregado via JS -->
-                </ul>
+                <div class="macro-card ipca">
+                    <span class="macro-label">IPCA</span>
+                    <span class="macro-value" id="macro-ipca">--</span>
+                    <span class="macro-trend" id="macro-ipca-trend"></span>
+                    <span class="macro-sub" id="macro-ipca-focus">Focus: --</span>
+                </div>
+                <div class="macro-card cambio">
+                    <span class="macro-label">Câmbio (Dólar)</span>
+                    <span class="macro-value" id="macro-cambio">--</span>
+                    <span class="macro-sub" id="macro-cambio-focus">Focus: --</span>
+                </div>
             </div>
 
-            <!-- FIAGRO Summary -->
-            <div class="summary-card" id="top-fiagros-card" style="display: none;">
-                <div class="card-header">
-                    <h3>Top FIAGROs</h3>
-                    <span>Agronegócio</span>
+            <!-- Top Picks -->
+            <div class="home-picks-grid">
+                <div class="home-pick-card">
+                    <div class="home-pick-header">📈 Top Ações</div>
+                    <div id="home-top-stocks">
+                        <div style="font-size:0.8rem;color:var(--text-muted);padding:0.5rem 0;">Carregando...</div>
+                    </div>
                 </div>
-                <ul class="top-list" id="top-fiagros-list">
-                    <!-- Carregado via JS -->
-                </ul>
+                <div class="home-pick-card">
+                    <div class="home-pick-header">🏢 Top FIIs</div>
+                    <div id="home-top-fiis">
+                        <div style="font-size:0.8rem;color:var(--text-muted);padding:0.5rem 0;">Carregando...</div>
+                    </div>
+                </div>
+                <div class="home-pick-card" id="home-top-fiagros-card">
+                    <div class="home-pick-header">🌱 Top FIAGROs</div>
+                    <div id="home-top-fiagros">
+                        <div style="font-size:0.8rem;color:var(--text-muted);padding:0.5rem 0;">Carregando...</div>
+                    </div>
+                </div>
+                <div class="home-pick-card">
+                    <div class="home-pick-header">🪙 Top Tesouro Direto</div>
+                    <div id="home-top-tesouro">
+                        <div style="font-size:0.8rem;color:var(--text-muted);padding:0.5rem 0;">Carregando...</div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Tabs -->
         <div class="tabs-row">
-            <button class="tab-btn active" onclick="switchTab('stocks')">Ações</button>
-            <button class="tab-btn" onclick="switchTab('fiis')">Fundos Imobiliários (FIIs)</button>
+            <button class="tab-btn active" onclick="switchTab('home')">🏠 Home</button>
+            <button class="tab-btn" onclick="switchTab('stocks')">📈 Ações</button>
+            <button class="tab-btn" onclick="switchTab('fiis')">FIIs</button>
             <button class="tab-btn" onclick="switchTab('fiagros')">FIAGROs</button>
             <button class="tab-btn" onclick="switchTab('sectors')">Análise Setorial</button>
+            <button class="tab-btn" onclick="switchTab('rendafixa')">🪙 Renda Fixa</button>
         </div>
 
         <!-- Filters -->
@@ -937,6 +1150,43 @@
                     <!-- Carregado via JS -->
                 </tbody>
             </table>
+            </div>
+        </div>
+
+        <!-- Renda Fixa Panel -->
+        <div id="panel-rendafixa" class="table-wrap hidden">
+            <div class="table-header-bar">
+                <span>Tesouro Direto — Scorecard 0-10</span>
+                <span class="font-mono tabular" id="rendafixa-count">0 títulos</span>
+            </div>
+
+            <!-- ETTJ Curve Chart -->
+            <div class="ettj-section">
+                <h3>📈 Estrutura a Termo da Taxa de Juros (ETTJ)</h3>
+                <p>
+                    A ETTJ (ou curva de juros) mostra a relação entre o prazo do título e a taxa de retorno exigida
+                    pelo mercado. Uma curva <strong>inclinada para cima</strong> indica prêmio pelo prazo mais longo;
+                    uma curva <strong>invertida</strong> pode sinalizar expectativa de queda de juros.
+                </p>
+                <canvas id="ettj-chart"></canvas>
+            </div>
+
+            <div class="table-scroll td-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Tipo</th>
+                            <th>Taxa (a.a.)</th>
+                            <th>Vencimento</th>
+                            <th>Score</th>
+                            <th>Badge</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rendafixa-tbody">
+                        <!-- Carregado via JS -->
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -1127,7 +1377,7 @@
     </div>
 
     <script>
-        let currentTab = 'stocks';
+        let currentTab = 'home';
 
         function getScoreRangeClass(score) {
             if (score >= 8.0) return 'score-premium';
@@ -1239,41 +1489,51 @@
             // Atualizar label do PDF
             const pdfLabel = document.getElementById('pdf-label');
             if (pdfLabel) {
-                const names = { stocks: 'Ações', fiis: 'FIIs', fiagros: 'FIAGROs', sectors: 'Setores' };
+                const names = { home: 'Home', stocks: 'Ações', fiis: 'FIIs', fiagros: 'FIAGROs', sectors: 'Setores', rendafixa: 'Renda Fixa' };
                 pdfLabel.textContent = names[tab] || tab;
             }
-            const btnStocks = document.querySelectorAll('.tab-btn')[0];
-            const btnFiis = document.querySelectorAll('.tab-btn')[1];
-            const btnFiagros = document.querySelectorAll('.tab-btn')[2];
-            const btnSectors = document.querySelectorAll('.tab-btn')[3];
+            const allBtns = document.querySelectorAll('.tab-btn');
+            const btnHome = allBtns[0];
+            const btnStocks = allBtns[1];
+            const btnFiis = allBtns[2];
+            const btnFiagros = allBtns[3];
+            const btnSectors = allBtns[4];
+            const btnRendaFixa = allBtns[5];
 
+            const panelHome = document.getElementById('panel-home');
             const panelStocks = document.getElementById('panel-stocks');
             const panelFiis = document.getElementById('panel-fiis');
             const panelFiagros = document.getElementById('panel-fiagros');
             const panelSectors = document.getElementById('panel-sectors');
+            const panelRendaFixa = document.getElementById('panel-rendafixa');
 
-            btnStocks.classList.remove('active');
-            btnFiis.classList.remove('active');
-            btnFiagros.classList.remove('active');
-            if (btnSectors) btnSectors.classList.remove('active');
+            allBtns.forEach(b => b.classList.remove('active'));
+            [panelHome, panelStocks, panelFiis, panelFiagros, panelSectors, panelRendaFixa].forEach(p => {
+                if (p) p.classList.add('hidden');
+            });
 
-            panelStocks.classList.add('hidden');
-            panelFiis.classList.add('hidden');
-            panelFiagros.classList.add('hidden');
-            if (panelSectors) panelSectors.classList.add('hidden');
-
-            if (tab === 'stocks') {
-                btnStocks.classList.add('active');
-                panelStocks.classList.remove('hidden');
+            if (tab === 'home') {
+                if (btnHome) btnHome.classList.add('active');
+                if (panelHome) panelHome.classList.remove('hidden');
+            } else if (tab === 'stocks') {
+                if (btnStocks) btnStocks.classList.add('active');
+                if (panelStocks) panelStocks.classList.remove('hidden');
             } else if (tab === 'fiis') {
-                btnFiis.classList.add('active');
-                panelFiis.classList.remove('hidden');
+                if (btnFiis) btnFiis.classList.add('active');
+                if (panelFiis) panelFiis.classList.remove('hidden');
             } else if (tab === 'fiagros') {
-                btnFiagros.classList.add('active');
-                panelFiagros.classList.remove('hidden');
+                if (btnFiagros) btnFiagros.classList.add('active');
+                if (panelFiagros) panelFiagros.classList.remove('hidden');
             } else if (tab === 'sectors') {
                 if (btnSectors) btnSectors.classList.add('active');
                 if (panelSectors) panelSectors.classList.remove('hidden');
+            } else if (tab === 'rendafixa') {
+                if (btnRendaFixa) btnRendaFixa.classList.add('active');
+                if (panelRendaFixa) panelRendaFixa.classList.remove('hidden');
+                // Render TD table and ETTJ chart if data available
+                if (window.dashboardData) {
+                    renderRendaFixaPanel(window.dashboardData);
+                }
             }
 
             const indexFilter = document.getElementById('index-filter');
@@ -1291,7 +1551,7 @@
                 if (sectorFilter) sectorFilter.classList.add('hidden');
                 if (scoreFilter) scoreFilter.classList.remove('hidden');
                 if (discountFilter) discountFilter.classList.remove('hidden');
-            } else { // sectors
+            } else { // home, sectors, rendafixa
                 if (indexFilter) indexFilter.classList.add('hidden');
                 if (sectorFilter) sectorFilter.classList.add('hidden');
                 if (scoreFilter) scoreFilter.classList.add('hidden');
@@ -1302,6 +1562,9 @@
         }
 
         function filterTable() {
+            if (currentTab === 'home' || currentTab === 'rendafixa') {
+                return;
+            }
             if (currentTab === 'sectors') {
                 const tbody = document.getElementById('sectors-tbody');
                 let count = 0;
@@ -2178,43 +2441,13 @@
                     // 1. Timestamp
                     document.getElementById('timestamp-container').textContent = data.timestamp;
 
-                    // 2. Top Picks: Stocks
-                    const topStocksList = document.getElementById('top-stocks-list');
-                    topStocksList.innerHTML = data.top_stocks.map((stock, i) => `
-                        <li class="top-item" onclick="openDetailModal('${stock.ticker}', 'stock')">
-                            <span class="top-rank">${i + 1}</span>
-                            <span class="top-ticker">${stock.ticker}</span>
-                            <span class="top-val positive" title="Score: ${formatScore(stock.score)}">${formatScore(stock.score)} | DY: ${(stock.dividend_yield * 100).toFixed(2)}% | P/VP: ${stock.pb_ratio ? stock.pb_ratio.toFixed(2) : 'N/A'}</span>
-                        </li>
-                    `).join('');
+                    // 2. Render Home Panel (v3)
+                    renderHomePanel(data);
 
-                    // 3. Top Picks: FIIs
-                    const topFiisList = document.getElementById('top-fiis-list');
-                    topFiisList.innerHTML = data.top_fiis.map((fii, i) => `
-                        <li class="top-item" onclick="openDetailModal('${fii.ticker}', 'fii')">
-                            <span class="top-rank">${i + 1}</span>
-                            <span class="top-ticker">${fii.ticker}</span>
-                            <span class="top-val positive" title="Score: ${formatScore(fii.score)}">${formatScore(fii.score)} | DY: ${(fii.dividend_yield * 100).toFixed(2)}% | P/VP: ${fii.pb_ratio ? fii.pb_ratio.toFixed(2) : 'N/A'}</span>
-                        </li>
-                    `).join('');
+                    // 3. Render Renda Fixa Panel (v3)
+                    renderRendaFixaPanel(data);
 
-                    // 4. Top Picks: FIAGROs
-                    const topFiagrosCard = document.getElementById('top-fiagros-card');
-                    if (data.top_fiagros && data.top_fiagros.length > 0) {
-                        topFiagrosCard.style.display = 'block';
-                        const topFiagrosList = document.getElementById('top-fiagros-list');
-                        topFiagrosList.innerHTML = data.top_fiagros.map((fiagro, i) => `
-                            <li class="top-item" onclick="openDetailModal('${fiagro.ticker}', 'fiagro')">
-                                <span class="top-rank">${i + 1}</span>
-                                <span class="top-ticker">${fiagro.ticker}</span>
-                                <span class="top-val positive" title="Score: ${formatScore(fiagro.score)}">${formatScore(fiagro.score)} | DY: ${(fiagro.dividend_yield * 100).toFixed(2)}% | P/VP: ${fiagro.pb_ratio ? fiagro.pb_ratio.toFixed(2) : 'N/A'}</span>
-                            </li>
-                        `).join('');
-                    } else {
-                        topFiagrosCard.style.display = 'none';
-                    }
-
-                    // 5. Unique Sectors Filter
+                    // 4. Unique Sectors Filter
                     const sectorFilter = document.getElementById('sector-filter');
                     data.unique_sectors.forEach(sector => {
                         const opt = document.createElement('option');
@@ -2223,7 +2456,7 @@
                         sectorFilter.appendChild(opt);
                     });
 
-                    // 6. Stocks Table
+                    // 5. Stocks Table
                     const stocksTbody = document.getElementById('stocks-tbody');
                     stocksTbody.innerHTML = data.stocks.map(stock => {
                         const indices = stock.indices || [];
@@ -2295,7 +2528,7 @@
                         </tr>`;
                     }).join('');
 
-                    // 7. FIIs Table
+                    // 6. FIIs Table
                     const fiisTbody = document.getElementById('fiis-tbody');
                     fiisTbody.innerHTML = data.fiis.map(fii => {
                         const priceFormatted = fii.price ? `R$ ${fii.price.toFixed(2)}` : 'N/A';
@@ -2330,7 +2563,7 @@
                         </tr>`;
                     }).join('');
 
-                    // 8. FIAGROs Table
+                    // 7. FIAGROs Table
                     const fiagrosTbody = document.getElementById('fiagros-tbody');
                     fiagrosTbody.innerHTML = data.fiagros.map(fiagro => {
                         const priceFormatted = fiagro.price ? `R$ ${fiagro.price.toFixed(2)}` : 'N/A';
@@ -2365,7 +2598,7 @@
                         </tr>`;
                     }).join('');
 
-                    // 9. Sectors Summary Table
+                    // 8. Sectors Summary Table
                     const sectorsTbody = document.getElementById('sectors-tbody');
                     sectorsTbody.innerHTML = data.sectors_summary.map(sector => {
                         const avgPeFormatted = sector.avg_pe ? sector.avg_pe.toFixed(2) : 'N/A';
@@ -2388,6 +2621,311 @@
                 });
         }
 
+        /* ── v3 Helper Functions ── */
+
+        function getTrendIcon(trend) {
+            if (!trend) return '→';
+            var t = String(trend).toLowerCase();
+            if (t === 'up' || t === 'subindo' || t === 'alta') return '↑';
+            if (t === 'down' || t === 'baixa' || t === 'queda') return '↓';
+            return '→';
+        }
+
+        function formatPercent(value) {
+            if (value == null || isNaN(value)) return '—';
+            return Number(value).toFixed(2) + '%';
+        }
+
+        function renderHomePanel(data) {
+            // ---- Macro State ----
+            const macro = data.macro_state;
+            if (macro) {
+                // Selic
+                const selicEl = document.getElementById('macro-selic');
+                const selicTrendEl = document.getElementById('macro-selic-trend');
+                const selicFocusEl = document.getElementById('macro-selic-focus');
+                if (selicEl) selicEl.textContent = macro.selic != null ? (macro.selic * 100).toFixed(2) + '%' : '—';
+                if (selicTrendEl) {
+                    // Derive selic trend from focus direction if available
+                    var selicTrend = 'stable';
+                    if (macro.focus_selic && macro.focus_selic.length > 0 && macro.selic != null) {
+                        selicTrend = macro.focus_selic[0] > macro.selic ? 'up' : macro.focus_selic[0] < macro.selic ? 'down' : 'stable';
+                    }
+                    var icon = getTrendIcon(selicTrend);
+                    selicTrendEl.textContent = icon + ' Selic';
+                    selicTrendEl.className = 'macro-trend ' + selicTrend;
+                }
+                if (selicFocusEl) {
+                    var selicFocusStr = '—';
+                    if (macro.focus_selic && macro.focus_selic.length > 0) {
+                        selicFocusStr = macro.focus_selic.map(function(v) { return (v * 100).toFixed(1) + '%'; }).join(' → ');
+                    }
+                    selicFocusEl.textContent = 'Focus: ' + selicFocusStr;
+                }
+
+                // IPCA (uses focus_ipca array — first element as current estimate)
+                const ipcaEl = document.getElementById('macro-ipca');
+                const ipcaTrendEl = document.getElementById('macro-ipca-trend');
+                const ipcaFocusEl = document.getElementById('macro-ipca-focus');
+                const ipcaVal = macro.focus_ipca && macro.focus_ipca.length > 0 ? macro.focus_ipca[0] : null;
+                if (ipcaEl) ipcaEl.textContent = ipcaVal != null ? (ipcaVal * 100).toFixed(2) + '%' : '—';
+                if (ipcaTrendEl) {
+                    var trend = macro.focus_ipca_trend || 'stable';
+                    var icon = getTrendIcon(trend);
+                    var trendClass = trend === 'up' || trend === 'subindo' || trend === 'alta' ? 'up' :
+                                     trend === 'down' || trend === 'baixa' || trend === 'queda' ? 'down' : 'stable';
+                    ipcaTrendEl.textContent = icon + ' IPCA';
+                    ipcaTrendEl.className = 'macro-trend ' + trendClass;
+                }
+                if (ipcaFocusEl) {
+                    var ipcaFocusStr = '—';
+                    if (macro.focus_ipca && macro.focus_ipca.length > 0) {
+                        ipcaFocusStr = macro.focus_ipca.map(function(v) { return (v * 100).toFixed(1) + '%'; }).join(' → ');
+                    }
+                    ipcaFocusEl.textContent = 'Focus: ' + ipcaFocusStr;
+                }
+
+                // Câmbio (uses focus_cambio array — first element as current estimate)
+                const cambioEl = document.getElementById('macro-cambio');
+                const cambioFocusEl = document.getElementById('macro-cambio-focus');
+                const cambioVal = macro.focus_cambio && macro.focus_cambio.length > 0 ? macro.focus_cambio[0] : null;
+                if (cambioEl) cambioEl.textContent = cambioVal != null ? 'R$ ' + cambioVal.toFixed(2) : '—';
+                if (cambioFocusEl) {
+                    var cambioFocusStr = '—';
+                    if (macro.focus_cambio && macro.focus_cambio.length > 0) {
+                        cambioFocusStr = 'R$ ' + macro.focus_cambio.map(function(v) { return v.toFixed(2); }).join(' → R$ ');
+                    }
+                    cambioFocusEl.textContent = 'Focus: ' + cambioFocusStr;
+                }
+
+                // Timestamp
+                const homeTs = document.getElementById('home-timestamp');
+                if (homeTs && macro.fetched_at) {
+                    homeTs.textContent = 'Atualizado em: ' + macro.fetched_at;
+                }
+            }
+
+            // ---- Top Picks ----
+            const home = data.home || {};
+
+            // Top Stocks
+            const topStocks = home.top_stocks || data.top_stocks || [];
+            const homeStocksEl = document.getElementById('home-top-stocks');
+            if (homeStocksEl) {
+                if (topStocks.length === 0) {
+                    homeStocksEl.innerHTML = '<div style="font-size:0.8rem;color:var(--text-muted);padding:0.3rem 0;">Nenhum destaque</div>';
+                } else {
+                    homeStocksEl.innerHTML = topStocks.slice(0, 3).map(s => {
+                        const ticker = s.ticker || s.symbol || '—';
+                        const score = s.score != null ? s.score : 0;
+                        const dy = s.dividend_yield || 0;
+                        const pb = s.pb_ratio;
+                        const detail = `Score ${score.toFixed(2)} | DY ${(dy * 100).toFixed(2)}%` + (pb ? ` | P/VP ${pb.toFixed(2)}` : '');
+                        return `<div class="home-pick-item" onclick="openDetailModal('${ticker}', 'stock')">
+                            <span class="home-pick-ticker">${ticker}</span>
+                            <span class="home-pick-detail">${detail}</span>
+                            <span class="home-pick-score score-pill ${getScoreRangeClass(score)}" style="font-size:0.75rem;height:1.5rem;min-width:1.5rem;">${formatScore(score)}</span>
+                        </div>`;
+                    }).join('');
+                }
+            }
+
+            // Top FIIs
+            const topFiis = home.top_fiis || data.top_fiis || [];
+            const homeFiisEl = document.getElementById('home-top-fiis');
+            if (homeFiisEl) {
+                if (topFiis.length === 0) {
+                    homeFiisEl.innerHTML = '<div style="font-size:0.8rem;color:var(--text-muted);padding:0.3rem 0;">Nenhum destaque</div>';
+                } else {
+                    homeFiisEl.innerHTML = topFiis.slice(0, 3).map(s => {
+                        const ticker = s.ticker || '—';
+                        const score = s.score != null ? s.score : 0;
+                        const dy = s.dividend_yield || 0;
+                        const pb = s.pb_ratio;
+                        const detail = `Score ${score.toFixed(2)} | DY ${(dy * 100).toFixed(2)}%` + (pb ? ` | P/VP ${pb.toFixed(2)}` : '');
+                        return `<div class="home-pick-item" onclick="openDetailModal('${ticker}', 'fii')">
+                            <span class="home-pick-ticker">${ticker}</span>
+                            <span class="home-pick-detail">${detail}</span>
+                            <span class="home-pick-score score-pill ${getScoreRangeClass(score)}" style="font-size:0.75rem;height:1.5rem;min-width:1.5rem;">${formatScore(score)}</span>
+                        </div>`;
+                    }).join('');
+                }
+            }
+
+            // Top FIAGROs
+            const topFiagros = home.top_fiagros || data.top_fiagros || [];
+            const homeFiagrosCard = document.getElementById('home-top-fiagros-card');
+            const homeFiagrosEl = document.getElementById('home-top-fiagros');
+            if (homeFiagrosCard && homeFiagrosEl) {
+                if (topFiagros.length === 0) {
+                    homeFiagrosCard.style.display = 'none';
+                } else {
+                    homeFiagrosCard.style.display = '';
+                    homeFiagrosEl.innerHTML = topFiagros.slice(0, 3).map(s => {
+                        const ticker = s.ticker || '—';
+                        const score = s.score != null ? s.score : 0;
+                        const dy = s.dividend_yield || 0;
+                        const pb = s.pb_ratio;
+                        const detail = `Score ${score.toFixed(2)} | DY ${(dy * 100).toFixed(2)}%` + (pb ? ` | P/VP ${pb.toFixed(2)}` : '');
+                        return `<div class="home-pick-item" onclick="openDetailModal('${ticker}', 'fiagro')">
+                            <span class="home-pick-ticker">${ticker}</span>
+                            <span class="home-pick-detail">${detail}</span>
+                            <span class="home-pick-score score-pill ${getScoreRangeClass(score)}" style="font-size:0.75rem;height:1.5rem;min-width:1.5rem;">${formatScore(score)}</span>
+                        </div>`;
+                    }).join('');
+                }
+            }
+
+            // Top Tesouro Direto
+            const topTesouro = home.top_tesouro || [];
+            const homeTesouroEl = document.getElementById('home-top-tesouro');
+            if (homeTesouroEl) {
+                if (topTesouro.length === 0) {
+                    homeTesouroEl.innerHTML = '<div style="font-size:0.8rem;color:var(--text-muted);padding:0.3rem 0;">Nenhum destaque</div>';
+                } else {
+                    homeTesouroEl.innerHTML = topTesouro.slice(0, 2).map(s => {
+                        const name = s.name || s.ticker || '—';
+                        const yieldVal = s.buy_yield || s.yield || 0;
+                        const score = s.score != null ? s.score : 0;
+                        const maturity = s.days_to_maturity ? (s.days_to_maturity + 'd') : (s.maturity_date || '');
+                        return `<div class="home-pick-item">
+                            <span class="home-pick-ticker">${name}</span>
+                            <span class="home-pick-detail">${(yieldVal * 100).toFixed(2)}% a.a. · ${maturity}</span>
+                            <span class="home-pick-score score-pill ${getScoreRangeClass(score)}" style="font-size:0.75rem;height:1.5rem;min-width:1.5rem;">${formatScore(score)}</span>
+                        </div>`;
+                    }).join('');
+                }
+            }
+        }
+
+        function renderRendaFixaPanel(data) {
+            // ---- Tesouro Direto Table ----
+            const tdData = data.tesouro_direto || [];
+            const tbody = document.getElementById('rendafixa-tbody');
+            const countEl = document.getElementById('rendafixa-count');
+            if (tbody) {
+                if (tdData.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:2rem;">Nenhum título disponível</td></tr>';
+                    if (countEl) countEl.textContent = '0 títulos';
+                } else {
+                    tbody.innerHTML = tdData.map(td => {
+                        const name = td.name || '—';
+                        const tipo = td.type || '—';
+                        const yieldVal = td.buy_yield != null ? td.buy_yield : null;
+                        const yieldStr = yieldVal !== null ? (yieldVal * 100).toFixed(2) + '%' : '—';
+                        const maturity = td.maturity_date || (td.days_to_maturity ? td.days_to_maturity + ' dias' : '—');
+                        const score = td.score != null ? td.score : 0;
+                        const badge = td.badge || '';
+                        // Normalize badge to capitalize first letter for display
+                        const badgeDisplay = badge.charAt(0).toUpperCase() + badge.slice(1);
+                        const badgeLower = badge.toLowerCase();
+                        const badgeClass = badgeLower === 'premium' ? 'badge-premium' :
+                                           badgeLower === 'bom' ? 'badge-bom' :
+                                           badgeLower === 'regular' ? 'badge-regular' :
+                                           badgeLower === 'alto_risco' || badgeLower === 'alto risco' ? 'badge-alto_risco' : '';
+
+                        // Score breakdown tooltip
+                        let breakdownTip = '';
+                        if (td.score_breakdown && td.score_breakdown.length > 0) {
+                            breakdownTip = td.score_breakdown.map(function(b) { return b.label + ': ' + b.score.toFixed(2) + '/' + b.max.toFixed(1); }).join(' | ');
+                        }
+
+                        return '<tr title="' + breakdownTip.replace(/"/g, '&quot;') + '">' +
+                            '<td class="name-cell" style="font-weight:600;">' + name + '</td>' +
+                            '<td class="td-tipo">' + tipo + '</td>' +
+                            '<td class="font-mono tabular" style="font-weight:600;color:var(--positive);">' + yieldStr + '</td>' +
+                            '<td class="font-mono tabular" style="font-size:0.8rem;">' + maturity + '</td>' +
+                            '<td><span class="score-pill ' + getScoreRangeClass(score) + '" style="font-size:0.75rem;height:1.5rem;min-width:1.5rem;">' + formatScore(score) + '</span></td>' +
+                            '<td>' + (badgeClass ? '<span class="' + badgeClass + '">' + badgeDisplay + '</span>' : '—') + '</td>' +
+                        '</tr>';
+                    }).join('');
+                    if (countEl) countEl.textContent = tdData.length + ' título' + (tdData.length !== 1 ? 's' : '');
+                }
+            }
+
+            // ---- ETTJ Curve Chart ----
+            const macro = data.macro_state;
+            if (macro && macro.ettj_curve) {
+                const curveObj = macro.ettj_curve;
+                // Convert object { "1y": 0.1334, "3y": 0.1374, ... } to chart arrays
+                const keys = Object.keys(curveObj);
+                if (keys.length > 0) {
+                    const canvas = document.getElementById('ettj-chart');
+                    if (canvas) {
+                        const ctx = canvas.getContext('2d');
+                        // Clear any previous chart instance on this canvas
+                        if (window.ettjChartInstance) {
+                            window.ettjChartInstance.destroy();
+                            window.ettjChartInstance = null;
+                        }
+
+                        // Map object keys to readable labels, values to percentage
+                        var labelMap = { '1m': '1 mês', '3m': '3 meses', '6m': '6 meses', '1y': '1 ano', '2y': '2 anos', '3y': '3 anos', '5y': '5 anos', '10y': '10 anos', '20y': '20 anos', '30y': '30 anos' };
+                        var labels = keys.map(function(k) { return labelMap[k] || k; });
+                        var values = keys.map(function(k) { var v = curveObj[k]; return v != null ? v * 100 : 0; });
+
+                        const isLight = !document.body.classList.contains('dark');
+                        const gridColor = isLight ? 'rgba(15, 23, 42, 0.06)' : 'rgba(255, 255, 255, 0.05)';
+                        const tickColor = isLight ? '#475569' : '#9ca3af';
+
+                        window.ettjChartInstance = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    label: 'Taxa (% a.a.)',
+                                    data: values,
+                                    borderColor: '#8b5cf6',
+                                    backgroundColor: 'rgba(139, 92, 246, 0.08)',
+                                    borderWidth: 2,
+                                    pointRadius: 4,
+                                    pointHoverRadius: 6,
+                                    pointBackgroundColor: '#8b5cf6',
+                                    fill: true,
+                                    tension: 0.3
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { display: false },
+                                    tooltip: {
+                                        intersect: false,
+                                        mode: 'index',
+                                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                        titleFont: { size: 11, weight: '600' },
+                                        bodyFont: { size: 13, weight: '700' },
+                                        padding: 8,
+                                        cornerRadius: 4,
+                                        callbacks: {
+                                            label: function(context) {
+                                                return context.parsed.y.toFixed(2) + '% a.a.';
+                                            }
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    x: {
+                                        grid: { display: false },
+                                        ticks: { color: tickColor, maxTicksLimit: 8, maxRotation: 30 }
+                                    },
+                                    y: {
+                                        grid: { color: gridColor },
+                                        ticks: {
+                                            color: tickColor,
+                                            callback: function(value) { return value.toFixed(1) + '%'; }
+                                        },
+                                        grace: '10%'
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const isDark = document.body.classList.contains('dark');
             const themeIcon = document.getElementById('theme-toggle-icon');
@@ -2401,8 +2939,8 @@
             // Inicializar label do PDF
             const pdfLabel = document.getElementById('pdf-label');
             if (pdfLabel) {
-                const names = { stocks: 'Ações', fiis: 'FIIs', fiagros: 'FIAGROs', sectors: 'Setores' };
-                pdfLabel.textContent = names[currentTab] || 'Ações';
+                const names = { home: 'Home', stocks: 'Ações', fiis: 'FIIs', fiagros: 'FIAGROs', sectors: 'Setores', rendafixa: 'Renda Fixa' };
+                pdfLabel.textContent = names[currentTab] || 'Home';
             }
             loadDashboardData();
         });
