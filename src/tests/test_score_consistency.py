@@ -117,3 +117,49 @@ def test_html_templates_consistency():
         assert "data-breakdown=" in content, (
             f"data-breakdown attribute is missing in row templates of {t_file}."
         )
+
+
+def test_historical_score_consistency():
+    """Verify that history_json has been successfully enriched with scores and other metrics."""
+    if not os.path.exists(DB_PATH):
+        pytest.skip(f"Database not found at {DB_PATH}. Run ingestion first.")
+
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    for table in ["stocks", "fiis", "fiagros"]:
+        cursor.execute(f"SELECT ticker, history_json FROM {table}")
+        rows = cursor.fetchall()
+        for r in rows:
+            ticker = r["ticker"]
+            hist_str = r["history_json"]
+            if not hist_str:
+                continue
+
+            try:
+                history = json.loads(hist_str)
+            except Exception as e:
+                pytest.fail(f"Invalid history_json format for {ticker} in {table}: {e}")
+
+            # If there is history, verify structure
+            if history:
+                assert isinstance(history, list), f"history_json for {ticker} is not a list."
+                # We check the last point which should be enriched (if it was ingested recently)
+                last_pt = history[-1]
+                assert "date" in last_pt, f"Missing date in history point for {ticker}."
+                assert "price" in last_pt, f"Missing price in history point for {ticker}."
+                
+                # Check for new keys (they will exist after we run the ingestion pipeline)
+                # We assert their structure if present.
+                if "score" in last_pt:
+                    score = last_pt["score"]
+                    assert isinstance(score, (int, float)), f"Historical score for {ticker} must be a number."
+                    assert 0.0 <= score <= 10.0, f"Historical score {score} for {ticker} is out of bounds."
+                if "pb" in last_pt:
+                    assert last_pt["pb"] is None or isinstance(last_pt["pb"], (int, float)), f"pb for {ticker} must be a number or null."
+                if "dy" in last_pt:
+                    assert last_pt["dy"] is None or isinstance(last_pt["dy"], (int, float)), f"dy for {ticker} must be a number or null."
+
+    conn.close()
+

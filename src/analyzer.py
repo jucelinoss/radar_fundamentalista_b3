@@ -1040,3 +1040,81 @@ def analyze_fiagro(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
         'score_v2': score_v2,
         'score_breakdown': score_breakdown
     }
+
+
+def calculate_historical_scores(ticker: str, asset_type: str, current_metrics: dict[str, Any], history_points: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """
+    Calculates historical score, pb, dy, pe metrics for each price history point.
+    All calculations are done here (Single Source of Truth) to enrich history_json before saving.
+    """
+    enriched_history = []
+    current_price = safe_float(current_metrics.get("price"))
+    if not current_price or current_price <= 0:
+        return history_points
+
+    for pt in history_points:
+        date_str = pt.get("date")
+        price_t = safe_float(pt.get("price"))
+        if price_t is None or price_t <= 0:
+            continue
+
+        item = {
+            "date": date_str,
+            "price": price_t
+        }
+
+        if asset_type == "stock":
+            vpa = safe_float(current_metrics.get("book_value"))
+            eps = safe_float(current_metrics.get("eps"))
+            current_pb = safe_float(current_metrics.get("pb_ratio"))
+            current_dy_3y = safe_float(current_metrics.get("dy_medio_3y"))
+            current_pe_5y = safe_float(current_metrics.get("pe_medio_5y"))
+            roe = safe_float(current_metrics.get("roe"))
+            graham_price = safe_float(current_metrics.get("graham_price"))
+            raw_sector = current_metrics.get("sector")
+
+            # Scale historical ratios
+            pb_t = price_t / vpa if (vpa and vpa > 0) else None
+            pe_t = price_t / eps if (eps and eps != 0) else None
+            
+            dy_3y_t = current_dy_3y * (current_price / price_t) if (current_dy_3y is not None) else None
+            pe_5y_t = current_pe_5y * (price_t / current_price) if (current_pe_5y is not None) else None
+
+            # Calculate continuous score at T
+            s1 = _score_dy_stock(dy_3y_t)
+            s2 = _score_pe_stock(pe_5y_t)
+            s3 = _score_pb_stock(pb_t)
+            s4 = _score_roe_stock(roe)
+            s5 = _score_graham_stock(price_t, graham_price, peg_ratio=None, sector=raw_sector)
+            
+            score_t = round(s1 + s2 + s3 + s4 + s5, SCORE_DECIMALS)
+            
+            item["score"] = score_t
+            item["pb"] = round(pb_t, 2) if pb_t is not None else None
+            current_dy = safe_float(current_metrics.get("dividend_yield"))
+            dy_t = current_dy * (current_price / price_t) if (current_dy is not None) else None
+            item["dy"] = round(dy_t * 100, 2) if dy_t is not None else None
+            item["pe"] = round(pe_t, 2) if pe_t is not None else None
+
+        else: # fii or fiagro
+            is_fiagro = (asset_type == "fiagro")
+            vpa = safe_float(current_metrics.get("book_value"))
+            current_dy = safe_float(current_metrics.get("dividend_yield"))
+            consistency = safe_float(current_metrics.get("dividend_consistency"))
+
+            pb_t = price_t / vpa if (vpa and vpa > 0) else None
+            dy_t = current_dy * (current_price / price_t) if (current_dy is not None) else None
+
+            s1 = _score_pb_fii_unified(pb_t)
+            s2 = _score_dy_fii_v2(dy_t, is_fiagro=is_fiagro)
+            s4 = _score_dividend_consistency_v2(consistency)
+
+            score_t = round(s1 + s2 + s4, SCORE_DECIMALS)
+
+            item["score"] = score_t
+            item["pb"] = round(pb_t, 2) if pb_t is not None else None
+            item["dy"] = round(dy_t * 100, 2) if dy_t is not None else None
+
+        enriched_history.append(item)
+
+    return enriched_history

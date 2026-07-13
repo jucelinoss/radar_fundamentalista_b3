@@ -997,6 +997,7 @@
                             <div class="section-title" style="margin-bottom:0;border:none;padding:0;">Histórico</div>
                             <select id="chart-indicator-select" onchange="updateChartIndicator()"
                                 class="filter-select" style="padding:0.3rem 0.5rem;font-size:0.7rem;">
+                                <option value="score" selected>Score Radar</option>
                                 <option value="price">Preço (R$)</option>
                                 <option value="pe">P/L</option>
                                 <option value="pb">P/VP</option>
@@ -1610,10 +1611,10 @@
             const activeRangeBtn = document.getElementById('btn-range-10');
             if (activeRangeBtn) activeRangeBtn.classList.add('active');
 
-            // Reset dropdown to "price"
-            document.getElementById('chart-indicator-select').value = 'price';
+            // Reset dropdown to "score"
+            document.getElementById('chart-indicator-select').value = 'score';
 
-            renderChart(currentAssetHistory, 'price');
+            renderChart(currentAssetHistory, 'score');
 
             // Show Modal
             document.getElementById('detail-modal').classList.remove('hidden');
@@ -1718,38 +1719,40 @@
             let borderColor = '#3b82f6';
             let backgroundColor = 'rgba(59, 130, 246, 0.05)';
 
-            if (indicator === 'price') {
+            if (indicator === 'score') {
+                data = filteredHistory.map(h => h.score !== undefined ? h.score : null);
+                label = 'Score Radar';
+                borderColor = '#10b981';
+                backgroundColor = 'rgba(16, 185, 129, 0.05)';
+            } else if (indicator === 'price') {
                 data = filteredHistory.map(h => h.price);
                 label = 'Preço (R$)';
                 borderColor = '#3b82f6';
                 backgroundColor = 'rgba(59, 130, 246, 0.05)';
             } else if (indicator === 'pe') {
-                const eps = currentAssetMetrics.eps;
-                if (eps !== null && eps !== 0) {
-                    data = filteredHistory.map(h => roundValue(h.price / eps, 2));
-                } else {
-                    data = filteredHistory.map(h => null);
-                }
+                data = filteredHistory.map(h => {
+                    if (h.pe !== undefined && h.pe !== null) return h.pe;
+                    const eps = currentAssetMetrics.eps;
+                    return (eps !== null && eps !== 0) ? roundValue(h.price / eps, 2) : null;
+                });
                 label = 'P/L';
                 borderColor = '#a855f7';
                 backgroundColor = 'rgba(168, 85, 247, 0.05)';
             } else if (indicator === 'pb') {
-                const vpa = currentAssetMetrics.vpa;
-                if (vpa !== null && vpa > 0) {
-                    data = filteredHistory.map(h => roundValue(h.price / vpa, 2));
-                } else {
-                    data = filteredHistory.map(h => null);
-                }
+                data = filteredHistory.map(h => {
+                    if (h.pb !== undefined && h.pb !== null) return h.pb;
+                    const vpa = currentAssetMetrics.vpa;
+                    return (vpa !== null && vpa > 0) ? roundValue(h.price / vpa, 2) : null;
+                });
                 label = 'P/VP';
                 borderColor = '#eab308';
                 backgroundColor = 'rgba(234, 179, 8, 0.05)';
             } else if (indicator === 'dy') {
-                const divRate = currentAssetMetrics.dividendRate;
-                if (divRate !== null && divRate > 0) {
-                    data = filteredHistory.map(h => roundValue((divRate / h.price) * 100, 2));
-                } else {
-                    data = filteredHistory.map(h => 0);
-                }
+                data = filteredHistory.map(h => {
+                    if (h.dy !== undefined && h.dy !== null) return h.dy;
+                    const divRate = currentAssetMetrics.dividendRate;
+                    return (divRate !== null && divRate > 0) ? roundValue((divRate / h.price) * 100, 2) : 0;
+                });
                 label = 'Dividend Yield (%)';
                 borderColor = '#10b981';
                 backgroundColor = 'rgba(16, 185, 129, 0.05)';

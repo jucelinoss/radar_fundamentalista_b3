@@ -250,11 +250,20 @@ def _fetch_with_retry(ticker: str, resolved_ticker: str, asset_type: str,
                 analysis = analyzer.analyze_fiagro(resolved_ticker, info)
             else:
                 analysis = analyzer.analyze_fii(resolved_ticker, info)
-            analysis["history_json"] = fetch_history(
+            history_str = fetch_history(
                 resolved_ticker, config,
                 period=pipeline_cfg.get("history_years", "10y"),
                 max_points=pipeline_cfg.get("history_sample_points", 60),
             )
+            try:
+                history_points = json.loads(history_str)
+                enriched_points = analyzer.calculate_historical_scores(
+                    resolved_ticker, asset_type, analysis, history_points
+                )
+                analysis["history_json"] = json.dumps(enriched_points)
+            except Exception as e:
+                logger.warning(f"Failed to calculate historical scores for {resolved_ticker}: {e}")
+                analysis["history_json"] = history_str
             return analysis
 
         msg = "No valid data from any source"
