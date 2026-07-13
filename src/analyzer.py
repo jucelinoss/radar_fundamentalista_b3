@@ -1,4 +1,6 @@
+import json
 import math
+import os
 from typing import Any
 
 # ---------------------------------------------------------------------------
@@ -10,13 +12,13 @@ GRAHAM_MULTIPLIER = 22.5
 # Bazin's target annual dividend yield (6%)
 BAZIN_TARGET_DY = 0.06
 # Dividend yield thresholds for scoring
-DY_THRESHOLD = 0.06        # Minimum DY for stocks (Bazin)
+DY_THRESHOLD = 0.06        # Minimum DY for stocks (Bazin) — static fallback
 DY_FII_GOOD = 0.08         # Good DY for FIIs
 DY_FII_EXCELLENT = 0.10    # Excellent DY for FIIs
 DY_FIAGRO_GOOD = 0.10      # Minimum DY for FIAGROs (elevated risk premium)
 DY_FIAGRO_EXCELLENT = 0.12 # Excellent DY for FIAGROs
 # Valuation thresholds
-PE_MAX_GRAHAM = 15          # Max P/E for Graham value
+PE_MAX_GRAHAM = 15          # Max P/E for Graham value — static fallback
 PB_MAX_GRAHAM = 1.5         # Max P/B for Graham value
 ROE_MIN = 0.10              # Min ROE for profitability
 PB_FII_IDEAL_LOW = 0.70     # P/VP >= 0.70 = blindagem contra value traps
@@ -24,6 +26,74 @@ PB_FII_IDEAL_HIGH = 1.05    # P/VP <= 1.05 = valor justo (ideal)
 
 PB_FII_MAX = 1.15           # Max P/VP for FIIs
 PEG_MAX = 1.0               # Max PEG ratio for growth/value balance
+
+# Selic padrão para cálculos quando macro_state não está disponível
+_DEFAULT_SELIC = 0.1400     # 14.00% a.a.
+
+# ---------------------------------------------------------------------------
+# Macro State — carregamento lazy do estado macroeconômico
+# ---------------------------------------------------------------------------
+_macro_state_cache: dict | None = None
+
+
+def load_macro_state() -> dict:
+    """
+    Carrega o CURRENT_MACRO_STATE de data/macro_state.json.
+    Retorna dicionário vazio se o arquivo não existir.
+    O resultado é cacheado em memória por processo (lazy loading).
+    """
+    global _macro_state_cache
+    if _macro_state_cache is not None:
+        return _macro_state_cache
+    try:
+        src_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(src_dir)
+        state_file = os.path.join(project_root, "data", "macro_state.json")
+        if os.path.exists(state_file):
+            with open(state_file, encoding="utf-8") as f:
+                _macro_state_cache = json.load(f)
+            return _macro_state_cache
+    except Exception:
+        pass
+    _macro_state_cache = {}
+    return _macro_state_cache
+
+
+def _get_selic() -> float:
+    """Retorna Selic atual do macro_state ou o fallback padrão."""
+    state = load_macro_state()
+    val = state.get("CURRENT_SELIC")
+    return float(val) if val is not None else _DEFAULT_SELIC
+
+
+def _get_pe_max_dynamic() -> float:
+    """
+    Teto dinâmico de P/L baseado na Selic: min(15.0, 1.2 / SELIC).
+    Com Selic a 14%: min(15, 8.57) = 8.57
+    Com Selic a 8%:  min(15, 15.0) = 15.0
+    """
+    selic = _get_selic()
+    return min(15.0, 1.2 / selic) if selic > 0 else 15.0
+
+
+def _get_dy_stock_target() -> float:
+    """
+    Yield mínimo adaptativo para ações: max(6%, SELIC × 60%).
+    Com Selic a 14%: max(6%, 8.4%) = 8.4%
+    Com Selic a 8%:  max(6%, 4.8%) = 6.0%
+    """
+    selic = _get_selic()
+    return max(0.06, selic * 0.6)
+
+
+def _get_dy_fii_cap() -> float:
+    """Teto elástico FII: SELIC + 4pp (risco crédito predatório)."""
+    return _get_selic() + 0.04
+
+
+def _get_dy_fiagro_cap() -> float:
+    """Teto elástico FIAGRO: SELIC + 6pp (risco crédito predatório)."""
+    return _get_selic() + 0.06
 
 # ---------------------------------------------------------------------------
 # Constants — v2.5 Continuous Score
@@ -194,25 +264,28 @@ def _sanitize_rate(rate: float | None, max_rate: float = DIVIDEND_RATE_MAX) -> f
     return rate
 
 
-def _score_dy_stock(dy_medio_3y: float | None) -> float:
+def _score_dy_stock(dy_medio_3y: float | None, dy_target: float | None = None) -> float:
     """
     Stock Dividend Yield criterion (0-2 pts).
-    Meta: >= 6%. Max at 15%.
+    Meta dinâmica: max(6%, SELIC × 60%). Max at 15%.
     """
-    if dy_medio_3y is None or dy_medio_3y < DY_THRESHOLD:
+    target = dy_target if dy_target is not None else _get_dy_stock_target()
+    dy_factor = 1.0 / (DY_MAX_SCORE_PCT - target) if DY_MAX_SCORE_PCT > target else 11.111
+    if dy_medio_3y is None or dy_medio_3y < target:
         return 0.0
-    bonus = (dy_medio_3y - DY_THRESHOLD) * DY_FACTOR
+    bonus = (dy_medio_3y - target) * dy_factor
     return round(_clamp(1.0 + bonus, 0.0, 2.0), SCORE_DECIMALS)
 
 
-def _score_pe_stock(pe_medio_5y: float | None) -> float:
+def _score_pe_stock(pe_medio_5y: float | None, pe_max: float | None = None) -> float:
     """
     Stock P/L criterion (0-2 pts).
-    Meta: 0 < pe <= 15. Proportional: lower is better.
+    Teto dinâmico: min(15, 1.2 / SELIC). Menor P/L = melhor.
     """
-    if pe_medio_5y is None or pe_medio_5y <= 0 or pe_medio_5y > PE_MAX_GRAHAM:
+    pe_limit = pe_max if pe_max is not None else _get_pe_max_dynamic()
+    if pe_medio_5y is None or pe_medio_5y <= 0 or pe_medio_5y > pe_limit:
         return 0.0
-    proportion = (PE_MAX_GRAHAM - pe_medio_5y) / PE_MAX_GRAHAM  # 0 at pe=15, 1 at pe=0
+    proportion = (pe_limit - pe_medio_5y) / pe_limit  # 0 at pe=limit, 1 at pe=0
     return round(_clamp(1.0 + proportion * 1.0, 0.0, 2.0), SCORE_DECIMALS)
 
 
@@ -369,16 +442,21 @@ def _score_pb_fii_unified(pb_ratio: float | None) -> float:
                  SCORE_DECIMALS)
 
 
-def _score_dy_fii_v2(dy: float | None, is_fiagro: bool = False) -> float:
+def _score_dy_fii_v2(dy: float | None, is_fiagro: bool = False, dy_cap: float | None = None) -> float:
     """
-    FII/FIAGRO DY (0-4.0 pts) com Teto Rígido (Cap).
+    FII/FIAGRO DY (0-4.0 pts) com Teto Rígido elástico (SELIC + spread).
+    Quando dy_cap é None, usa _get_dy_fii_cap() ou _get_dy_fiagro_cap() dinamicamente.
     """
     min_dy = DY_FIAGRO_MIN if is_fiagro else DY_FII_MIN
-    cap_dy = DY_FIAGRO_CAP if is_fiagro else DY_FII_CAP
+    if dy_cap is not None:
+        cap_dy = dy_cap
+    else:
+        cap_dy = _get_dy_fiagro_cap() if is_fiagro else _get_dy_fii_cap()
     if dy is None or dy < min_dy:
         return 0.0
     if dy >= cap_dy:
-        return 4.0
+        # Acima do cap elástico → risco predatório de crédito → zera
+        return 0.0
     proportion = (dy - min_dy) / (cap_dy - min_dy)
     return round(_clamp(proportion * 4.0, 0.0, 4.0), SCORE_DECIMALS)
 
@@ -705,28 +783,59 @@ def analyze_stock(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
     if pe_medio_5y is None or pe_medio_5y <= 0:
         pe_medio_5y = pe_ratio  # fallback to current P/E
     
-    # v2.5 continuous score
-    s1 = _score_dy_stock(dy_medio_3y)
-    s2 = _score_pe_stock(pe_medio_5y)
+    # v2.5 continuous score — com limites dinâmicos Selic-based
+    dy_target = _get_dy_stock_target()    # max(6%, Selic × 60%)
+    pe_max = _get_pe_max_dynamic()        # min(15, 1.2 / Selic)
+    s1 = _score_dy_stock(dy_medio_3y, dy_target=dy_target)
+    s2 = _score_pe_stock(pe_medio_5y, pe_max=pe_max)
     s3 = _score_pb_stock(pb_ratio)
     s4 = _score_roe_stock(roe)
     s5 = _score_graham_stock(price, graham_price, peg_ratio=peg_ratio, sector=raw_sector)
     score_v2 = round(s1 + s2 + s3 + s4 + s5, SCORE_DECIMALS)
+
+    # --- Gatilhos de Moderação Macro (v3.0) — aplicados APÓS o score base ---
+    # Impacto direto no score_v2 final (não nos componentes individuais)
+    macro_warnings: list[str] = []
+
+    # Gatilho 1 — Fator de Sobrevivência: Liquidez Corrente < 1.0 → -1.5 pts
+    current_ratio = safe_float(info.get("currentRatio"))
+    if current_ratio is not None and current_ratio < 1.0:
+        score_v2 = round(max(0.0, score_v2 - 1.5), SCORE_DECIMALS)
+        macro_warnings.append(f"⚠️ Liquidez Corrente: {current_ratio:.2f}x (< 1,0) → -1,5 pts")
+
+    # Gatilho 2 — ICJ: EBIT / Despesa Financeira < 1.0x → -1.0 pts
+    ebit = safe_float(info.get("ebit"))
+    interest_expense = safe_float(info.get("totalDebt"))  # proxy: usamos endividamento como referência
+    # Tenta calcular ICJ via operatingIncome / totalInterestExpense se disponível
+    operating_income = safe_float(info.get("operatingIncome"))
+    interest_expense_raw = safe_float(info.get("interestExpense"))
+    if operating_income is not None and interest_expense_raw is not None and interest_expense_raw < 0:
+        icj = operating_income / abs(interest_expense_raw)
+        if icj < 1.0:
+            score_v2 = round(max(0.0, score_v2 - 1.0), SCORE_DECIMALS)
+            macro_warnings.append(f"⚠️ Cobertura de Juros (ICJ): {icj:.2f}x (< 1,0) → -1,0 pts")
+
+    # Gatilho 3 — ERP: DY acima da Selic → bônus de atratividade +0.5 pts
+    current_selic = _get_selic()
+    dy_normalizado = dy_medio_3y if dy_medio_3y else dy
+    if dy_normalizado and current_selic and dy_normalizado > current_selic:
+        score_v2 = round(min(10.0, score_v2 + 0.5), SCORE_DECIMALS)
+        macro_warnings.append(f"✅ ERP positivo: DY {dy_normalizado:.2%} > Selic {current_selic:.2%} → +0,5 pts")
 
     score_breakdown = [
         {
             "label": "Dividend Yield Médio (3 Anos)",
             "score": s1,
             "max": 2.0,
-            "desc": f"DY: {(dy_medio_3y * 100):.2f}%" if dy_medio_3y is not None else "N/A",
-            "tip": "Mínimo: 6% = 1,0 pts. Cada 1% extra acima de 6% adiciona ~0,11 pts. Máximo 2,0 pts em ~15%."
+            "desc": f"DY: {(dy_medio_3y * 100):.2f}% (meta: {dy_target:.1%})" if dy_medio_3y is not None else "N/A",
+            "tip": f"Meta dinâmica: max(6%, Selic×60%) = {dy_target:.1%}. Nota base 1,0 na meta. Máximo 2,0 pts em 15%."
         },
         {
             "label": "P/L Médio (5 Anos)",
             "score": s2,
             "max": 2.0,
-            "desc": f"P/L: {pe_medio_5y:.2f}" if pe_medio_5y is not None else "N/A",
-            "tip": "P/L entre 0 e 15 = nota base 1,0. Quanto menor o P/L, maior o bônus (até 2,0 pts). P/L > 15 ou negativo = 0."
+            "desc": f"P/L: {pe_medio_5y:.2f} (teto: {pe_max:.1f}x)" if pe_medio_5y is not None else "N/A",
+            "tip": f"Teto dinâmico: min(15, 1,2/Selic) = {pe_max:.1f}x. P/L menor = mais pontos. Acima do teto = 0."
         },
         {
             "label": "P/VP (Preço / V.P.)",
@@ -750,6 +859,16 @@ def analyze_stock(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
             "tip": "Preço abaixo do valor justo = nota base 1,0. Cada 100% de margem adicional soma +1,0 pts. Máximo 2,0 pts."
         }
     ]
+
+    # Adiciona itens de moderação macro ao breakdown quando ativados
+    if macro_warnings:
+        score_breakdown.append({
+            "label": "Moderadores Macro (v3)",
+            "score": 0.0,
+            "max": 0.0,
+            "desc": " | ".join(macro_warnings),
+            "tip": "Ajustes aplicados sobre o score base: Liquidez Corrente (-1,5), ICJ (-1,0), ERP (+0,5)."
+        })
 
     # Sanitiza valores extremos do Yahoo antes de retornar
     dy = _sanitize_dy(dy, DY_MAX_STOCK)
