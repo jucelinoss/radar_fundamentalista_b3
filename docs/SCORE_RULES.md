@@ -1,4 +1,12 @@
-# **Regras de Análise Fundamentalista — Scorecard 0-10**
+# Documento substituído — Regras de Análise Fundamentalista
+
+> A especificação vigente foi consolidada em [ANALYSIS_RULES_SPECIFICATION.md](ANALYSIS_RULES_SPECIFICATION.md), que inclui ações, FIIs, FIAGROs, Tesouro Direto, análise macroeconômica, fontes e regras de qualidade de dados.
+>
+> Este arquivo é mantido temporariamente somente para preservar links existentes. Não o use como fonte para novas implementações: ele contém critérios e decisões de UI de versões anteriores.
+
+---
+
+# Histórico — Regras de Análise Fundamentalista — Scorecard 0-10
 
 **Radar Fundamentalista B3**  
 **Versão do documento:** 2.5  

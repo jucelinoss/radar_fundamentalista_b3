@@ -1353,6 +1353,17 @@ class TestAnalyzeStockV2:
         assert "score" in result
         assert isinstance(result["score"], int)
 
+    def test_score_breakdown_has_no_macro_erp_bonus(self):
+        """O Radar Macro não injeta bônus ERP no score fundamentalista."""
+        info = {
+            "currentPrice": 10.0, "trailingEps": 2.0, "bookValue": 10.0,
+            "trailingPE": 5.0, "priceToBook": 1.0, "dividendYield": 20.0,
+            "returnOnEquity": 0.20, "longName": "Teste", "sector": "Utilities",
+        }
+        breakdown = analyze_stock("TEST3.SA", info)["score_breakdown"]
+        text = " ".join(item["label"] + " " + item["desc"] for item in breakdown)
+        assert "ERP" not in text and "Moderadores Macro" not in text
+
 
 # ======================================================================
 # Run

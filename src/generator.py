@@ -7,10 +7,18 @@ and top picks, then renders the Jinja2 template to produce dashboard.html.
 import json
 import logging
 import os
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
 import database
+
+# Importações v3: dados macro e scorecard de Renda Fixa
+try:
+    import macro_fetcher
+    import tesouro_analyzer
+    _V3_ENABLED = True
+except ImportError:
+    _V3_ENABLED = False
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -119,6 +127,73 @@ def _compute_sector_summaries(stocks: list[dict[str, Any]]) -> list[dict[str, An
     return summary
 
 
+def _merge_tesouro_history(
+    official_history: list[dict[str, Any]],
+    persisted_history: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Combine histórico oficial e cache sem descartar observações antigas.
+
+    O cache contém snapshots reais coletados em execuções anteriores. A fonte
+    oficial prevalece somente quando ambas possuem a mesma data, pois é a
+    observação mais completa daquele pregão.
+    """
+    merged: dict[str, dict[str, Any]] = {}
+    for point in persisted_history:
+        date = point.get("date")
+        if date:
+            merged[date] = dict(point)
+    for point in official_history:
+        date = point.get("date")
+        if date:
+            merged.setdefault(date, {}).update(point)
+    return [merged[date] for date in sorted(merged)]
+
+
+def _build_tesouro_history_meta(
+    history: list[dict[str, Any]],
+    bond: dict[str, Any],
+    fetched_at: str,
+) -> dict[str, Any]:
+    """Expõe a defasagem entre série histórica e cotação corrente sem misturá-las."""
+    last_point = history[-1] if history else {}
+    last_history_date = last_point.get("date")
+    current_quote_date = bond.get("market_date") or fetched_at[:10] or None
+    current_source = bond.get("data_source", "unavailable")
+    meta: dict[str, Any] = {
+        "last_history_date": last_history_date,
+        "last_history_source": last_point.get("source", "legacy_cache") if last_point else None,
+        "current_quote_date": current_quote_date,
+        "current_quote_source": current_source,
+        "gap_days": None,
+        "freshness": "history_unavailable",
+    }
+    if not last_history_date:
+        return meta
+
+    if bond.get("is_demo"):
+        meta["freshness"] = "current_quote_demo"
+        return meta
+
+    try:
+        last_date = date.fromisoformat(str(last_history_date)[:10])
+        quote_date = date.fromisoformat(str(current_quote_date)[:10])
+        gap_days = max((quote_date - last_date).days, 0)
+        meta["gap_days"] = gap_days
+    except (TypeError, ValueError):
+        meta["freshness"] = "date_unavailable"
+        return meta
+
+    if gap_days == 0:
+        meta["freshness"] = "current"
+    elif gap_days <= 4:
+        meta["freshness"] = "informative_gap"
+    elif gap_days <= 10:
+        meta["freshness"] = "pending_update"
+    else:
+        meta["freshness"] = "stale"
+    return meta
+
+
 def _compute_top_picks(stocks: list[dict[str, Any]], fiis: list[dict[str, Any]],
                        fiagros: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
     """Select top 5 assets per category."""
@@ -137,7 +212,12 @@ def _compute_top_picks(stocks: list[dict[str, Any]], fiis: list[dict[str, Any]],
     return top_stocks, top_fiis, top_fiagros
 
 
-
+def _summarize(asset: dict[str, Any], extra_fields: list[str] | None = None) -> dict[str, Any]:
+    """Retorna campos mínimos para o card do Painel Home (Top Picks)."""
+    fields = ["ticker", "name", "score", "dividend_yield"]
+    if extra_fields:
+        fields += extra_fields
+    return {k: asset.get(k) for k in fields}
 
 
 def _enrich_stock_status(stock: dict[str, Any]) -> dict[str, Any]:
@@ -256,6 +336,7 @@ def _enrich_fii_status(asset: dict[str, Any], asset_type: str) -> dict[str, Any]
     return a
 
 
+
 def generate_dashboard() -> None:
     """Main generator: read DB, compute aggregates, save JSON data."""
     logger.info("Generating dashboard JSON...")
@@ -281,7 +362,6 @@ def generate_dashboard() -> None:
     })
 
     # Use v2.5 score for sorting if available, fallback to legacy score
-    # Parse score_breakdown JSON field back to list of dicts
     for s in stocks:
         score_v2 = s.get("score_v2")
         s["score"] = score_v2 if score_v2 is not None else (s.get("score") or 0)
@@ -298,6 +378,109 @@ def generate_dashboard() -> None:
     sectors_summary: list[dict[str, Any]] = _compute_sector_summaries(stocks)
     top_stocks, top_fiis, top_fiagros = _compute_top_picks(stocks, fiis, fiagros)
 
+    # ---------------------------------------------------------------------------
+    # v3: Macro State + Tesouro Direto
+    # ---------------------------------------------------------------------------
+    macro_state_payload: dict[str, Any] = {}
+    tesouro_direto_payload: list[dict[str, Any]] = []
+
+    if _V3_ENABLED:
+        try:
+            logger.info("  [v3] Carregando macro_state...")
+            ms = macro_fetcher.fetch_macro_state()
+
+            # Monta payload macro compacto (sem lista completa de bonds — fica no TD abaixo)
+            macro_state_payload = {
+                "selic": ms.get("CURRENT_SELIC"),
+                "selic_meta": ms.get("SELIC_META"),
+                "focus_selic": ms.get("FOCUS_SELIC", []),
+                "focus_ipca": ms.get("FOCUS_IPCA", []),
+                "focus_cambio": ms.get("FOCUS_CAMBIO", []),
+                "focus_pib": ms.get("FOCUS_PIB", []),
+                "focus_selic_next_year": ms.get("FOCUS_SELIC_NEXT_YEAR"),
+                "focus_ipca_trend": ms.get("FOCUS_IPCA_TREND", "estavel"),
+                "focus_ipca_weekly": ms.get("FOCUS_IPCA_WEEKLY_OBSERVATIONS", []),
+                "ettj_curve": ms.get("ETTJ_CURVE", {}),
+                "fetched_at": ms.get("fetched_at"),
+                "SELIC_HISTORY": ms.get("SELIC_HISTORY", []),
+                "IPCA_HISTORY": ms.get("IPCA_HISTORY", []),
+                "IPCA_YTD_HISTORY": ms.get("IPCA_YTD_HISTORY", []),
+                "CAMBIO_HISTORY": ms.get("CAMBIO_HISTORY", []),
+                "data_sources": {
+                    "focus": ms.get("FOCUS_DATA_SOURCE", "unavailable"),
+                    "tesouro_direto": (
+                        ms.get("TESOURO_DIRETO_BONDS", [{}])[0].get("data_source", "unavailable")
+                        if ms.get("TESOURO_DIRETO_BONDS") else "unavailable"
+                    ),
+                    "ettj": "estimated_from_selic_and_focus",
+                },
+            }
+
+            # Pontua os títulos do Tesouro Direto
+            bonds = ms.get("TESOURO_DIRETO_BONDS", [])
+            if bonds:
+                logger.info(f"  [v3] Pontuando {len(bonds)} títulos do Tesouro Direto...")
+                tesouro_direto_payload = tesouro_analyzer.score_all_bonds(bonds, ms)
+                macro_fetcher.record_tesouro_scores(tesouro_direto_payload, ms.get("fetched_at", ""))
+                for bond in tesouro_direto_payload:
+                    official_history = bond.get("history", [])
+                    persisted_history = macro_fetcher.get_tesouro_history(bond.get("name", ""))
+                    merged = {
+                        point["date"]: point
+                        for point in _merge_tesouro_history(official_history, persisted_history)
+                    }
+                    market_date = bond.get("market_date")
+                    if market_date in merged:
+                        merged[market_date]["score"] = bond.get("score")
+
+                    # Preenche score histórico para todos os pontos sem score
+                    # usando a taxa (buy_yield) de cada ponto + tipo do título
+                    bond_type = bond.get("type", "")
+                    maturity_date_str = bond.get("maturity_date", "")
+                    maturity_dt: datetime | None = None
+                    if maturity_date_str:
+                        try:
+                            maturity_dt = datetime.strptime(maturity_date_str, "%Y-%m-%d")
+                        except ValueError:
+                            pass
+                    for date_str, point in merged.items():
+                        if "score" not in point and "buy_yield" in point:
+                            try:
+                                # Calcula days_to_maturity real para a data histórica
+                                hist_dt = datetime.strptime(date_str, "%Y-%m-%d")
+                                hist_days = (maturity_dt - hist_dt).days if maturity_dt else bond.get("days_to_maturity", 0)
+                                temp_bond = {
+                                    "name": bond.get("name"),
+                                    "type": bond_type,
+                                    "days_to_maturity": max(hist_days, 1),
+                                    "buy_yield": point["buy_yield"],
+                                }
+                                scored = tesouro_analyzer.score_bond(temp_bond, ms)
+                                point["score"] = scored.get("score", 0)
+                            except Exception:
+                                point["score"] = 0
+                    bond["history"] = [merged[key] for key in sorted(merged)]
+                    bond["history_meta"] = _build_tesouro_history_meta(
+                        bond["history"], bond, ms.get("fetched_at", "")
+                    )
+                logger.info(f"  [v3] Tesouro Direto: {len(tesouro_direto_payload)} títulos pontuados.")
+            else:
+                logger.warning("  [v3] Nenhum título do Tesouro Direto encontrado na macro_state.")
+
+        except Exception as exc:
+            logger.warning(f"  [v3] Erro ao processar dados macro/TD: {exc}. Continuando sem dados v3.")
+
+    # ---------------------------------------------------------------------------
+    # Top 5 para o Painel Home (derivados dos rankings já ordenados)
+    # ---------------------------------------------------------------------------
+    home_top_stocks = [_summarize(s, ["sector", "pb_ratio", "dy_medio_3y"]) for s in top_stocks[:5]]
+    home_top_fiis   = [_summarize(f, ["pb_ratio"]) for f in top_fiis[:5]]
+    home_top_fiagros = [_summarize(g, ["pb_ratio"]) for g in top_fiagros[:5]]
+    home_top_td = [
+        {k: b.get(k) for k in ["name", "type", "buy_yield", "score", "badge", "days_to_maturity", "maturity_date"]}
+        for b in tesouro_direto_payload[:5]
+    ] if tesouro_direto_payload else []
+
     now: datetime = datetime.now()
     timestamp_str: str = now.strftime("%d/%m/%Y %H:%M:%S")
 
@@ -311,6 +494,16 @@ def generate_dashboard() -> None:
         "top_fiagros": top_fiagros,
         "unique_sectors": unique_sectors,
         "timestamp": timestamp_str,
+        # v3: dados macro e renda fixa
+        "macro_state": macro_state_payload,
+        "tesouro_direto": tesouro_direto_payload,
+        # v3: top 5 para o Painel Home
+        "home": {
+            "top_stocks": home_top_stocks,
+            "top_fiis": home_top_fiis,
+            "top_fiagros": home_top_fiagros,
+            "top_tesouro": home_top_td,
+        },
     }
 
     output_path: str = os.path.join(PROJECT_ROOT, "data.json")

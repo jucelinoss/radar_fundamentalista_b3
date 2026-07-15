@@ -793,7 +793,7 @@ def analyze_stock(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
     s5 = _score_graham_stock(price, graham_price, peg_ratio=peg_ratio, sector=raw_sector)
     score_v2 = round(s1 + s2 + s3 + s4 + s5, SCORE_DECIMALS)
 
-    # --- Gatilhos de Moderação Macro (v3.0) — aplicados APÓS o score base ---
+    # --- Travas de risco fundamental — aplicadas após o score base ---
     # Impacto direto no score_v2 final (não nos componentes individuais)
     macro_warnings: list[str] = []
 
@@ -814,13 +814,6 @@ def analyze_stock(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
         if icj < 1.0:
             score_v2 = round(max(0.0, score_v2 - 1.0), SCORE_DECIMALS)
             macro_warnings.append(f"⚠️ Cobertura de Juros (ICJ): {icj:.2f}x (< 1,0) → -1,0 pts")
-
-    # Gatilho 3 — ERP: DY acima da Selic → bônus de atratividade +0.5 pts
-    current_selic = _get_selic()
-    dy_normalizado = dy_medio_3y if dy_medio_3y else dy
-    if dy_normalizado and current_selic and dy_normalizado > current_selic:
-        score_v2 = round(min(10.0, score_v2 + 0.5), SCORE_DECIMALS)
-        macro_warnings.append(f"✅ ERP positivo: DY {dy_normalizado:.2%} > Selic {current_selic:.2%} → +0,5 pts")
 
     score_breakdown = [
         {
@@ -860,14 +853,14 @@ def analyze_stock(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
         }
     ]
 
-    # Adiciona itens de moderação macro ao breakdown quando ativados
+    # Exibe travas de risco fundamental sem misturá-las ao Radar Macro.
     if macro_warnings:
         score_breakdown.append({
-            "label": "Moderadores Macro (v3)",
+            "label": "Travas de Risco Fundamental",
             "score": 0.0,
             "max": 0.0,
             "desc": " | ".join(macro_warnings),
-            "tip": "Ajustes aplicados sobre o score base: Liquidez Corrente (-1,5), ICJ (-1,0), ERP (+0,5)."
+            "tip": "Ajustes por liquidez corrente e cobertura de juros; dados macro e Focus não alteram o score."
         })
 
     # Sanitiza valores extremos do Yahoo antes de retornar

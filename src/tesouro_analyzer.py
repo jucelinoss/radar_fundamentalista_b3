@@ -6,7 +6,7 @@ Scorecard Contínuo 0-10 para títulos do Tesouro Direto.
 5 critérios × 2.0 pontos cada = máximo de 10.0 pontos.
 
 Critérios:
-  1. Prêmio Real de Inflação   (2.0) — taxa IPCA+ ≥ 6.0% a.a.
+  1. Prêmio Real Esperado      (2.0) — taxa real contratada ou estimada
   2. Captura Marcação Mercado  (2.0) — queda projetada de Selic (Focus)
   3. Risco Duration/Volatil.   (2.0) — sensibilidade à aceleração do IPCA
   4. Elasticidade Cambial      (2.0) — proteção via IPCA+ em câmbio estressado
@@ -22,7 +22,7 @@ from typing import Any
 # Constantes dos critérios
 # ---------------------------------------------------------------------------
 
-# Critério 1 — Prêmio Real de Inflação (só IPCA+)
+# Critério 1 — Prêmio real contratado ou esperado
 REAL_RATE_BASE = 0.060    # 6.0% a.a. → pontuação base de 1.0
 REAL_RATE_MAX = 0.075     # 7.5% a.a. → pontuação máxima de 2.0
 
@@ -50,10 +50,37 @@ def _clamp(value: float, lo: float, hi: float) -> float:
 # ---------------------------------------------------------------------------
 # Critério 1 — Prêmio Real de Inflação
 # ---------------------------------------------------------------------------
-def score_real_rate(bond: dict[str, Any]) -> float:
+def _as_decimal(rate: float) -> float:
+    return rate / 100.0 if rate > 1.0 else rate
+
+
+def calculate_real_rate(
+    bond: dict[str, Any],
+    expected_ipca: float | None = None,
+) -> float | None:
+    """Retorna a taxa real contratada (IPCA+) ou esperada (Prefixado)."""
+    rate = bond.get("buy_yield")
+    if rate is None:
+        return None
+
+    nominal_or_real_rate = _as_decimal(float(rate))
+    if bond.get("type") == "IPCA+":
+        return nominal_or_real_rate
+    if bond.get("type") == "Prefixado" and expected_ipca is not None:
+        inflation_rate = _as_decimal(float(expected_ipca))
+        if inflation_rate <= -1.0:
+            return None
+        return (1.0 + nominal_or_real_rate) / (1.0 + inflation_rate) - 1.0
+    return None
+
+
+def score_real_rate(
+    bond: dict[str, Any],
+    expected_ipca: float | None = None,
+) -> float:
     """
-    Pontua o prêmio real contratado acima do IPCA para títulos IPCA+.
-    Outros tipos (Prefixado, Selic, etc.) recebem 0.0 neste critério.
+    Pontua a taxa real contratada dos títulos IPCA+ e a taxa real esperada
+    dos Prefixados, descontando a inflação projetada pelo Focus.
 
     Escala:
       - < 6.0% a.a.  → 0.0 pts
@@ -61,21 +88,27 @@ def score_real_rate(bond: dict[str, Any]) -> float:
       - = 7.5% a.a.  → 2.0 pts (teto)
       - > 7.5% a.a.  → 2.0 pts (cap)
     """
-    if bond.get("type") != "IPCA+":
+    real_rate = calculate_real_rate(bond, expected_ipca)
+    if real_rate is None:
+        return 0.0
+    if real_rate < REAL_RATE_BASE:
         return 0.0
 
-    rate = bond.get("buy_yield")
-    if rate is None:
-        return 0.0
-
-    # buy_yield vem em % a.a. do portal (ex: 6.45), converter para decimal
-    rate_decimal = rate / 100.0 if rate > 1.0 else rate
-
-    if rate_decimal < REAL_RATE_BASE:
-        return 0.0
-
-    proportion = (rate_decimal - REAL_RATE_BASE) / (REAL_RATE_MAX - REAL_RATE_BASE)
+    proportion = (real_rate - REAL_RATE_BASE) / (REAL_RATE_MAX - REAL_RATE_BASE)
     return round(_clamp(1.0 + proportion * 1.0, 0.0, 2.0), SCORE_DECIMALS)
+
+
+def _select_expected_ipca(
+    bond: dict[str, Any],
+    focus_ipca: list[float | None],
+) -> float | None:
+    """Seleciona a projeção Focus mais próxima do horizonte do título."""
+    available = [value for value in focus_ipca if value is not None]
+    if not available:
+        return None
+    days = max(int(bond.get("days_to_maturity") or 0), 1)
+    projection_index = min((days - 1) // 365, len(available) - 1)
+    return available[projection_index]
 
 
 # ---------------------------------------------------------------------------
@@ -258,13 +291,14 @@ def score_bond(
     current_selic = ms.get("CURRENT_SELIC")
     focus_selic_next = ms.get("FOCUS_SELIC_NEXT_YEAR")
     ipca_trend = ms.get("FOCUS_IPCA_TREND", "estavel")
+    expected_ipca = _select_expected_ipca(bond, ms.get("FOCUS_IPCA", []))
 
     # Câmbio projetado para o próximo ano
     focus_cambio_list = ms.get("FOCUS_CAMBIO", [])
     focus_cambio_next = focus_cambio_list[1] if len(focus_cambio_list) > 1 else None
 
     # --- Calcula cada critério ---
-    s1 = score_real_rate(bond)
+    s1 = score_real_rate(bond, expected_ipca)
     s2 = score_mtm_capture(bond, focus_selic_next, current_selic)
     s3 = score_duration_risk(bond, ipca_trend)
     s4 = score_cambio_hedge(bond, focus_cambio_next)
@@ -272,18 +306,25 @@ def score_bond(
 
     total = round(s1 + s2 + s3 + s4 + s5, SCORE_DECIMALS)
 
-    # Converte buy_yield para exibição
-    buy_yield_display = bond.get("buy_yield")
-    if buy_yield_display is not None and buy_yield_display <= 1.0:
-        buy_yield_display = round(buy_yield_display * 100, 2)
+    real_rate = calculate_real_rate(bond, expected_ipca)
+    real_rate_display = real_rate * 100 if real_rate is not None else None
+    if bond.get("type") == "Prefixado" and real_rate_display is not None:
+        real_rate_desc = (
+            f"Taxa real esperada: {real_rate_display:.2f}% a.a. "
+            f"(IPCA Focus: {_as_decimal(float(expected_ipca)) * 100:.2f}%)"
+        )
+    elif real_rate_display is not None:
+        real_rate_desc = f"Taxa real contratada: {real_rate_display:.2f}% a.a."
+    else:
+        real_rate_desc = "Não aplicável"
 
     score_breakdown = [
         {
-            "label": "Prêmio Real de Inflação",
+            "label": "Prêmio Real Esperado",
             "score": s1,
             "max": 2.0,
-            "desc": f"Taxa real: {buy_yield_display:.2f}% a.a." if buy_yield_display else "N/A (não é IPCA+)",
-            "tip": "Só para IPCA+. Taxa ≥ 6% a.a. = 1,0 pts. Escala até 7,5% = 2,0 pts."
+            "desc": real_rate_desc,
+            "tip": "IPCA+: taxa real contratada. Prefixado: taxa nominal descontada do IPCA Focus. Taxa real ≥ 6% = 1,0 pt; ≥ 7,5% = 2,0 pts."
         },
         {
             "label": "Captura Marcação a Mercado",

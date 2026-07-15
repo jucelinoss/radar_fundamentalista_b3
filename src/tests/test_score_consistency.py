@@ -103,6 +103,15 @@ def test_html_templates_consistency():
         with open(t_path, "r", encoding="utf-8") as f:
             content = f.read()
 
+        # index-v2 mantém a estrutura no HTML e o comportamento em asset externo.
+        # Valide ambos como uma única interface para não perder contratos após
+        # uma extração legítima de JS/CSS.
+        for script_src in re.findall(r'<script[^>]+src=["\']([^"\']+)["\']', content):
+            script_path = os.path.join(PROJECT_ROOT, script_src.replace("/", os.sep))
+            if os.path.exists(script_path):
+                with open(script_path, "r", encoding="utf-8") as script_file:
+                    content += "\n" + script_file.read()
+
         # 1. Assert they don't compute score inside openDetailModal
         modal_match = re.search(r"function openDetailModal\(.*?\)\s*\{(.*?)\n\s*\}", content, re.DOTALL)
         if modal_match:
@@ -162,4 +171,3 @@ def test_historical_score_consistency():
                     assert last_pt["dy"] is None or isinstance(last_pt["dy"], (int, float)), f"dy for {ticker} must be a number or null."
 
     conn.close()
-

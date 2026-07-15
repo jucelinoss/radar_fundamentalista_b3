@@ -122,8 +122,18 @@ class TestScoreRealRate:
         ipca_short["buy_yield"] = 5.5
         assert score_real_rate(ipca_short) == 0.0
 
-    def test_prefixado_retorna_zero(self, prefixado_long):
-        """Prefixado não pondera neste critério."""
+    def test_prefixado_15_pct_com_ipca_5_pct_retorna_max(self, prefixado_long):
+        """15% nominal com IPCA de 5% equivale a cerca de 9,52% real."""
+        prefixado_long["buy_yield"] = 15.0
+        assert score_real_rate(prefixado_long, 0.05) == 2.0
+
+    def test_prefixado_12_pct_com_ipca_5_pct_pontua(self, prefixado_long):
+        """Prefixado deve pontuar pela taxa real esperada, não receber zero automático."""
+        prefixado_long["buy_yield"] = 12.0
+        assert 1.0 < score_real_rate(prefixado_long, 5.0) < 2.0
+
+    def test_prefixado_sem_focus_retorna_zero(self, prefixado_long):
+        """Sem inflação projetada não é possível estimar o retorno real."""
         assert score_real_rate(prefixado_long) == 0.0
 
     def test_selic_retorna_zero(self, selic_bond):
@@ -300,6 +310,14 @@ class TestScoreBond:
         result = score_bond(ipca_long, None)
         assert "score" in result
         assert 0.0 <= result["score"] <= 10.0
+
+    def test_prefixado_exibe_taxa_real_esperada(self, prefixado_long, macro_queda_juros):
+        prefixado_long["buy_yield"] = 15.0
+        result = score_bond(prefixado_long, macro_queda_juros)
+        premio_real = result["score_breakdown"][0]
+        assert premio_real["score"] == 2.0
+        assert "Taxa real esperada" in premio_real["desc"]
+        assert "IPCA Focus" in premio_real["desc"]
 
 
 # ---------------------------------------------------------------------------
