@@ -5,6 +5,9 @@
 #
 # The generated dashboard is deployed to GitHub Pages automatically,
 # but ONLY when the data actually changes (avoids unnecessary deployments).
+# Configure GitHub Pages once to deploy from the `gh-pages` branch, `/` folder.
+# The workflow preserves `gh-pages/dev/` for previews and uses the branch root
+# for the production version from `main`.
 #
 # Required secrets (Settings > Secrets and variables > Actions):
 #   BRAPI_TOKEN: seu token do brapi.dev (https://brapi.dev/dashboard)
@@ -15,6 +18,8 @@
 name: Daily B3 Pipeline
 
 on:
+  push:
+    branches: [main, dev]
   schedule:
     - cron: '0 11 * * 1-5'   # 08:00 BRT, dias úteis
   workflow_dispatch:
@@ -27,12 +32,10 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
   issues: write               # Para criar issue em caso de falha
 
 concurrency:
-  group: pages
+  group: gh-pages-publish
   cancel-in-progress: false
 
 jobs:
@@ -138,40 +141,53 @@ jobs:
       - name: Prepare Pages artifact (only if data changed)
         if: steps.check-changes.outputs.changed == 'true'
         run: |
-          # Always deploy root files first (para raiz do site)
+          # Copia todos os arquivos estáticos públicos. As exclusões evitam
+          # publicar código, configurações, caches, segredos e dados locais.
           mkdir -p _site
-          cp index-v2.html _site/index.html
+          rsync -a --delete \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude '.agents/' \
+            --exclude '.venv/' \
+            --exclude '.pytest_cache/' \
+            --exclude '.vite/' \
+            --exclude '.vscode/' \
+            --exclude '_site/' \
+            --exclude 'config/' \
+            --exclude 'docs/' \
+            --exclude 'logs/' \
+            --exclude 'reports/' \
+            --exclude 'scripts/' \
+            --exclude 'src/' \
+            --exclude '.env' \
+            --exclude '.env.*' \
+            --exclude '*.py' \
+            --exclude '*.bat' \
+            --exclude '*.sh' \
+            --exclude '*.md' \
+            --exclude '*.toml' \
+            --exclude '*.txt' \
+            --exclude '*.crt' \
+            --exclude '*.key' \
+            --exclude 'data/investments.db' \
+            --exclude 'data/*.log' \
+            --exclude 'data/failed_tickers.log' \
+            ./ _site/
+
+          # A versão v2 é a página principal; a clássica fica disponível
+          # para comparação em ambos os ambientes.
           cp index.html _site/index-classic.html
-          cp data.json _site/
-          mkdir -p _site/data
-          cp data/tesouro_history.json _site/data/ 2>/dev/null || true
-          cp manifest.json _site/ 2>/dev/null || true
-          cp service-worker.js _site/ 2>/dev/null || true
-          cp -r icons _site/ 2>/dev/null || true
-          cp data/export_*.csv data/export_*.json _site/ 2>/dev/null || true
-          
-          # Em dev, também deploy em /dev/ para preview
-          if [[ "${{ github.ref_name }}" == "dev" ]]; then
-            mkdir -p _site/dev
-            cp index-v2.html _site/dev/index.html
-            cp index.html _site/dev/index-classic.html
-            cp data.json _site/dev/
-            mkdir -p _site/dev/data
-            cp data/tesouro_history.json _site/dev/data/ 2>/dev/null || true
-            cp manifest.json _site/dev/ 2>/dev/null || true
-            cp service-worker.js _site/dev/ 2>/dev/null || true
-            cp -r icons _site/dev/ 2>/dev/null || true
-            cp data/export_*.csv data/export_*.json _site/dev/ 2>/dev/null || true
-          fi
+          cp index-v2.html _site/index.html
 
       - name: Validate Pages data artifact
         if: steps.check-changes.outputs.changed == 'true'
         run: python scripts/validate_pages_artifact.py _site
 
-      - name: Upload Pages artifact (only if data changed)
+      - name: Upload static site (only if data changed)
         if: steps.check-changes.outputs.changed == 'true'
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
+          name: static-site
           path: _site
 
       - name: Summary
@@ -208,34 +224,54 @@ jobs:
 
           Verifique os logs da execução para mais detalhes."
 
-  deploy:
-    name: Deploy to GitHub Pages
+  publish:
+    name: Publish main or dev to GitHub Pages branch
     needs: pipeline
-    if: needs.pipeline.result == 'success' && needs.pipeline.outputs.changed == 'true' && github.ref_name == 'main'
+    if: needs.pipeline.result == 'success' && needs.pipeline.outputs.changed == 'true' && (github.ref_name == 'main' || github.ref_name == 'dev')
     runs-on: ubuntu-latest
     permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      contents: write
     steps:
-      - name: Deploy to Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Download static site
+        uses: actions/download-artifact@v4
+        with:
+          name: static-site
+          path: static-site
 
-  deploy-dev:
-    name: Deploy dev preview to GitHub Pages
-    needs: pipeline
-    if: needs.pipeline.result == 'success' && needs.pipeline.outputs.changed == 'true' && github.ref_name == 'dev'
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    concurrency:
-      group: pages-dev
-      cancel-in-progress: false
-    steps:
-      - name: Deploy dev preview to Pages
-        id: deployment-dev
-        uses: actions/deploy-pages@v4
+      - name: Update the published branch
+        env:
+          TARGET_BRANCH: ${{ github.ref_name }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          repository_url="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+
+          if git ls-remote --exit-code --heads "$repository_url" gh-pages; then
+            git clone --branch gh-pages --single-branch "$repository_url" published
+          else
+            git clone --no-checkout "$repository_url" published
+            git -C published checkout --orphan gh-pages
+            git -C published rm -rf . 2>/dev/null || true
+          fi
+
+          if [[ "$TARGET_BRANCH" == "dev" ]]; then
+            rm -rf published/dev
+            mkdir -p published/dev
+            cp -a static-site/. published/dev/
+          else
+            find published -mindepth 1 -maxdepth 1 ! -name .git ! -name dev -exec rm -rf {} +
+            cp -a static-site/. published/
+          fi
+
+          touch published/.nojekyll
+          git -C published config user.name "github-actions[bot]"
+          git -C published config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C published add --all
+
+          if git -C published diff --cached --quiet; then
+            echo "No published files changed."
+            exit 0
+          fi
+
+          git -C published commit -m "Deploy ${TARGET_BRANCH} from ${GITHUB_SHA}"
+          git -C published push origin HEAD:gh-pages
