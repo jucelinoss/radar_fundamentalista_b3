@@ -26,6 +26,8 @@ data/fiagro_dy.json
 data/fiagro_vpa.json
 data/fii_dy.json
 data/fii_vpa.json
+data/macro_state.json
+data/tesouro_history.json
 
 # Generated output (root level)
 data.json

@@ -91,6 +91,23 @@ def test_tesouro_snapshot_keeps_real_data_and_scores(tmp_path, monkeypatch):
     }
 
 
+def test_tesouro_snapshot_keeps_only_five_years(tmp_path, monkeypatch):
+    history_file = tmp_path / "tesouro_history.json"
+    history_file.write_text(
+        '{"Tesouro IPCA+ 2035": [{"date": "2020-07-12", "buy_yield": 0.06}]}',
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(macro_fetcher, "TESOURO_HISTORY_FILE", str(history_file))
+
+    macro_fetcher.record_tesouro_snapshot(
+        [{"name": "Tesouro IPCA+ 2035", "buy_yield": 0.068, "buy_price": 1200.0, "is_demo": False}],
+        "2026-07-13T12:00:00+00:00",
+    )
+
+    saved = json.loads(history_file.read_text(encoding="utf-8"))
+    assert [point["date"] for point in saved["Tesouro IPCA+ 2035"]] == ["2026-07-13"]
+
+
 def test_demo_bonds_are_not_added_to_history(tmp_path, monkeypatch):
     history_file = tmp_path / "tesouro_history.json"
     monkeypatch.setattr(macro_fetcher, "TESOURO_HISTORY_FILE", str(history_file))

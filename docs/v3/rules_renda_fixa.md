@@ -2,7 +2,7 @@
 
 **Radar Fundamentalista B3**  
 **Versão do documento:** 3.0  
-**Última atualização:** 2026-07-13  
+**Última atualização:** 2026-07-16
 **Módulo:** Macro, Câmbio, Renda Fixa e Curva de Juros  
 
 ---
@@ -37,61 +37,37 @@ Para evitar que fundos saudáveis percam nota injustamente em cenários de juros
 
 ---
 
-## **3. Scorecard Contínuo de Renda Fixa — Tesouro Direto (0 a 10)**
+## **3. Score de Atratividade do Dia — Tesouro Direto (0 a 10)**
 
-Diferente da renda variável, o Tesouro Direto não possui risco de crédito (risco soberano). Portanto, os **5 critérios (valendo até 2,0 pontos cada)** medem a **Assimetria Cíclica de Oportunidade e Alocação** (implementados em `src/tesouro_analyzer.py`).
+O score classifica a oportunidade de compra observável no dia. Ele usa somente taxa, prazo, pares comparáveis e tributação; projeções Focus permanecem como contexto no painel macro e **não atribuem pontos**.
 
-### **3.1 Prêmio Real Esperado (Peso: 2,0)**
-*   **Métrica:** Taxa real contratada nos títulos Tesouro IPCA+ ou taxa real esperada nos Prefixados.
-*   **Prefixados:** A taxa real esperada desconta da taxa nominal a projeção IPCA Focus mais próxima do horizonte disponível: $r_{real} = (1+r_{prefixado})/(1+IPCA_{Focus})-1$.
-*   **Regra de Pontuação:**
-    *   $\text{Taxa} < 6,0\%$ a.a. $\rightarrow$ **0.0 pontos**
-    *   $\text{Taxa} = 6,0\%$ a.a. $\rightarrow$ **1.0 ponto** (nota base)
-    *   $\text{Taxa} \ge 7,5\%$ a.a. $\rightarrow$ **2.0 pontos** (nota máxima)
-    *   *Comportamento:* Interpolação linear entre $6.0\%$ e $7.5\%$ a.a. Tesouro Selic recebe nota **0.0** neste critério; Prefixados só recebem zero quando não há projeção Focus válida ou quando a taxa real esperada fica abaixo da faixa mínima.
+### **3.1 Universo e grupos comparáveis**
 
-### **3.2 Captura de Marcação a Mercado via Focus (Peso: 2,0)**
-*   **Métrica:** Expectativa de queda da taxa de juros básica da economia (Selic).
-*   **Apenas Elegíveis:** Títulos de longo prazo (Prefixados e IPCA+ com prazo $\ge 1826$ dias ou 5 anos).
-*   **Regra de Pontuação:**
-    *   Calcula-se a variação esperada da taxa Selic: $\Delta\text{Selic} = \text{Selic\_Focus\_Ano\_Seguinte} - \text{CURRENT\_SELIC}$
-    *   $\Delta\text{Selic} \ge 0.0\%$ (estável ou alta de juros) $\rightarrow$ **0.0 pontos**
-    *   $\Delta\text{Selic} \le -3.0\%$ (queda máxima de referência) $\rightarrow$ **2.0 pontos**
-    *   *Comportamento:* Interpolação linear para quedas entre $0.0\%$ e $-3.0\%$. Títulos pós-fixados (Tesouro Selic) recebem nota **0.0** automática neste critério.
+Os títulos são comparados por indexador e fluxo de pagamento:
 
-### **3.3 Risco de Duration / Volatilidade (Peso: 2,0)**
-*   **Métrica:** Prazo de vencimento e sensibilidade à tendência inflacionária (IPCA Focus).
-*   **Regra de Pontuação:**
-    *   Títulos pós-fixados (**Tesouro Selic**) possuem proteção integral contra inflação $\rightarrow$ **2.0 pontos** independente do cenário.
-    *   Cenário de queda inflacionária ($\text{IPCA\_trend} = \text{"baixa"}$) $\rightarrow$ todos os vencimentos recebem **2.0 pontos**.
-    *   Cenário de aceleração inflacionária ($\text{IPCA\_trend} = \text{"alta"}$):
-        *   Curto Prazo ($\le 365$ dias): **1.5 pontos**
-        *   Médio Prazo ($365$ a $1826$ dias): **0.5 pontos**
-        *   Longo Prazo ($\ge 1826$ dias): **0.0 pontos**
-    *   Cenário de estabilidade inflacionária ($\text{IPCA\_trend} = \text{"estável"}$):
-        *   Curto Prazo ($\le 365$ dias): **2.0 pontos**
-        *   Médio Prazo ($365$ a $1826$ dias): **1.5 pontos**
-        *   Longo Prazo ($\ge 1826$ dias): **1.0 ponto**
+* IPCA+ sem cupom e IPCA+ com juros semestrais;
+* Prefixado sem cupom e Prefixado com juros semestrais;
+* Selic e IGP-M+;
+* RendA+ e Educa+, cada qual em seu grupo de planejamento.
 
-### **3.4 Filtro de Elasticidade Cambial / Hedge (Peso: 2,0)**
-*   **Métrica:** Câmbio projetado Focus vs. limite de estresse de R$ 5,50/USD.
-*   **Regra de Pontuação:**
-    *   Cenário de estresse cambial ($\text{Câmbio\_Focus\_Ano\_Seguinte} > \text{R\$ 5,50}$):
-        *   Títulos indexados à inflação (IPCA+, IGP-M+) $\rightarrow$ **2.0 pontos** (proteção máxima).
-        *   Tesouro Selic $\rightarrow$ **1.5 pontos** (BC tende a subir juros com câmbio estressado).
-        *   Prefixados $\rightarrow$ **0.0 pontos** (câmbio corrói taxa real pré-fixada).
-    *   Cenário de câmbio normal ($\text{Câmbio\_Focus\_Ano\_Seguinte} \le \text{R\$ 5,50}$):
-        *   Títulos indexados à inflação $\rightarrow$ **1.0 ponto**.
-        *   Tesouro Selic $\rightarrow$ **1.5 pontos**.
-        *   Prefixados $\rightarrow$ **1.0 ponto**.
+O ranking geral de **Oportunidades do Dia** inclui Selic, Prefixados, IPCA+ e IGP-M+. RendA+ e Educa+ recebem `planning_rank` próprio e não disputam o Top 5 geral, pois foram estruturados para fluxo de renda/educação e não para comparação tática com títulos bullet.
 
-### **3.5 Eficiência Tributária (Peso: 2,0)**
-*   **Métrica:** Prazo de dias até o vencimento baseado na tabela regressiva de alíquotas de IR.
-*   **Regra de Pontuação:**
-    *   Vencimento $\le 180$ dias (22,5% de IR sobre rendimento) $\rightarrow$ **0.5 pontos**
-    *   Vencimento entre $181$ e $360$ dias (20.0% de IR sobre rendimento) $\rightarrow$ **1.0 ponto**
-    *   Vencimento entre $361$ e $720$ dias (17.5% de IR sobre rendimento) $\rightarrow$ **1.5 pontos**
-    *   Vencimento $> 720$ dias (15.0% de IR sobre rendimento - alíquota mínima) $\rightarrow$ **2.0 pontos**
+### **3.2 Composição da nota**
+
+| Critério | Peso | Regra |
+| --- | ---: | --- |
+| Taxa vs. histórico | 4,0 | Percentil da taxa de compra na série do próprio título. Taxa no percentil 79 é igual ou maior que 79% das observações disponíveis. |
+| Taxa vs. pares | 2,0 | Percentil da taxa entre títulos do mesmo grupo. Não compara taxa nominal Prefixada diretamente com taxa real IPCA+. |
+| Potencial técnico de marcação a mercado | 2,0 | Combina posição histórica alta da taxa com prazo até o vencimento. É sensibilidade técnica, não projeção de queda de juros nem promessa de ganho. |
+| IR se mantido até o vencimento | 2,0 | Referência da alíquota regressiva, assumindo compra no dia e resgate no vencimento. |
+
+### **3.3 Tributação e interpretação**
+
+O IR incide sobre o rendimento e depende do prazo efetivo entre liquidação da compra e resgate: até 180 dias (22,5%), 181–360 dias (20%), 361–720 dias (17,5%) e acima de 720 dias (15%). A nota usa os dias até o vencimento apenas para a hipótese explícita de manter o título até essa data. Em venda antecipada ou em cupons, a alíquota real pode ser diferente.
+
+### **3.4 Histórico de atratividade**
+
+Cada ponto do gráfico é recalculado com a taxa observada, o prazo restante e as observações disponíveis até aquela data. A série não reutiliza o cenário macro atual para pontuar o passado.
 
 ---
 
@@ -99,8 +75,8 @@ Diferente da renda variável, o Tesouro Direto não possui risco de crédito (ri
 
 ### **4.1 Painel do Tesouro Direto (`#td-detail-modal`)**
 *   **Dimensões do Modal:** Configurado com `max-width: 650px` para compatibilidade com múltiplos dispositivos e ausência de barra de rolagem lateral.
-*   **Seletor Dropdown de Gráficos:** Substitui múltiplos gráficos lado a lado por um seletor dinâmico (`#td-chart-type`), alternando entre **Taxa Histórica**, **PU Histórico** e **Score Histórico**.
-*   **Plugin `valueLabels`:** Rótulos numéricos dinâmicos desenhados diretamente na linha do gráfico nos extremos e nos picos/vales locais. O indicador de score é formatado com precisão de 1 casa decimal (ex: `7.5`), enquanto o Y-axis para taxas e PUs possui `grace: '20%'` para evitar corte visual.
+*   **Seletor Dropdown de Gráficos:** Substitui múltiplos gráficos lado a lado por um seletor dinâmico (`#td-chart-type`), alternando entre **Taxa Histórica**, **PU Histórico** e **Atratividade Histórica**.
+*   **Plugin `valueLabels`:** Rótulos numéricos dinâmicos desenhados diretamente na linha do gráfico nos extremos e nos picos/vales locais. O indicador de atratividade é formatado com precisão de 1 casa decimal (ex: `7.5`), enquanto o Y-axis para taxas e PUs possui `grace: '20%'` para evitar corte visual.
 
 ### **4.2 Expectativas de Mercado do Boletim Focus**
 *   **Linha Contínua Segmentada:** Exibe uma trajetória contínua no gráfico de linhas unindo o **Histórico (Realizado)** (anos $T-5$ a $T-1$) com as **Projeções Futuras** ($T$ a $T+3$) para garantir o equilíbrio visual ideal (proporção 5x4).

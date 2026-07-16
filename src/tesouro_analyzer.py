@@ -41,6 +41,7 @@ TAX_MEDIUM_DAYS = 360    # até 360 dias: 20.0% IR
 TAX_LONG_MIN_DAYS = 720  # acima de 720 dias: 15.0% IR (alíquota mínima)
 
 SCORE_DECIMALS = 2
+_PLANNING_TYPES = {"Educa+", "RendA+"}
 
 
 def _clamp(value: float, lo: float, hi: float) -> float:
@@ -271,98 +272,105 @@ def score_tax_efficiency(bond: dict[str, Any]) -> float:
 # ---------------------------------------------------------------------------
 # Scorecard completo por título
 # ---------------------------------------------------------------------------
-def score_bond(
-    bond: dict[str, Any],
-    macro_state: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    """
-    Calcula o scorecard completo (0-10) de um título do Tesouro Direto.
-    Retorna o dicionário enriquecido com score, breakdown e badge de classificação.
+def bond_group(bond: dict[str, Any]) -> str:
+    """Agrupa títulos comparáveis por indexador e fluxo de pagamento."""
+    title_type = bond.get("type", "Tesouro")
+    has_coupon = "Juros Semestrais" in bond.get("name", "")
+    if title_type in {"IPCA+", "Prefixado"}:
+        return f"{title_type} {'com cupom' if has_coupon else 'sem cupom'}"
+    return title_type
 
-    Args:
-        bond: Dicionário com campos do título (name, type, days_to_maturity, buy_yield, etc.)
-        macro_state: Estado macro atual (CURRENT_SELIC, FOCUS_*, ETTJ_CURVE)
 
-    Returns:
-        Dicionário com todos os campos originais do título + score, score_breakdown, badge
-    """
-    ms = macro_state or {}
+def _is_planning_bond(bond: dict[str, Any]) -> bool:
+    return bond.get("type") in _PLANNING_TYPES
 
-    current_selic = ms.get("CURRENT_SELIC")
-    focus_selic_next = ms.get("FOCUS_SELIC_NEXT_YEAR")
-    ipca_trend = ms.get("FOCUS_IPCA_TREND", "estavel")
-    expected_ipca = _select_expected_ipca(bond, ms.get("FOCUS_IPCA", []))
 
-    # Câmbio projetado para o próximo ano
-    focus_cambio_list = ms.get("FOCUS_CAMBIO", [])
-    focus_cambio_next = focus_cambio_list[1] if len(focus_cambio_list) > 1 else None
-
-    # --- Calcula cada critério ---
-    s1 = score_real_rate(bond, expected_ipca)
-    s2 = score_mtm_capture(bond, focus_selic_next, current_selic)
-    s3 = score_duration_risk(bond, ipca_trend)
-    s4 = score_cambio_hedge(bond, focus_cambio_next)
-    s5 = score_tax_efficiency(bond)
-
-    total = round(s1 + s2 + s3 + s4 + s5, SCORE_DECIMALS)
-
-    real_rate = calculate_real_rate(bond, expected_ipca)
-    real_rate_display = real_rate * 100 if real_rate is not None else None
-    if bond.get("type") == "Prefixado" and real_rate_display is not None:
-        real_rate_desc = (
-            f"Taxa real esperada: {real_rate_display:.2f}% a.a. "
-            f"(IPCA Focus: {_as_decimal(float(expected_ipca)) * 100:.2f}%)"
-        )
-    elif real_rate_display is not None:
-        real_rate_desc = f"Taxa real contratada: {real_rate_display:.2f}% a.a."
-    else:
-        real_rate_desc = "Não aplicável"
-
-    score_breakdown = [
-        {
-            "label": "Prêmio Real Esperado",
-            "score": s1,
-            "max": 2.0,
-            "desc": real_rate_desc,
-            "tip": "IPCA+: taxa real contratada. Prefixado: taxa nominal descontada do IPCA Focus. Taxa real ≥ 6% = 1,0 pt; ≥ 7,5% = 2,0 pts."
-        },
-        {
-            "label": "Captura Marcação a Mercado",
-            "score": s2,
-            "max": 2.0,
-            "desc": f"ΔSelic projetado: {(focus_selic_next - current_selic) * 100:.1f}pp" if (focus_selic_next and current_selic) else "Sem dados Focus",
-            "tip": "Queda de juros (Focus) = ganho de capital em Prefixados e IPCA+ Longos. Máx 2,0 pts com -3pp de queda."
-        },
-        {
-            "label": "Risco de Duration",
-            "score": s3,
-            "max": 2.0,
-            "desc": f"Tendência IPCA: {ipca_trend.upper()}",
-            "tip": "IPCA acelerando penaliza títulos longos. Tesouro Selic sempre 2,0 pts. Prazos curtos são protegidos."
-        },
-        {
-            "label": "Elasticidade Cambial",
-            "score": s4,
-            "max": 2.0,
-            "desc": f"Câmbio projetado: R$ {focus_cambio_next:.2f}" if focus_cambio_next else "Sem dados Focus",
-            "tip": "Câmbio estressado (> R$5,50) favorece IPCA+ e IGP-M+. Prefixados são penalizados."
-        },
-        {
-            "label": "Eficiência Tributária",
-            "score": s5,
-            "max": 2.0,
-            "desc": f"{bond.get('days_to_maturity', '?')} dias até o vencimento",
-            "tip": "IR regressivo: ≤180d = 22,5% (0,5 pts) | 181-360d (1,0 pt) | 361-720d (1,5 pt) | >720d = 15% (2,0 pts)."
-        },
+def _yield_values(bond: dict[str, Any]) -> list[float]:
+    return [
+        float(point["buy_yield"])
+        for point in bond.get("history", [])
+        if point.get("buy_yield") is not None
     ]
 
-    badge = _classify_badge(total)
 
-    result = dict(bond)  # copia campos originais
+def _percentile(value: float | None, values: list[float]) -> float:
+    if value is None or not values:
+        return 0.5
+    return sum(item <= value for item in values) / len(values)
+
+
+def _score_historical_yield(bond: dict[str, Any]) -> float:
+    return round(_percentile(bond.get("buy_yield"), _yield_values(bond)) * 4.0, SCORE_DECIMALS)
+
+
+def _score_peer_yield(bond: dict[str, Any], universe: list[dict[str, Any]]) -> float:
+    peers = [
+        float(item["buy_yield"])
+        for item in universe
+        if bond_group(item) == bond_group(bond) and item.get("buy_yield") is not None
+    ]
+    return round(_percentile(bond.get("buy_yield"), peers) * 2.0, SCORE_DECIMALS)
+
+
+def _score_mtm_opportunity(bond: dict[str, Any]) -> float:
+    duration_factor = _clamp(float(bond.get("days_to_maturity") or 0) / 3650.0, 0.0, 1.0)
+    historical_position = _percentile(bond.get("buy_yield"), _yield_values(bond))
+    return round(2.0 * duration_factor * historical_position, SCORE_DECIMALS)
+
+
+def score_bond(
+    bond: dict[str, Any],
+    universe: list[dict[str, Any]] | dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Calcula a atratividade diária a partir de dados observados do Tesouro."""
+    comparable_bonds = universe if isinstance(universe, list) else []
+    historical_rates = _yield_values(bond)
+    historical_percentile = round(_percentile(bond.get("buy_yield"), historical_rates) * 100)
+    historical_yield = _score_historical_yield(bond)
+    peer_yield = _score_peer_yield(bond, comparable_bonds)
+    mtm_opportunity = _score_mtm_opportunity(bond)
+    tax_efficiency = score_tax_efficiency(bond)
+    total = round(historical_yield + peer_yield + mtm_opportunity + tax_efficiency, SCORE_DECIMALS)
+    days = bond.get("days_to_maturity", "?")
+    group = bond_group(bond)
+
+    result = dict(bond)
     result.update({
+        "group": group,
+        "historical_yield_percentile": historical_percentile,
+        "historical_yield_observations": len(historical_rates),
         "score": total,
-        "score_breakdown": score_breakdown,
-        "badge": badge,
+        "score_breakdown": [
+            {
+                "label": "Taxa vs. Histórico",
+                "score": historical_yield,
+                "max": 4.0,
+                "desc": f"Percentil {historical_percentile}: taxa igual ou maior que {historical_percentile}% das {len(historical_rates)} observações.",
+                "tip": "Taxas maiores que o histórico recente elevam a atratividade para uma nova compra.",
+            },
+            {
+                "label": "Taxa vs. Pares",
+                "score": peer_yield,
+                "max": 2.0,
+                "desc": f"Comparação dentro do grupo {group}.",
+                "tip": "Compara somente títulos do mesmo indexador e mesmo fluxo de pagamentos.",
+            },
+            {
+                "label": "Potencial de Marcação a Mercado",
+                "score": mtm_opportunity,
+                "max": 2.0,
+                "desc": f"Sensibilidade pelo prazo de {days} dias e taxa historicamente atrativa.",
+                "tip": "É potencial técnico, não previsão de juros nem promessa de ganho em venda antecipada.",
+            },
+            {
+                "label": "IR se mantido até o vencimento",
+                "score": tax_efficiency,
+                "max": 2.0,
+                "desc": f"{days} dias até o vencimento.",
+                "tip": "A alíquota depende do prazo efetivo entre compra e resgate; esta referência assume manutenção até o vencimento.",
+            },
+        ],
+        "badge": _classify_badge(total),
     })
     return result
 
@@ -389,6 +397,26 @@ def score_all_bonds(
     """
     Pontua todos os títulos da lista e retorna ordenado por score desc.
     """
-    scored = [score_bond(b, macro_state) for b in bonds]
-    scored.sort(key=lambda x: x.get("score", 0.0), reverse=True)
+    scored = [score_bond(b, bonds) for b in bonds]
+    opportunities = sorted(
+        (bond for bond in scored if not _is_planning_bond(bond)),
+        key=lambda bond: bond.get("score", 0.0),
+        reverse=True,
+    )
+    planning = sorted(
+        (bond for bond in scored if _is_planning_bond(bond)),
+        key=lambda bond: bond.get("score", 0.0),
+        reverse=True,
+    )
+    for general_rank, bond in enumerate(opportunities, start=1):
+        bond["general_rank"] = general_rank
+    for planning_rank, bond in enumerate(planning, start=1):
+        bond["general_rank"] = None
+        bond["planning_rank"] = planning_rank
+    scored = opportunities + planning
+    group_positions: dict[str, int] = {}
+    for bond in scored:
+        group = bond["group"]
+        group_positions[group] = group_positions.get(group, 0) + 1
+        bond["group_rank"] = group_positions[group]
     return scored

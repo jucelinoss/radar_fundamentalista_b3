@@ -11,6 +11,7 @@ import pytest
 # Adiciona src ao path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from tesouro_analyzer import (
+    bond_group,
     score_real_rate,
     score_mtm_capture,
     score_duration_risk,
@@ -279,9 +280,9 @@ class TestScoreBond:
         result = score_bond(ipca_long, macro_queda_juros)
         assert 0.0 <= result["score"] <= 10.0
 
-    def test_score_breakdown_tem_5_criterios(self, ipca_long, macro_queda_juros):
+    def test_score_breakdown_tem_4_criterios_tecnicos(self, ipca_long, macro_queda_juros):
         result = score_bond(ipca_long, macro_queda_juros)
-        assert len(result["score_breakdown"]) == 5
+        assert len(result["score_breakdown"]) == 4
 
     def test_cada_criterio_entre_0_e_2(self, ipca_long, macro_queda_juros):
         result = score_bond(ipca_long, macro_queda_juros)
@@ -294,11 +295,11 @@ class TestScoreBond:
         assert result["type"] == ipca_long["type"]
         assert result["maturity_date"] == ipca_long["maturity_date"]
 
-    def test_badge_premium_acima_8(self, ipca_long, macro_queda_juros):
-        """IPCA+ longo em cenário de queda deve alcançar badge premium."""
+    def test_badge_reflete_score_tecnico(self, ipca_long, macro_queda_juros):
+        """Sem histórico, o score técnico usa posição neutra de taxa."""
         ipca_long["buy_yield"] = 7.5
         result = score_bond(ipca_long, macro_queda_juros)
-        assert result["badge"] in ("premium", "bom")
+        assert result["badge"] == "regular"
 
     def test_selic_cenario_alta_pontuacao_razoavel(self, selic_bond, macro_alta_juros):
         """Selic em ambiente de juros altos deve ter boa pontuação (protegido)."""
@@ -311,13 +312,13 @@ class TestScoreBond:
         assert "score" in result
         assert 0.0 <= result["score"] <= 10.0
 
-    def test_prefixado_exibe_taxa_real_esperada(self, prefixado_long, macro_queda_juros):
-        prefixado_long["buy_yield"] = 15.0
+    def test_prefixado_nao_usa_focus_no_detalhamento(self, prefixado_long, macro_queda_juros):
+        prefixado_long["history"] = [{"buy_yield": 0.12}, {"buy_yield": 0.15}]
+        prefixado_long["buy_yield"] = 0.15
         result = score_bond(prefixado_long, macro_queda_juros)
-        premio_real = result["score_breakdown"][0]
-        assert premio_real["score"] == 2.0
-        assert "Taxa real esperada" in premio_real["desc"]
-        assert "IPCA Focus" in premio_real["desc"]
+
+        assert result["score_breakdown"][0]["label"] == "Taxa vs. Histórico"
+        assert all("Focus" not in item["desc"] for item in result["score_breakdown"])
 
 
 # ---------------------------------------------------------------------------
@@ -360,3 +361,61 @@ class TestScoreAllBonds:
             assert "score" in r
             assert "score_breakdown" in r
             assert "badge" in r
+
+
+class TestAttractivenessScore:
+    def test_score_ignores_focus_scenario(self, prefixado_long, macro_alta_juros, macro_queda_juros):
+        prefixado_long["history"] = [
+            {"date": "2026-01-01", "buy_yield": 0.10},
+            {"date": "2026-02-01", "buy_yield": 0.12},
+            {"date": "2026-03-01", "buy_yield": 0.14},
+        ]
+        prefixado_long["buy_yield"] = 0.14
+
+        assert score_bond(prefixado_long, macro_alta_juros)["score"] == score_bond(prefixado_long, macro_queda_juros)["score"]
+
+    def test_higher_historical_yield_is_more_attractive(self, prefixado_long):
+        prefixado_long["history"] = [
+            {"date": "2026-01-01", "buy_yield": 0.10},
+            {"date": "2026-02-01", "buy_yield": 0.12},
+            {"date": "2026-03-01", "buy_yield": 0.14},
+        ]
+        prefixado_long["buy_yield"] = 0.10
+        low_score = score_bond(prefixado_long)["score"]
+        prefixado_long["buy_yield"] = 0.14
+
+        assert score_bond(prefixado_long)["score"] > low_score
+
+    def test_groups_coupon_and_non_coupon_bonds_separately(self):
+        assert bond_group({"type": "IPCA+", "name": "Tesouro IPCA+ 2035"}) == "IPCA+ sem cupom"
+        assert bond_group({"type": "IPCA+", "name": "Tesouro IPCA+ com Juros Semestrais 2035"}) == "IPCA+ com cupom"
+
+    def test_score_all_bonds_exposes_general_and_group_ranks(self):
+        bonds = [
+            {"name": "Tesouro IPCA+ 2032", "type": "IPCA+", "days_to_maturity": 2000, "buy_yield": 0.08,
+             "history": [{"buy_yield": 0.06}, {"buy_yield": 0.08}]},
+            {"name": "Tesouro IPCA+ 2050", "type": "IPCA+", "days_to_maturity": 8000, "buy_yield": 0.07,
+             "history": [{"buy_yield": 0.06}, {"buy_yield": 0.07}]},
+        ]
+
+        result = score_all_bonds(bonds)
+
+        assert result[0]["general_rank"] == 1
+        assert result[0]["group_rank"] == 1
+        assert result[0]["group"] == "IPCA+ sem cupom"
+        assert result[0]["historical_yield_percentile"] == 100
+
+    def test_planning_titles_are_excluded_from_general_ranking(self):
+        bonds = [
+            {"name": "Tesouro RendA+ Aposentadoria Extra 2049", "type": "RendA+", "days_to_maturity": 8500,
+             "buy_yield": 0.08, "history": [{"buy_yield": 0.06}, {"buy_yield": 0.08}]},
+            {"name": "Tesouro IPCA+ 2035", "type": "IPCA+", "days_to_maturity": 3200,
+             "buy_yield": 0.07, "history": [{"buy_yield": 0.06}, {"buy_yield": 0.07}]},
+        ]
+
+        result = score_all_bonds(bonds)
+
+        assert result[0]["name"] == "Tesouro IPCA+ 2035"
+        assert result[0]["general_rank"] == 1
+        assert result[1]["general_rank"] is None
+        assert result[1]["planning_rank"] == 1

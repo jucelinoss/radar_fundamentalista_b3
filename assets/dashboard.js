@@ -1794,6 +1794,7 @@ let currentTab = 'home';
                         const tipo = td.type || '—';
                         const yieldVal = td.buy_yield != null ? td.buy_yield : null;
                         const yieldStr = yieldVal !== null ? (yieldVal * 100).toFixed(2) + '%' : '—';
+                        const yieldPercentile = td.historical_yield_percentile != null ? 'P' + td.historical_yield_percentile : '—';
                         const maturity = td.maturity_date || (td.days_to_maturity ? td.days_to_maturity + ' dias' : '—');
                         const score = td.score != null ? td.score : 0;
                         const badge = td.badge || '';
@@ -1812,10 +1813,14 @@ let currentTab = 'home';
                         }
 
                         const tdJson = encodeURIComponent(JSON.stringify(td));
+                        const generalRank = td.general_rank ? '#' + td.general_rank + ' ' : '<small>Planejamento</small> ';
+                        const group = td.group || tipo;
+                        const groupRank = td.group_rank ? '<br><small>#' + td.group_rank + ' no grupo</small>' : '';
                         return '<tr onclick="openTdDetailModal(\'' + tdJson + '\')" style="cursor:pointer;" title="' + breakdownTip.replace(/"/g, '&quot;') + '">' +
-                            '<td class="name-cell" style="font-weight:600;">' + name + '</td>' +
-                            '<td class="td-tipo">' + tipo + '</td>' +
+                            '<td class="name-cell" style="font-weight:600;">' + generalRank + name + '</td>' +
+                            '<td class="td-tipo">' + group + groupRank + '</td>' +
                             '<td class="font-mono tabular" style="font-weight:600;color:var(--positive);">' + yieldStr + '</td>' +
+                            '<td class="font-mono tabular" title="Percentil da taxa atual no histórico do título">' + yieldPercentile + '</td>' +
                             '<td class="font-mono tabular" style="font-size:0.8rem;">' + maturity + '</td>' +
                             '<td><span class="score-pill ' + getScoreRangeClass(score) + '" style="font-size:0.75rem;height:1.5rem;min-width:1.5rem;">' + formatScore(score) + '</span></td>' +
                             '<td>' + (badgeClass ? '<span class="' + badgeClass + '">' + badgeDisplay + '</span>' : '—') + '</td>' +
@@ -2312,7 +2317,7 @@ let currentTab = 'home';
                     }
                 });
             } else if (chartType === 'score') {
-                if (chartTitleEl) chartTitleEl.textContent = '🎯 Score Histórico (' + periodText + ')';
+                if (chartTitleEl) chartTitleEl.textContent = '🎯 Atratividade Histórica (' + periodText + ')';
                 const scoreHist = getTdHistory(td, 'score', days);
                 if (scoreHist.length === 0) {
                     renderTdHistoryUnavailable(canvas, 'O histórico de score começa a ser formado nas próximas atualizações diárias.');
@@ -2324,7 +2329,7 @@ let currentTab = 'home';
                     data: {
                             labels: scoreHist.map(point => point.label),
                         datasets: [{
-                            label: 'Score Radar',
+                            label: 'Atratividade do dia',
                             data: scoreHist.map(point => point.value),
                             borderColor: '#3b82f6',
                             backgroundColor: 'rgba(59, 130, 246, 0.08)',
@@ -2430,7 +2435,7 @@ let currentTab = 'home';
                 if (td.score_breakdown && td.score_breakdown.length > 0) {
                     const titleEl = document.createElement('div');
                     titleEl.className = 'section-title';
-                    titleEl.textContent = 'Detalhamento do Score';
+                    titleEl.textContent = 'Detalhamento da Atratividade';
                     breakdownEl.appendChild(titleEl);
 
                     td.score_breakdown.forEach(function(b) {

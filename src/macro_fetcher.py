@@ -33,6 +33,7 @@ _PROJECT_ROOT = os.path.dirname(_SRC_DIR)
 _DATA_DIR = os.path.join(_PROJECT_ROOT, "data")
 MACRO_STATE_FILE = os.path.join(_DATA_DIR, "macro_state.json")
 TESOURO_HISTORY_FILE = os.path.join(_DATA_DIR, "tesouro_history.json")
+TESOURO_HISTORY_RETENTION_DAYS = 365 * 5
 
 # ---------------------------------------------------------------------------
 # Configuração BCB
@@ -167,6 +168,18 @@ def _save_tesouro_history(history: dict[str, list[dict[str, Any]]]) -> None:
         json.dump(history, f, ensure_ascii=False, indent=2)
 
 
+def _retain_recent_tesouro_points(points: list[dict[str, Any]], reference_date: str) -> list[dict[str, Any]]:
+    cutoff = datetime.strptime(reference_date, "%Y-%m-%d") - timedelta(days=TESOURO_HISTORY_RETENTION_DAYS)
+    retained = []
+    for point in points:
+        try:
+            if datetime.strptime(point.get("date", ""), "%Y-%m-%d") >= cutoff:
+                retained.append(point)
+        except ValueError:
+            logger.warning("[macro_fetcher] Descartando ponto histórico do Tesouro com data inválida.")
+    return retained
+
+
 def record_tesouro_snapshot(bonds: list[dict[str, Any]], fetched_at: str) -> None:
     """Persiste uma observação diária real para os gráficos do Tesouro."""
     history = _load_tesouro_history()
@@ -190,7 +203,7 @@ def record_tesouro_snapshot(bonds: list[dict[str, Any]], fetched_at: str) -> Non
         else:
             points.append(point)
         points.sort(key=lambda item: item.get("date", ""))
-        history[name] = points[-2000:]
+        history[name] = _retain_recent_tesouro_points(points, date)
     _save_tesouro_history(history)
 
 

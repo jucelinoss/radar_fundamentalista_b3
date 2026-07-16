@@ -420,7 +420,7 @@ def generate_dashboard() -> None:
             bonds = ms.get("TESOURO_DIRETO_BONDS", [])
             if bonds:
                 logger.info(f"  [v3] Pontuando {len(bonds)} títulos do Tesouro Direto...")
-                tesouro_direto_payload = tesouro_analyzer.score_all_bonds(bonds, ms)
+                tesouro_direto_payload = tesouro_analyzer.score_all_bonds(bonds)
                 macro_fetcher.record_tesouro_scores(tesouro_direto_payload, ms.get("fetched_at", ""))
                 for bond in tesouro_direto_payload:
                     official_history = bond.get("history", [])
@@ -433,8 +433,7 @@ def generate_dashboard() -> None:
                     if market_date in merged:
                         merged[market_date]["score"] = bond.get("score")
 
-                    # Preenche score histórico para todos os pontos sem score
-                    # usando a taxa (buy_yield) de cada ponto + tipo do título
+                    # Recalcula toda a série com dados observados até cada data.
                     bond_type = bond.get("type", "")
                     maturity_date_str = bond.get("maturity_date", "")
                     maturity_dt: datetime | None = None
@@ -443,22 +442,23 @@ def generate_dashboard() -> None:
                             maturity_dt = datetime.strptime(maturity_date_str, "%Y-%m-%d")
                         except ValueError:
                             pass
-                    for date_str, point in merged.items():
-                        if "score" not in point and "buy_yield" in point:
-                            try:
-                                # Calcula days_to_maturity real para a data histórica
-                                hist_dt = datetime.strptime(date_str, "%Y-%m-%d")
-                                hist_days = (maturity_dt - hist_dt).days if maturity_dt else bond.get("days_to_maturity", 0)
-                                temp_bond = {
-                                    "name": bond.get("name"),
-                                    "type": bond_type,
-                                    "days_to_maturity": max(hist_days, 1),
-                                    "buy_yield": point["buy_yield"],
-                                }
-                                scored = tesouro_analyzer.score_bond(temp_bond, ms)
-                                point["score"] = scored.get("score", 0)
-                            except Exception:
-                                point["score"] = 0
+                    historical_points = [merged[key] for key in sorted(merged)]
+                    for index, point in enumerate(historical_points):
+                        if point.get("buy_yield") is None:
+                            continue
+                        try:
+                            hist_dt = datetime.strptime(point["date"], "%Y-%m-%d")
+                            hist_days = (maturity_dt - hist_dt).days if maturity_dt else bond.get("days_to_maturity", 0)
+                            temp_bond = {
+                                "name": bond.get("name"),
+                                "type": bond_type,
+                                "days_to_maturity": max(hist_days, 1),
+                                "buy_yield": point["buy_yield"],
+                                "history": historical_points[:index + 1],
+                            }
+                            point["score"] = tesouro_analyzer.score_bond(temp_bond).get("score", 0)
+                        except Exception:
+                            point["score"] = 0
                     bond["history"] = [merged[key] for key in sorted(merged)]
                     bond["history_meta"] = _build_tesouro_history_meta(
                         bond["history"], bond, ms.get("fetched_at", "")
