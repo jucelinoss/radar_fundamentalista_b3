@@ -178,6 +178,7 @@ jobs:
           # para comparação em ambos os ambientes.
           cp index.html _site/index-classic.html
           cp index-v2.html _site/index.html
+          cp data/export_*.csv data/export_*.json _site/
 
       - name: Validate Pages data artifact
         if: steps.check-changes.outputs.changed == 'true'
