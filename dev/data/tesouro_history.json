@@ -1,0 +1,542 @@
+{
+  "Tesouro Selic 2027": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.01,
+      "buy_price": 19445.31,
+      "source": "tesouro_transparente_csv",
+      "score": 1.86
+    }
+  ],
+  "Tesouro Selic 2031": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.07,
+      "buy_price": 19380.19,
+      "source": "tesouro_transparente_csv",
+      "score": 4.45
+    }
+  ],
+  "Tesouro Selic 2029": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.04,
+      "buy_price": 19425.75,
+      "source": "tesouro_transparente_csv",
+      "score": 3.76
+    }
+  ],
+  "Tesouro Selic 2028": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.02,
+      "buy_price": 19440.73,
+      "source": "tesouro_transparente_csv",
+      "score": 3.52
+    }
+  ],
+  "Tesouro Prefixado 2028": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.1386,
+      "buy_price": 827.75,
+      "source": "tesouro_transparente_csv",
+      "score": 5.5
+    }
+  ],
+  "Tesouro Prefixado 2029": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.1408,
+      "buy_price": 725.07,
+      "source": "tesouro_transparente_csv",
+      "score": 7.2
+    }
+  ],
+  "Tesouro Prefixado 2031": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.1431,
+      "buy_price": 553.05,
+      "source": "tesouro_transparente_csv",
+      "score": 7.64
+    }
+  ],
+  "Tesouro Prefixado 2032": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.1438,
+      "buy_price": 482.21,
+      "source": "tesouro_transparente_csv",
+      "score": 8.04
+    }
+  ],
+  "Tesouro Prefixado 2027": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.1369,
+      "buy_price": 942.64,
+      "source": "tesouro_transparente_csv",
+      "score": 2.8
+    }
+  ],
+  "Tesouro IPCA+ com Juros Semestrais 2030": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0824,
+      "buy_price": 4516.25,
+      "source": "tesouro_transparente_csv",
+      "score": 8.51
+    }
+  ],
+  "Tesouro IPCA+ com Juros Semestrais 2045": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0755,
+      "buy_price": 4091.0,
+      "source": "tesouro_transparente_csv",
+      "score": 8.64
+    }
+  ],
+  "Tesouro IPCA+ com Juros Semestrais 2040": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.07690000000000001,
+      "buy_price": 4207.78,
+      "source": "tesouro_transparente_csv",
+      "score": 8.91
+    }
+  ],
+  "Tesouro IPCA+ com Juros Semestrais 2032": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0812,
+      "buy_price": 4405.48,
+      "source": "tesouro_transparente_csv",
+      "score": 8.71
+    }
+  ],
+  "Tesouro IPCA+ com Juros Semestrais 2050": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.075,
+      "buy_price": 4107.11,
+      "source": "tesouro_transparente_csv",
+      "score": 8.47
+    }
+  ],
+  "Tesouro IPCA+ com Juros Semestrais 2035": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.08,
+      "buy_price": 4225.52,
+      "source": "tesouro_transparente_csv",
+      "score": 9.07
+    }
+  ],
+  "Tesouro IPCA+ com Juros Semestrais 2060": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0741,
+      "buy_price": 4068.07,
+      "source": "tesouro_transparente_csv",
+      "score": 7.57
+    }
+  ],
+  "Tesouro IPCA+ com Juros Semestrais 2037": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0787,
+      "buy_price": 4181.61,
+      "source": "tesouro_transparente_csv",
+      "score": 8.18
+    }
+  ],
+  "Tesouro IPCA+ com Juros Semestrais 2055": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0742,
+      "buy_price": 4028.87,
+      "source": "tesouro_transparente_csv",
+      "score": 8.21
+    }
+  ],
+  "Tesouro IPCA+ com Juros Semestrais 2026": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.1153,
+      "buy_price": 4833.62,
+      "source": "tesouro_transparente_csv",
+      "score": 6.51
+    }
+  ],
+  "Tesouro IPCA+ 2040": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0755,
+      "buy_price": 1710.35,
+      "source": "tesouro_transparente_csv",
+      "score": 8.54
+    }
+  ],
+  "Tesouro IPCA+ 2026": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.1153,
+      "buy_price": 4694.83,
+      "source": "tesouro_transparente_csv",
+      "score": 6.51
+    }
+  ],
+  "Tesouro IPCA+ 2050": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0728,
+      "buy_price": 881.78,
+      "source": "tesouro_transparente_csv",
+      "score": 7.78
+    }
+  ],
+  "Tesouro IPCA+ 2045": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0735,
+      "buy_price": 1256.95,
+      "source": "tesouro_transparente_csv",
+      "score": 8.25
+    }
+  ],
+  "Tesouro IPCA+ 2029": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0824,
+      "buy_price": 3796.79,
+      "source": "tesouro_transparente_csv",
+      "score": 8.13
+    }
+  ],
+  "Tesouro IPCA+ 2032": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.081,
+      "buy_price": 2959.32,
+      "source": "tesouro_transparente_csv",
+      "score": 7.58
+    }
+  ],
+  "Tesouro IPCA+ 2035": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0796,
+      "buy_price": 2421.29,
+      "source": "tesouro_transparente_csv",
+      "score": 8.82
+    }
+  ],
+  "Tesouro IGPM+ com Juros Semestrais 2031": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0821,
+      "buy_price": 7567.1,
+      "source": "tesouro_transparente_csv",
+      "score": 8.77
+    }
+  ],
+  "Tesouro Prefixado com Juros Semestrais 2031": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.1437,
+      "buy_price": 873.01,
+      "source": "tesouro_transparente_csv",
+      "score": 7.47
+    }
+  ],
+  "Tesouro Prefixado com Juros Semestrais 2033": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.14429999999999998,
+      "buy_price": 832.42,
+      "source": "tesouro_transparente_csv",
+      "score": 8.82
+    }
+  ],
+  "Tesouro Prefixado com Juros Semestrais 2035": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.1442,
+      "buy_price": 803.97,
+      "source": "tesouro_transparente_csv",
+      "score": 8.45
+    }
+  ],
+  "Tesouro Prefixado com Juros Semestrais 2037": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.14400000000000002,
+      "buy_price": 782.39,
+      "source": "tesouro_transparente_csv",
+      "score": 8.37
+    }
+  ],
+  "Tesouro Prefixado com Juros Semestrais 2029": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.1394,
+      "buy_price": 930.04,
+      "source": "tesouro_transparente_csv",
+      "score": 6.68
+    }
+  ],
+  "Tesouro Prefixado com Juros Semestrais 2027": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.13720000000000002,
+      "buy_price": 988.53,
+      "source": "tesouro_transparente_csv",
+      "score": 3.85
+    }
+  ],
+  "Tesouro Renda+ Aposentadoria Extra 2049": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0764,
+      "buy_price": 1933.02,
+      "source": "tesouro_transparente_csv",
+      "score": 9.85
+    }
+  ],
+  "Tesouro Renda+ Aposentadoria Extra 2054": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0745,
+      "buy_price": 1379.21,
+      "source": "tesouro_transparente_csv",
+      "score": 9.54
+    }
+  ],
+  "Tesouro Renda+ Aposentadoria Extra 2074": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0712,
+      "buy_price": 369.29,
+      "source": "tesouro_transparente_csv",
+      "score": 7.98
+    }
+  ],
+  "Tesouro Renda+ Aposentadoria Extra 2079": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0712,
+      "buy_price": 262.35,
+      "source": "tesouro_transparente_csv",
+      "score": 7.92
+    }
+  ],
+  "Tesouro Renda+ Aposentadoria Extra 2069": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.07150000000000001,
+      "buy_price": 515.29,
+      "source": "tesouro_transparente_csv",
+      "score": 8.37
+    }
+  ],
+  "Tesouro Renda+ Aposentadoria Extra 2064": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0721,
+      "buy_price": 715.76,
+      "source": "tesouro_transparente_csv",
+      "score": 8.76
+    }
+  ],
+  "Tesouro Renda+ Aposentadoria Extra 2084": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0712,
+      "buy_price": 186.4,
+      "source": "tesouro_transparente_csv",
+      "score": 7.92
+    }
+  ],
+  "Tesouro Renda+ Aposentadoria Extra 2059": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0729,
+      "buy_price": 995.72,
+      "source": "tesouro_transparente_csv",
+      "score": 9.09
+    }
+  ],
+  "Tesouro Educa+ 2043": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0751,
+      "buy_price": 1623.7,
+      "source": "tesouro_transparente_csv",
+      "score": 8.48
+    }
+  ],
+  "Tesouro Educa+ 2045": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0742,
+      "buy_price": 1425.64,
+      "source": "tesouro_transparente_csv",
+      "score": 8.06
+    }
+  ],
+  "Tesouro Educa+ 2033": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0814,
+      "buy_price": 3244.87,
+      "source": "tesouro_transparente_csv",
+      "score": 8.99
+    }
+  ],
+  "Tesouro Educa+ 2038": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0785,
+      "buy_price": 2257.14,
+      "source": "tesouro_transparente_csv",
+      "score": 9.01
+    }
+  ],
+  "Tesouro Educa+ 2030": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.083,
+      "buy_price": 3522.26,
+      "source": "tesouro_transparente_csv",
+      "score": 8.68
+    }
+  ],
+  "Tesouro Educa+ 2036": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.07980000000000001,
+      "buy_price": 2598.11,
+      "source": "tesouro_transparente_csv",
+      "score": 9.19
+    }
+  ],
+  "Tesouro Educa+ 2037": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.07919999999999999,
+      "buy_price": 2418.97,
+      "source": "tesouro_transparente_csv",
+      "score": 9.1
+    }
+  ],
+  "Tesouro Educa+ 2032": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.08199999999999999,
+      "buy_price": 3500.01,
+      "source": "tesouro_transparente_csv",
+      "score": 8.89
+    }
+  ],
+  "Tesouro Educa+ 2031": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0825,
+      "buy_price": 3780.45,
+      "source": "tesouro_transparente_csv",
+      "score": 8.8
+    }
+  ],
+  "Tesouro Educa+ 2034": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0809,
+      "buy_price": 3009.45,
+      "source": "tesouro_transparente_csv",
+      "score": 9.09
+    }
+  ],
+  "Tesouro Educa+ 2048": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.07339999999999999,
+      "buy_price": 1169.01,
+      "source": "tesouro_transparente_csv",
+      "score": 7.52
+    }
+  ],
+  "Tesouro Educa+ 2035": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.08039999999999999,
+      "buy_price": 2793.83,
+      "source": "tesouro_transparente_csv",
+      "score": 9.18
+    }
+  ],
+  "Tesouro Educa+ 2040": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.077,
+      "buy_price": 1974.47,
+      "source": "tesouro_transparente_csv",
+      "score": 8.83
+    }
+  ],
+  "Tesouro Educa+ 2046": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0739,
+      "buy_price": 1334.38,
+      "source": "tesouro_transparente_csv",
+      "score": 7.83
+    }
+  ],
+  "Tesouro Educa+ 2041": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.07629999999999999,
+      "buy_price": 1849.17,
+      "source": "tesouro_transparente_csv",
+      "score": 8.71
+    }
+  ],
+  "Tesouro Educa+ 2047": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0736,
+      "buy_price": 1249.76,
+      "source": "tesouro_transparente_csv",
+      "score": 7.45
+    }
+  ],
+  "Tesouro Educa+ 2042": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0756,
+      "buy_price": 1734.09,
+      "source": "tesouro_transparente_csv",
+      "score": 8.59
+    }
+  ],
+  "Tesouro Educa+ 2044": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.0746,
+      "buy_price": 1521.87,
+      "source": "tesouro_transparente_csv",
+      "score": 8.29
+    }
+  ],
+  "Tesouro Educa+ 2039": [
+    {
+      "date": "2026-07-15",
+      "buy_yield": 0.07769999999999999,
+      "buy_price": 2110.92,
+      "source": "tesouro_transparente_csv",
+      "score": 8.92
+    }
+  ]
+}

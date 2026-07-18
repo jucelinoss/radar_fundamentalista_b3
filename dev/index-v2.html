@@ -1,0 +1,698 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radar Fundamentalista B3</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e3a5f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icons/icon.svg">
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- Chart.js for Historical charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- html2pdf.js for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+        <link rel="stylesheet" href="assets/dashboard.css">
+</head>
+
+<body>
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark');
+            }
+        })();
+    </script>
+
+    <div class="container">
+        <header>
+            <div class="header-inner">
+                <div class="logo-icon">RB</div>
+                <div class="logo-text">
+                    <h1>Radar Fundamentalista B3</h1>
+                    <p>Graham · Bazin · FIIs · FIAGROs · Score Contínuo v2.5</p>
+                </div>
+                <div class="header-right">
+                    <div style="position: relative; display: inline-block;">
+                        <button id="export-btn" onclick="toggleExportMenu()" class="action-btn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            <span>Exportar</span>
+                        </button>
+                        <div id="export-menu" class="export-menu" style="display: none;">
+                            <div style="padding:0.4rem 0.75rem;font-size:0.7rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Dados Brutos</div>
+                            <a href="export_stocks.csv" download style="display:block;padding:0.4rem 0.75rem;color:var(--text-primary);text-decoration:none;font-size:0.75rem;border-radius:4px;transition:var(--transition);" onmouseover="this.style.background='var(--accent-bg)'" onmouseout="this.style.background='transparent'">📊 CSV - Ações</a>
+                            <a href="export_ativos.json" download style="display:block;padding:0.4rem 0.75rem;color:var(--text-primary);text-decoration:none;font-size:0.75rem;border-radius:4px;transition:var(--transition);" onmouseover="this.style.background='var(--accent-bg)'" onmouseout="this.style.background='transparent'">📋 JSON - Todos os Ativos</a>
+                            <a href="export_fiis.csv" download style="display:block;padding:0.4rem 0.75rem;color:var(--text-primary);text-decoration:none;font-size:0.75rem;border-radius:4px;transition:var(--transition);" onmouseover="this.style.background='var(--accent-bg)'" onmouseout="this.style.background='transparent'">🏢 CSV - FIIs</a>
+                            <a href="export_fiagros.csv" download style="display:block;padding:0.4rem 0.75rem;color:var(--text-primary);text-decoration:none;font-size:0.75rem;border-radius:4px;transition:var(--transition);" onmouseover="this.style.background='var(--accent-bg)'" onmouseout="this.style.background='transparent'">🌱 CSV - FIAGROs</a>
+                            <hr style="border:none;border-top:1px solid var(--card-border);margin:0.25rem 0;">
+                            <div style="padding:0.4rem 0.75rem;font-size:0.7rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Relatório</div>
+                            <a href="#" onclick="exportPDF(); return false;" style="display:block;padding:0.4rem 0.75rem;color:var(--text-primary);text-decoration:none;font-size:0.75rem;border-radius:4px;transition:var(--transition);" onmouseover="this.style.background='var(--accent-bg)'" onmouseout="this.style.background='transparent'">📄 PDF - <span id="pdf-label">Ações</span> (aba atual)</a>
+                            <hr style="border:none;border-top:1px solid var(--card-border);margin:0.25rem 0;">
+                            <div style="padding:0.4rem 0.75rem;font-size:0.7rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Para IA</div>
+                            <a href="export_top_picks.json" download style="display:block;padding:0.4rem 0.75rem;color:var(--text-primary);text-decoration:none;font-size:0.75rem;border-radius:4px;transition:var(--transition);" onmouseover="this.style.background='var(--accent-bg)'" onmouseout="this.style.background='transparent'">🤖 Top Picks JSON (pronto pra IA)</a>
+                        </div>
+                    </div>
+                    <button id="help-toggle-btn" onclick="openHelpModal()" class="action-btn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                        <span>Como Funciona?</span>
+                    </button>
+                    <button id="theme-toggle-btn" onclick="toggleTheme()" class="action-btn">
+                        <svg id="theme-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <!-- Dynamically populated outline path -->
+                        </svg>
+                        <span>Tema</span>
+                    </button>
+                    <span class="header-ts">Atualizado em: <span id="timestamp-container">Carregando...</span></span>
+                    <span class="disclaimer">⚠️ Não é recomendação de investimento. Dados via APIs públicas B3 + análise fundamentalista.</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Tabs -->
+        <nav class="tabs-row" aria-label="Navegação principal">
+            <button class="tab-btn active" onclick="switchTab('home')">🏠 Home</button>
+            <button class="tab-btn" onclick="switchTab('stocks')">📈 Ações</button>
+            <button class="tab-btn" onclick="switchTab('fiis')">FIIs</button>
+            <button class="tab-btn" onclick="switchTab('fiagros')">FIAGROs</button>
+            <button class="tab-btn" onclick="switchTab('sectors')">Análise Setorial</button>
+            <button class="tab-btn" onclick="switchTab('rendafixa')">🪙 Renda Fixa</button>
+        </nav>
+
+        <!-- Filters -->
+        <div class="filters-row hidden">
+            <select id="index-filter" onchange="filterTable()" class="filter-select">
+                <option value="all">Todos os Índices</option>
+                <option value="IBOV">Índice IBOV</option>
+                <option value="IDIV">Índice IDIV</option>
+                <option value="SMLL">Índice SMLL</option>
+                <option value="IEE">Índice IEE (Elétricas)</option>
+                <option value="IFNC">Índice IFNC (Financeiro)</option>
+            </select>
+
+            <select id="sector-filter" onchange="filterTable()" class="filter-select">
+                <option value="all">Todos os Setores</option>
+            </select>
+
+            <select id="score-range-filter" onchange="filterTable()" class="filter-select">
+                <option value="all">Todos os Scores</option>
+                <option value="premium">🟢 Premium (≥ 8.0)</option>
+                <option value="good">🟡 Bom (6.0 a 7.9)</option>
+                <option value="alert">🟠 Alerta (4.0 a 5.9)</option>
+                <option value="risk">🔴 Risco (&lt; 4.0)</option>
+            </select>
+
+            <select id="discount-filter" onchange="filterTable()" class="filter-select">
+                <option value="all">Preço: Todos</option>
+                <option value="discounted">Preço: Com Desconto</option>
+            </select>
+
+            <div class="search-wrap">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="search-bar" name="asset-search" autocomplete="off" aria-label="Buscar ativo" class="filter-input" placeholder="Buscar ativo..."
+                    onkeyup="filterTable()">
+            </div>
+        </div>
+
+        <!-- Home: único local para visão macro e Top Picks -->
+        <section id="panel-home" aria-label="Visão geral">
+            <div class="home-grid">
+                <article class="macro-card selic" onclick="openFocusDetailModal('selic')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openFocusDetailModal('selic')"><span class="macro-label">Selic atual</span><strong id="macro-selic" class="macro-value">—</strong><span id="macro-selic-trend" class="macro-trend stable">→ Selic</span><span id="macro-selic-expect" class="macro-expect selic"></span><span id="macro-selic-focus" class="macro-sub"></span></article>
+                <article class="macro-card ipca" onclick="openFocusDetailModal('ipca')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openFocusDetailModal('ipca')"><span class="macro-label">IPCA (12 meses)</span><strong id="macro-ipca" class="macro-value">—</strong><span id="macro-ipca-trend" class="macro-trend stable">→ IPCA</span><span id="macro-ipca-expect" class="macro-expect ipca"></span><span id="macro-ipca-focus" class="macro-sub"></span></article>
+                <article class="macro-card cambio" onclick="openFocusDetailModal('cambio')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openFocusDetailModal('cambio')"><span class="macro-label">Câmbio</span><strong id="macro-cambio" class="macro-value">—</strong><span id="macro-cambio-expect" class="macro-expect cambio"></span><span id="macro-cambio-focus" class="macro-sub"></span></article>
+            </div>
+            <p id="home-timestamp" class="macro-sub"></p>
+            <div class="home-picks-grid">
+                <section class="home-pick-card"><h2>Top Ações</h2><div id="home-top-stocks"></div></section>
+                <section class="home-pick-card"><h2>Top FIIs</h2><div id="home-top-fiis"></div></section>
+                <section id="home-top-fiagros-card" class="home-pick-card"><h2>Top FIAGROs</h2><div id="home-top-fiagros"></div></section>
+                <section class="home-pick-card"><h2>Top Tesouro</h2><div id="home-top-tesouro"></div></section>
+            </div>
+        </section>
+
+        <!-- Stocks Panel -->
+        <div id="panel-stocks" class="table-wrap hidden">
+            <div class="table-header-bar">
+                <span>Ações listadas na B3</span>
+                <span class="font-mono tabular" id="stocks-count">0 ativos</span>
+            </div>
+            <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th onclick="sortTable('stocks', 0)">Ticker</th>
+                        <th onclick="sortTable('stocks', 1)">Nome</th>
+                        <th onclick="sortTable('stocks', 2)">Setor</th>
+                        <th onclick="sortTable('stocks', 3)">Preço</th>
+                        <th onclick="sortTable('stocks', 4)">
+                            <span class="hint" tabindex="0" data-tip="Valor Patrimonial por Ação. Patrimônio líquido dividido pelo número de ações. Referência para o P/VP.">VPA</span>
+                        </th>
+                        <th onclick="sortTable('stocks', 5)">
+                            <span class="hint" tabindex="0" data-tip="Preço sobre Lucro (P/E). Quanto o mercado paga por cada R$ 1,00 de lucro. Quanto menor, mais barata. Ideal: &lt; 15.">P/L</span>
+                        </th>
+                        <th onclick="sortTable('stocks', 6)">
+                            <span class="hint" tabindex="0" data-tip="Preço sobre Valor Patrimonial (P/B). Compara o preço ao patrimônio líquido por ação. Abaixo de 1,00 = desconto. Ideal: &lt; 1,5.">P/VP</span>
+                        </th>
+                        <th onclick="sortTable('stocks', 7)">
+                            <span class="hint" tabindex="0" data-tip="Dividend Yield. Retorno em dividendos nos últimos 12 meses dividido pelo preço atual. Ideal: &ge; 6%.">DY</span>
+                        </th>
+                        <th onclick="sortTable('stocks', 8)">
+                            <span class="hint" tabindex="0" data-tip="Return on Equity. Rentabilidade: lucro líquido &divide; patrimônio líquido. Mede a eficiência da gestão. Ideal: &ge; 10%.">ROE</span>
+                        </th>
+                        <th onclick="sortTable('stocks', 9)">
+                            <span class="hint" tabindex="0" data-tip="Preço Teto de Décio Bazin. Máximo que se deve pagar para garantir retorno de 6% a.a. em dividendos: Dividendo Anual &divide; 0,06.">Teto Bazin</span>
+                        </th>
+                        <th onclick="sortTable('stocks', 10)">
+                            <span class="hint" tabindex="0" data-tip="Valor Justo de Benjamin Graham. Preço intrínseco = &radic;(22,5 &times; LPA &times; VPA). Abaixo dele = margem de segurança.">Justo Graham</span>
+                        </th>
+                        <th onclick="sortTable('stocks', 11)">
+                            <span class="hint" tabindex="0" data-tip="Score contínuo 0-10. 5 critérios: DY, P/L, P/VP, ROE e Margem de Graham (cada 0-2). Quanto maior, mais a ação atende aos critérios de value investing (empresa lucrativa, saudável e barata).">Score</span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="stocks-tbody">
+                    <!-- Carregado via JS -->
+                </tbody>
+            </table>
+            </div>
+        </div>
+
+        <!-- FIIs Panel -->
+        <div id="panel-fiis" class="table-wrap hidden">
+            <div class="table-header-bar">
+                <span>Fundos Imobiliários (FIIs)</span>
+                <span class="font-mono tabular" id="fiis-count">0 ativos</span>
+            </div>
+            <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th onclick="sortTable('fiis', 0)">Ticker</th>
+                        <th onclick="sortTable('fiis', 1)">Nome</th>
+                        <th onclick="sortTable('fiis', 2)">Preço</th>
+                        <th onclick="sortTable('fiis', 3)">
+                            <span class="hint" tabindex="0" data-tip="Valor Patrimonial por cota. Patrimônio líquido do fundo dividido pelo total de cotas. Referência para o P/VP.">VPA</span>
+                        </th>
+                        <th onclick="sortTable('fiis', 4)">
+                            <span class="hint" tabindex="0" data-tip="Preço sobre Valor Patrimonial do fundo. Entre 0,70 e 1,05 é considerado ideal (desconto moderado a valor justo).">P/VP</span>
+                        </th>
+                        <th onclick="sortTable('fiis', 5)">
+                            <span class="hint" tabindex="0" data-tip="Dividend Yield anual do fundo. Mede o retorno em dividendos sobre o preço da cota. Mínimo ideal: 8%.">DY</span>
+                        </th>
+                        <th onclick="sortTable('fiis', 6)">
+                            <span class="hint" tabindex="0" data-tip="Valor total estimado de dividendos pagos pelo fundo nos últimos 12 meses por cota.">Dividendo Anual</span>
+                        </th>
+                        <th onclick="sortTable('fiis', 7)">
+                            <span class="hint" tabindex="0" data-tip="Score fundamentalista contínuo de 0 a 10. Avalia preço, renda e critérios de sustentabilidade definidos para FIIs.">Score</span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="fiis-tbody">
+                    <!-- Carregado via JS -->
+                </tbody>
+            </table>
+            </div>
+        </div>
+
+        <!-- FIAGROs Panel -->
+        <div id="panel-fiagros" class="table-wrap hidden">
+            <div class="table-header-bar">
+                <span>FIAGROs</span>
+                <span class="font-mono tabular" id="fiagros-count">0 ativos</span>
+            </div>
+            <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th onclick="sortTable('fiagros', 0)">Ticker</th>
+                        <th onclick="sortTable('fiagros', 1)">Nome</th>
+                        <th onclick="sortTable('fiagros', 2)">Preço</th>
+                        <th onclick="sortTable('fiagros', 3)">
+                            <span class="hint" tabindex="0" data-tip="Valor Patrimonial por cota. Patrimônio líquido do fundo dividido pelo total de cotas. Referência para o P/VP.">VPA</span>
+                        </th>
+                        <th onclick="sortTable('fiagros', 4)">
+                            <span class="hint" tabindex="0" data-tip="Preço sobre Valor Patrimonial do fundo. Entre 0,70 e 1,05 é considerado ideal (desconto moderado a valor justo).">P/VP</span>
+                        </th>
+                        <th onclick="sortTable('fiagros', 5)">
+                            <span class="hint" tabindex="0" data-tip="Dividend Yield anual do fundo. FIAGROs exigem retorno maior: mínimo ideal de 10% (vs 8% dos FIIs) devido ao risco de crédito agropecuário.">DY</span>
+                        </th>
+                        <th onclick="sortTable('fiagros', 6)">
+                            <span class="hint" tabindex="0" data-tip="Valor total estimado de dividendos pagos pelo fundo nos últimos 12 meses por cota.">Dividendo Anual</span>
+                        </th>
+                        <th onclick="sortTable('fiagros', 7)">
+                            <span class="hint" tabindex="0" data-tip="Score fundamentalista contínuo de 0 a 10. Avalia preço, renda e critérios de sustentabilidade definidos para FIAGROs.">Score</span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="fiagros-tbody">
+                    <!-- Carregado via JS -->
+                </tbody>
+            </table>
+            </div>
+        </div>
+
+        <!-- Sector Analysis Panel -->
+        <div id="panel-sectors" class="table-wrap hidden">
+            <div class="table-header-bar">
+                <span>Análise Setorial</span>
+                <span class="font-mono tabular" id="sectors-count">0 setores</span>
+            </div>
+            <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th onclick="sortTable('sectors', 0)">Setor</th>
+                        <th onclick="sortTable('sectors', 1)">Nº Empresas</th>
+                        <th onclick="sortTable('sectors', 2)">
+                            <span class="hint" tabindex="0" data-tip="Média do Score Fundamentalista (0-10) das empresas do setor. Quanto maior, melhor a saúde financeira média.">Score Médio</span>
+                        </th>
+                        <th onclick="sortTable('sectors', 3)">
+                            <span class="hint" tabindex="0" data-tip="Dividend Yield médio do setor. Indica o retorno médio em dividendos do conjunto de empresas.">DY Médio</span>
+                        </th>
+                        <th onclick="sortTable('sectors', 4)">
+                            <span class="hint" tabindex="0" data-tip="Preço sobre Lucro (P/L) médio do setor. Ajuda a comparar valuation entre setores.">P/L Médio</span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="sectors-tbody">
+                    <!-- Carregado via JS -->
+                </tbody>
+            </table>
+            </div>
+        </div>
+
+        <!-- Renda Fixa Panel -->
+        <div id="panel-rendafixa" class="table-wrap hidden">
+            <div class="table-header-bar">
+                <span>Tesouro Direto — Scorecard 0-10</span>
+                <span class="font-mono tabular" id="rendafixa-count">0 títulos</span>
+            </div>
+            <p id="rendafixa-source" style="margin:0.5rem 0;color:var(--text-secondary);font-size:0.8rem;"></p>
+
+            <!-- ETTJ Curve Chart -->
+            <div class="ettj-section">
+                <h3>📈 Estrutura a Termo da Taxa de Juros (ETTJ)</h3>
+                <p>
+                    A ETTJ (ou curva de juros) mostra a relação entre o prazo do título e a taxa de retorno exigida
+                    pelo mercado. Uma curva <strong>inclinada para cima</strong> indica prêmio pelo prazo mais longo;
+                    uma curva <strong>invertida</strong> pode sinalizar expectativa de queda de juros.
+                </p>
+                <div style="position: relative; height: 250px; width: 100%;">
+                    <canvas id="ettj-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- Macro Cards (Renda Fixa) -->
+            <div class="home-grid" style="margin: 1rem 0;">
+                <article class="macro-card selic" onclick="openFocusDetailModal('selic')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openFocusDetailModal('selic')"><span class="macro-label">Selic atual</span><strong id="rendafixa-macro-selic" class="macro-value">—</strong><span id="rendafixa-macro-selic-trend" class="macro-trend stable">→ Selic</span><span id="rendafixa-macro-selic-expect" class="macro-expect selic"></span><span id="rendafixa-macro-selic-focus" class="macro-sub"></span></article>
+                <article class="macro-card ipca" onclick="openFocusDetailModal('ipca')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openFocusDetailModal('ipca')"><span class="macro-label">IPCA (12 meses)</span><strong id="rendafixa-macro-ipca" class="macro-value">—</strong><span id="rendafixa-macro-ipca-trend" class="macro-trend stable">→ IPCA</span><span id="rendafixa-macro-ipca-expect" class="macro-expect ipca"></span><span id="rendafixa-macro-ipca-focus" class="macro-sub"></span></article>
+                <article class="macro-card cambio" onclick="openFocusDetailModal('cambio')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openFocusDetailModal('cambio')"><span class="macro-label">Câmbio</span><strong id="rendafixa-macro-cambio" class="macro-value">—</strong><span id="rendafixa-macro-cambio-expect" class="macro-expect cambio"></span><span id="rendafixa-macro-cambio-focus" class="macro-sub"></span></article>
+            </div>
+
+            <div class="table-scroll td-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ranking geral / Título</th>
+                            <th>Grupo</th>
+                            <th>Taxa (a.a.)</th>
+                            <th>Percentil</th>
+                            <th>Vencimento</th>
+                            <th>Atratividade</th>
+                            <th>Badge</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rendafixa-tbody">
+                        <!-- Carregado via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Sector Detail Modal -->
+        <div id="sector-detail-modal" class="modal hidden" onclick="closeSectorModalOnOutsideClick(event)">
+            <div class="modal-content" style="max-width: 900px;">
+                <button type="button" class="close-btn" aria-label="Fechar modal setorial" onclick="closeSectorDetailModal()">&times;</button>
+                <div class="modal-header">
+                    <h2 id="sector-modal-name">SETOR</h2>
+                    <p>Empresas classificadas neste setor (ordenadas por maior pontuação)</p>
+                </div>
+
+                <div class="table-scroll" style="max-height: 400px; overflow-y: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ticker</th>
+                                <th>Nome</th>
+                                <th>Preço</th>
+                                <th>
+                                    <span class="hint" tabindex="0" data-tip="Preço sobre Lucro (P/E). Quanto o mercado paga por cada R$ 1,00 de lucro. Quanto menor, mais barata. Ideal: &lt; 15.">P/L</span>
+                                </th>
+                                <th>
+                                    <span class="hint" tabindex="0" data-tip="Preço sobre Valor Patrimonial (P/B). Compara o preço ao patrimônio líquido por ação. Abaixo de 1,00 = desconto.">P/VP</span>
+                                </th>
+                                <th>
+                                    <span class="hint" tabindex="0" data-tip="Dividend Yield. Retorno em dividendos nos últimos 12 meses dividido pelo preço atual.">DY</span>
+                                </th>
+                                <th>
+                                    <span class="hint" tabindex="0" data-tip="Nota de 0 a 5 baseada em critérios fundamentalistas. Quanto maior, mais saudável o ativo.">Score</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="sector-modal-tbody">
+                            <!-- Dynamically populated -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Detail -->
+        <div id="detail-modal" class="modal hidden" onclick="closeModalOnOutsideClick(event)">
+            <div class="modal-content">
+                <button type="button" class="close-btn" aria-label="Fechar detalhes do ativo" onclick="closeDetailModal()">&times;</button>
+                <div class="modal-header">
+                    <h2 id="modal-ticker">TICKER</h2>
+                    <p id="modal-name">Nome da Empresa</p>
+                </div>
+
+                <div class="modal-body-grid">
+                    <!-- Left Column: Details & Score breakdown -->
+                    <div class="modal-details-col">
+                        <div class="section-title">Análise Fundamentalista</div>
+                        <div id="modal-score-badge-container" style="margin: 0.5rem 0 1rem 0;"></div>
+
+                        <div id="modal-scorecard-breakdown" class="breakdown-list">
+                            <!-- Dynamically populated checklist -->
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Price History Chart -->
+                    <div class="modal-chart-col">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;border-bottom:1px solid var(--card-border);padding-bottom:0.5rem;">
+                            <div class="section-title" style="margin-bottom:0;border:none;padding:0;">Histórico</div>
+                            <select id="chart-indicator-select" onchange="updateChartIndicator()"
+                                class="filter-select" style="padding:0.3rem 0.5rem;font-size:0.7rem;">
+                                <option value="score" selected>Score Radar</option>
+                                <option value="price">Preço (R$)</option>
+                                <option value="dy">Dividend Yield (12m)</option>
+                                <option value="dy_3y">DY Médio (3 Anos)</option>
+                                <option value="pe">P/L</option>
+                                <option value="pe_5y">P/L Médio (5 Anos)</option>
+                                <option value="pb">P/VP</option>
+                                <option value="roe">ROE</option>
+                                <option value="graham">Margem de Graham</option>
+                                <option value="consistency">Consistência Proventos</option>
+                            </select>
+                        </div>
+                        <div class="range-group">
+                            <button class="range-btn" onclick="updateChartRange(1)" id="btn-range-1">1 Ano</button>
+                            <button class="range-btn" onclick="updateChartRange(2)" id="btn-range-2">2 Anos</button>
+                            <button class="range-btn" onclick="updateChartRange(3)" id="btn-range-3">3 Anos</button>
+                            <button class="range-btn" onclick="updateChartRange(5)" id="btn-range-5">5 Anos</button>
+                            <button class="range-btn active" onclick="updateChartRange(10)" id="btn-range-10">10 Anos</button>
+                        </div>
+                        <div style="position: relative; height: 250px; width: 100%; margin-top: 0.75rem;">
+                            <canvas id="history-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- TD Detail Modal -->
+        <div id="td-detail-modal" class="modal hidden" onclick="closeTdModalOnOutsideClick(event)">
+            <div class="modal-content" style="max-width: 650px;">
+                <button type="button" class="close-btn" aria-label="Fechar detalhes do Tesouro" onclick="closeTdDetailModal()">&times;</button>
+                <div class="modal-header">
+                    <h2 id="td-modal-name">Título</h2>
+                    <p id="td-modal-subtitle">Tesouro Direto</p>
+                </div>
+
+                <div class="td-modal-info">
+                    <div class="td-modal-info-item">
+                        <span class="td-modal-info-label">Tipo</span>
+                        <span id="td-modal-type" class="td-modal-info-value">—</span>
+                    </div>
+                    <div class="td-modal-info-item">
+                        <span class="td-modal-info-label">Taxa Atual</span>
+                        <span id="td-modal-yield" class="td-modal-info-value">—</span>
+                    </div>
+                    <div class="td-modal-info-item">
+                        <span class="td-modal-info-label">Vencimento</span>
+                        <span id="td-modal-maturity" class="td-modal-info-value">—</span>
+                    </div>
+                    <div class="td-modal-info-item">
+                        <span class="td-modal-info-label">Atratividade</span>
+                        <span id="td-modal-score" class="td-modal-info-value">—</span>
+                    </div>
+                    <div class="td-modal-info-item">
+                        <span class="td-modal-info-label">Preço Compra</span>
+                        <span id="td-modal-buy-price" class="td-modal-info-value">—</span>
+                    </div>
+                    <div class="td-modal-info-item">
+                        <span class="td-modal-info-label">Preço Venda</span>
+                        <span id="td-modal-sell-price" class="td-modal-info-value">—</span>
+                    </div>
+                </div>
+
+                <p id="td-history-status" role="status" style="margin:0 0 0.8rem;font-size:0.78rem;color:var(--text-secondary);"></p>
+
+                <div class="td-modal-filters" style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--card-border); padding-bottom: 0.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-secondary);">Gráfico:</span>
+                        <select id="td-chart-type" onchange="onTdChartTypeChange(this.value)" class="filter-select" style="padding: 0.25rem 0.5rem; font-size: 0.85rem; width: auto; height: auto;">
+                            <option value="tax" selected>Taxa Histórica</option>
+                            <option value="pu">PU Histórico</option>
+                            <option value="score">Atratividade Histórica</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-secondary);">Período:</span>
+                        <select id="td-chart-range" onchange="onTdRangeChange(this.value)" class="filter-select" style="padding: 0.25rem 0.5rem; font-size: 0.85rem; width: auto; height: auto;">
+                            <option value="30">30 dias</option>
+                            <option value="60">60 dias</option>
+                            <option value="90">90 dias</option>
+                            <option value="180">180 dias</option>
+                            <option value="360" selected>360 dias</option>
+                            <option value="720">720 dias</option>
+                            <option value="1080">1080 dias</option>
+                            <option value="max">Máx</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="td-modal-chart-card" style="margin-bottom: 1rem;">
+                    <h4 id="td-chart-title">📈 Taxa Histórica (12 meses)</h4>
+                    <div style="position: relative; height: 220px; width: 100%;">
+                        <canvas id="td-detail-chart"></canvas>
+                    </div>
+                </div>
+
+                <div id="td-modal-score-breakdown" class="breakdown-list" style="margin-top: 1rem;">
+                    <!-- Score breakdown will be rendered here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Modal -->
+        <div id="help-modal" class="modal hidden" onclick="closeHelpModalOnOutsideClick(event)">
+            <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
+                <button type="button" class="close-btn" aria-label="Fechar metodologia" onclick="closeHelpModal()">&times;</button>
+                <div class="modal-header" style="margin-bottom: 1.5rem;">
+                    <h2 style="font-size: 1.8rem; font-weight: 700; color: var(--text-primary);">
+                        Guia Metodológico</h2>
+                    <p>Entenda as fórmulas e critérios fundamentalistas utilizados neste Radar</p>
+                </div>
+
+                <div class="help-section" style="margin-bottom: 2rem;">
+                    <h3 style="color: var(--text-primary); font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem;">
+                        <span>📐</span> Fórmula de Valor Justo de Benjamin Graham
+                    </h3>
+                    <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary); margin-bottom: 1rem;">
+                        Benjamin Graham, o pai do <em>Value Investing</em> e mentor de Warren Buffett, propôs uma
+                        fórmula para calcular o valor intrínseco (justo) de uma ação com base no lucro corrente e no
+                        valor patrimonial, estabelecendo limites conservadores para os múltiplos P/L e P/VP.
+                    </p>
+                    <div
+                        style="background: var(--surface); border: 1px solid var(--card-border); padding: 0.75rem; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 1rem; text-align: center; margin-bottom: 1rem; color: var(--text-primary);">
+                        Valor Justo = √ ( 22.5 × LPA × VPA )
+                    </div>
+                    <ul
+                        style="list-style-type: none; font-size: 0.85rem; color: var(--text-secondary); padding-left: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                        <li>📌 <strong>LPA (Lucro por Ação):</strong> Quanto a empresa lucra por cada ação em circulação.</li>
+                        <li>📌 <strong>VPA (Valor Patrimonial por Ação):</strong> O patrimônio líquido total dividido pelo número de ações.</li>
+                        <li>📌 <strong>Constante 22.5:</strong> Corresponde ao limite aceitável do produto de P/L máximo de 15 e P/VP máximo de 1.5 (15 × 1.5 = 22.5).</li>
+                        <li>✅ <strong>Regra de Desconto:</strong> Se o preço atual for <strong>inferior</strong> ao Valor Justo de Graham, a ação possui margem de segurança para compra.</li>
+                    </ul>
+                </div>
+
+                <div class="help-section"
+                    style="margin-bottom: 2rem; border-top: 1px solid var(--card-border); padding-top: 1.5rem;">
+                    <h3 style="color: var(--positive); font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem;">
+                        <span>💸</span> Método de Preço Teto de Décio Bazin
+                    </h3>
+                    <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); margin-bottom: 1rem;">
+                        Décio Bazin, renomado analista e autor brasileiro, formulou um método focado na geração de renda
+                        passiva através de dividendos sustentáveis. Ele buscava empresas saudáveis e com histórico de
+                        bom pagamento de proventos, exigindo um rendimento mínimo anual de 6%.
+                    </p>
+                    <div
+                        style="background: var(--surface); border: 1px solid var(--card-border); padding: 0.75rem; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 1rem; text-align: center; margin-bottom: 1rem; color: var(--text-primary);">
+                        Preço Teto = Dividendo Anual Médio / 0.06
+                    </div>
+                    <ul
+                        style="list-style-type: none; font-size: 0.85rem; color: var(--text-secondary); padding-left: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                        <li>📌 <strong>Dividendo Anual Médio:</strong> Valor total pago em proventos nos últimos períodos acumulados.</li>
+                        <li>📌 <strong>Taxa 6% (0.06):</strong> Taxa de rentabilidade mínima desejada em dividendos para justificar o investimento em renda variável.</li>
+                        <li>✅ <strong>Regra de Desconto:</strong> Se o preço atual for <strong>inferior</strong> ao Preço Teto de Bazin, o ativo está barato na ótica de dividendos, garantindo retorno mínimo projetado de 6% a.a.</li>
+                    </ul>
+                </div>
+
+                <div class="help-section"
+                    style="border-top: 1px solid var(--card-border); padding-top: 1.5rem;">
+                    <h3 style="color: var(--gold); font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem;">
+                        <span>📊</span> Score Fundamentalista (0 a 10)
+                    </h3>
+                    <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary); margin-bottom: 1rem;">
+                        O <strong>Score Fundamentalista</strong> resume a saúde financeira da empresa ou fundo em uma
+                        nota de 0 a 10 pontos baseada exclusivamente em dados fundamentalistas observados. Expectativas do Focus aparecem no Radar Macro, mas não alteram esta nota.
+                    </p>
+                    <div
+                        style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; font-size: 0.8rem; color: var(--text-secondary);">
+                        <div>
+                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">Ações B3:</strong>
+                            Critérios de valuation, rentabilidade, dividendos e margem de segurança.
+                        </div>
+                        <div>
+                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">FIIs:</strong>
+                            Critérios de preço patrimonial, renda e sustentabilidade dos proventos.
+                        </div>
+                        <div>
+                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">FIAGROs:</strong>
+                            Critérios de preço patrimonial, renda e sustentabilidade dos proventos.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help-section"
+                    style="border-top: 1px solid var(--card-border); padding-top: 1.5rem; margin-top: 2rem;">
+                    <h3 style="color: var(--positive); font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem;">
+                        <span>📈</span> Scorecard de Renda Fixa (Tesouro Direto — 0 a 10)
+                    </h3>
+                    <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary); margin-bottom: 1rem;">
+                        O <strong>Score de Renda Fixa</strong> avalia os dados observados do título em escala de 0 a 10. O Radar Macro mostra cenários e expectativas separadamente; projeções do Focus não alteram o score.
+                    </p>
+                    <ul style="list-style-type: none; font-size: 0.85rem; color: var(--text-secondary); padding-left: 0.5rem; display: flex; flex-direction: column; gap: 0.6rem;">
+                        <li>📌 Taxa contratada, indexador, prazo, duration e preço do título são exibidos no detalhe.</li>
+                        <li>📌 Cenários de juros e inflação permanecem visíveis apenas como Radar Macro.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Focus Detail Modal -->
+        <div id="focus-detail-modal" class="modal hidden" onclick="closeFocusModalOnOutsideClick(event)">
+            <div class="modal-content" style="max-width: 600px;">
+                <button type="button" class="close-btn" aria-label="Fechar Radar Macro" onclick="closeFocusDetailModal()">&times;</button>
+                <div class="modal-header">
+                    <h2 id="focus-modal-title">Expectativas do Mercado</h2>
+                    <p id="focus-modal-subtitle">Boletim Focus (Mediana de Fechamento de Ano)</p>
+                </div>
+
+                <div style="position: relative; height: 250px; width: 100%; margin: 1.5rem 0;">
+                    <canvas id="focus-detail-chart"></canvas>
+                </div>
+
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ano</th>
+                                <th>Tipo</th>
+                                <th>Valor / Expectativa</th>
+                            </tr>
+                        </thead>
+                        <tbody id="focus-modal-tbody">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="data-sources-footer" aria-labelledby="data-sources-title">
+        <div class="data-sources-inner">
+            <h2 id="data-sources-title" class="data-sources-heading">Fontes dos dados</h2>
+            <p class="data-sources-intro">
+                Dados públicos e provedores de mercado utilizados na ingestão, com atualização conforme a disponibilidade de cada origem.
+            </p>
+            <ul class="data-sources-list">
+                <li class="data-source-item">
+                    <a href="https://brapi.dev/" target="_blank" rel="noopener noreferrer">brapi.dev</a>
+                    <span class="data-source-role">Fundamentos, cotações e histórico de ações; fonte primária quando disponível.</span>
+                </li>
+                <li class="data-source-item">
+                    <a href="https://finance.yahoo.com/" target="_blank" rel="noopener noreferrer">Yahoo Finance</a>
+                    <span class="data-source-role">Cotações, fundamentos e históricos; fallback para ações e fonte para fundos.</span>
+                </li>
+                <li class="data-source-item">
+                    <a href="https://dados.cvm.gov.br/" target="_blank" rel="noopener noreferrer">CVM — Dados Abertos</a>
+                    <span class="data-source-role">Informes mensais, valor patrimonial e rendimentos de FIIs e FIAGROs.</span>
+                </li>
+                <li class="data-source-item">
+                    <a href="https://dadosabertos.bcb.gov.br/dataset/11-taxa-de-juros---selic" target="_blank" rel="noopener noreferrer">Banco Central — SGS</a>
+                    <span class="data-source-role">Taxa Selic Over utilizada no estado macroeconômico e nos limites dinâmicos.</span>
+                </li>
+                <li class="data-source-item">
+                    <a href="https://dadosabertos.bcb.gov.br/dataset/expectativas-mercado" target="_blank" rel="noopener noreferrer">Banco Central — Focus</a>
+                    <span class="data-source-role">Medianas de IPCA, PIB, câmbio e Selic para o ano corrente e seguintes.</span>
+                </li>
+                <li class="data-source-item">
+                    <a href="https://www.tesourotransparente.gov.br/ckan/dataset/taxas-dos-titulos-ofertados-pelo-tesouro-direto" target="_blank" rel="noopener noreferrer">Tesouro Transparente</a>
+                    <span class="data-source-role">Taxas, preços e histórico diário dos títulos ofertados pelo Tesouro Direto.</span>
+                </li>
+            </ul>
+            <p class="data-sources-note">
+                As informações podem ter horários e frequências de atualização diferentes. Este painel é informativo e não constitui recomendação de investimento.
+            </p>
+        </div>
+    </footer>
+
+        <script src="assets/dashboard.js" defer></script>
+
+    <!-- Service Worker: enable PWA offline support -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(() => console.log('SW registered'))
+                    .catch((err) => console.log('SW registration failed:', err));
+            });
+        }
+    </script>
+
+</body>
+
+</html>

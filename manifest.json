@@ -1,0 +1,23 @@
+{
+  "name": "Radar Fundamentalista B3",
+  "short_name": "Radar B3",
+  "description": "Análise fundamentalista automatizada de ações, FIIs e FIAGROs da B3",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#1e3a5f",
+  "orientation": "portrait-primary",
+  "categories": ["finance", "investments", "business"],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [],
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "prefer_related_applications": false
+}

@@ -1,0 +1,30 @@
+{
+  "_notes": {
+    "BRFS3_MRFG3": "Fusão BRF+Marfrig em 23/09/2025 → MBRF Global Foods (MBRF3). BRFS3 e MRFG3 deixaram de existir.",
+    "CPLE6": "Copel migrou para Novo Mercado em 22/12/2025. Ações preferenciais (CPLE5, CPLE6) convertidas em ON. Restou apenas CPLE3.",
+    "TRPL4": "ISA CTEEP renomeada para ISA Energia Brasil em 18/11/2024. Ticker alterado para ISAE4 (PN).",
+    "CRFB3": "Carrefour Brasil fechou capital em 30/05/2025. Agora negociado via BDR CAFR31 (investidores qualificados).",
+    "JBSS3": "JBS migrou para dual listing em 06/06/2025. Agora BDR JBSS32 na B3 + JBS na NYSE.",
+    "DXCO3": "Duratex renomeada para Dexco em 2021 (DTEX3→DXCO3). Ticker OK, mas yfinance retorna trailingPE='Infinity'.",
+    "ROCA11": "Novo FIAGRO do Grupo Ceres lançado em 03/2026. Ainda sem dados fundamentalistas nas APIs.",
+    "ISAE3": "ISAE3 (ON) nao e monitorado ativamente — apenas ISAE4 (PN) esta em tickers.json. Mapping TRPL3→ISAE3 mantido para documentacao historica."
+  },
+  "ARZZ3.SA": "AZZA3.SA",
+  "ELET3.SA": "AXIA3.SA",
+  "ELET6.SA": null,
+  "CCRO3.SA": "MOTV3.SA",
+  "EMBR3.SA": "EMBJ3.SA",
+  "NTCO3.SA": "NATU3.SA",
+  "MALL11.SA": "PMLL11.SA",
+  "CIEL3.SA": null,
+  "BCFF11.SA": null,
+  "SNCA11.SA": null,
+  "BRFS3.SA": "MBRF3.SA",
+  "MRFG3.SA": "MBRF3.SA",
+  "TRPL4.SA": "ISAE4.SA",
+  "TRPL3.SA": "ISAE3.SA",
+  "CPLE6.SA": null,
+  "CPLE5.SA": null,
+  "CRFB3.SA": null,
+  "JBSS3.SA": null
+}
