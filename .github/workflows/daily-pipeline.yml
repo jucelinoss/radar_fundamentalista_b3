@@ -262,6 +262,10 @@ jobs:
           else
             find published -mindepth 1 -maxdepth 1 ! -name .git ! -name dev -exec rm -rf {} +
             cp -a static-site/. published/
+            # Also refresh dev preview with the same fresh data
+            rm -rf published/dev
+            mkdir -p published/dev
+            cp -a static-site/. published/dev/
           fi
 
           touch published/.nojekyll
