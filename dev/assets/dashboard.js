@@ -1737,7 +1737,8 @@ const tableSortState = {};
         }
 
         function isTdAvailableForPurchase(td, allowSummary) {
-            if (!td || td.purchase_available === false) return false;
+            if (!td || td.purchase_available === false || td.availability_status === 'unavailable') return false;
+            if (td.availability_status && td.availability_status !== 'available') return false;
             return Number.isFinite(Number(td.buy_yield)) &&
                 Number(td.days_to_maturity) > 0 &&
                 (Number.isFinite(Number(td.buy_price)) || Boolean(allowSummary && td.buy_price === undefined));
@@ -1860,9 +1861,12 @@ const tableSortState = {};
             const sourceEl = document.getElementById('rendafixa-source');
             if (sourceEl) {
                 const source = data.macro_state?.data_sources?.tesouro_direto;
+                const availabilitySource = tdData[0]?.purchase_availability_source;
                 sourceEl.textContent = source === 'demo_fallback'
                     ? '⚠️ Dados demonstrativos: a fonte do Tesouro Direto não respondeu nesta atualização.'
-                    : 'Fonte: Tesouro Direto. Exibidos apenas títulos com taxa e preço de compra na cotação oficial mais recente.';
+                    : availabilitySource === 'tesouro_investir_endpoint'
+                        ? 'Fonte: Tesouro Direto. Disponibilidade validada pelo endpoint da página de investir e cotação oficial mais recente.'
+                        : 'Fonte: Tesouro Direto. Exibidos apenas títulos com taxa e preço de compra na cotação oficial mais recente.';
             }
             if (tbody) {
                 if (tdData.length === 0) {
@@ -1893,12 +1897,12 @@ const tableSortState = {};
                         }
 
                         const tdJson = encodeURIComponent(JSON.stringify(td));
-                        const generalRank = td.general_rank ? '#' + td.general_rank : '<small>Planejamento</small>';
+                        const generalRank = td.general_rank ? '#' + td.general_rank : (td.planning_rank ? 'P' + td.planning_rank : '');
                         const group = td.group || tipo;
                         const groupRank = (td.group_rank ? '<br><small>#' + td.group_rank + ' no grupo</small>' : '') +
                             (td.risk_profile ? '<br><small title="Risco de oscilação em venda antecipada; separado do score de oportunidade.">Risco: ' + td.risk_profile + '</small>' : '');
                         return '<tr onclick="openTdDetailModal(\'' + tdJson + '\')" style="cursor:pointer;" title="' + breakdownTip.replace(/"/g, '&quot;') + '">' +
-                            '<td class="font-mono tabular" style="font-weight:600;">' + generalRank + '</td>' +
+                            '<td class="font-mono tabular td-rank-cell" style="font-weight:600;">' + generalRank + '</td>' +
                             '<td class="name-cell" style="font-weight:600;">' + name + '</td>' +
                             '<td class="td-tipo">' + group + groupRank + '</td>' +
                             '<td class="font-mono tabular" style="font-weight:600;color:var(--positive);">' + yieldStr + '</td>' +
