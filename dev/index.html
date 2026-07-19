@@ -23,7 +23,7 @@
     <!-- html2pdf.js for PDF export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-        <link rel="stylesheet" href="assets/dashboard.css?v=5">
+        <link rel="stylesheet" href="assets/dashboard.css?v=6">
 </head>
 
 <body>
@@ -332,13 +332,14 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Ranking geral / Título</th>
-                            <th>Grupo</th>
-                            <th>Taxa (a.a.)</th>
-                            <th>Percentil</th>
-                            <th>Vencimento</th>
-                            <th>Score</th>
-                            <th>Badge</th>
+                            <th data-td-sort-key="rank" aria-sort="ascending" onclick="sortRendaFixaTable('rank')"><span class="hint" tabindex="0" data-tip="Posição do título no ranking geral, ordenado pelo Score. Clique no cabeçalho para ordenar crescente ou decrescente.">Ranking geral</span></th>
+                            <th data-td-sort-key="title" aria-sort="none" onclick="sortRendaFixaTable('title')"><span class="hint" tabindex="0" data-tip="Nome oficial do título do Tesouro Direto. Clique no cabeçalho para ordenar alfabeticamente.">Título</span></th>
+                            <th data-td-sort-key="group" aria-sort="none" onclick="sortRendaFixaTable('group')"><span class="hint" tabindex="0" data-tip="Família do título e posição dentro dela. Títulos do mesmo grupo têm indexador e fluxo de pagamentos comparáveis.">Grupo</span></th>
+                            <th data-td-sort-key="yield" aria-sort="none" onclick="sortRendaFixaTable('yield')"><span class="hint" tabindex="0" data-tip="Taxa anual de compra informada pelo Tesouro Direto na cotação mais recente. Prefixados mostram a taxa nominal; IPCA+ soma inflação e taxa real.">Taxa (a.a.)</span></th>
+                            <th data-td-sort-key="percentile" aria-sort="none" onclick="sortRendaFixaTable('percentile')"><span class="hint" tabindex="0" data-tip="Posição da taxa atual no histórico do próprio título. P92 significa que a taxa atual está acima de 92% das observações históricas; não é garantia de retorno.">Percentil</span></th>
+                            <th data-td-sort-key="maturity" aria-sort="none" onclick="sortRendaFixaTable('maturity')"><span class="hint" tabindex="0" data-tip="Data em que o Tesouro liquida o valor de face do título. A venda antecipada ocorre a preço de mercado e pode variar antes dessa data.">Vencimento</span></th>
+                            <th data-td-sort-key="score" aria-sort="none" onclick="sortRendaFixaTable('score')"><span class="hint" tabindex="0" data-tip="Score de oportunidade de 0 a 10. É comparativo dentro do grupo econômico do título e não é recomendação de investimento.">Score</span></th>
+                            <th data-td-sort-key="badge" aria-sort="none" onclick="sortRendaFixaTable('badge')"><span class="hint" tabindex="0" data-tip="Faixa de oportunidade; não representa o risco do título. O perfil de risco aparece separadamente no grupo.">Badge</span></th>
                         </tr>
                     </thead>
                     <tbody id="rendafixa-tbody">
@@ -421,7 +422,7 @@
                                 <option value="pb">P/VP</option>
                                 <option value="roe">ROE</option>
                                 <option value="graham">Margem de Graham</option>
-                                <option value="consistency">Consistência Proventos</option>
+                                <option value="consistency">Consistência de proventos (6m/6m)</option>
                             </select>
                         </div>
                         <div class="range-group">
@@ -455,7 +456,7 @@
                         <span id="td-modal-type" class="td-modal-info-value">—</span>
                     </div>
                     <div class="td-modal-info-item">
-                        <span class="td-modal-info-label">Taxa Atual</span>
+                        <span id="td-modal-yield-label" class="td-modal-info-label">Taxa Atual</span>
                         <span id="td-modal-yield" class="td-modal-info-value">—</span>
                     </div>
                     <div class="td-modal-info-item">
@@ -680,7 +681,7 @@
         </div>
     </footer>
 
-        <script src="assets/dashboard.js?v=5" defer></script>
+        <script src="assets/dashboard.js?v=16" defer></script>
 
     <!-- Service Worker: enable PWA offline support -->
     <script>

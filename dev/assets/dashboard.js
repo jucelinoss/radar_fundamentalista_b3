@@ -1,4 +1,6 @@
 let currentTab = 'home';
+let rendaFixaSort = { key: 'rank', ascending: true };
+const tableSortState = {};
 
         function getScoreRangeClass(score) {
             if (score >= 8.0) return 'score-premium';
@@ -9,6 +11,16 @@ let currentTab = 'home';
 
         function formatScore(score) {
             return (score || 0).toFixed(2);
+        }
+
+        function formatTdYield(td, includePercent) {
+            const value = Number(td && td.buy_yield);
+            if (!Number.isFinite(value)) return '—';
+            const suffix = includePercent === false ? '' : '%';
+            if (td.yield_kind === 'selic_spread') {
+                return 'Selic ' + (value >= 0 ? '+' : '') + (value * 100).toFixed(4) + suffix;
+            }
+            return (value * 100).toFixed(2) + suffix;
         }
 
         // ── v2.5 Continuous scoring helpers (replicate Python analyzer logic) ──
@@ -296,6 +308,7 @@ let currentTab = 'home';
             if (type === 'sectors') tbodyId = 'sectors-tbody';
 
             const tbody = document.getElementById(tbodyId);
+            if (!tbody) return;
             const rows = Array.from(tbody.getElementsByTagName('tr'));
 
             let isNumeric = true;
@@ -303,8 +316,9 @@ let currentTab = 'home';
             else if ((type === 'fiis' || type === 'fiagros') && (colIdx === 0 || colIdx === 1)) isNumeric = false;
             else if (type === 'sectors' && colIdx === 0) isNumeric = false;
 
-            // Track sorting direction
-            this.asc = !this.asc;
+            const previous = tableSortState[type] || {};
+            const ascending = previous.column === colIdx ? !previous.ascending : true;
+            tableSortState[type] = { column: colIdx, ascending: ascending };
 
             rows.sort((a, b) => {
                 let valA = a.cells[colIdx].textContent.trim();
@@ -314,14 +328,40 @@ let currentTab = 'home';
                     // Clean money/percentage signs
                     valA = parseFloat(valA.replace(/[R$\s%]/g, '').replace(',', '.')) || 0;
                     valB = parseFloat(valB.replace(/[R$\s%]/g, '').replace(',', '.')) || 0;
-                    return this.asc ? valA - valB : valB - valA;
+                    return ascending ? valA - valB : valB - valA;
                 } else {
-                    return this.asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                    return ascending ? valA.localeCompare(valB, 'pt-BR') : valB.localeCompare(valA, 'pt-BR');
                 }
             });
 
             // Re-append sorted rows
             rows.forEach(row => tbody.appendChild(row));
+            const headers = tbody.closest('table').querySelectorAll('thead th');
+            headers.forEach((header, index) => {
+                header.setAttribute('aria-sort', index === colIdx ? (ascending ? 'ascending' : 'descending') : 'none');
+            });
+        }
+
+        function sortRendaFixaTable(key) {
+            if (!['rank', 'title', 'group', 'yield', 'percentile', 'maturity', 'score', 'badge'].includes(key)) return;
+            rendaFixaSort.ascending = rendaFixaSort.key === key ? !rendaFixaSort.ascending : true;
+            rendaFixaSort.key = key;
+            if (window.dashboardData) renderRendaFixaPanel(window.dashboardData);
+        }
+
+        function initializeSortableHeaders() {
+            document.querySelectorAll('th[onclick*="sortTable"], th[data-td-sort-key]').forEach(function(header) {
+                header.classList.add('sortable-header');
+                header.tabIndex = 0;
+                header.setAttribute('role', 'button');
+                if (!header.hasAttribute('aria-sort')) header.setAttribute('aria-sort', 'none');
+                header.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        header.click();
+                    }
+                });
+            });
         }
 
         function openSectorDetailModal(sectorName) {
@@ -741,7 +781,7 @@ let currentTab = 'home';
                 backgroundColor = 'rgba(239, 68, 68, 0.05)';
             } else if (indicator === 'consistency') {
                 data = filteredHistory.map(h => h.consistency !== undefined ? h.consistency : null);
-                label = 'Consistência Proventos (%)';
+                label = 'Consistência de proventos (6m/6m) (%)';
                 borderColor = '#3b82f6';
                 backgroundColor = 'rgba(59, 130, 246, 0.05)';
             }
@@ -937,7 +977,7 @@ let currentTab = 'home';
                 backgroundColor = 'rgba(239, 68, 68, 0.05)';
             } else if (indicator === 'consistency') {
                 data = filteredHistory.map(h => h.consistency !== undefined ? h.consistency : null);
-                label = 'Consistência Proventos (%)';
+                label = 'Consistência de proventos (6m/6m) (%)';
                 borderColor = '#3b82f6';
                 backgroundColor = 'rgba(59, 130, 246, 0.05)';
             }
@@ -1058,8 +1098,12 @@ let currentTab = 'home';
                             }
                             addCandidate(firstItem.idx, 3, firstType);
 
+                            // Consistência já é uma razão móvel: rótulos locais em excesso
+                            // transformavam pequenas oscilações em poluição visual. Nesse
+                            // indicador, mantemos apenas início, mínimo, máximo e valor atual.
+                            const showLocalExtrema = indicator !== 'consistency';
                             // Prioridade 4: Picos e vales locais intermediários
-                            if (valid.length > 2) {
+                            if (showLocalExtrema && valid.length > 2) {
                                 for (let i = 1; i < valid.length - 1; i++) {
                                     const prev = valid[i - 1].val;
                                     const curr = valid[i].val;
@@ -1165,18 +1209,25 @@ let currentTab = 'home';
 
                             if (collides) continue;
 
-                            // Desenha box de fundo com cantos levemente arredondados
-                            c.fillStyle = isLight ? 'rgba(255, 255, 255, 0.85)' : 'rgba(15, 23, 42, 0.85)';
+                            // Mantém os labels claros no tema claro; a cor da série fica na
+                            // borda e no texto, sem os cards escuros que prejudicavam contraste.
+                            const labelColor = chart.data.datasets[datasetIndex].borderColor || borderColor;
+                            c.globalAlpha = 1;
+                            c.fillStyle = isLight ? 'rgba(255, 255, 255, 0.98)' : 'rgba(15, 23, 42, 0.96)';
+                            c.strokeStyle = labelColor;
+                            c.lineWidth = 1;
                             if (c.roundRect) {
                                 c.beginPath();
                                 c.roundRect(boxX1, boxY1, boxX2 - boxX1, boxY2 - boxY1, 3);
                                 c.fill();
+                                c.stroke();
                             } else {
                                 c.fillRect(boxX1, boxY1, boxX2 - boxX1, boxY2 - boxY1);
+                                c.strokeRect(boxX1, boxY1, boxX2 - boxX1, boxY2 - boxY1);
                             }
 
                             // Desenha o texto (usa a cor do dataset correspondente ou a geral)
-                            c.fillStyle = chart.data.datasets[datasetIndex].borderColor || borderColor;
+                            c.fillStyle = labelColor;
                             c.textBaseline = textBaseline;
                             c.fillText(txt, textX, textY);
 
@@ -1514,9 +1565,8 @@ let currentTab = 'home';
 
                 if (item._type === 'tesouro') {
                     ticker = item.name || item.ticker || '—';
-                    var yieldVal = item.buy_yield || item.yield || 0;
                     var maturity = item.days_to_maturity ? (item.days_to_maturity + 'd') : (item.maturity_date || '');
-                    detail = (yieldVal * 100).toFixed(2) + '% a.a. \u00B7 ' + maturity;
+                    detail = formatTdYield(item, false) + '% a.a. \u00B7 ' + maturity;
                     var safeName = ticker.replace(/'/g, "\\'");
                     onclick = "openTdDetailFromHome('" + safeName + "')";
                     extraStyle = 'cursor:pointer;';
@@ -1781,7 +1831,30 @@ let currentTab = 'home';
             }
 
             // ---- Tesouro Direto Table ----
-            const tdData = (data.tesouro_direto || []).filter(isTdAvailableForPurchase);
+            const tdData = (data.tesouro_direto || []).filter(isTdAvailableForPurchase).slice();
+            tdData.sort(function(a, b) {
+                const badgeOrder = { premium: 4, bom: 3, regular: 2, baixa_oportunidade: 1 };
+                const sortable = {
+                    rank: function(item) { return Number(item.general_rank) || Number.MAX_SAFE_INTEGER; },
+                    title: function(item) { return item.name || ''; },
+                    group: function(item) { return item.group || item.type || ''; },
+                    yield: function(item) { return Number(item.buy_yield); },
+                    percentile: function(item) { return Number(item.historical_yield_percentile); },
+                    maturity: function(item) { return item.maturity_date || ''; },
+                    score: function(item) { return Number(item.score); },
+                    badge: function(item) { return badgeOrder[item.badge] || 0; }
+                };
+                const valueA = sortable[rendaFixaSort.key](a);
+                const valueB = sortable[rendaFixaSort.key](b);
+                const comparison = typeof valueA === 'string'
+                    ? valueA.localeCompare(valueB, 'pt-BR')
+                    : (Number.isFinite(valueA) ? valueA : -Infinity) - (Number.isFinite(valueB) ? valueB : -Infinity);
+                return rendaFixaSort.ascending ? comparison : -comparison;
+            });
+            document.querySelectorAll('[data-td-sort-key]').forEach(function(header) {
+                const active = header.dataset.tdSortKey === rendaFixaSort.key;
+                header.setAttribute('aria-sort', active ? (rendaFixaSort.ascending ? 'ascending' : 'descending') : 'none');
+            });
             const tbody = document.getElementById('rendafixa-tbody');
             const countEl = document.getElementById('rendafixa-count');
             const sourceEl = document.getElementById('rendafixa-source');
@@ -1793,14 +1866,13 @@ let currentTab = 'home';
             }
             if (tbody) {
                 if (tdData.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:2rem;">Nenhum título disponível</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-secondary);padding:2rem;">Nenhum título disponível</td></tr>';
                     if (countEl) countEl.textContent = '0 títulos';
                 } else {
                     tbody.innerHTML = tdData.map(td => {
                         const name = td.name || '—';
                         const tipo = td.type || '—';
-                        const yieldVal = td.buy_yield != null ? td.buy_yield : null;
-                        const yieldStr = yieldVal !== null ? (yieldVal * 100).toFixed(2) + '%' : '—';
+                        const yieldStr = formatTdYield(td);
                         const yieldPercentile = td.historical_yield_percentile != null ? 'P' + td.historical_yield_percentile : '—';
                         const maturity = td.maturity_date || (td.days_to_maturity ? td.days_to_maturity + ' dias' : '—');
                         const score = td.score != null ? td.score : 0;
@@ -1811,7 +1883,8 @@ let currentTab = 'home';
                         const badgeClass = badgeLower === 'premium' ? 'badge-premium' :
                                            badgeLower === 'bom' ? 'badge-bom' :
                                            badgeLower === 'regular' ? 'badge-regular' :
-                                           badgeLower === 'alto_risco' || badgeLower === 'alto risco' ? 'badge-alto_risco' : '';
+                                           badgeLower === 'baixa_oportunidade' ? 'badge-alto_risco' : '';
+                        const badgeText = { premium: 'Premium', bom: 'Bom', regular: 'Regular', baixa_oportunidade: 'Baixa oportunidade' }[badgeLower] || badgeDisplay;
 
                         // Score breakdown tooltip
                         let breakdownTip = '';
@@ -1820,17 +1893,19 @@ let currentTab = 'home';
                         }
 
                         const tdJson = encodeURIComponent(JSON.stringify(td));
-                        const generalRank = td.general_rank ? '#' + td.general_rank + ' ' : '<small>Planejamento</small> ';
+                        const generalRank = td.general_rank ? '#' + td.general_rank : '<small>Planejamento</small>';
                         const group = td.group || tipo;
-                        const groupRank = td.group_rank ? '<br><small>#' + td.group_rank + ' no grupo</small>' : '';
+                        const groupRank = (td.group_rank ? '<br><small>#' + td.group_rank + ' no grupo</small>' : '') +
+                            (td.risk_profile ? '<br><small title="Risco de oscilação em venda antecipada; separado do score de oportunidade.">Risco: ' + td.risk_profile + '</small>' : '');
                         return '<tr onclick="openTdDetailModal(\'' + tdJson + '\')" style="cursor:pointer;" title="' + breakdownTip.replace(/"/g, '&quot;') + '">' +
-                            '<td class="name-cell" style="font-weight:600;">' + generalRank + name + '</td>' +
+                            '<td class="font-mono tabular" style="font-weight:600;">' + generalRank + '</td>' +
+                            '<td class="name-cell" style="font-weight:600;">' + name + '</td>' +
                             '<td class="td-tipo">' + group + groupRank + '</td>' +
                             '<td class="font-mono tabular" style="font-weight:600;color:var(--positive);">' + yieldStr + '</td>' +
                             '<td class="font-mono tabular" title="Percentil da taxa atual no histórico do título">' + yieldPercentile + '</td>' +
                             '<td class="font-mono tabular" style="font-size:0.8rem;">' + maturity + '</td>' +
                             '<td><span class="score-pill ' + getScoreRangeClass(score) + '" style="font-size:0.75rem;height:1.5rem;min-width:1.5rem;">' + formatScore(score) + '</span></td>' +
-                            '<td>' + (badgeClass ? '<span class="' + badgeClass + '">' + badgeDisplay + '</span>' : '—') + '</td>' +
+                            '<td>' + (badgeClass ? '<span class="' + badgeClass + '">' + badgeText + '</span>' : '—') + '</td>' +
                         '</tr>';
                     }).join('');
                     if (countEl) countEl.textContent = tdData.length + ' título' + (tdData.length !== 1 ? 's' : '');
@@ -1858,6 +1933,7 @@ let currentTab = 'home';
                     const canvas = document.getElementById('ettj-chart');
                     if (canvas) {
                         const ctx = canvas.getContext('2d');
+                        ensureKeyValueLabelsPlugin();
                         const labelMap = { '1m': '1 mês', '3m': '3 meses', '6m': '6 meses', '1y': '1 ano', '2y': '2 anos', '3y': '3 anos', '5y': '5 anos', '10y': '10 anos', '20y': '20 anos', '30y': '30 anos' };
                         const labels = keys.map(function(k) { return labelMap[k] || k; });
                         const values = keys.map(function(k) { return Number(curveObj[k]) * 100; });
@@ -1907,7 +1983,14 @@ let currentTab = 'home';
                                                 return context.parsed.y.toFixed(2) + '% a.a.';
                                             }
                                         }
-                                    }
+                                    },
+                                    keyValueLabels: {
+                                        format: 'percent',
+                                        color: '#8b5cf6',
+                                        isLight: isLight,
+                                        maxLocalExtrema: 0
+                                    },
+                                    valueLabels: false
                                 },
                                 scales: {
                                     x: {
@@ -1934,6 +2017,7 @@ let currentTab = 'home';
 
 
         document.addEventListener('DOMContentLoaded', () => {
+            initializeSortableHeaders();
             const isDark = document.body.classList.contains('dark');
             const themeIcon = document.getElementById('theme-toggle-icon');
             if (themeIcon) {
@@ -2161,7 +2245,129 @@ let currentTab = 'home';
             updateTdChart(window.currentTdBond, days, rangeValue, value);
         }
 
+        function ensureKeyValueLabelsPlugin() {
+            if (Chart.registry.plugins.get('keyValueLabels')) return;
+
+            Chart.register({
+                id: 'keyValueLabels',
+                afterDatasetsDraw(chart) {
+                    const options = chart.options.plugins?.keyValueLabels;
+                    if (!options) return;
+
+                    const labels = [];
+                    chart.data.datasets.forEach(function(dataset, datasetIndex) {
+                        const meta = chart.getDatasetMeta(datasetIndex);
+                        if (meta.hidden) return;
+                        const valid = dataset.data
+                            .map(function(value, index) { return { value: value, index: index }; })
+                            .filter(function(point) {
+                                return Number.isFinite(point.value) && meta.data[point.index];
+                            });
+                        if (!valid.length) return;
+
+                        const min = valid.reduce(function(best, point) {
+                            return point.value < best.value ? point : best;
+                        });
+                        const max = valid.reduce(function(best, point) {
+                            return point.value > best.value ? point : best;
+                        });
+                        const seen = new Set();
+                        function addLabel(point, priority, type) {
+                            if (seen.has(point.index)) return;
+                            seen.add(point.index);
+                            labels.push({
+                                datasetIndex: datasetIndex,
+                                index: point.index,
+                                value: point.value,
+                                priority: priority,
+                                type: type
+                            });
+                        }
+
+                        const first = valid[0];
+                        const last = valid[valid.length - 1];
+                        addLabel(max, 1, 'peak');
+                        addLabel(min, 1, 'valley');
+                        addLabel(last, 2, last.value < valid[Math.max(0, valid.length - 2)].value ? 'valley' : 'peak');
+                        addLabel(first, 3, first.value > valid[Math.min(1, valid.length - 1)].value ? 'peak' : 'valley');
+
+                        const localExtrema = [];
+                        if (options.maxLocalExtrema > 0) {
+                            for (let i = 1; i < valid.length - 1; i++) {
+                                const previous = valid[i - 1].value;
+                                const current = valid[i].value;
+                                const next = valid[i + 1].value;
+                                const prominence = Math.min(Math.abs(current - previous), Math.abs(current - next));
+                                if (current > previous && current > next) {
+                                    localExtrema.push({ point: valid[i], type: 'peak', prominence: prominence });
+                                } else if (current < previous && current < next) {
+                                    localExtrema.push({ point: valid[i], type: 'valley', prominence: prominence });
+                                }
+                            }
+                            localExtrema
+                                .sort(function(a, b) { return b.prominence - a.prominence; })
+                                .slice(0, options.maxLocalExtrema)
+                                .forEach(function(extremum) { addLabel(extremum.point, 4, extremum.type); });
+                        }
+                    });
+
+                    labels.sort(function(a, b) { return a.priority - b.priority; });
+
+                    const drawn = [];
+                    const ctx = chart.ctx;
+                    ctx.save();
+                    ctx.font = '700 10px Inter, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+
+                    labels.forEach(function(label) {
+                        const point = chart.getDatasetMeta(label.datasetIndex).data[label.index];
+                        if (!point) return;
+                        let text;
+                        if (options.format === 'currency') text = 'R$ ' + label.value.toFixed(2);
+                        else if (options.format === 'score') text = label.value.toFixed(1);
+                        else text = label.value.toFixed(2) + '%';
+
+                        const width = ctx.measureText(text).width + 10;
+                        const height = 17;
+                        let x = point.x - width / 2;
+                        let y = label.type === 'valley' ? point.y + 5 : point.y - height - 5;
+                        if (y < chart.chartArea.top) y = point.y + 5;
+                        x = Math.max(chart.chartArea.left, Math.min(x, chart.chartArea.right - width));
+                        if (y + height > chart.chartArea.bottom) y = point.y - height - 5;
+
+                        const box = { x: x - 4, y: y - 3, width: width + 8, height: height + 6 };
+                        const collides = drawn.some(function(other) {
+                            return box.x < other.x + other.width && box.x + box.width > other.x &&
+                                box.y < other.y + other.height && box.y + box.height > other.y;
+                        });
+                        if (collides) return;
+
+                        const labelColor = chart.data.datasets[label.datasetIndex].borderColor || options.color;
+                        ctx.globalAlpha = 1;
+                        ctx.fillStyle = options.isLight ? 'rgba(255, 255, 255, 0.98)' : 'rgba(15, 23, 42, 0.96)';
+                        ctx.strokeStyle = labelColor;
+                        ctx.lineWidth = 1;
+                        if (ctx.roundRect) {
+                            ctx.beginPath();
+                            ctx.roundRect(x, y, width, height, 3);
+                            ctx.fill();
+                            ctx.stroke();
+                        } else {
+                            ctx.fillRect(x, y, width, height);
+                            ctx.strokeRect(x, y, width, height);
+                        }
+                        ctx.fillStyle = labelColor;
+                        ctx.fillText(text, x + width / 2, y + height / 2);
+                        drawn.push(box);
+                    });
+                    ctx.restore();
+                }
+            });
+        }
+
         function updateTdChart(td, days, rangeValue, chartType) {
+            ensureKeyValueLabelsPlugin();
             // Destrói instância anterior antes de recriar
             if (window.tdChartInstance) {
                 window.tdChartInstance.destroy();
@@ -2194,7 +2400,8 @@ let currentTab = 'home';
             const pointHoverRadius = 5;
 
             if (chartType === 'tax') {
-                if (chartTitleEl) chartTitleEl.textContent = '📈 Taxa Histórica (' + periodText + ')';
+                const isSelicSpread = td.yield_kind === 'selic_spread';
+                if (chartTitleEl) chartTitleEl.textContent = (isSelicSpread ? '📈 ÁGIO/DESÁGIO HISTÓRICO' : '📈 TAXA HISTÓRICA') + ' (' + periodText + ')';
                 const taxHist = getTdHistory(td, 'buy_yield', days);
                 if (taxHist.length === 0) {
                     renderTdHistoryUnavailable(canvas, 'Histórico real de taxa ainda indisponível para este título.');
@@ -2206,7 +2413,7 @@ let currentTab = 'home';
                     data: {
                             labels: taxHist.map(point => point.label),
                         datasets: [{
-                            label: 'Taxa (% a.a.)',
+                            label: isSelicSpread ? 'Spread sobre Selic (% a.a.)' : 'Taxa (% a.a.)',
                             data: taxHist.map(point => point.value * 100),
                             borderColor: '#8b5cf6',
                             backgroundColor: 'rgba(139, 92, 246, 0.08)',
@@ -2231,15 +2438,17 @@ let currentTab = 'home';
                                 cornerRadius: 4,
                                 callbacks: {
                                     label: function(context) {
-                                        return context.parsed.y.toFixed(2) + '% a.a.';
+                                        return (isSelicSpread ? 'Selic ' + (context.parsed.y >= 0 ? '+' : '') : '') + context.parsed.y.toFixed(isSelicSpread ? 4 : 2) + '% a.a.';
                                     }
                                 }
                             },
-                            valueLabels: {
-                                indicator: 'dy',
-                                borderColor: '#8b5cf6',
-                                isLight: isLight
-                            }
+                            keyValueLabels: {
+                                format: 'percent',
+                                color: '#8b5cf6',
+                                isLight: isLight,
+                                maxLocalExtrema: 3
+                            },
+                            valueLabels: false
                         },
                         scales: {
                             x: {
@@ -2300,11 +2509,13 @@ let currentTab = 'home';
                                     }
                                 }
                             },
-                            valueLabels: {
-                                indicator: 'price',
-                                borderColor: '#10b981',
-                                isLight: isLight
-                            }
+                            keyValueLabels: {
+                                format: 'currency',
+                                color: '#10b981',
+                                isLight: isLight,
+                                maxLocalExtrema: 3
+                            },
+                            valueLabels: false
                         },
                         scales: {
                             x: {
@@ -2365,11 +2576,13 @@ let currentTab = 'home';
                                     }
                                 }
                             },
-                            valueLabels: {
-                                indicator: 'score',
-                                borderColor: '#3b82f6',
-                                isLight: isLight
-                            }
+                            keyValueLabels: {
+                                format: 'score',
+                                color: '#3b82f6',
+                                isLight: isLight,
+                                maxLocalExtrema: 3
+                            },
+                            valueLabels: false
                         },
                         scales: {
                             x: {
@@ -2426,9 +2639,10 @@ let currentTab = 'home';
 
             // Preenche informações textuais
             document.getElementById('td-modal-name').textContent = td.name || 'Título';
-            document.getElementById('td-modal-subtitle').textContent = td.type || 'Tesouro Direto';
+            document.getElementById('td-modal-subtitle').textContent = (td.group || td.type || 'Tesouro Direto') + (td.risk_profile ? ' · Risco: ' + td.risk_profile : '');
             document.getElementById('td-modal-type').textContent = td.type || '—';
-            document.getElementById('td-modal-yield').textContent = td.buy_yield != null ? (td.buy_yield * 100).toFixed(2) + '% a.a.' : '—';
+            document.getElementById('td-modal-yield-label').textContent = td.yield_kind === 'selic_spread' ? 'Spread sobre Selic' : 'Taxa Atual';
+            document.getElementById('td-modal-yield').textContent = td.buy_yield != null ? formatTdYield(td) + ' a.a.' : '—';
             document.getElementById('td-modal-maturity').textContent = td.maturity_date || (td.days_to_maturity ? td.days_to_maturity + ' dias' : '—');
             document.getElementById('td-modal-score').textContent = td.score != null ? td.score.toFixed(1) + '/10' : '—';
             document.getElementById('td-modal-buy-price').textContent = td.buy_price != null ? 'R$ ' + td.buy_price.toFixed(2) : '—';
@@ -2522,6 +2736,7 @@ let currentTab = 'home';
             cutoff.setDate(cutoff.getDate() - days);
             return (td.history || []).filter(point => {
                 return point.date && point[field] != null && !Number.isNaN(Number(point[field])) &&
+                    (field !== 'score' || !td.score_method || point.score_method === td.score_method) &&
                     new Date(point.date + 'T00:00:00') >= cutoff;
             }).map(point => ({
                 label: new Date(point.date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }),
@@ -2701,6 +2916,7 @@ let currentTab = 'home';
                 const canvas = document.getElementById('focus-detail-chart');
                 if (canvas) {
                     const ctx = canvas.getContext('2d');
+                    ensureKeyValueLabelsPlugin();
                     if (window.focusChartInstance) {
                         window.focusChartInstance.destroy();
                     }
@@ -2764,9 +2980,9 @@ let currentTab = 'home';
                                         }
                                     }
                                 },
-                                valueLabels: {
-                                    indicator: isPercent ? 'dy' : isCurrency ? 'price' : 'normal',
-                                    borderColor: colorFuture,
+                                keyValueLabels: {
+                                    format: isCurrency ? 'currency' : 'percent',
+                                    color: colorFuture,
                                     isLight: !document.body.classList.contains('dark')
                                 }
                             },
