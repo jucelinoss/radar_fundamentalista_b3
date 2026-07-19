@@ -106,7 +106,7 @@ class TestRenderTopPicksUniqueness:
 
     def test_home_top_tesouro_is_limited_to_five(self, html):
         assert re.search(
-            r"home\.top_tesouro\s*\|\|\s*\[\]\s*\)\.slice\(0,\s*5\)",
+            r"home\.top_tesouro\s*\|\|\s*\[\]\s*\)\.filter\([\s\S]*?\)\.slice\(0,\s*5\)",
             html,
         ), "Top Tesouro must request up to five items."
 

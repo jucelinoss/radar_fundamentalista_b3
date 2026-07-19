@@ -107,7 +107,10 @@ def test_html_templates_consistency():
         # Valide ambos como uma única interface para não perder contratos após
         # uma extração legítima de JS/CSS.
         for script_src in re.findall(r'<script[^>]+src=["\']([^"\']+)["\']', content):
-            script_path = os.path.join(PROJECT_ROOT, script_src.replace("/", os.sep))
+            # URLs versionadas (por exemplo, dashboard.js?v=5) ainda apontam
+            # para o mesmo arquivo-fonte no checkout de testes.
+            script_file_name = script_src.split("?", 1)[0].split("#", 1)[0]
+            script_path = os.path.join(PROJECT_ROOT, script_file_name.replace("/", os.sep))
             if os.path.exists(script_path):
                 with open(script_path, "r", encoding="utf-8") as script_file:
                     content += "\n" + script_file.read()
