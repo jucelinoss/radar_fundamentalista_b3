@@ -82,8 +82,12 @@ jobs:
           if curl --fail --location --retry 3 --retry-delay 2 "$history_url" --output data/tesouro_history.json; then
             echo "Tesouro history restored from $history_url"
           elif curl --fail --location --retry 3 --retry-delay 2 "${published_url}/data.json" --output /tmp/data.json; then
-            python scripts/bootstrap_tesouro_history.py /tmp/data.json data/tesouro_history.json
-            echo "Tesouro history bootstrapped from the published data.json"
+            if python scripts/bootstrap_tesouro_history.py /tmp/data.json data/tesouro_history.json; then
+              echo "Tesouro history bootstrapped from the published data.json"
+            else
+              echo "Warning: Tesouro history bootstrap failed; starting a new series."
+              rm -f data/tesouro_history.json
+            fi
           else
             echo "No published Tesouro history found; starting a new series."
             rm -f data/tesouro_history.json
