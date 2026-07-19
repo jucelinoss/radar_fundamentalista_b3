@@ -231,7 +231,7 @@ def _download_and_match_vpas(
         try:
             logger.info(f"Downloading {url}...")
             req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
-            with urllib.request.urlopen(req, timeout=30) as resp:
+            with urllib.request.urlopen(req, timeout=120) as resp:
                 zip_data = resp.read()
             
             with zipfile.ZipFile(io.BytesIO(zip_data)) as zf:

@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 DB_PATH: str = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "investments.db")
+HISTORY_ENRICHMENT_VERSION = 2
 
 
 @contextmanager
@@ -46,6 +47,8 @@ def _create_stocks_table(cursor: sqlite3.Cursor) -> None:
     _add_column_if_not_exists(cursor, "stocks", "pe_medio_5y", "REAL")
     _add_column_if_not_exists(cursor, "stocks", "net_debt_ebitda", "REAL")
     _add_column_if_not_exists(cursor, "stocks", "score_v2", "REAL")
+    _add_column_if_not_exists(cursor, "stocks", "score_breakdown", "TEXT")
+    _add_column_if_not_exists(cursor, "stocks", "history_version", "INTEGER")
 
 
 def _create_fiis_table(cursor: sqlite3.Cursor, table: str) -> None:
@@ -61,6 +64,8 @@ def _create_fiis_table(cursor: sqlite3.Cursor, table: str) -> None:
     # v2.5 continuous score columns
     _add_column_if_not_exists(cursor, table, "dividend_consistency", "REAL")
     _add_column_if_not_exists(cursor, table, "score_v2", "REAL")
+    _add_column_if_not_exists(cursor, table, "score_breakdown", "TEXT")
+    _add_column_if_not_exists(cursor, table, "history_version", "INTEGER")
 
 
 def _create_pipeline_log_table(cursor: sqlite3.Cursor) -> None:
@@ -101,13 +106,15 @@ def _add_column_if_not_exists(cursor: sqlite3.Cursor, table_name: str, column_na
 
 def save_stock(data: dict[str, Any]) -> None:
     """Insert or replace a stock record."""
+    import json
+    breakdown_json = json.dumps(data.get('score_breakdown') or [])
     with get_connection() as conn:
         conn.execute("""
         INSERT OR REPLACE INTO stocks (
             ticker, name, sector, price, pe_ratio, pb_ratio, dividend_yield,
             roe, eps, book_value, graham_price, bazin_price, score, history_json, updated_at,
-            dy_medio_3y, pe_medio_5y, net_debt_ebitda, score_v2
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            dy_medio_3y, pe_medio_5y, net_debt_ebitda, score_v2, score_breakdown, history_version
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             data['ticker'], data.get('name'), data.get('sector', 'Outros'),
             data.get('price'), data.get('pe_ratio'),
@@ -116,7 +123,8 @@ def save_stock(data: dict[str, Any]) -> None:
             data.get('bazin_price'), data.get('score'), data.get('history_json'),
             datetime.now().isoformat(),
             data.get('dy_medio_3y'), data.get('pe_medio_5y'),
-            data.get('net_debt_ebitda'), data.get('score_v2')
+            data.get('net_debt_ebitda'), data.get('score_v2'),
+            breakdown_json, data.get('history_version')
         ))
 
 
@@ -146,20 +154,23 @@ def get_stock_by_ticker(ticker: str) -> dict[str, Any] | None:
 
 def save_fii(data: dict[str, Any]) -> None:
     """Insert or replace a FII record."""
+    import json
+    breakdown_json = json.dumps(data.get('score_breakdown') or [])
     with get_connection() as conn:
         conn.execute("""
         INSERT OR REPLACE INTO fiis (
             ticker, name, price, pb_ratio, dividend_yield, dividend_rate,
             book_value, score, history_json, updated_at,
-            dividend_consistency, score_v2
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            dividend_consistency, score_v2, score_breakdown, history_version
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             data['ticker'], data.get('name'), data.get('price'),
             data.get('pb_ratio'), data.get('dividend_yield'),
             data.get('dividend_rate'), data.get('book_value'),
             data.get('score', 0),
             data.get('history_json'), datetime.now().isoformat(),
-            data.get('dividend_consistency'), data.get('score_v2')
+            data.get('dividend_consistency'), data.get('score_v2'),
+            breakdown_json, data.get('history_version')
         ))
 
 
@@ -179,20 +190,23 @@ def get_all_fiis() -> list[dict[str, Any]]:
 
 def save_fiagro(data: dict[str, Any]) -> None:
     """Insert or replace a FIAGRO record."""
+    import json
+    breakdown_json = json.dumps(data.get('score_breakdown') or [])
     with get_connection() as conn:
         conn.execute("""
         INSERT OR REPLACE INTO fiagros (
             ticker, name, price, pb_ratio, dividend_yield, dividend_rate,
             book_value, score, history_json, updated_at,
-            dividend_consistency, score_v2
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            dividend_consistency, score_v2, score_breakdown, history_version
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             data['ticker'], data.get('name'), data.get('price'),
             data.get('pb_ratio'), data.get('dividend_yield'),
             data.get('dividend_rate'), data.get('book_value'),
             data.get('score', 0),
             data.get('history_json'), datetime.now().isoformat(),
-            data.get('dividend_consistency'), data.get('score_v2')
+            data.get('dividend_consistency'), data.get('score_v2'),
+            breakdown_json, data.get('history_version')
         ))
 
 
@@ -243,8 +257,11 @@ def get_stale_tickers(ticker_list: list[str], table_name: str, max_age_hours: in
     A ticker is 'stale' (needs refresh) if:
     - It has never been fetched (updated_at IS NULL), OR
     - It was last updated more than `max_age_hours` ago.
+    - Its current score breakdown is missing. This is required for the
+      analytical rating shown in the asset detail modal.
 
-    A ticker is 'fresh' (skip) if its updated_at is within max_age_hours.
+    A ticker is 'fresh' (skip) only if its updated_at is within
+    `max_age_hours` and it has a populated score breakdown.
     """
     if not ticker_list:
         return []
@@ -257,12 +274,21 @@ def get_stale_tickers(ticker_list: list[str], table_name: str, max_age_hours: in
         placeholders: str = ','.join(['?'] * len(ticker_list))
         threshold: str = (datetime.now() - timedelta(hours=max_age_hours)).isoformat()
 
+        history_version_clause = ""
+        params: list[Any] = [*ticker_list, threshold]
+        if table_name in {"fiis", "fiagros"}:
+            history_version_clause = "AND COALESCE(history_version, 0) >= ?"
+            params.append(HISTORY_ENRICHMENT_VERSION)
+
         cursor.execute(f"""
             SELECT ticker FROM {table_name}
             WHERE ticker IN ({placeholders})
               AND updated_at IS NOT NULL
               AND updated_at > ?
-        """, [*ticker_list, threshold])
+              AND score_breakdown IS NOT NULL
+              AND TRIM(score_breakdown) NOT IN ('', '[]')
+              {history_version_clause}
+        """, params)
         fresh_tickers: set[str] = {row[0] for row in cursor.fetchall()}
 
     stale: list[str] = [t for t in ticker_list if t not in fresh_tickers]

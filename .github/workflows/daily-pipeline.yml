@@ -72,10 +72,16 @@ jobs:
           PAGES_BASE_URL: ${{ vars.PAGES_BASE_URL }}
         run: |
           base_url="${PAGES_BASE_URL:-https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}}"
-          history_url="${base_url%/}/data/tesouro_history.json"
+          # A preview de dev deve continuar sua propria serie. A producao
+          # (main) usa a raiz do Pages; dev usa somente /dev/.
+          published_url="${base_url%/}"
+          if [[ "${GITHUB_REF_NAME}" == "dev" ]]; then
+            published_url="${published_url}/dev"
+          fi
+          history_url="${published_url}/data/tesouro_history.json"
           if curl --fail --location --retry 3 --retry-delay 2 "$history_url" --output data/tesouro_history.json; then
             echo "Tesouro history restored from $history_url"
-          elif curl --fail --location --retry 3 --retry-delay 2 "${base_url%/}/data.json" --output /tmp/data.json; then
+          elif curl --fail --location --retry 3 --retry-delay 2 "${published_url}/data.json" --output /tmp/data.json; then
             if python scripts/bootstrap_tesouro_history.py /tmp/data.json data/tesouro_history.json; then
               echo "Tesouro history bootstrapped from the published data.json"
             else
@@ -87,7 +93,7 @@ jobs:
             rm -f data/tesouro_history.json
           fi
 
-      - name: Restore database & CVM cache (keyed on tickers.json hash)
+      - name: Restore database & CVM cache (isolated by branch and tickers.json)
         id: db-cache
         uses: actions/cache@v4
         with:
@@ -97,9 +103,9 @@ jobs:
             data/fii_vpa.json
             data/fiagro_dy.json
             data/fii_dy.json
-          key: b3-db-${{ hashFiles('config/tickers.json') }}
+          key: b3-db-${{ github.ref_name }}-${{ hashFiles('config/tickers.json') }}
           restore-keys: |
-            b3-db-
+            b3-db-${{ github.ref_name }}-
           # Salva sempre — necessário para que CVM files gerados sejam cacheados
           save-always: true
 
@@ -173,15 +179,15 @@ jobs:
             --exclude '*.txt' \
             --exclude '*.crt' \
             --exclude '*.key' \
-            --exclude 'data/investments.db' \
-            --exclude 'data/*.log' \
-            --exclude 'data/failed_tickers.log' \
+            --exclude 'data/' \
             ./ _site/
 
           # A versão v2 é a página principal; a clássica fica disponível
           # para comparação em ambos os ambientes.
           cp index.html _site/index-classic.html
           cp index-v2.html _site/index.html
+          mkdir -p _site/data
+          cp data/tesouro_history.json _site/data/tesouro_history.json
           cp data/export_*.csv data/export_*.json _site/
 
       - name: Validate Pages data artifact
@@ -266,10 +272,6 @@ jobs:
           else
             find published -mindepth 1 -maxdepth 1 ! -name .git ! -name dev -exec rm -rf {} +
             cp -a static-site/. published/
-            # Also refresh dev preview with the same fresh data
-            rm -rf published/dev
-            mkdir -p published/dev
-            cp -a static-site/. published/dev/
           fi
 
           touch published/.nojekyll

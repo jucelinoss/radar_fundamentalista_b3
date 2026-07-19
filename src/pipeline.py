@@ -179,6 +179,20 @@ def run_full_pipeline(max_age_hours: int = 6, force: bool = False) -> bool:
 
     try:
         result: dict[str, Any] = run_ingestion(max_age_hours=max_age_hours, force=force)
+
+        # --- v3: busca dados macro (BCB/Focus/TD) antes de gerar o dashboard ---
+        logger.info("=" * 60)
+        logger.info("  STEP 1.5/2: MACRO DATA FETCH (v3)")
+        logger.info("=" * 60)
+        try:
+            import macro_fetcher
+            ms = macro_fetcher.fetch_macro_state(force=force)
+            selic = ms.get("CURRENT_SELIC")
+            bonds_count = len(ms.get("TESOURO_DIRETO_BONDS", []))
+            logger.info(f"  Macro OK — Selic: {selic:.2%}, TD bonds: {bonds_count}")
+        except Exception as e:
+            logger.warning(f"  Macro fetch failed (continuando sem dados v3): {e}")
+
         if result["ok"] > 0 or result["fail"] == 0:
             run_generator()
         else:
