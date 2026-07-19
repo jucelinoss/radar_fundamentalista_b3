@@ -1,6 +1,6 @@
 {
   "meta": {
-    "exported_at": "2026-07-18T05:28:02.571373",
+    "exported_at": "2026-07-19T10:37:38.162768",
     "source": "Radar Fundamentalista B3 - Top Picks",
     "description": "Melhores ativos por score fundamentalista. Pronto para alimentar IA com sua carteira.",
     "suggested_prompt": "Analise minha carteira de investimentos comparando com estes top picks. Para cada ativo da minha carteira, sugira se devo manter, aumentar, reduzir ou vender, considerando os scores fundamentalistas, DY, P/L, P/VP, ROE e margem de seguranca de Graham."
@@ -35,20 +35,6 @@
       "upside_graham_pct": 155.0
     },
     {
-      "ticker": "BBDC3",
-      "name": "Banco Bradesco S.A.",
-      "sector": "Serviços Financeiros",
-      "price": 15.94,
-      "pe_ratio": 7.59,
-      "pb_ratio": 0.94,
-      "dividend_yield_pct": 8.87,
-      "roe_pct": 13.37,
-      "graham_price": 28.35,
-      "bazin_price": 3.5,
-      "score": 5.0,
-      "upside_graham_pct": 77.9
-    },
-    {
       "ticker": "BBDC4",
       "name": "Banco Bradesco S.A.",
       "sector": "Serviços Financeiros",
@@ -63,6 +49,20 @@
       "upside_graham_pct": 55.0
     },
     {
+      "ticker": "BBDC3",
+      "name": "Banco Bradesco S.A.",
+      "sector": "Serviços Financeiros",
+      "price": 15.94,
+      "pe_ratio": 7.59,
+      "pb_ratio": 0.94,
+      "dividend_yield_pct": 8.87,
+      "roe_pct": 13.37,
+      "graham_price": 28.35,
+      "bazin_price": 3.5,
+      "score": 5.0,
+      "upside_graham_pct": 77.9
+    },
+    {
       "ticker": "BRSR6",
       "name": "Banco do Estado do Rio Grande do Sul S.A.",
       "sector": "Serviços Financeiros",
@@ -75,6 +75,20 @@
       "bazin_price": 14.67,
       "score": 5.0,
       "upside_graham_pct": 275.2
+    },
+    {
+      "ticker": "CMIG4",
+      "name": "Companhia Energética de Minas Gerais - CEMIG",
+      "sector": "Utilidade Pública",
+      "price": 11.12,
+      "pe_ratio": 6.5,
+      "pb_ratio": 1.1,
+      "dividend_yield_pct": 11.52,
+      "roe_pct": 17.04,
+      "graham_price": 19.71,
+      "bazin_price": 21.33,
+      "score": 5.0,
+      "upside_graham_pct": 77.2
     },
     {
       "ticker": "CYRE3",
@@ -131,20 +145,6 @@
       "bazin_price": 6.83,
       "score": 5.0,
       "upside_graham_pct": 146.6
-    },
-    {
-      "ticker": "CMIG4",
-      "name": "Companhia Energética de Minas Gerais - CEMIG",
-      "sector": "Utilidade Pública",
-      "price": 11.12,
-      "pe_ratio": 6.5,
-      "pb_ratio": 1.1,
-      "dividend_yield_pct": 11.52,
-      "roe_pct": 17.04,
-      "graham_price": 19.71,
-      "bazin_price": 21.33,
-      "score": 5.0,
-      "upside_graham_pct": 77.2
     }
   ],
   "top_fiis": [
@@ -247,7 +247,7 @@
       "pb_ratio": 0.71,
       "dividend_yield_pct": 16.21,
       "score": 5.0,
-      "dividend_rate": 0.7611
+      "dividend_rate": 0.644
     },
     {
       "ticker": "PLCA11",
@@ -265,7 +265,16 @@
       "pb_ratio": 0.79,
       "dividend_yield_pct": 29.57,
       "score": 5.0,
-      "dividend_rate": 0.8787
+      "dividend_rate": 0.7811
+    },
+    {
+      "ticker": "CPTR11",
+      "name": "Capitania Agro Strategies - Fiagro - Imobiliario Fund",
+      "price": 7.96,
+      "pb_ratio": 0.79,
+      "dividend_yield_pct": 16.71,
+      "score": 5.0,
+      "dividend_rate": 0.1051
     },
     {
       "ticker": "RURA11",
@@ -275,15 +284,6 @@
       "dividend_yield_pct": 14.99,
       "score": 5.0,
       "dividend_rate": 1.0477
-    },
-    {
-      "ticker": "CPTR11",
-      "name": "Capitania Agro Strategies - Fiagro - Imobiliario Fund",
-      "price": 7.96,
-      "pb_ratio": 0.8,
-      "dividend_yield_pct": 16.71,
-      "score": 5.0,
-      "dividend_rate": 0.1051
     },
     {
       "ticker": "XPCA11",
@@ -307,7 +307,7 @@
       "ticker": "OIAG11",
       "name": "Ourinvest Innovation - Fiagro Imobiliario",
       "price": 8.15,
-      "pb_ratio": 0.82,
+      "pb_ratio": 0.83,
       "dividend_yield_pct": 17.42,
       "score": 5.0,
       "dividend_rate": 1.42
