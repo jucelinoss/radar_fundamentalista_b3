@@ -1897,7 +1897,7 @@ const tableSortState = {};
                         }
 
                         const tdJson = encodeURIComponent(JSON.stringify(td));
-                        const generalRank = td.general_rank ? '#' + td.general_rank : '<small>Planejamento</small>';
+                        const generalRank = td.general_rank ? '#' + td.general_rank : (td.planning_rank ? 'P' + td.planning_rank : '');
                         const group = td.group || tipo;
                         const groupRank = (td.group_rank ? '<br><small>#' + td.group_rank + ' no grupo</small>' : '') +
                             (td.risk_profile ? '<br><small title="Risco de oscilação em venda antecipada; separado do score de oportunidade.">Risco: ' + td.risk_profile + '</small>' : '');
