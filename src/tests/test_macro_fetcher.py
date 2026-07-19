@@ -212,6 +212,43 @@ def test_purchase_catalog_is_a_whitelist_for_current_offers(tmp_path, monkeypatc
     assert "tesouro igp-m+ com juros semestrais 2031" not in catalog
 
 
+def test_fetch_tesouro_purchase_offers_normalizes_investir_endpoint(monkeypatch):
+    monkeypatch.setattr(macro_fetcher, "_get", lambda _url, params=None: {
+        "TesouroLegado": [
+            {
+                "treasuryBondName": "Tesouro Selic 2031",
+                "treasuryBondCode": 212,
+                "isinCode": "BRSTNCLF1RU6",
+                "maturityDate": "2031-03-01T00:00",
+                "startDate": "2026-07-17T09:30:00.000",
+                "investmentBondMinimumValue": 194,
+                "unitaryInvestmentValue": 19400.42,
+                "investmentProfitabilityIndexerName": "SELIC + 0,0744%",
+            }
+        ],
+        "Tesouro24x7": [
+            {
+                "treasuryBondName": "Tesouro Reserva 2036",
+                "treasuryBondCode": 219,
+                "isinCode": "BRSTNCT1D008",
+                "maturityDate": "2036-01-01T00:00",
+                "startDate": "2026-07-17T09:30:00.000",
+                "investmentBondMinimumValue": 1,
+                "unitaryInvestmentValue": 10.757575,
+                "investmentProfitabilityIndexerName": "SELIC",
+            }
+        ],
+    })
+
+    offers = macro_fetcher._fetch_tesouro_purchase_offers()
+
+    assert offers is not None
+    assert set(offers) == {"tesouro selic 2031", "tesouro reserva 2036"}
+    assert offers["tesouro selic 2031"]["maturity_date"] == "2031-03-01"
+    assert offers["tesouro reserva 2036"]["availability_channel"] == "Tesouro24x7"
+    assert offers["tesouro reserva 2036"]["unitary_investment_value"] == pytest.approx(10.757575)
+
+
 def test_catalog_maps_renda_and_educa_final_payment_years_to_offer_years():
     assert macro_fetcher._catalog_title_for_history_bond(
         "Tesouro Renda+ Aposentadoria Extra 2049"
@@ -243,6 +280,167 @@ Tesouro Selic;01/03/2031;10/07/2026;10,00;10,10;19000,00;18990,00
 
     assert len(bonds) == 1
     assert bonds[0]["data_source"] == "tesouro_transparente_csv"
+
+
+def test_fetch_tesouro_direto_uses_endpoint_as_primary_purchase_control(monkeypatch):
+    monkeypatch.setattr(macro_fetcher, "_fetch_tesouro_transparente_csv", lambda: [
+        {
+            "name": "Tesouro Selic 2031",
+            "type": "Selic",
+            "maturity_date": "2031-03-01",
+            "days_to_maturity": 1800,
+            "buy_yield": 0.000744,
+            "sell_yield": 0.0007,
+            "yield_kind": "selic_spread",
+            "buy_price": 19400.42,
+            "sell_price": 19391.54,
+            "min_investment": 194.0,
+            "history": [],
+            "market_date": "2026-07-17",
+            "data_source": "tesouro_transparente_csv",
+            "is_demo": False,
+        },
+        {
+            "name": "Tesouro Prefixado 2035",
+            "type": "Prefixado",
+            "maturity_date": "2035-01-01",
+            "days_to_maturity": 3000,
+            "buy_yield": 0.14,
+            "sell_yield": 0.139,
+            "yield_kind": "rate",
+            "buy_price": 500.0,
+            "sell_price": 495.0,
+            "min_investment": 5.0,
+            "history": [],
+            "market_date": "2026-07-17",
+            "data_source": "tesouro_transparente_csv",
+            "is_demo": False,
+        },
+    ])
+    monkeypatch.setattr(macro_fetcher, "_fetch_tesouro_purchase_offers", lambda: {
+        "tesouro selic 2031": {
+            "name": "Tesouro Selic 2031",
+            "availability_channel": "TesouroLegado",
+            "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
+            "availability_checked_at": "2026-07-19T12:00:00+00:00",
+            "min_investment": 194.0,
+            "unitary_investment_value": 19400.42,
+            "maturity_date": "2031-03-01",
+        }
+    })
+    monkeypatch.setattr(macro_fetcher, "_load_tesouro_manual_offers", lambda: [])
+
+    bonds = macro_fetcher.fetch_tesouro_direto()
+
+    assert [bond["name"] for bond in bonds] == ["Tesouro Selic 2031"]
+    assert bonds[0]["purchase_availability_source"] == "tesouro_investir_endpoint"
+    assert bonds[0]["availability_status"] == "available"
+    assert bonds[0]["availability_channel"] == "TesouroLegado"
+
+
+def test_fetch_tesouro_direto_falls_back_to_manual_catalog_when_endpoint_is_unavailable(monkeypatch):
+    monkeypatch.setattr(macro_fetcher, "_fetch_tesouro_transparente_csv", lambda: [
+        {
+            "name": "Tesouro Selic 2031",
+            "type": "Selic",
+            "maturity_date": "2031-03-01",
+            "days_to_maturity": 1800,
+            "buy_yield": 0.000744,
+            "sell_yield": 0.0007,
+            "yield_kind": "selic_spread",
+            "buy_price": 19400.42,
+            "sell_price": 19391.54,
+            "min_investment": 194.0,
+            "history": [],
+            "market_date": "2026-07-17",
+            "data_source": "tesouro_transparente_csv",
+            "is_demo": False,
+        },
+        {
+            "name": "Tesouro Prefixado 2035",
+            "type": "Prefixado",
+            "maturity_date": "2035-01-01",
+            "days_to_maturity": 3000,
+            "buy_yield": 0.14,
+            "sell_yield": 0.139,
+            "yield_kind": "rate",
+            "buy_price": 500.0,
+            "sell_price": 495.0,
+            "min_investment": 5.0,
+            "history": [],
+            "market_date": "2026-07-17",
+            "data_source": "tesouro_transparente_csv",
+            "is_demo": False,
+        },
+    ])
+    monkeypatch.setattr(macro_fetcher, "_fetch_tesouro_purchase_offers", lambda: None)
+    monkeypatch.setattr(macro_fetcher, "_load_tesouro_purchase_catalog", lambda: {"tesouro selic 2031"})
+    monkeypatch.setattr(macro_fetcher, "_load_tesouro_manual_offers", lambda: [])
+
+    bonds = macro_fetcher.fetch_tesouro_direto()
+
+    assert [bond["name"] for bond in bonds] == ["Tesouro Selic 2031"]
+    assert bonds[0]["purchase_availability_source"] == "configured_tesouro_catalog"
+    assert bonds[0]["availability_status"] == "available"
+
+
+def test_fetch_tesouro_direto_adds_manual_offer_when_endpoint_lists_title_without_csv_quote(monkeypatch):
+    monkeypatch.setattr(macro_fetcher, "_fetch_tesouro_transparente_csv", lambda: [
+        {
+            "name": "Tesouro Selic 2031",
+            "type": "Selic",
+            "maturity_date": "2031-03-01",
+            "days_to_maturity": 1800,
+            "buy_yield": 0.000744,
+            "sell_yield": 0.0007,
+            "yield_kind": "selic_spread",
+            "buy_price": 19400.42,
+            "sell_price": 19391.54,
+            "min_investment": 194.0,
+            "history": [],
+            "market_date": "2026-07-17",
+            "data_source": "tesouro_transparente_csv",
+            "is_demo": False,
+        }
+    ])
+    monkeypatch.setattr(macro_fetcher, "_fetch_tesouro_purchase_offers", lambda: {
+        "tesouro selic 2031": {
+            "name": "Tesouro Selic 2031",
+            "availability_channel": "TesouroLegado",
+            "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
+            "availability_checked_at": "2026-07-19T12:00:00+00:00",
+            "min_investment": 194.0,
+            "unitary_investment_value": 19400.42,
+            "maturity_date": "2031-03-01",
+        },
+        "tesouro reserva 2036": {
+            "name": "Tesouro Reserva 2036",
+            "availability_channel": "Tesouro24x7",
+            "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
+            "availability_checked_at": "2026-07-19T12:00:00+00:00",
+            "min_investment": 1.0,
+            "unitary_investment_value": 10.757575,
+            "maturity_date": "2036-01-01",
+        },
+    })
+    monkeypatch.setattr(macro_fetcher, "_load_tesouro_manual_offers", lambda: [
+        {
+            "name": "Tesouro Reserva 2036",
+            "type": "Reserva",
+            "maturity_date": "2036-01-01",
+            "buy_price": 10.757575,
+            "min_investment": 1.0,
+            "yield_reference": "selic",
+        }
+    ])
+
+    bonds = macro_fetcher.fetch_tesouro_direto()
+
+    assert [bond["name"] for bond in bonds] == ["Tesouro Selic 2031", "Tesouro Reserva 2036"]
+    reserva = next(bond for bond in bonds if bond["name"] == "Tesouro Reserva 2036")
+    assert reserva["purchase_availability_source"] == "tesouro_investir_endpoint"
+    assert reserva["availability_channel"] == "Tesouro24x7"
+    assert reserva["buy_price"] == pytest.approx(10.757575)
 
 
 def test_demo_tesouro_cache_expires_after_one_hour():

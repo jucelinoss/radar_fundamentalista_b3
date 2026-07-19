@@ -569,7 +569,22 @@ def generate_dashboard() -> None:
     home_top_fiis   = [_summarize(f, ["pb_ratio"]) for f in top_fiis[:5]]
     home_top_fiagros = [_summarize(g, ["pb_ratio"]) for g in top_fiagros[:5]]
     home_top_td = [
-        {k: b.get(k) for k in ["name", "type", "buy_yield", "buy_price", "score", "badge", "days_to_maturity", "maturity_date", "purchase_available"]}
+        {
+            k: b.get(k)
+            for k in [
+                "name",
+                "type",
+                "buy_yield",
+                "buy_price",
+                "score",
+                "badge",
+                "days_to_maturity",
+                "maturity_date",
+                "purchase_available",
+                "availability_status",
+                "purchase_availability_source",
+            ]
+        }
         for b in tesouro_direto_payload[:5]
     ] if tesouro_direto_payload else []
 

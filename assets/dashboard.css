@@ -506,6 +506,15 @@
 
         /* ── Tesouro Direto table ── */
         .td-table table { font-size: 0.85rem; }
+        .td-table .td-rank-col,
+        .td-table .td-rank-cell {
+            width: 1%;
+            min-width: 4.5rem;
+            max-width: 5.25rem;
+        }
+        .td-table .td-rank-cell {
+            white-space: nowrap;
+        }
         .td-table .td-tipo {
             font-size: 0.7rem;
             color: var(--text-muted);
