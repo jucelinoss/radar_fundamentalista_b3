@@ -681,6 +681,16 @@ def fetch_tesouro_direto() -> list[dict[str, Any]]:
             # Classifica o tipo pelo nome
             bond_type = _classify_bond_type(name_raw)
 
+            status = str(bd.get("invstmtStbl", "")).strip().upper()
+            unavailable_statuses = {"N", "NAO", "NÃO", "FALSE", "0", "INATIVO", "SUSPENSO"}
+            available_for_purchase = (
+                buy_yield is not None and buy_price is not None and
+                days_to_maturity is not None and days_to_maturity > 0 and
+                status not in unavailable_statuses
+            )
+            if not available_for_purchase:
+                continue
+
             bonds.append({
                 "name": name_raw,
                 "type": bond_type,
@@ -693,6 +703,7 @@ def fetch_tesouro_direto() -> list[dict[str, Any]]:
                 "min_investment": min_invest,
                 "data_source": source,
                 "is_demo": False,
+                "purchase_available": True,
             })
     except Exception as exc:
         logger.warning(f"[macro_fetcher] Erro ao parsear Tesouro Direto: {exc}")
@@ -732,7 +743,7 @@ def _parse_tesouro_csv(content: str) -> list[dict[str, Any]]:
             sell_price = _to_float_br(raw.get("PU Venda Manha"))
         except (KeyError, ValueError, TypeError):
             continue
-        if not title_type or buy_yield is None or buy_price is None:
+        if not title_type or buy_yield is None or buy_price is None or maturity <= base_date:
             continue
         rows.append({
             "title_type": title_type,
@@ -781,6 +792,7 @@ def _parse_tesouro_csv(content: str) -> list[dict[str, Any]]:
             "market_date": latest_date.isoformat(),
             "data_source": "tesouro_transparente_csv",
             "is_demo": False,
+            "purchase_available": True,
         })
     return bonds
 

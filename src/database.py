@@ -254,8 +254,11 @@ def get_stale_tickers(ticker_list: list[str], table_name: str, max_age_hours: in
     A ticker is 'stale' (needs refresh) if:
     - It has never been fetched (updated_at IS NULL), OR
     - It was last updated more than `max_age_hours` ago.
+    - Its current score breakdown is missing. This is required for the
+      analytical rating shown in the asset detail modal.
 
-    A ticker is 'fresh' (skip) if its updated_at is within max_age_hours.
+    A ticker is 'fresh' (skip) only if its updated_at is within
+    `max_age_hours` and it has a populated score breakdown.
     """
     if not ticker_list:
         return []
@@ -273,6 +276,8 @@ def get_stale_tickers(ticker_list: list[str], table_name: str, max_age_hours: in
             WHERE ticker IN ({placeholders})
               AND updated_at IS NOT NULL
               AND updated_at > ?
+              AND score_breakdown IS NOT NULL
+              AND TRIM(score_breakdown) NOT IN ('', '[]')
         """, [*ticker_list, threshold])
         fresh_tickers: set[str] = {row[0] for row in cursor.fetchall()}
 

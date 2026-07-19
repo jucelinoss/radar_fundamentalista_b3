@@ -110,7 +110,7 @@ let currentTab = 'home';
             // Atualizar label do PDF
             const pdfLabel = document.getElementById('pdf-label');
             if (pdfLabel) {
-                const names = { home: 'Home', stocks: 'Ações', fiis: 'FIIs', fiagros: 'FIAGROs', sectors: 'Setores', rendafixa: 'Renda Fixa' };
+                const names = { home: 'Home', stocks: 'Ações', fiis: 'FIIs', fiagros: 'FIAGROs', sectors: 'Setores', rendafixa: 'Tesouro Direto' };
                 pdfLabel.textContent = names[tab] || tab;
             }
             const allBtns = document.querySelectorAll('.tab-btn');
@@ -1680,10 +1680,17 @@ let currentTab = 'home';
 
             // Top Tesouro Direto
             renderTopPicks(document.getElementById('home-top-tesouro'),
-                (home.top_tesouro || []).slice(0, 5).map(function(s) {
+                (home.top_tesouro || []).filter(function(td) { return isTdAvailableForPurchase(td, true); }).slice(0, 5).map(function(s) {
                     return Object.assign({}, s, { _type: 'tesouro' });
                 })
             );
+        }
+
+        function isTdAvailableForPurchase(td, allowSummary) {
+            if (!td || td.purchase_available === false) return false;
+            return Number.isFinite(Number(td.buy_yield)) &&
+                Number(td.days_to_maturity) > 0 &&
+                (Number.isFinite(Number(td.buy_price)) || Boolean(allowSummary && td.buy_price === undefined));
         }
 
         function renderRendaFixaPanel(data) {
@@ -1774,7 +1781,7 @@ let currentTab = 'home';
             }
 
             // ---- Tesouro Direto Table ----
-            const tdData = data.tesouro_direto || [];
+            const tdData = (data.tesouro_direto || []).filter(isTdAvailableForPurchase);
             const tbody = document.getElementById('rendafixa-tbody');
             const countEl = document.getElementById('rendafixa-count');
             const sourceEl = document.getElementById('rendafixa-source');
@@ -1782,7 +1789,7 @@ let currentTab = 'home';
                 const source = data.macro_state?.data_sources?.tesouro_direto;
                 sourceEl.textContent = source === 'demo_fallback'
                     ? '⚠️ Dados demonstrativos: a fonte do Tesouro Direto não respondeu nesta atualização.'
-                    : 'Fonte: Tesouro Direto. As séries históricas são formadas a cada atualização diária.';
+                    : 'Fonte: Tesouro Direto. Exibidos apenas títulos com taxa e preço de compra na cotação oficial mais recente.';
             }
             if (tbody) {
                 if (tdData.length === 0) {
@@ -1939,7 +1946,7 @@ let currentTab = 'home';
             // Inicializar label do PDF
             const pdfLabel = document.getElementById('pdf-label');
             if (pdfLabel) {
-                const names = { home: 'Home', stocks: 'Ações', fiis: 'FIIs', fiagros: 'FIAGROs', sectors: 'Setores', rendafixa: 'Renda Fixa' };
+                const names = { home: 'Home', stocks: 'Ações', fiis: 'FIIs', fiagros: 'FIAGROs', sectors: 'Setores', rendafixa: 'Tesouro Direto' };
                 pdfLabel.textContent = names[currentTab] || 'Home';
             }
             loadDashboardData();
@@ -2317,7 +2324,7 @@ let currentTab = 'home';
                     }
                 });
             } else if (chartType === 'score') {
-                if (chartTitleEl) chartTitleEl.textContent = '🎯 Atratividade Histórica (' + periodText + ')';
+                if (chartTitleEl) chartTitleEl.textContent = '🎯 Score Histórico (' + periodText + ')';
                 const scoreHist = getTdHistory(td, 'score', days);
                 if (scoreHist.length === 0) {
                     renderTdHistoryUnavailable(canvas, 'O histórico de score começa a ser formado nas próximas atualizações diárias.');
@@ -2329,7 +2336,7 @@ let currentTab = 'home';
                     data: {
                             labels: scoreHist.map(point => point.label),
                         datasets: [{
-                            label: 'Atratividade do dia',
+                            label: 'Score do dia',
                             data: scoreHist.map(point => point.value),
                             borderColor: '#3b82f6',
                             backgroundColor: 'rgba(59, 130, 246, 0.08)',
@@ -2435,7 +2442,7 @@ let currentTab = 'home';
                 if (td.score_breakdown && td.score_breakdown.length > 0) {
                     const titleEl = document.createElement('div');
                     titleEl.className = 'section-title';
-                    titleEl.textContent = 'Detalhamento da Atratividade';
+                    titleEl.textContent = 'Detalhamento do Score';
                     breakdownEl.appendChild(titleEl);
 
                     td.score_breakdown.forEach(function(b) {

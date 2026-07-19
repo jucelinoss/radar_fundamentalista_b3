@@ -11,6 +11,7 @@ from datetime import date, datetime
 from typing import Any
 
 import database
+import analyzer
 
 # Importações v3: dados macro e scorecard de Renda Fixa
 try:
@@ -335,6 +336,73 @@ def _enrich_fii_status(asset: dict[str, Any], asset_type: str) -> dict[str, Any]
 
     return a
 
+def _backfill_variable_income_history(
+    assets: list[dict[str, Any]], asset_type: str
+) -> None:
+    """Enriquece séries legadas que ainda possuem somente preço.
+
+    A ingestão já grava score e múltiplos em cada ponto histórico. Esta
+    proteção atende bases criadas antes dessa etapa ou regeneradas apenas com
+    ``--generate-only``, sem alterar o banco de dados durante a geração.
+    """
+    for asset in assets:
+        raw_history = asset.get("history_json")
+        try:
+            history = json.loads(raw_history) if isinstance(raw_history, str) else raw_history
+        except (TypeError, json.JSONDecodeError):
+            continue
+        if not isinstance(history, list) or not history:
+            continue
+        if all(isinstance(point, dict) and point.get("score") is not None for point in history):
+            enriched = history
+        else:
+            enriched = analyzer.calculate_historical_scores(
+                asset.get("ticker", ""), asset_type, asset, history
+            )
+        if not enriched:
+            enriched = history
+
+        current_score = asset.get("score_v2")
+        if current_score is None:
+            current_score = asset.get("score")
+        try:
+            current_score = round(float(current_score), 2)
+        except (TypeError, ValueError):
+            asset["history_json"] = json.dumps(enriched)
+            continue
+
+        try:
+            snapshot_date = datetime.fromisoformat(str(asset.get("updated_at"))).date().isoformat()
+        except (TypeError, ValueError):
+            snapshot_date = datetime.now().date().isoformat()
+
+        snapshot: dict[str, Any] = {
+            "date": snapshot_date,
+            "price": asset.get("price"),
+            "score": current_score,
+            "source": "current_score_snapshot",
+            "score_method": "current",
+        }
+        if asset_type == "stock":
+            snapshot.update({
+                "pb": asset.get("pb_ratio"),
+                "dy": (asset.get("dividend_yield") or 0) * 100,
+                "pe": asset.get("pe_ratio"),
+                "dy_3y": (asset.get("dy_medio_3y") or 0) * 100,
+                "pe_5y": asset.get("pe_medio_5y"),
+                "roe": (asset.get("roe") or 0) * 100,
+                "graham": asset.get("graham_price"),
+            })
+        else:
+            snapshot.update({
+                "pb": asset.get("pb_ratio"),
+                "dy": (asset.get("dividend_yield") or 0) * 100,
+                "consistency": (asset.get("dividend_consistency") or 0) * 100,
+            })
+
+        by_date = {point.get("date"): point for point in enriched if point.get("date")}
+        by_date[snapshot_date] = snapshot
+        asset["history_json"] = json.dumps([by_date[key] for key in sorted(by_date)])
 
 
 def generate_dashboard() -> None:
@@ -356,6 +424,9 @@ def generate_dashboard() -> None:
     stocks = [_enrich_stock_status(s) for s in stocks]
     fiis = [_enrich_fii_status(f, "fii") for f in fiis]
     fiagros = [_enrich_fii_status(f, "fiagro") for f in fiagros]
+    _backfill_variable_income_history(stocks, "stock")
+    _backfill_variable_income_history(fiis, "fii")
+    _backfill_variable_income_history(fiagros, "fiagro")
 
     unique_sectors: list[str] = sorted({
         s.get("sector") for s in stocks if s.get("sector")
@@ -417,7 +488,13 @@ def generate_dashboard() -> None:
             }
 
             # Pontua os títulos do Tesouro Direto
-            bonds = ms.get("TESOURO_DIRETO_BONDS", [])
+            bonds = [
+                bond for bond in ms.get("TESOURO_DIRETO_BONDS", [])
+                if bond.get("purchase_available") is not False
+                and bond.get("buy_yield") is not None
+                and bond.get("buy_price") is not None
+                and (bond.get("days_to_maturity") or 0) > 0
+            ]
             if bonds:
                 logger.info(f"  [v3] Pontuando {len(bonds)} títulos do Tesouro Direto...")
                 tesouro_direto_payload = tesouro_analyzer.score_all_bonds(bonds)
@@ -477,7 +554,7 @@ def generate_dashboard() -> None:
     home_top_fiis   = [_summarize(f, ["pb_ratio"]) for f in top_fiis[:5]]
     home_top_fiagros = [_summarize(g, ["pb_ratio"]) for g in top_fiagros[:5]]
     home_top_td = [
-        {k: b.get(k) for k in ["name", "type", "buy_yield", "score", "badge", "days_to_maturity", "maturity_date"]}
+        {k: b.get(k) for k in ["name", "type", "buy_yield", "buy_price", "score", "badge", "days_to_maturity", "maturity_date", "purchase_available"]}
         for b in tesouro_direto_payload[:5]
     ] if tesouro_direto_payload else []
 

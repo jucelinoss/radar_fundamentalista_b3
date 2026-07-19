@@ -917,6 +917,56 @@
             letter-spacing: 0.5px;
         }
 
+        /* ── Tesouro modal em telas estreitas ── */
+        #td-detail-modal .modal-content {
+            box-sizing: border-box;
+        }
+        #td-detail-modal .modal-header {
+            padding-right: 2.25rem;
+        }
+        #td-detail-modal .modal-header h2 {
+            overflow-wrap: anywhere;
+        }
+        @media (max-width: 480px) {
+            #td-detail-modal {
+                align-items: flex-start;
+                padding: 0.75rem;
+                overflow-y: auto;
+            }
+            #td-detail-modal .modal-content {
+                width: 100%;
+                max-width: none !important;
+                max-height: calc(100dvh - 1.5rem);
+                margin: auto 0;
+                padding: 1rem;
+                overflow-x: hidden;
+            }
+            #td-detail-modal .td-modal-filters {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 0.45rem !important;
+            }
+            #td-detail-modal .td-modal-filters > div {
+                width: 100%;
+                justify-content: space-between;
+            }
+            #td-detail-modal .td-modal-filters select {
+                flex: 1 1 auto;
+                min-width: 0;
+            }
+            #td-detail-modal .td-modal-chart-card {
+                padding: 0.75rem;
+            }
+            #td-detail-modal .td-modal-chart-card > div {
+                height: 190px !important;
+            }
+        }
+        @media (max-width: 350px) {
+            #td-detail-modal .td-modal-info {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .data-sources-footer {
             margin-top: 2rem;
             border-top: 1px solid var(--card-border);

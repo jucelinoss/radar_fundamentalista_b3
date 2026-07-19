@@ -16,6 +16,10 @@ dist/
 build/
 
 # Database & Data artifacts
+# Apenas ticker_mappings.json e versionado como configuracao. Todo o restante
+# em data/ e gerado localmente ou pelo pipeline e nao deve entrar em commits.
+data/*
+!data/ticker_mappings.json
 data/investments.db
 data/status.json
 data/failed_tickers.log
