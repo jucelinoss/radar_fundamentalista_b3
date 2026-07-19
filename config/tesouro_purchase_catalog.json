@@ -1,0 +1,52 @@
+{
+  "source": "Catálogo rendimento-investir-csv do Tesouro Direto, conferido manualmente em 2026-07-19",
+  "titles": [
+    "Tesouro Selic 2031",
+    "Tesouro Prefixado 2029",
+    "Tesouro Prefixado 2032",
+    "Tesouro Prefixado com Juros Semestrais 2037",
+    "Tesouro IPCA+ 2032",
+    "Tesouro IPCA+ com Juros Semestrais 2037",
+    "Tesouro IPCA+ 2040",
+    "Tesouro IPCA+ com Juros Semestrais 2045",
+    "Tesouro IPCA+ 2050",
+    "Tesouro IPCA+ com Juros Semestrais 2060",
+    "Tesouro Renda+ Aposentadoria Extra 2030",
+    "Tesouro Renda+ Aposentadoria Extra 2035",
+    "Tesouro Renda+ Aposentadoria Extra 2040",
+    "Tesouro Renda+ Aposentadoria Extra 2045",
+    "Tesouro Renda+ Aposentadoria Extra 2050",
+    "Tesouro Renda+ Aposentadoria Extra 2055",
+    "Tesouro Renda+ Aposentadoria Extra 2060",
+    "Tesouro Renda+ Aposentadoria Extra 2065",
+    "Tesouro Educa+ 2027",
+    "Tesouro Educa+ 2028",
+    "Tesouro Educa+ 2029",
+    "Tesouro Educa+ 2030",
+    "Tesouro Educa+ 2031",
+    "Tesouro Educa+ 2032",
+    "Tesouro Educa+ 2033",
+    "Tesouro Educa+ 2034",
+    "Tesouro Educa+ 2035",
+    "Tesouro Educa+ 2036",
+    "Tesouro Educa+ 2037",
+    "Tesouro Educa+ 2038",
+    "Tesouro Educa+ 2039",
+    "Tesouro Educa+ 2040",
+    "Tesouro Educa+ 2041",
+    "Tesouro Educa+ 2042",
+    "Tesouro Educa+ 2043",
+    "Tesouro Educa+ 2044",
+    "Tesouro Reserva 2036"
+  ],
+  "manual_offers": [
+    {
+      "name": "Tesouro Reserva 2036",
+      "type": "Reserva",
+      "maturity_date": "2036-01-01",
+      "buy_price": 10.757575,
+      "min_investment": 1.0,
+      "yield_reference": "selic"
+    }
+  ]
+}

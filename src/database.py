@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 DB_PATH: str = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "investments.db")
+HISTORY_ENRICHMENT_VERSION = 2
 
 
 @contextmanager
@@ -47,6 +48,7 @@ def _create_stocks_table(cursor: sqlite3.Cursor) -> None:
     _add_column_if_not_exists(cursor, "stocks", "net_debt_ebitda", "REAL")
     _add_column_if_not_exists(cursor, "stocks", "score_v2", "REAL")
     _add_column_if_not_exists(cursor, "stocks", "score_breakdown", "TEXT")
+    _add_column_if_not_exists(cursor, "stocks", "history_version", "INTEGER")
 
 
 def _create_fiis_table(cursor: sqlite3.Cursor, table: str) -> None:
@@ -63,6 +65,7 @@ def _create_fiis_table(cursor: sqlite3.Cursor, table: str) -> None:
     _add_column_if_not_exists(cursor, table, "dividend_consistency", "REAL")
     _add_column_if_not_exists(cursor, table, "score_v2", "REAL")
     _add_column_if_not_exists(cursor, table, "score_breakdown", "TEXT")
+    _add_column_if_not_exists(cursor, table, "history_version", "INTEGER")
 
 
 def _create_pipeline_log_table(cursor: sqlite3.Cursor) -> None:
@@ -110,8 +113,8 @@ def save_stock(data: dict[str, Any]) -> None:
         INSERT OR REPLACE INTO stocks (
             ticker, name, sector, price, pe_ratio, pb_ratio, dividend_yield,
             roe, eps, book_value, graham_price, bazin_price, score, history_json, updated_at,
-            dy_medio_3y, pe_medio_5y, net_debt_ebitda, score_v2, score_breakdown
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            dy_medio_3y, pe_medio_5y, net_debt_ebitda, score_v2, score_breakdown, history_version
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             data['ticker'], data.get('name'), data.get('sector', 'Outros'),
             data.get('price'), data.get('pe_ratio'),
@@ -121,7 +124,7 @@ def save_stock(data: dict[str, Any]) -> None:
             datetime.now().isoformat(),
             data.get('dy_medio_3y'), data.get('pe_medio_5y'),
             data.get('net_debt_ebitda'), data.get('score_v2'),
-            breakdown_json
+            breakdown_json, data.get('history_version')
         ))
 
 
@@ -158,8 +161,8 @@ def save_fii(data: dict[str, Any]) -> None:
         INSERT OR REPLACE INTO fiis (
             ticker, name, price, pb_ratio, dividend_yield, dividend_rate,
             book_value, score, history_json, updated_at,
-            dividend_consistency, score_v2, score_breakdown
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            dividend_consistency, score_v2, score_breakdown, history_version
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             data['ticker'], data.get('name'), data.get('price'),
             data.get('pb_ratio'), data.get('dividend_yield'),
@@ -167,7 +170,7 @@ def save_fii(data: dict[str, Any]) -> None:
             data.get('score', 0),
             data.get('history_json'), datetime.now().isoformat(),
             data.get('dividend_consistency'), data.get('score_v2'),
-            breakdown_json
+            breakdown_json, data.get('history_version')
         ))
 
 
@@ -194,8 +197,8 @@ def save_fiagro(data: dict[str, Any]) -> None:
         INSERT OR REPLACE INTO fiagros (
             ticker, name, price, pb_ratio, dividend_yield, dividend_rate,
             book_value, score, history_json, updated_at,
-            dividend_consistency, score_v2, score_breakdown
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            dividend_consistency, score_v2, score_breakdown, history_version
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             data['ticker'], data.get('name'), data.get('price'),
             data.get('pb_ratio'), data.get('dividend_yield'),
@@ -203,7 +206,7 @@ def save_fiagro(data: dict[str, Any]) -> None:
             data.get('score', 0),
             data.get('history_json'), datetime.now().isoformat(),
             data.get('dividend_consistency'), data.get('score_v2'),
-            breakdown_json
+            breakdown_json, data.get('history_version')
         ))
 
 
@@ -271,6 +274,12 @@ def get_stale_tickers(ticker_list: list[str], table_name: str, max_age_hours: in
         placeholders: str = ','.join(['?'] * len(ticker_list))
         threshold: str = (datetime.now() - timedelta(hours=max_age_hours)).isoformat()
 
+        history_version_clause = ""
+        params: list[Any] = [*ticker_list, threshold]
+        if table_name in {"fiis", "fiagros"}:
+            history_version_clause = "AND COALESCE(history_version, 0) >= ?"
+            params.append(HISTORY_ENRICHMENT_VERSION)
+
         cursor.execute(f"""
             SELECT ticker FROM {table_name}
             WHERE ticker IN ({placeholders})
@@ -278,7 +287,8 @@ def get_stale_tickers(ticker_list: list[str], table_name: str, max_age_hours: in
               AND updated_at > ?
               AND score_breakdown IS NOT NULL
               AND TRIM(score_breakdown) NOT IN ('', '[]')
-        """, [*ticker_list, threshold])
+              {history_version_clause}
+        """, params)
         fresh_tickers: set[str] = {row[0] for row in cursor.fetchall()}
 
     stale: list[str] = [t for t in ticker_list if t not in fresh_tickers]

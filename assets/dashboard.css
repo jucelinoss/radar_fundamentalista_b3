@@ -279,6 +279,14 @@
             transition: var(--transition);
         }
         th:hover { color: var(--text-primary); }
+        .sortable-header { position: relative; padding-right: 1.8rem; }
+        .sortable-header::after {
+            content: '↕'; position: absolute; right: 0.55rem; top: 50%;
+            transform: translateY(-50%); color: var(--text-muted); font-size: 0.75rem;
+        }
+        .sortable-header[aria-sort="ascending"]::after { content: '↑'; color: var(--text-primary); }
+        .sortable-header[aria-sort="descending"]::after { content: '↓'; color: var(--text-primary); }
+        .sortable-header:focus-visible { outline: 2px solid var(--positive); outline-offset: -2px; }
         td {
             padding: 0.6rem 0.8rem;
             border-bottom: 1px solid var(--card-border);

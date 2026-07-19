@@ -706,27 +706,72 @@ def _calc_dividend_consistency(yf_ticker: Any | None) -> float | None:
     Compares last 6 months dividends vs previous 6 months.
     Target: >= 95% retention.
     """
-    if yf_ticker is None:
+    dividends = _get_dividend_series(yf_ticker)
+    if dividends is None:
         return None
     try:
-        history = yf_ticker.actions
-        if history is not None and not history.empty and 'Dividends' in history.columns:
-            from pandas import DateOffset
-            from datetime import datetime, timezone
-            now = datetime.now(timezone.utc)
-            # Last 6 months — mask-based (replaces deprecated .last())
-            cutoff_6m = now - DateOffset(days=180)
-            div_6m = history['Dividends'][history.index >= cutoff_6m].sum()
-            # Previous 6 months (6-12 months ago)
-            cutoff_12m = now - DateOffset(days=365)
-            div_prev_6m = history[
-                (history.index >= cutoff_12m) & (history.index < cutoff_6m)
-            ]['Dividends'].sum()
-            if div_prev_6m > 0:
-                return round(div_6m / div_prev_6m, SCORE_DECIMALS)
+        import pandas as pd
+        return _dividend_consistency_at(dividends, pd.Timestamp.now(tz="UTC").tz_localize(None))
     except Exception:
         pass
     return None
+
+
+def _get_dividend_series(yf_ticker: Any | None) -> Any | None:
+    """Return a timezone-neutral, chronological dividend series from yfinance."""
+    if yf_ticker is None:
+        return None
+    try:
+        import pandas as pd
+
+        actions = yf_ticker.actions
+        if actions is None or actions.empty or "Dividends" not in actions.columns:
+            return None
+        dividends = actions["Dividends"].dropna().copy()
+        if dividends.empty:
+            return None
+        dividends.index = pd.to_datetime(dividends.index, utc=True).tz_localize(None)
+        return dividends.sort_index()
+    except Exception:
+        return None
+
+
+def _dividend_consistency_at(dividends: Any, as_of: Any) -> float | None:
+    """Compare the latest 180-day dividend window with days 180–365 before it."""
+    import pandas as pd
+
+    as_of = pd.Timestamp(as_of)
+    if as_of.tzinfo is not None:
+        as_of = as_of.tz_convert("UTC").tz_localize(None)
+    cutoff_6m = as_of - pd.DateOffset(days=180)
+    cutoff_12m = as_of - pd.DateOffset(days=365)
+    recent = dividends[(dividends.index >= cutoff_6m) & (dividends.index <= as_of)].sum()
+    previous = dividends[(dividends.index >= cutoff_12m) & (dividends.index < cutoff_6m)].sum()
+    if previous > 0:
+        return round(float(recent) / float(previous), SCORE_DECIMALS)
+    return None
+
+
+def _historical_dividend_consistency(yf_ticker: Any | None, history_points: list[dict[str, Any]]) -> dict[str, float | None]:
+    """Calculate the 6m/6m dividend-consistency series at each chart date."""
+    dividends = _get_dividend_series(yf_ticker)
+    if dividends is None:
+        return {}
+
+    result: dict[str, float | None] = {}
+    try:
+        import pandas as pd
+        for point in history_points:
+            date_str = point.get("date")
+            if not date_str:
+                continue
+            as_of = pd.to_datetime(date_str, errors="coerce")
+            if pd.isna(as_of):
+                continue
+            result[date_str] = _dividend_consistency_at(dividends, as_of)
+    except Exception:
+        return {}
+    return result
 
 
 def analyze_stock(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
@@ -1154,7 +1199,7 @@ def analyze_fiagro(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def calculate_historical_scores(ticker: str, asset_type: str, current_metrics: dict[str, Any], history_points: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def calculate_historical_scores(ticker: str, asset_type: str, current_metrics: dict[str, Any], history_points: list[dict[str, Any]], yf_ticker: Any | None = None) -> list[dict[str, Any]]:
     """
     Calculates historical score, pb, dy, pe metrics for each price history point.
     All calculations are done here (Single Source of Truth) to enrich history_json before saving.
@@ -1163,6 +1208,11 @@ def calculate_historical_scores(ticker: str, asset_type: str, current_metrics: d
     current_price = safe_float(current_metrics.get("price"))
     if not current_price or current_price <= 0:
         return history_points
+
+    consistency_by_date = (
+        _historical_dividend_consistency(yf_ticker, history_points)
+        if asset_type in {"fii", "fiagro"} else {}
+    )
 
     for pt in history_points:
         date_str = pt.get("date")
@@ -1216,7 +1266,7 @@ def calculate_historical_scores(ticker: str, asset_type: str, current_metrics: d
             is_fiagro = (asset_type == "fiagro")
             vpa = safe_float(current_metrics.get("book_value"))
             current_dy = safe_float(current_metrics.get("dividend_yield"))
-            consistency = safe_float(current_metrics.get("dividend_consistency"))
+            consistency = consistency_by_date.get(date_str)
 
             pb_t = price_t / vpa if (vpa and vpa > 0) else None
             dy_t = current_dy * (current_price / price_t) if (current_dy is not None) else None

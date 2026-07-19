@@ -1,283 +1,45 @@
 #!/usr/bin/env python3
-"""
-tesouro_analyzer.py — Radar Fundamentalista B3 v3.0
-
-Scorecard Contínuo 0-10 para títulos do Tesouro Direto.
-5 critérios × 2.0 pontos cada = máximo de 10.0 pontos.
-
-Critérios:
-  1. Prêmio Real Esperado      (2.0) — taxa real contratada ou estimada
-  2. Captura Marcação Mercado  (2.0) — queda projetada de Selic (Focus)
-  3. Risco Duration/Volatil.   (2.0) — sensibilidade à aceleração do IPCA
-  4. Elasticidade Cambial      (2.0) — proteção via IPCA+ em câmbio estressado
-  5. Eficiência Tributária     (2.0) — IR regressivo por prazo de vencimento
-
-Todos os critérios retornam 0.0–2.0 (float) para agregação simples.
-"""
+"""Score de oportunidade do Tesouro Direto, comparável apenas por grupo."""
 from __future__ import annotations
 
 from typing import Any
 
-# ---------------------------------------------------------------------------
-# Constantes dos critérios
-# ---------------------------------------------------------------------------
-
-# Critério 1 — Prêmio real contratado ou esperado
-REAL_RATE_BASE = 0.060    # 6.0% a.a. → pontuação base de 1.0
-REAL_RATE_MAX = 0.075     # 7.5% a.a. → pontuação máxima de 2.0
-
-# Critério 2 — Captura Marcação a Mercado
-# Quanto maior a queda projetada da Selic, maior o bônus
-MTM_SELIC_MIN_DELTA = 0.0    # Delta = 0 → 0.0 pts bônus
-MTM_SELIC_MAX_DELTA = -0.030  # Delta ≤ -3pp → 2.0 pts bônus
-
-# Critério 3 — Risco Duration
-DURATION_SHORT_MAX_DAYS = 365    # ≤ 1 ano → considerado "curto prazo"
-DURATION_LONG_MIN_DAYS = 1826    # ≥ 5 anos → considerado "longo prazo"
-
-# Critério 5 — Eficiência Tributária (IR regressivo)
-TAX_SHORT_DAYS = 180     # até 180 dias: 22.5% IR
-TAX_MEDIUM_DAYS = 360    # até 360 dias: 20.0% IR
-TAX_LONG_MIN_DAYS = 720  # acima de 720 dias: 15.0% IR (alíquota mínima)
-
 SCORE_DECIMALS = 2
+SCORE_METHOD = "tesouro-opportunity-v2"
 _PLANNING_TYPES = {"Educa+", "RendA+"}
+_COUPON_MARKER = "Juros Semestrais"
 
 
 def _clamp(value: float, lo: float, hi: float) -> float:
     return max(lo, min(hi, value))
 
 
-# ---------------------------------------------------------------------------
-# Critério 1 — Prêmio Real de Inflação
-# ---------------------------------------------------------------------------
 def _as_decimal(rate: float) -> float:
-    return rate / 100.0 if rate > 1.0 else rate
+    return rate / 100.0 if abs(rate) > 1.0 else rate
 
 
-def calculate_real_rate(
-    bond: dict[str, Any],
-    expected_ipca: float | None = None,
-) -> float | None:
-    """Retorna a taxa real contratada (IPCA+) ou esperada (Prefixado)."""
-    rate = bond.get("buy_yield")
-    if rate is None:
-        return None
-
-    nominal_or_real_rate = _as_decimal(float(rate))
-    if bond.get("type") == "IPCA+":
-        return nominal_or_real_rate
-    if bond.get("type") == "Prefixado" and expected_ipca is not None:
-        inflation_rate = _as_decimal(float(expected_ipca))
-        if inflation_rate <= -1.0:
-            return None
-        return (1.0 + nominal_or_real_rate) / (1.0 + inflation_rate) - 1.0
-    return None
+def _is_coupon_bond(bond: dict[str, Any]) -> bool:
+    return _COUPON_MARKER.lower() in str(bond.get("name", "")).lower()
 
 
-def score_real_rate(
-    bond: dict[str, Any],
-    expected_ipca: float | None = None,
-) -> float:
-    """
-    Pontua a taxa real contratada dos títulos IPCA+ e a taxa real esperada
-    dos Prefixados, descontando a inflação projetada pelo Focus.
-
-    Escala:
-      - < 6.0% a.a.  → 0.0 pts
-      - = 6.0% a.a.  → 1.0 pts
-      - = 7.5% a.a.  → 2.0 pts (teto)
-      - > 7.5% a.a.  → 2.0 pts (cap)
-    """
-    real_rate = calculate_real_rate(bond, expected_ipca)
-    if real_rate is None:
-        return 0.0
-    if real_rate < REAL_RATE_BASE:
-        return 0.0
-
-    proportion = (real_rate - REAL_RATE_BASE) / (REAL_RATE_MAX - REAL_RATE_BASE)
-    return round(_clamp(1.0 + proportion * 1.0, 0.0, 2.0), SCORE_DECIMALS)
+def _duration_band(bond: dict[str, Any]) -> str:
+    days = max(int(bond.get("days_to_maturity") or 0), 0)
+    effective_days = days * (0.65 if _is_coupon_bond(bond) else 1.0)
+    if effective_days <= 365 * 3:
+        return "até 3 anos"
+    if effective_days <= 365 * 7:
+        return "3–7 anos"
+    return "mais de 7 anos"
 
 
-def _select_expected_ipca(
-    bond: dict[str, Any],
-    focus_ipca: list[float | None],
-) -> float | None:
-    """Seleciona a projeção Focus mais próxima do horizonte do título."""
-    available = [value for value in focus_ipca if value is not None]
-    if not available:
-        return None
-    days = max(int(bond.get("days_to_maturity") or 0), 1)
-    projection_index = min((days - 1) // 365, len(available) - 1)
-    return available[projection_index]
-
-
-# ---------------------------------------------------------------------------
-# Critério 2 — Captura de Marcação a Mercado via Focus
-# ---------------------------------------------------------------------------
-_MTM_ELIGIBLE_TYPES = {"IPCA+", "Prefixado"}
-
-
-def score_mtm_capture(
-    bond: dict[str, Any],
-    focus_selic_next: float | None,
-    current_selic: float | None,
-) -> float:
-    """
-    Bônus de marcação a mercado para Prefixados e IPCA+ Longos (≥ 5 anos).
-    Quanto maior a queda projetada da Selic, maior o potencial de ganho de capital.
-
-    Escala:
-      - ΔSelic ≥ 0   → 0.0 pts (sem queda ou alta de juros)
-      - ΔSelic = -3pp → 2.0 pts (queda máxima de referência)
-    """
-    if bond.get("type") not in _MTM_ELIGIBLE_TYPES:
-        return 0.0
-
-    # Só títulos longos se beneficiam do MTM
-    days = bond.get("days_to_maturity")
-    if days is None or days < DURATION_LONG_MIN_DAYS:
-        return 0.0
-
-    if focus_selic_next is None or current_selic is None:
-        return 0.0
-
-    delta = focus_selic_next - current_selic  # negativo = queda de juros projetada
-
-    if delta >= MTM_SELIC_MIN_DELTA:
-        return 0.0
-
-    # Normaliza o delta inverso (quanto mais negativo, maior o bônus)
-    proportion = min(abs(delta) / abs(MTM_SELIC_MAX_DELTA), 1.0)
-    return round(_clamp(proportion * 2.0, 0.0, 2.0), SCORE_DECIMALS)
-
-
-# ---------------------------------------------------------------------------
-# Critério 3 — Risco de Duration / Volatilidade
-# ---------------------------------------------------------------------------
-def score_duration_risk(
-    bond: dict[str, Any],
-    ipca_trend: str,
-) -> float:
-    """
-    Avalia o risco de duration em função da tendência inflacionária do Focus.
-
-    - Tesouro Selic (pós-fixado): sempre protegido → 2.0 pts
-    - Títulos Longos (≥ 5 anos) com IPCA acelerando → penalidade
-    - Títulos Curtos (≤ 1 ano) → menos sensíveis → pontuação boa
-
-    Escala:
-      - Selic: sempre 2.0 pts
-      - IPCA trend = "alta" + longo (≥5a): 0.0 pts
-      - IPCA trend = "alta" + médio (1-5a): 0.5 pts
-      - IPCA trend = "alta" + curto (≤1a): 1.5 pts
-      - IPCA trend = "estavel": short=2.0, médio=1.5, longo=1.0
-      - IPCA trend = "baixa": short=2.0, médio=2.0, longo=2.0
-    """
-    bond_type = bond.get("type", "")
-    days = bond.get("days_to_maturity") or 0
-
-    # Selic é sempre protegido contra inflação
-    if bond_type == "Selic":
-        return 2.0
-
-    if ipca_trend == "baixa":
-        # Queda de inflação beneficia todos os vencimentos
-        return 2.0
-
-    # Categoriza prazo
-    if days <= DURATION_SHORT_MAX_DAYS:
-        prazo = "curto"
-    elif days >= DURATION_LONG_MIN_DAYS:
-        prazo = "longo"
-    else:
-        prazo = "medio"
-
-    if ipca_trend == "alta":
-        scores = {"curto": 1.5, "medio": 0.5, "longo": 0.0}
-    else:  # estavel
-        scores = {"curto": 2.0, "medio": 1.5, "longo": 1.0}
-
-    return round(scores.get(prazo, 1.0), SCORE_DECIMALS)
-
-
-# ---------------------------------------------------------------------------
-# Critério 4 — Elasticidade Cambial
-# ---------------------------------------------------------------------------
-_CAMBIO_STRESS_THRESHOLD = 5.50  # R$/USD — câmbio "estressado"
-_CAMBIO_HEDGE_TYPES = {"IPCA+", "IGP-M+"}  # ativos com proteção implícita contra câmbio
-
-
-def score_cambio_hedge(
-    bond: dict[str, Any],
-    focus_cambio_next: float | None,
-) -> float:
-    """
-    Bonifica títulos indexados à inflação (IPCA+, IGP-M+) quando o câmbio
-    projetado pelo Focus sinaliza desvalorização do Real.
-
-    Escala:
-      - IPCA+ com câmbio > R$5.50: 2.0 pts (proteção máxima)
-      - IPCA+ com câmbio normal (≤ 5.50): 1.0 pts
-      - Prefixado: 0.5 pts (exposto à inflação cambial)
-      - Selic: 1.5 pts (pós-fixado, semi-protegido via BC)
-      - Outros: 0.5 pts
-    """
-    bond_type = bond.get("type", "")
-
-    if focus_cambio_next is None:
-        # Sem dados Focus, pontuação neutra por tipo
-        defaults = {"IPCA+": 1.0, "Selic": 1.5, "Prefixado": 0.5, "IGP-M+": 1.0}
-        return round(defaults.get(bond_type, 0.5), SCORE_DECIMALS)
-
-    cambio_stressed = focus_cambio_next > _CAMBIO_STRESS_THRESHOLD
-
-    if bond_type in _CAMBIO_HEDGE_TYPES:
-        return 2.0 if cambio_stressed else 1.0
-    elif bond_type == "Selic":
-        return 1.5  # pós-fixado: BC tende a subir juros com câmbio estressado
-    elif bond_type == "Prefixado":
-        return 0.0 if cambio_stressed else 1.0  # pior cenário: câmbio infla e corrói taxa real
-    else:
-        return 0.5
-
-
-# ---------------------------------------------------------------------------
-# Critério 5 — Eficiência Tributária
-# ---------------------------------------------------------------------------
-def score_tax_efficiency(bond: dict[str, Any]) -> float:
-    """
-    Pontuação baseada na alíquota de IR regressiva aplicada ao título.
-
-    Tabela regressiva de IR para renda fixa:
-      - ≤ 180 dias:   22.5% IR → 0.5 pts
-      - 181–360 dias: 20.0% IR → 1.0 pts
-      - 361–720 dias: 17.5% IR → 1.5 pts
-      - > 720 dias:   15.0% IR → 2.0 pts
-    """
-    days = bond.get("days_to_maturity")
-    if days is None or days <= 0:
-        return 0.5  # desconhecido → conservador
-
-    if days > TAX_LONG_MIN_DAYS:
-        return 2.0
-    elif days > TAX_MEDIUM_DAYS:
-        return 1.5
-    elif days > TAX_SHORT_DAYS:
-        return 1.0
-    else:
-        return 0.5
-
-
-# ---------------------------------------------------------------------------
-# Scorecard completo por título
-# ---------------------------------------------------------------------------
 def bond_group(bond: dict[str, Any]) -> str:
-    """Agrupa títulos comparáveis por indexador e fluxo de pagamento."""
-    title_type = bond.get("type", "Tesouro")
-    has_coupon = "Juros Semestrais" in bond.get("name", "")
+    """Grupo econômico homogêneo: indexador, fluxo e faixa de duração."""
+    title_type = str(bond.get("type", "Tesouro"))
+    if title_type in _PLANNING_TYPES:
+        return title_type
     if title_type in {"IPCA+", "Prefixado"}:
-        return f"{title_type} {'com cupom' if has_coupon else 'sem cupom'}"
+        flow = "com cupom" if _is_coupon_bond(bond) else "sem cupom"
+        return f"{title_type} {flow} · {_duration_band(bond)}"
     return title_type
 
 
@@ -299,124 +61,198 @@ def _percentile(value: float | None, values: list[float]) -> float:
     return sum(item <= value for item in values) / len(values)
 
 
-def _score_historical_yield(bond: dict[str, Any]) -> float:
-    return round(_percentile(bond.get("buy_yield"), _yield_values(bond)) * 4.0, SCORE_DECIMALS)
+def _expected_ipca(bond: dict[str, Any], macro_state: dict[str, Any] | None) -> float | None:
+    projections = (macro_state or {}).get("FOCUS_IPCA", [])
+    available = [_as_decimal(float(value)) for value in projections if value is not None]
+    if not available:
+        return None
+    index = min(max(int(bond.get("days_to_maturity") or 1) - 1, 0) // 365, len(available) - 1)
+    return available[index]
 
 
-def _score_peer_yield(bond: dict[str, Any], universe: list[dict[str, Any]]) -> float:
-    peers = [
-        float(item["buy_yield"])
-        for item in universe
-        if bond_group(item) == bond_group(bond) and item.get("buy_yield") is not None
-    ]
-    return round(_percentile(bond.get("buy_yield"), peers) * 2.0, SCORE_DECIMALS)
+def calculate_real_rate(bond: dict[str, Any], expected_ipca: float | None = None) -> float | None:
+    """Taxa real contratada (IPCA+) ou estimada (Prefixado)."""
+    rate = bond.get("buy_yield")
+    if rate is None:
+        return None
+    rate = _as_decimal(float(rate))
+    if bond.get("type") in {"IPCA+", "Educa+", "RendA+"}:
+        return rate
+    if bond.get("type") == "Prefixado" and expected_ipca is not None:
+        inflation = _as_decimal(float(expected_ipca))
+        return (1 + rate) / (1 + inflation) - 1
+    return None
 
 
-def _score_mtm_opportunity(bond: dict[str, Any]) -> float:
-    duration_factor = _clamp(float(bond.get("days_to_maturity") or 0) / 3650.0, 0.0, 1.0)
-    historical_position = _percentile(bond.get("buy_yield"), _yield_values(bond))
-    return round(2.0 * duration_factor * historical_position, SCORE_DECIMALS)
+def score_real_rate(bond: dict[str, Any], expected_ipca: float | None = None) -> float:
+    """Compatibilidade: nota de taxa real em escala legada de 0–2."""
+    real_rate = calculate_real_rate(bond, expected_ipca)
+    if real_rate is None:
+        return 0.0
+    return round(_clamp((real_rate - 0.04) / 0.04 * 2, 0.0, 2.0), SCORE_DECIMALS)
 
 
-def score_bond(
-    bond: dict[str, Any],
-    universe: list[dict[str, Any]] | dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    """Calcula a atratividade diária a partir de dados observados do Tesouro."""
+def score_mtm_capture(bond: dict[str, Any], focus_selic_next: float | None, current_selic: float | None) -> float:
+    """Compatibilidade: potencial de MTM em 0–2 para títulos de taxa fixa/real."""
+    if bond.get("type") not in {"IPCA+", "Prefixado", "Educa+", "RendA+"}:
+        return 0.0
+    if focus_selic_next is None or current_selic is None:
+        return 0.0
+    delta = _as_decimal(float(focus_selic_next)) - _as_decimal(float(current_selic))
+    if delta >= 0:
+        return 0.0
+    duration_factor = _clamp((float(bond.get("days_to_maturity") or 0) / 3650) * (0.65 if _is_coupon_bond(bond) else 1), 0, 1)
+    return round(2 * duration_factor * _clamp(abs(delta) / 0.03, 0, 1), SCORE_DECIMALS)
+
+
+def score_duration_risk(bond: dict[str, Any], ipca_trend: str) -> float:
+    """Compatibilidade: estabilidade de preço em 0–2, não usada como oportunidade."""
+    return {"Baixo": 2.0, "Moderado": 1.3, "Elevado": 0.7}.get(risk_profile(bond), 0.7)
+
+
+def score_cambio_hedge(bond: dict[str, Any], focus_cambio_next: float | None) -> float:
+    """Compatibilidade para consumidores antigos; câmbio não entra no score v2."""
+    return 1.0 if bond.get("type") in {"IPCA+", "Educa+", "RendA+"} else 0.0
+
+
+def score_tax_efficiency(bond: dict[str, Any]) -> float:
+    """Ajuste pequeno (máx. 0,5) para IR na manutenção até o vencimento."""
+    days = int(bond.get("days_to_maturity") or 0)
+    if days > 720:
+        return 0.5
+    if days > 360:
+        return 0.38
+    if days > 180:
+        return 0.25
+    return 0.12
+
+
+def risk_profile(bond: dict[str, Any]) -> str:
+    """Risco de oscilação antes do vencimento; não é a faixa do score."""
+    if bond.get("type") in {"Selic", "Reserva"}:
+        return "Baixo"
+    effective_days = float(bond.get("days_to_maturity") or 0) * (0.65 if _is_coupon_bond(bond) else 1.0)
+    if effective_days <= 365 * 3:
+        return "Baixo"
+    if effective_days <= 365 * 7:
+        return "Moderado"
+    return "Elevado"
+
+
+def _rate_score(bond: dict[str, Any], macro_state: dict[str, Any] | None) -> tuple[float, str, str, str]:
+    """Critério principal de entrada, específico para cada indexador."""
+    rate = bond.get("buy_yield")
+    if rate is None:
+        return 0.0, "Taxa indisponível", "Sem cotação de compra.", "Aguarda uma cotação oficial."
+    rate = _as_decimal(float(rate))
+    title_type = bond.get("type")
+    if title_type in {"Selic", "Reserva"}:
+        # LFT: a taxa é ágio/deságio em pontos percentuais sobre a Selic.
+        score = _clamp((rate + 0.0015) / 0.003 * 6.0, 0.0, 6.0)
+        sign = "+" if rate >= 0 else ""
+        return round(score, SCORE_DECIMALS), "Ágio/deságio sobre a Selic", f"Selic {sign}{rate * 100:.4f}%.", "Deságio positivo aumenta o retorno sobre a Selic; ágio negativo o reduz."
+    real_rate = calculate_real_rate(bond, _expected_ipca(bond, macro_state))
+    if real_rate is None:
+        return 0.0, "Taxa real esperada", "Focus IPCA indisponível.", "Prefixados dependem do IPCA projetado para estimar a taxa real."
+    score = _clamp((real_rate - 0.04) / 0.04 * 4.0, 0.0, 4.0)
+    label = "Taxa real contratada" if title_type in {"IPCA+", "Educa+", "RendA+"} else "Taxa real esperada"
+    return round(score, SCORE_DECIMALS), label, f"{real_rate * 100:.2f}% a.a.", "IPCA+ usa a taxa real contratada; Prefixado desconta a projeção Focus de inflação."
+
+
+def _peer_values(bond: dict[str, Any], universe: list[dict[str, Any]]) -> tuple[list[float], str]:
+    exact_group = bond_group(bond)
+    values = [float(item["buy_yield"]) for item in universe if item.get("buy_yield") is not None and bond_group(item) == exact_group]
+    if len(values) >= 2:
+        return values, exact_group
+    # Se a faixa estiver escassa, preserva indexador e fluxo; nunca mistura cupom.
+    title_type = bond.get("type")
+    if title_type in {"IPCA+", "Prefixado"}:
+        flow = _is_coupon_bond(bond)
+        values = [float(item["buy_yield"]) for item in universe if item.get("buy_yield") is not None and item.get("type") == title_type and _is_coupon_bond(item) == flow]
+        return values, f"{title_type} {'com cupom' if flow else 'sem cupom'} (amostra ampliada)"
+    values = [float(item["buy_yield"]) for item in universe if item.get("buy_yield") is not None and item.get("type") == title_type]
+    return values, exact_group
+
+
+def _mtm_score(bond: dict[str, Any], macro_state: dict[str, Any] | None) -> float:
+    if bond.get("type") not in {"IPCA+", "Prefixado", "Educa+", "RendA+"}:
+        return 0.0
+    macro = macro_state or {}
+    current = macro.get("CURRENT_SELIC")
+    next_year = macro.get("FOCUS_SELIC_NEXT_YEAR")
+    if current is None or next_year is None:
+        return 0.0
+    delta = _as_decimal(float(next_year)) - _as_decimal(float(current))
+    if delta >= 0:
+        return 0.0
+    duration_factor = _clamp((float(bond.get("days_to_maturity") or 0) / 3650) * (0.65 if _is_coupon_bond(bond) else 1), 0, 1)
+    return round(2 * duration_factor * _clamp(abs(delta) / 0.03, 0, 1), SCORE_DECIMALS)
+
+
+def score_bond(bond: dict[str, Any], universe: list[dict[str, Any]] | dict[str, Any] | None = None, macro_state: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Calcula score v2; um score baixo representa entrada menos atraente, nunca risco alto."""
+    if isinstance(universe, dict) and macro_state is None:
+        macro_state = universe
+        universe = []
     comparable_bonds = universe if isinstance(universe, list) else []
     historical_rates = _yield_values(bond)
     historical_percentile = round(_percentile(bond.get("buy_yield"), historical_rates) * 100)
-    historical_yield = _score_historical_yield(bond)
-    peer_yield = _score_peer_yield(bond, comparable_bonds)
-    mtm_opportunity = _score_mtm_opportunity(bond)
-    tax_efficiency = score_tax_efficiency(bond)
-    total = round(historical_yield + peer_yield + mtm_opportunity + tax_efficiency, SCORE_DECIMALS)
-    days = bond.get("days_to_maturity", "?")
+    rate_score, rate_label, rate_desc, rate_tip = _rate_score(bond, macro_state)
+    history_max = 2.5
+    history_score = round(_percentile(bond.get("buy_yield"), historical_rates) * history_max, SCORE_DECIMALS)
+    peer_values, peer_group = _peer_values(bond, comparable_bonds)
+    peer_score = round(_percentile(bond.get("buy_yield"), peer_values) * 1.0, SCORE_DECIMALS)
+    mtm_score = _mtm_score(bond, macro_state)
+    tax_score = score_tax_efficiency(bond)
+    is_selic = bond.get("type") in {"Selic", "Reserva"}
+    components = [rate_score, history_score, peer_score, tax_score] if is_selic else [rate_score, history_score, mtm_score, peer_score, tax_score]
+    total = round(sum(components), SCORE_DECIMALS)
     group = bond_group(bond)
-
+    days = bond.get("days_to_maturity", "?")
+    breakdown = [
+        {"label": rate_label, "score": rate_score, "max": 6.0 if is_selic else 4.0, "desc": rate_desc, "tip": rate_tip},
+        {"label": "Taxa vs. histórico", "score": history_score, "max": history_max, "desc": f"Percentil {historical_percentile} em {len(historical_rates)} observações.", "tip": "Taxas maiores que o histórico do mesmo título tornam a nova entrada relativamente mais atrativa."},
+        {"label": "Taxa vs. pares", "score": peer_score, "max": 1.0, "desc": f"Comparação em {peer_group}.", "tip": "Compara apenas títulos do mesmo indexador e fluxo; a faixa de prazo é preservada sempre que houver amostra suficiente."},
+    ]
+    if not is_selic:
+        breakdown.append({"label": "Potencial de marcação a mercado", "score": mtm_score, "max": 2.0, "desc": f"Prazo efetivo de {days} dias; cupom reduz a duration estimada.", "tip": "Indicador técnico condicionado à queda esperada da Selic; não é previsão nem promessa de ganho."})
+    breakdown.append({"label": "IR até o vencimento", "score": tax_score, "max": 0.5, "desc": f"{days} dias até o vencimento.", "tip": "Peso limitado: imposto é relevante, mas não deve dominar a atratividade do título."})
     result = dict(bond)
     result.update({
         "group": group,
+        "risk_profile": risk_profile(bond),
         "historical_yield_percentile": historical_percentile,
         "historical_yield_observations": len(historical_rates),
         "score": total,
-        "score_breakdown": [
-            {
-                "label": "Taxa vs. Histórico",
-                "score": historical_yield,
-                "max": 4.0,
-                "desc": f"Percentil {historical_percentile}: taxa igual ou maior que {historical_percentile}% das {len(historical_rates)} observações.",
-                "tip": "Taxas maiores que o histórico recente elevam a atratividade para uma nova compra.",
-            },
-            {
-                "label": "Taxa vs. Pares",
-                "score": peer_yield,
-                "max": 2.0,
-                "desc": f"Comparação dentro do grupo {group}.",
-                "tip": "Compara somente títulos do mesmo indexador e mesmo fluxo de pagamentos.",
-            },
-            {
-                "label": "Potencial de Marcação a Mercado",
-                "score": mtm_opportunity,
-                "max": 2.0,
-                "desc": f"Sensibilidade pelo prazo de {days} dias e taxa historicamente atrativa.",
-                "tip": "É potencial técnico, não previsão de juros nem promessa de ganho em venda antecipada.",
-            },
-            {
-                "label": "IR se mantido até o vencimento",
-                "score": tax_efficiency,
-                "max": 2.0,
-                "desc": f"{days} dias até o vencimento.",
-                "tip": "A alíquota depende do prazo efetivo entre compra e resgate; esta referência assume manutenção até o vencimento.",
-            },
-        ],
+        "score_method": SCORE_METHOD,
+        "score_breakdown": breakdown,
         "badge": _classify_badge(total),
     })
     return result
 
 
 def _classify_badge(score: float) -> str:
-    """Classifica o badge de qualidade do título pelo score."""
     if score >= 8.0:
         return "premium"
-    elif score >= 6.0:
+    if score >= 6.0:
         return "bom"
-    elif score >= 4.0:
+    if score >= 4.0:
         return "regular"
-    else:
-        return "alto_risco"
+    return "baixa_oportunidade"
 
 
-# ---------------------------------------------------------------------------
-# Função de conveniência: pontua lista completa
-# ---------------------------------------------------------------------------
-def score_all_bonds(
-    bonds: list[dict[str, Any]],
-    macro_state: dict[str, Any] | None = None,
-) -> list[dict[str, Any]]:
-    """
-    Pontua todos os títulos da lista e retorna ordenado por score desc.
-    """
-    scored = [score_bond(b, bonds) for b in bonds]
-    opportunities = sorted(
-        (bond for bond in scored if not _is_planning_bond(bond)),
-        key=lambda bond: bond.get("score", 0.0),
-        reverse=True,
-    )
-    planning = sorted(
-        (bond for bond in scored if _is_planning_bond(bond)),
-        key=lambda bond: bond.get("score", 0.0),
-        reverse=True,
-    )
-    for general_rank, bond in enumerate(opportunities, start=1):
-        bond["general_rank"] = general_rank
-    for planning_rank, bond in enumerate(planning, start=1):
+def score_all_bonds(bonds: list[dict[str, Any]], macro_state: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    scored = [score_bond(bond, bonds, macro_state) for bond in bonds]
+    opportunities = sorted((bond for bond in scored if not _is_planning_bond(bond)), key=lambda bond: bond.get("score", 0.0), reverse=True)
+    planning = sorted((bond for bond in scored if _is_planning_bond(bond)), key=lambda bond: bond.get("score", 0.0), reverse=True)
+    for rank, bond in enumerate(opportunities, 1):
+        bond["general_rank"] = rank
+    for rank, bond in enumerate(planning, 1):
         bond["general_rank"] = None
-        bond["planning_rank"] = planning_rank
-    scored = opportunities + planning
-    group_positions: dict[str, int] = {}
-    for bond in scored:
+        bond["planning_rank"] = rank
+    positions: dict[str, int] = {}
+    for bond in opportunities + planning:
         group = bond["group"]
-        group_positions[group] = group_positions.get(group, 0) + 1
-        bond["group_rank"] = group_positions[group]
-    return scored
+        positions[group] = positions.get(group, 0) + 1
+        bond["group_rank"] = positions[group]
+    return opportunities + planning

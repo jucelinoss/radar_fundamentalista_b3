@@ -1,421 +1,119 @@
-"""
-test_tesouro_analyzer.py — Testes unitários para tesouro_analyzer.py
-
-Cobre todos os 5 critérios do scorecard de Renda Fixa e a função de
-pontuação agregada score_bond().
-"""
-import sys
+"""Contratos do score de oportunidade v2 do Tesouro Direto."""
 import os
+import sys
+
 import pytest
 
-# Adiciona src ao path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from tesouro_analyzer import (
-    bond_group,
-    score_real_rate,
-    score_mtm_capture,
-    score_duration_risk,
-    score_cambio_hedge,
-    score_tax_efficiency,
-    score_bond,
-    score_all_bonds,
-    _classify_badge,
-)
-
-
-# ---------------------------------------------------------------------------
-# Fixtures — bonds base
-# ---------------------------------------------------------------------------
-@pytest.fixture
-def ipca_long():
-    return {
-        "name": "Tesouro IPCA+ 2035",
-        "type": "IPCA+",
-        "days_to_maturity": 3285,  # ~9 anos
-        "buy_yield": 6.45,         # % a.a.
-        "sell_yield": 6.50,
-        "buy_price": 3500.00,
-        "maturity_date": "2035-01-01",
-    }
+from tesouro_analyzer import SCORE_METHOD, bond_group, risk_profile, score_all_bonds, score_bond, score_tax_efficiency
 
 
 @pytest.fixture
-def ipca_short():
+def macro():
     return {
-        "name": "Tesouro IPCA+ 2026",
-        "type": "IPCA+",
-        "days_to_maturity": 250,
-        "buy_yield": 5.90,
-        "sell_yield": 5.95,
-        "buy_price": 1100.00,
-        "maturity_date": "2026-12-01",
+        "CURRENT_SELIC": 0.14,
+        "FOCUS_SELIC_NEXT_YEAR": 0.11,
+        "FOCUS_IPCA": [0.05, 0.045, 0.04, 0.04],
     }
 
 
-@pytest.fixture
-def prefixado_long():
+def _bond(name, title_type, days, rate, history=None):
     return {
-        "name": "Tesouro Prefixado 2029",
-        "type": "Prefixado",
-        "days_to_maturity": 1095,  # ~3 anos
-        "buy_yield": 13.10,
-        "sell_yield": 13.20,
-        "buy_price": 700.00,
-        "maturity_date": "2029-01-01",
+        "name": name,
+        "type": title_type,
+        "days_to_maturity": days,
+        "buy_yield": rate,
+        "buy_price": 1000.0,
+        "history": history or [{"buy_yield": rate}],
     }
 
 
-@pytest.fixture
-def selic_bond():
-    return {
-        "name": "Tesouro Selic 2027",
-        "type": "Selic",
-        "days_to_maturity": 730,
-        "buy_yield": 14.00,
-        "sell_yield": 13.95,
-        "buy_price": 14500.00,
-        "maturity_date": "2027-01-01",
-    }
-
-
-@pytest.fixture
-def macro_queda_juros():
-    """Cenário de queda de juros: Selic 14% hoje, 11% no Focus próximo ano."""
-    return {
-        "CURRENT_SELIC": 0.1400,
-        "FOCUS_SELIC_NEXT_YEAR": 0.1100,
-        "FOCUS_IPCA_TREND": "baixa",
-        "FOCUS_IPCA": [0.053, 0.042, 0.038, 0.035],
-        "FOCUS_CAMBIO": [5.20, 5.15, 5.10, 5.00],
-        "FOCUS_SELIC": [0.1400, 0.1100, 0.0950, 0.0850],
-    }
-
-
-@pytest.fixture
-def macro_alta_juros():
-    """Cenário de alta de juros: Selic 14%, Focus sinaliza alta para 15%."""
-    return {
-        "CURRENT_SELIC": 0.1400,
-        "FOCUS_SELIC_NEXT_YEAR": 0.1500,
-        "FOCUS_IPCA_TREND": "alta",
-        "FOCUS_IPCA": [0.053, 0.065, 0.070, 0.068],
-        "FOCUS_CAMBIO": [5.80, 6.10, 6.20, 6.00],
-        "FOCUS_SELIC": [0.1400, 0.1500, 0.1450, 0.1300],
-    }
-
-
-# ---------------------------------------------------------------------------
-# Critério 1 — Prêmio Real de Inflação
-# ---------------------------------------------------------------------------
-class TestScoreRealRate:
-    def test_ipca_acima_7_5_pct_retorna_max(self, ipca_long):
-        """Taxa IPCA+ ≥ 7.5% a.a. deve retornar 2.0."""
-        ipca_long["buy_yield"] = 7.5
-        assert score_real_rate(ipca_long) == 2.0
-
-    def test_ipca_na_base_6_pct_retorna_1(self, ipca_long):
-        """Taxa IPCA+ = 6.0% a.a. deve retornar 1.0."""
-        ipca_long["buy_yield"] = 6.0
-        assert score_real_rate(ipca_long) == 1.0
-
-    def test_ipca_abaixo_base_retorna_zero(self, ipca_short):
-        """Taxa IPCA+ < 6.0% a.a. deve retornar 0.0."""
-        ipca_short["buy_yield"] = 5.5
-        assert score_real_rate(ipca_short) == 0.0
-
-    def test_prefixado_15_pct_com_ipca_5_pct_retorna_max(self, prefixado_long):
-        """15% nominal com IPCA de 5% equivale a cerca de 9,52% real."""
-        prefixado_long["buy_yield"] = 15.0
-        assert score_real_rate(prefixado_long, 0.05) == 2.0
-
-    def test_prefixado_12_pct_com_ipca_5_pct_pontua(self, prefixado_long):
-        """Prefixado deve pontuar pela taxa real esperada, não receber zero automático."""
-        prefixado_long["buy_yield"] = 12.0
-        assert 1.0 < score_real_rate(prefixado_long, 5.0) < 2.0
-
-    def test_prefixado_sem_focus_retorna_zero(self, prefixado_long):
-        """Sem inflação projetada não é possível estimar o retorno real."""
-        assert score_real_rate(prefixado_long) == 0.0
-
-    def test_selic_retorna_zero(self, selic_bond):
-        """Tesouro Selic não pondera neste critério."""
-        assert score_real_rate(selic_bond) == 0.0
-
-    def test_interpolacao_6_45_pct(self, ipca_long):
-        """Taxa 6.45% deve estar entre 1.0 e 2.0."""
-        ipca_long["buy_yield"] = 6.45
-        score = score_real_rate(ipca_long)
-        assert 1.0 < score < 2.0
-
-    def test_buy_yield_none_retorna_zero(self, ipca_long):
-        ipca_long["buy_yield"] = None
-        assert score_real_rate(ipca_long) == 0.0
-
-
-# ---------------------------------------------------------------------------
-# Critério 2 — Captura Marcação a Mercado
-# ---------------------------------------------------------------------------
-class TestScoreMTMCapture:
-    def test_queda_3pp_longo_ipca_retorna_max(self, ipca_long):
-        """Queda de 3pp em IPCA+ longo (≥5a) deve retornar 2.0."""
-        score = score_mtm_capture(ipca_long, 0.1100, 0.1400)
-        assert score == 2.0
-
-    def test_sem_queda_retorna_zero(self, ipca_long):
-        """Delta Selic = 0 não gera bônus MTM."""
-        assert score_mtm_capture(ipca_long, 0.1400, 0.1400) == 0.0
-
-    def test_alta_de_juros_retorna_zero(self, ipca_long):
-        """Alta de juros não gera bônus MTM."""
-        assert score_mtm_capture(ipca_long, 0.1500, 0.1400) == 0.0
-
-    def test_titulo_curto_retorna_zero(self, ipca_short):
-        """IPCA+ com vencimento curto não se beneficia do MTM."""
-        assert score_mtm_capture(ipca_short, 0.1100, 0.1400) == 0.0
-
-    def test_selic_retorna_zero(self, selic_bond):
-        """Selic não participa do MTM."""
-        assert score_mtm_capture(selic_bond, 0.1100, 0.1400) == 0.0
-
-    def test_focus_none_retorna_zero(self, ipca_long):
-        """Sem dados Focus, não há bônus."""
-        assert score_mtm_capture(ipca_long, None, 0.1400) == 0.0
-
-
-# ---------------------------------------------------------------------------
-# Critério 3 — Risco de Duration
-# ---------------------------------------------------------------------------
-class TestScoreDurationRisk:
-    def test_selic_sempre_max(self, selic_bond):
-        """Selic deve sempre receber 2.0 pontos."""
-        assert score_duration_risk(selic_bond, "alta") == 2.0
-        assert score_duration_risk(selic_bond, "baixa") == 2.0
-        assert score_duration_risk(selic_bond, "estavel") == 2.0
-
-    def test_ipca_longo_com_ipca_alta_penalizado(self, ipca_long):
-        """IPCA longo com IPCA acelerando deve receber 0.0."""
-        assert score_duration_risk(ipca_long, "alta") == 0.0
-
-    def test_ipca_longo_com_ipca_baixa_max(self, ipca_long):
-        """IPCA longo com IPCA cadente deve receber 2.0."""
-        assert score_duration_risk(ipca_long, "baixa") == 2.0
-
-    def test_prefixado_curto_com_ipca_alta(self, prefixado_long):
-        """Prefixado de prazo médio com IPCA alto deve receber 0.5."""
-        # prefixado_long tem 1095 dias (~3 anos) = médio
-        assert score_duration_risk(prefixado_long, "alta") == 0.5
-
-    def test_ipca_curto_com_ipca_alta(self, ipca_short):
-        """IPCA curto com IPCA acelerando deve receber 1.5."""
-        assert score_duration_risk(ipca_short, "alta") == 1.5
-
-
-# ---------------------------------------------------------------------------
-# Critério 4 — Elasticidade Cambial
-# ---------------------------------------------------------------------------
-class TestScoreCambioHedge:
-    def test_ipca_com_cambio_estressado_retorna_max(self, ipca_long):
-        """IPCA+ com câmbio > R$5.50 deve retornar 2.0."""
-        assert score_cambio_hedge(ipca_long, 5.80) == 2.0
-
-    def test_ipca_com_cambio_normal_retorna_1(self, ipca_long):
-        """IPCA+ com câmbio ≤ R$5.50 deve retornar 1.0."""
-        assert score_cambio_hedge(ipca_long, 5.20) == 1.0
-
-    def test_selic_retorna_1_5(self, selic_bond):
-        """Selic com câmbio estressado retorna 1.5 (semi-protegido via BC)."""
-        assert score_cambio_hedge(selic_bond, 5.80) == 1.5
-
-    def test_prefixado_com_cambio_estressado_retorna_zero(self, prefixado_long):
-        """Prefixado exposto à inflação cambial: 0.0 pts quando câmbio estressado."""
-        assert score_cambio_hedge(prefixado_long, 5.80) == 0.0
-
-    def test_prefixado_com_cambio_normal_retorna_1(self, prefixado_long):
-        """Prefixado com câmbio normal: 1.0 pts."""
-        assert score_cambio_hedge(prefixado_long, 5.20) == 1.0
-
-    def test_none_focus_retorna_neutro_ipca(self, ipca_long):
-        """Sem dados Focus, IPCA+ retorna 1.0 (neutro)."""
-        assert score_cambio_hedge(ipca_long, None) == 1.0
-
-
-# ---------------------------------------------------------------------------
-# Critério 5 — Eficiência Tributária
-# ---------------------------------------------------------------------------
-class TestScoreTaxEfficiency:
-    def test_acima_720_dias_retorna_max(self, ipca_long):
-        """Acima de 720 dias (alíquota mínima 15%) = 2.0 pts."""
-        assert score_tax_efficiency(ipca_long) == 2.0
-
-    def test_entre_361_720_retorna_1_5(self, selic_bond):
-        """730 dias → 2.0 pts (acima de 720)."""
-        selic_bond["days_to_maturity"] = 730
-        assert score_tax_efficiency(selic_bond) == 2.0
-
-    def test_entre_181_360_retorna_1(self):
-        """270 dias (entre 181-360) → 1.0 pts."""
-        bond = {"days_to_maturity": 270}
-        assert score_tax_efficiency(bond) == 1.0
-
-    def test_ate_180_dias_retorna_0_5(self):
-        """90 dias (≤ 180) → 0.5 pts."""
-        bond = {"days_to_maturity": 90}
-        assert score_tax_efficiency(bond) == 0.5
-
-    def test_entre_361_720_retorna_1_5_correto(self):
-        """500 dias (entre 361-720) → 1.5 pts."""
-        bond = {"days_to_maturity": 500}
-        assert score_tax_efficiency(bond) == 1.5
-
-    def test_days_none_retorna_conservador(self):
-        """Sem dados de prazo → 0.5 pts (conservador)."""
-        assert score_tax_efficiency({}) == 0.5
-
-
-# ---------------------------------------------------------------------------
-# score_bond() — Integração
-# ---------------------------------------------------------------------------
-class TestScoreBond:
-    def test_score_total_entre_0_e_10(self, ipca_long, macro_queda_juros):
-        result = score_bond(ipca_long, macro_queda_juros)
-        assert 0.0 <= result["score"] <= 10.0
-
-    def test_score_breakdown_tem_4_criterios_tecnicos(self, ipca_long, macro_queda_juros):
-        result = score_bond(ipca_long, macro_queda_juros)
-        assert len(result["score_breakdown"]) == 4
-
-    def test_cada_criterio_entre_0_e_2(self, ipca_long, macro_queda_juros):
-        result = score_bond(ipca_long, macro_queda_juros)
-        for item in result["score_breakdown"]:
-            assert 0.0 <= item["score"] <= 2.0
-
-    def test_score_preserva_campos_originais(self, ipca_long, macro_queda_juros):
-        result = score_bond(ipca_long, macro_queda_juros)
-        assert result["name"] == ipca_long["name"]
-        assert result["type"] == ipca_long["type"]
-        assert result["maturity_date"] == ipca_long["maturity_date"]
-
-    def test_badge_reflete_score_tecnico(self, ipca_long, macro_queda_juros):
-        """Sem histórico, o score técnico usa posição neutra de taxa."""
-        ipca_long["buy_yield"] = 7.5
-        result = score_bond(ipca_long, macro_queda_juros)
-        assert result["badge"] == "regular"
-
-    def test_selic_cenario_alta_pontuacao_razoavel(self, selic_bond, macro_alta_juros):
-        """Selic em ambiente de juros altos deve ter boa pontuação (protegido)."""
-        result = score_bond(selic_bond, macro_alta_juros)
-        assert result["score"] >= 4.0  # Selic sempre pondera bem em criérios 3 e 4
-
-    def test_macro_none_nao_crasha(self, ipca_long):
-        """score_bond deve funcionar sem macro_state (fallback seguro)."""
-        result = score_bond(ipca_long, None)
-        assert "score" in result
-        assert 0.0 <= result["score"] <= 10.0
-
-    def test_prefixado_nao_usa_focus_no_detalhamento(self, prefixado_long, macro_queda_juros):
-        prefixado_long["history"] = [{"buy_yield": 0.12}, {"buy_yield": 0.15}]
-        prefixado_long["buy_yield"] = 0.15
-        result = score_bond(prefixado_long, macro_queda_juros)
-
-        assert result["score_breakdown"][0]["label"] == "Taxa vs. Histórico"
-        assert all("Focus" not in item["desc"] for item in result["score_breakdown"])
-
-
-# ---------------------------------------------------------------------------
-# _classify_badge()
-# ---------------------------------------------------------------------------
-class TestClassifyBadge:
-    def test_premium_acima_8(self):
-        assert _classify_badge(8.5) == "premium"
-
-    def test_bom_entre_6_e_8(self):
-        assert _classify_badge(7.0) == "bom"
-        assert _classify_badge(6.0) == "bom"
-
-    def test_regular_entre_4_e_6(self):
-        assert _classify_badge(5.0) == "regular"
-        assert _classify_badge(4.0) == "regular"
-
-    def test_alto_risco_abaixo_4(self):
-        assert _classify_badge(3.9) == "alto_risco"
-        assert _classify_badge(0.0) == "alto_risco"
-
-
-# ---------------------------------------------------------------------------
-# score_all_bonds() — Ordenação
-# ---------------------------------------------------------------------------
-class TestScoreAllBonds:
-    def test_lista_vazia_retorna_vazia(self):
-        assert score_all_bonds([]) == []
-
-    def test_ordenado_por_score_desc(self, ipca_long, selic_bond, prefixado_long, macro_queda_juros):
-        ipca_long["buy_yield"] = 7.5  # garante que IPCA+ vence
-        result = score_all_bonds([selic_bond, prefixado_long, ipca_long], macro_queda_juros)
-        scores = [r["score"] for r in result]
-        assert scores == sorted(scores, reverse=True)
-
-    def test_todos_os_bonds_pontuados(self, ipca_long, selic_bond, macro_queda_juros):
-        result = score_all_bonds([ipca_long, selic_bond], macro_queda_juros)
-        assert len(result) == 2
-        for r in result:
-            assert "score" in r
-            assert "score_breakdown" in r
-            assert "badge" in r
-
-
-class TestAttractivenessScore:
-    def test_score_ignores_focus_scenario(self, prefixado_long, macro_alta_juros, macro_queda_juros):
-        prefixado_long["history"] = [
-            {"date": "2026-01-01", "buy_yield": 0.10},
-            {"date": "2026-02-01", "buy_yield": 0.12},
-            {"date": "2026-03-01", "buy_yield": 0.14},
-        ]
-        prefixado_long["buy_yield"] = 0.14
-
-        assert score_bond(prefixado_long, macro_alta_juros)["score"] == score_bond(prefixado_long, macro_queda_juros)["score"]
-
-    def test_higher_historical_yield_is_more_attractive(self, prefixado_long):
-        prefixado_long["history"] = [
-            {"date": "2026-01-01", "buy_yield": 0.10},
-            {"date": "2026-02-01", "buy_yield": 0.12},
-            {"date": "2026-03-01", "buy_yield": 0.14},
-        ]
-        prefixado_long["buy_yield"] = 0.10
-        low_score = score_bond(prefixado_long)["score"]
-        prefixado_long["buy_yield"] = 0.14
-
-        assert score_bond(prefixado_long)["score"] > low_score
-
-    def test_groups_coupon_and_non_coupon_bonds_separately(self):
-        assert bond_group({"type": "IPCA+", "name": "Tesouro IPCA+ 2035"}) == "IPCA+ sem cupom"
-        assert bond_group({"type": "IPCA+", "name": "Tesouro IPCA+ com Juros Semestrais 2035"}) == "IPCA+ com cupom"
-
-    def test_score_all_bonds_exposes_general_and_group_ranks(self):
-        bonds = [
-            {"name": "Tesouro IPCA+ 2032", "type": "IPCA+", "days_to_maturity": 2000, "buy_yield": 0.08,
-             "history": [{"buy_yield": 0.06}, {"buy_yield": 0.08}]},
-            {"name": "Tesouro IPCA+ 2050", "type": "IPCA+", "days_to_maturity": 8000, "buy_yield": 0.07,
-             "history": [{"buy_yield": 0.06}, {"buy_yield": 0.07}]},
-        ]
-
-        result = score_all_bonds(bonds)
-
-        assert result[0]["general_rank"] == 1
-        assert result[0]["group_rank"] == 1
-        assert result[0]["group"] == "IPCA+ sem cupom"
-        assert result[0]["historical_yield_percentile"] == 100
-
-    def test_planning_titles_are_excluded_from_general_ranking(self):
-        bonds = [
-            {"name": "Tesouro RendA+ Aposentadoria Extra 2049", "type": "RendA+", "days_to_maturity": 8500,
-             "buy_yield": 0.08, "history": [{"buy_yield": 0.06}, {"buy_yield": 0.08}]},
-            {"name": "Tesouro IPCA+ 2035", "type": "IPCA+", "days_to_maturity": 3200,
-             "buy_yield": 0.07, "history": [{"buy_yield": 0.06}, {"buy_yield": 0.07}]},
-        ]
-
-        result = score_all_bonds(bonds)
-
-        assert result[0]["name"] == "Tesouro IPCA+ 2035"
-        assert result[0]["general_rank"] == 1
-        assert result[1]["general_rank"] is None
-        assert result[1]["planning_rank"] == 1
+def test_selic_uses_spread_and_not_nominal_selic(macro):
+    selic = _bond("Tesouro Selic 2031", "Selic", 1700, 0.000744, [
+        {"buy_yield": -0.0002}, {"buy_yield": 0.0003}, {"buy_yield": 0.000744},
+    ])
+    result = score_bond(selic, [selic], macro)
+
+    assert result["score_method"] == SCORE_METHOD
+    assert result["risk_profile"] == "Baixo"
+    assert result["score_breakdown"][0]["label"] == "Ágio/deságio sobre a Selic"
+    assert "Selic +0.0744%" in result["score_breakdown"][0]["desc"]
+    assert result["score_breakdown"][0]["max"] == 6.0
+    assert result["badge"] != "alto_risco"
+
+
+def test_low_selic_opportunity_is_not_labeled_as_risk(macro):
+    selic = _bond("Tesouro Selic 2029", "Selic", 900, -0.0015)
+    result = score_bond(selic, [selic], macro)
+
+    assert result["risk_profile"] == "Baixo"
+    assert result["badge"] != "alto_risco"
+
+
+def test_coupon_and_non_coupon_are_separate_groups():
+    plain = _bond("Tesouro IPCA+ 2035", "IPCA+", 3300, 0.07)
+    coupon = _bond("Tesouro IPCA+ com Juros Semestrais 2035", "IPCA+", 3300, 0.07)
+
+    assert "sem cupom" in bond_group(plain)
+    assert "com cupom" in bond_group(coupon)
+    assert bond_group(plain) != bond_group(coupon)
+
+
+def test_duration_is_part_of_comparison_group():
+    short = _bond("Tesouro Prefixado 2029", "Prefixado", 1000, 0.14)
+    long = _bond("Tesouro Prefixado 2037", "Prefixado", 4000, 0.14)
+
+    assert bond_group(short) != bond_group(long)
+
+
+def test_coupon_reduces_effective_risk_profile():
+    without_coupon = _bond("Tesouro Prefixado 2035", "Prefixado", 3000, 0.14)
+    with_coupon = _bond("Tesouro Prefixado com Juros Semestrais 2035", "Prefixado", 3000, 0.14)
+
+    assert risk_profile(with_coupon) == "Moderado"
+    assert risk_profile(without_coupon) == "Elevado"
+
+
+def test_prefixado_uses_focus_ipca_and_mtm(macro):
+    prefix = _bond("Tesouro Prefixado 2032", "Prefixado", 2200, 0.145, [
+        {"buy_yield": 0.12}, {"buy_yield": 0.13}, {"buy_yield": 0.145},
+    ])
+    result = score_bond(prefix, [prefix], macro)
+    labels = [item["label"] for item in result["score_breakdown"]]
+
+    assert "Taxa real esperada" in labels
+    assert "Potencial de marcação a mercado" in labels
+    assert 0 <= result["score"] <= 10
+
+
+def test_ipca_uses_contracted_real_rate(macro):
+    ipca = _bond("Tesouro IPCA+ 2040", "IPCA+", 5000, 0.075)
+    result = score_bond(ipca, [ipca], macro)
+
+    assert result["score_breakdown"][0]["label"] == "Taxa real contratada"
+
+
+def test_tax_is_limited_to_half_point():
+    assert score_tax_efficiency({"days_to_maturity": 100}) < 0.5
+    assert score_tax_efficiency({"days_to_maturity": 1000}) == 0.5
+
+
+def test_peers_never_mix_coupon_and_non_coupon(macro):
+    plain = _bond("Tesouro IPCA+ 2035", "IPCA+", 3300, 0.07)
+    coupon = _bond("Tesouro IPCA+ com Juros Semestrais 2035", "IPCA+", 3300, 0.09)
+    result = score_bond(plain, [plain, coupon], macro)
+    peer = next(item for item in result["score_breakdown"] if item["label"] == "Taxa vs. pares")
+
+    assert "sem cupom" in peer["desc"]
+
+
+def test_planning_titles_do_not_enter_general_ranking(macro):
+    bonds = [
+        _bond("Tesouro RendA+ Aposentadoria Extra 2035", "RendA+", 9000, 0.075),
+        _bond("Tesouro IPCA+ 2035", "IPCA+", 3300, 0.07),
+    ]
+    scored = score_all_bonds(bonds, macro)
+
+    planning = next(item for item in scored if item["type"] == "RendA+")
+    assert planning["general_rank"] is None
+    assert planning["planning_rank"] == 1

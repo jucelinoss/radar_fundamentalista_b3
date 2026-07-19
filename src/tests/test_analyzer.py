@@ -38,6 +38,7 @@ from analyzer import (
     _score_pb_fii_unified,
     _score_dy_fii_v2,
     _score_dividend_consistency_v2,
+    calculate_historical_scores,
 )
 
 
@@ -648,6 +649,33 @@ class TestTimezoneAwareYield:
         mock = type('MockTicker', (), {'actions': df})()
         result = _calc_dividend_consistency(mock)
         assert result is None
+
+
+class TestHistoricalDividendConsistency:
+    def test_fii_history_uses_dividends_available_at_each_date(self):
+        """The historical chart must not repeat today's consistency in the past."""
+        import pandas as pd
+
+        dates = list(pd.date_range("2024-07-01", "2025-06-01", freq="MS"))
+        values = [1.0] * 6 + [2.0] * 6
+        dates += list(pd.date_range("2025-07-01", "2025-12-01", freq="MS"))
+        values += [2.0] * 6
+        dates += list(pd.date_range("2026-01-01", "2026-06-01", freq="MS"))
+        values += [1.0] * 6
+        ticker = type("MockTicker", (), {
+            "actions": pd.DataFrame({"Dividends": values}, index=pd.DatetimeIndex(dates, tz="UTC"))
+        })()
+        points = [
+            {"date": "2025-06-30", "price": 100.0},
+            {"date": "2026-06-30", "price": 100.0},
+        ]
+        metrics = {"price": 100.0, "book_value": 100.0, "dividend_yield": 0.10}
+
+        result = calculate_historical_scores("TEST11.SA", "fii", metrics, points, yf_ticker=ticker)
+
+        assert result[0]["consistency"] == 200.0
+        assert result[1]["consistency"] == 50.0
+        assert result[0]["consistency"] != result[1]["consistency"]
 
 
 # ======================================================================

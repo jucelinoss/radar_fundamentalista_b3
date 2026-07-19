@@ -16,7 +16,9 @@ import io
 import json
 import logging
 import os
+import re
 import time
+import unicodedata
 from datetime import datetime, timedelta, timezone
 from typing import Any
 from urllib.parse import quote, urlencode
@@ -53,6 +55,9 @@ TESOURO_TRANSPARENTE_CSV_URL = (
     "df56aa42-484a-4a59-8184-7676580c81e3/resource/"
     "796d2059-14e9-44e3-80c9-2d9e30b405c1/download/precotaxatesourodireto.csv"
 )
+TESOURO_PURCHASE_CATALOG_FILE = os.path.join(
+    _PROJECT_ROOT, "config", "tesouro_purchase_catalog.json"
+)
 # CDN Excel com preços históricos de PU (formato .xls, requer xlrd para ler)
 #   LFT = Tesouro Selic, LTN = Prefixado, NTN-B = IPCA+, NTN-C = IGP-M+
 # Ex: https://cdn.tesouro.gov.br/.../sistd/2026/LFT_2026.xls
@@ -74,7 +79,12 @@ TTL_HOURS = 24
 TESOURO_FALLBACK_TTL_HOURS = 1
 TESOURO_CSV_RETRY_ATTEMPTS = 3
 TESOURO_CSV_RETRY_BACKOFF_SECONDS = 1
-MACRO_STATE_SCHEMA_VERSION = 5
+# O CSV do Tesouro Transparente é uma série histórica e ainda contém IGP-M+,
+# linha descontinuada que não integra mais o catálogo de compra do Tesouro Direto.
+DISCONTINUED_TESOURO_TYPES = {"IGP-M+"}
+MACRO_STATE_SCHEMA_VERSION = 12
+TESOURO_QUOTE_METHOD = "tesouro-rate-v2"
+_REQUIRED_HISTORY_KEYS = ("SELIC_HISTORY", "IPCA_HISTORY", "CAMBIO_HISTORY")
 
 
 # ---------------------------------------------------------------------------
@@ -108,6 +118,14 @@ def _is_stale(macro_state: dict, ttl_hours: int = TTL_HOURS) -> bool:
         return True
 
 
+def _has_required_history(macro_state: dict[str, Any]) -> bool:
+    """Retorna se o cache contém as séries realizadas exigidas pelos modais."""
+    return all(
+        isinstance(macro_state.get(key), list) and bool(macro_state[key])
+        for key in _REQUIRED_HISTORY_KEYS
+    )
+
+
 def _load_cached() -> dict | None:
     """Carrega macro_state.json se existir e não estiver stale."""
     if not os.path.exists(MACRO_STATE_FILE):
@@ -116,6 +134,11 @@ def _load_cached() -> dict | None:
         with open(MACRO_STATE_FILE, encoding="utf-8") as f:
             state = json.load(f)
         if state.get("schema_version") != MACRO_STATE_SCHEMA_VERSION:
+            return None
+        if not _has_required_history(state):
+            logger.warning(
+                "[macro_fetcher] Cache macro incompleto; atualizando séries realizadas."
+            )
             return None
         if not _is_stale(state):
             logger.info("[macro_fetcher] Usando cache existente (dentro do TTL).")
@@ -149,6 +172,16 @@ def _normalize_rate(value: float | None) -> float | None:
     if value is None:
         return None
     return value / 100.0 if abs(value) > 1.0 else value
+
+
+def _normalize_tesouro_csv_rate(value: float | None) -> float | None:
+    """O CSV oficial usa pontos percentuais inclusive para ágio/deságio LFT."""
+    return None if value is None else value / 100.0
+
+
+def _normalize_sgs_date(value: str) -> str:
+    """Converte a data dd/mm/aaaa do SGS para ISO, preservando ordenação temporal."""
+    return datetime.strptime(value, "%d/%m/%Y").date().isoformat()
 
 
 def _load_tesouro_history() -> dict[str, list[dict[str, Any]]]:
@@ -196,6 +229,8 @@ def record_tesouro_snapshot(bonds: list[dict[str, Any]], fetched_at: str) -> Non
             "buy_yield": bond.get("buy_yield"),
             "buy_price": bond.get("buy_price"),
             "source": bond.get("data_source", "tesouro_direto_snapshot"),
+            "yield_kind": bond.get("yield_kind", "rate"),
+            "quote_method": TESOURO_QUOTE_METHOD,
         }
         existing = next((item for item in points if item.get("date") == date), None)
         if existing:
@@ -224,10 +259,13 @@ def record_tesouro_scores(scored_bonds: list[dict[str, Any]], fetched_at: str) -
                 "buy_yield": bond.get("buy_yield"),
                 "buy_price": bond.get("buy_price"),
                 "source": bond.get("data_source", "tesouro_direto_snapshot"),
+                "yield_kind": bond.get("yield_kind", "rate"),
+                "quote_method": TESOURO_QUOTE_METHOD,
             }
             points.append(existing)
             points.sort(key=lambda item: item.get("date", ""))
         existing["score"] = bond.get("score")
+        existing["score_method"] = bond.get("score_method")
         changed = True
     if changed:
         _save_tesouro_history(history)
@@ -305,7 +343,10 @@ def fetch_selic_meta_history(years: int = 5) -> list[dict[str, Any]]:
     for item in data:
         try:
             annual_pct = float(item["valor"])  # ex: 14.25 (% a.a.)
-            result.append({"date": item["data"], "value": round(annual_pct / 100.0, 6)})
+            result.append({
+                "date": _normalize_sgs_date(item["data"]),
+                "value": round(annual_pct / 100.0, 6),
+            })
         except (KeyError, ValueError, TypeError):
             continue
     result.sort(key=lambda x: x["date"])
@@ -352,7 +393,7 @@ def fetch_selic_history(years: int = 5) -> list[dict[str, Any]]:
             daily_pct = float(item["valor"])
             daily_decimal = daily_pct / 100.0
             annualized = round(daily_decimal * 252, 6)
-            result.append({"date": item["data"], "value": annualized})
+            result.append({"date": _normalize_sgs_date(item["data"]), "value": annualized})
         except (KeyError, ValueError, TypeError):
             continue
     return result
@@ -455,7 +496,10 @@ def fetch_cambio_history(years: int = 5) -> list[dict[str, Any]]:
     result: list[dict[str, Any]] = []
     for item in data:
         try:
-            result.append({"date": item["data"], "value": float(item["valor"])})
+            result.append({
+                "date": _normalize_sgs_date(item["data"]),
+                "value": float(item["valor"]),
+            })
         except (KeyError, ValueError, TypeError):
             continue
     return result
@@ -624,6 +668,52 @@ def fetch_tesouro_direto() -> list[dict[str, Any]]:
     """
     csv_bonds = _fetch_tesouro_transparente_csv()
     if csv_bonds:
+        purchase_catalog = _load_tesouro_purchase_catalog()
+        if purchase_catalog is not None:
+            filtered_bonds = []
+            matched_catalog_names: set[str] = set()
+            for bond in csv_bonds:
+                offer_name = _catalog_title_for_history_bond(bond.get("name", ""))
+                offer_key = _canonical_tesouro_name(offer_name)
+                if offer_key not in purchase_catalog:
+                    continue
+                bond["name"] = offer_name
+                bond["purchase_availability_source"] = "configured_tesouro_catalog"
+                filtered_bonds.append(bond)
+                matched_catalog_names.add(offer_key)
+
+            for manual_offer in _load_tesouro_manual_offers():
+                offer_key = _canonical_tesouro_name(manual_offer.get("name", ""))
+                if offer_key not in purchase_catalog or offer_key in matched_catalog_names:
+                    continue
+                try:
+                    maturity = datetime.fromisoformat(manual_offer["maturity_date"]).date()
+                except (KeyError, TypeError, ValueError):
+                    logger.warning("[macro_fetcher] Oferta manual inválida no catálogo: %s", manual_offer)
+                    continue
+                filtered_bonds.append({
+                    **manual_offer,
+                    "days_to_maturity": (maturity - datetime.now().date()).days,
+                    "buy_yield": None,
+                    "sell_yield": None,
+                    "sell_price": None,
+                    "history": [],
+                    "market_date": datetime.now().date().isoformat(),
+                    "data_source": "configured_tesouro_catalog",
+                    "is_demo": False,
+                    "purchase_available": True,
+                    "purchase_availability_source": "configured_tesouro_catalog",
+                })
+            if filtered_bonds:
+                for bond in filtered_bonds:
+                    bond["purchase_availability_source"] = "configured_tesouro_catalog"
+                csv_bonds = filtered_bonds
+            else:
+                logger.warning(
+                    "[macro_fetcher] Catálogo de compra sem correspondência com o histórico; "
+                    "não exibindo títulos como disponíveis."
+                )
+                csv_bonds = []
         logger.info(
             f"[macro_fetcher] Tesouro Transparente: {len(csv_bonds)} títulos "
             "com histórico oficial."
@@ -680,6 +770,12 @@ def fetch_tesouro_direto() -> list[dict[str, Any]]:
 
             # Classifica o tipo pelo nome
             bond_type = _classify_bond_type(name_raw)
+            if bond_type in {"Selic", "Reserva"}:
+                # O DTO costuma trazer o ágio/deságio LFT em pontos percentuais.
+                if buy_yield is not None and abs(buy_yield) > 0.01:
+                    buy_yield /= 100.0
+                if sell_yield is not None and abs(sell_yield) > 0.01:
+                    sell_yield /= 100.0
 
             status = str(bd.get("invstmtStbl", "")).strip().upper()
             unavailable_statuses = {"N", "NAO", "NÃO", "FALSE", "0", "INATIVO", "SUSPENSO"}
@@ -698,6 +794,7 @@ def fetch_tesouro_direto() -> list[dict[str, Any]]:
                 "days_to_maturity": days_to_maturity,
                 "buy_yield": buy_yield,      # taxa contratada ao comprar (% a.a.)
                 "sell_yield": sell_yield,    # taxa ao vender antecipado
+                "yield_kind": "selic_spread" if bond_type in {"Selic", "Reserva"} else "rate",
                 "buy_price": buy_price,      # preço de compra por título
                 "sell_price": sell_price,    # preço de resgate antecipado
                 "min_investment": min_invest,
@@ -729,6 +826,49 @@ def _fetch_tesouro_transparente_csv() -> list[dict[str, Any]]:
     return []
 
 
+def _canonical_tesouro_name(value: str) -> str:
+    """Normaliza nomes para comparar o catálogo de compra ao histórico oficial."""
+    normalized = unicodedata.normalize("NFKD", value or "")
+    normalized = "".join(char for char in normalized if not unicodedata.combining(char))
+    return " ".join(normalized.lower().replace("–", "-").split())
+
+
+def _catalog_title_for_history_bond(name: str) -> str:
+    """Converte o ano de pagamento final em ano de início, usado por RendA+ e Educa+."""
+    canonical = _canonical_tesouro_name(name)
+    match = re.search(r"(\d{4})$", name)
+    if not match:
+        return name
+    year = int(match.group(1))
+    if "renda+ aposentadoria extra" in canonical:
+        return f"{name[:-4]}{year - 19}"
+    if "educa+" in canonical:
+        return f"{name[:-4]}{year - 4}"
+    return name
+
+
+def _load_tesouro_purchase_catalog() -> set[str] | None:
+    """Carrega a whitelist versionada de títulos atualmente ofertados."""
+    try:
+        with open(TESOURO_PURCHASE_CATALOG_FILE, encoding="utf-8") as file:
+            titles = json.load(file).get("titles", [])
+        catalog = {_canonical_tesouro_name(title) for title in titles if title}
+        return catalog or None
+    except (OSError, json.JSONDecodeError, AttributeError) as exc:
+        logger.error("[macro_fetcher] Catálogo de compra indisponível: %s", exc)
+        return None
+
+
+def _load_tesouro_manual_offers() -> list[dict[str, Any]]:
+    """Carrega ofertas do catálogo sem cotação correspondente no histórico público."""
+    try:
+        with open(TESOURO_PURCHASE_CATALOG_FILE, encoding="utf-8") as file:
+            offers = json.load(file).get("manual_offers", [])
+        return [offer for offer in offers if isinstance(offer, dict)]
+    except (OSError, json.JSONDecodeError, AttributeError):
+        return []
+
+
 def _parse_tesouro_csv(content: str) -> list[dict[str, Any]]:
     """Converte o CSV oficial em títulos atuais enriquecidos com histórico."""
     rows: list[dict[str, Any]] = []
@@ -737,8 +877,8 @@ def _parse_tesouro_csv(content: str) -> list[dict[str, Any]]:
             base_date = datetime.strptime(raw["Data Base"], "%d/%m/%Y").date()
             maturity = datetime.strptime(raw["Data Vencimento"], "%d/%m/%Y").date()
             title_type = raw["Tipo Titulo"].strip()
-            buy_yield = _normalize_rate(_to_float_br(raw.get("Taxa Compra Manha")))
-            sell_yield = _normalize_rate(_to_float_br(raw.get("Taxa Venda Manha")))
+            buy_yield = _normalize_tesouro_csv_rate(_to_float_br(raw.get("Taxa Compra Manha")))
+            sell_yield = _normalize_tesouro_csv_rate(_to_float_br(raw.get("Taxa Venda Manha")))
             buy_price = _to_float_br(raw.get("PU Compra Manha"))
             sell_price = _to_float_br(raw.get("PU Venda Manha"))
         except (KeyError, ValueError, TypeError):
@@ -770,21 +910,27 @@ def _parse_tesouro_csv(content: str) -> list[dict[str, Any]]:
             "buy_yield": row["buy_yield"],
             "buy_price": row["buy_price"],
             "source": "tesouro_transparente_csv",
+            "yield_kind": "selic_spread" if _classify_bond_type(row["title_type"]) in {"Selic", "Reserva"} else "rate",
+            "quote_method": TESOURO_QUOTE_METHOD,
         })
 
     bonds: list[dict[str, Any]] = []
     for row in rows:
         if row["base_date"] != latest_date:
             continue
+        bond_type = _classify_bond_type(row["title_type"])
+        if bond_type in DISCONTINUED_TESOURO_TYPES:
+            continue
         key = (row["title_type"], row["maturity"])
         history = sorted(history_by_key.get(key, []), key=lambda point: point["date"])
         bonds.append({
             "name": f"{row['title_type']} {row['maturity'].year}",
-            "type": _classify_bond_type(row["title_type"]),
+            "type": bond_type,
             "maturity_date": row["maturity"].isoformat(),
             "days_to_maturity": (row["maturity"] - datetime.now().date()).days,
             "buy_yield": row["buy_yield"],
             "sell_yield": row["sell_yield"],
+            "yield_kind": "selic_spread" if bond_type in {"Selic", "Reserva"} else "rate",
             "buy_price": row["buy_price"],
             "sell_price": row["sell_price"],
             "min_investment": round(row["buy_price"] * 0.01, 2),
@@ -813,13 +959,13 @@ def _get_demo_bonds() -> list[dict[str, Any]]:
         # ═══════ Tesouro Reserva ═══════
         {"name": "Tesouro Reserva 2036", "type": "Reserva",
          "maturity_date": "2036-01-01", "days_to_maturity": _d((2036, 1, 1)),
-         "buy_yield": 0.1478, "sell_yield": 0.1476,
+         "buy_yield": 0.0, "sell_yield": 0.0, "yield_kind": "selic_spread",
          "buy_price": 10735.0, "sell_price": 10730.0, "min_investment": 1.0},
 
         # ═══════ Tesouro Selic ═══════
         {"name": "Tesouro Selic 2031", "type": "Selic",
          "maturity_date": "2031-03-01", "days_to_maturity": _d((2031, 3, 1)),
-         "buy_yield": 0.1475, "sell_yield": 0.1474,
+         "buy_yield": 0.000744, "sell_yield": 0.000700, "yield_kind": "selic_spread",
          "buy_price": 19349.60, "sell_price": 19340.0, "min_investment": 193.49},
 
         # ═══════ Tesouro Prefixado ═══════
@@ -1063,6 +1209,10 @@ def fetch_macro_state(force: bool = False) -> dict[str, Any]:
 
     # 4. Tesouro Direto
     tesouro_bonds = fetch_tesouro_direto()
+    for bond in tesouro_bonds:
+        if bond.get("yield_reference") == "selic":
+            bond["buy_yield"] = 0.0
+            bond["yield_kind"] = "selic_spread"
 
     # Uma indisponibilidade transitória não deve apagar a última série oficial.
     # Mantém os títulos reais do cache anterior até que a fonte responda novamente.

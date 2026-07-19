@@ -497,11 +497,17 @@ def generate_dashboard() -> None:
             ]
             if bonds:
                 logger.info(f"  [v3] Pontuando {len(bonds)} títulos do Tesouro Direto...")
-                tesouro_direto_payload = tesouro_analyzer.score_all_bonds(bonds)
+                tesouro_direto_payload = tesouro_analyzer.score_all_bonds(bonds, ms)
                 macro_fetcher.record_tesouro_scores(tesouro_direto_payload, ms.get("fetched_at", ""))
                 for bond in tesouro_direto_payload:
                     official_history = bond.get("history", [])
                     persisted_history = macro_fetcher.get_tesouro_history(bond.get("name", ""))
+                    if bond.get("yield_kind") == "selic_spread":
+                        # Séries antigas registravam o spread da LFT com escala ambígua.
+                        persisted_history = [
+                            point for point in persisted_history
+                            if point.get("quote_method") == macro_fetcher.TESOURO_QUOTE_METHOD
+                        ]
                     merged = {
                         point["date"]: point
                         for point in _merge_tesouro_history(official_history, persisted_history)
@@ -509,6 +515,7 @@ def generate_dashboard() -> None:
                     market_date = bond.get("market_date")
                     if market_date in merged:
                         merged[market_date]["score"] = bond.get("score")
+                        merged[market_date]["score_method"] = bond.get("score_method")
 
                     # Recalcula toda a série com dados observados até cada data.
                     bond_type = bond.get("type", "")
@@ -533,7 +540,15 @@ def generate_dashboard() -> None:
                                 "buy_yield": point["buy_yield"],
                                 "history": historical_points[:index + 1],
                             }
-                            point["score"] = tesouro_analyzer.score_bond(temp_bond).get("score", 0)
+                            historical_macro = {
+                                "FOCUS_IPCA": ms.get("FOCUS_IPCA", []),
+                                "CURRENT_SELIC": ms.get("CURRENT_SELIC"),
+                                "FOCUS_SELIC_NEXT_YEAR": ms.get("FOCUS_SELIC_NEXT_YEAR"),
+                            }
+                            point["score"] = tesouro_analyzer.score_bond(
+                                temp_bond, macro_state=historical_macro
+                            ).get("score", 0)
+                            point["score_method"] = tesouro_analyzer.SCORE_METHOD
                         except Exception:
                             point["score"] = 0
                     bond["history"] = [merged[key] for key in sorted(merged)]
