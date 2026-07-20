@@ -1,6 +1,6 @@
 {
   "meta": {
-    "exported_at": "2026-07-19T10:37:38.162768",
+    "exported_at": "2026-07-20T13:05:55.553594",
     "source": "Radar Fundamentalista B3 - Top Picks",
     "description": "Melhores ativos por score fundamentalista. Pronto para alimentar IA com sua carteira.",
     "suggested_prompt": "Analise minha carteira de investimentos comparando com estes top picks. Para cada ativo da minha carteira, sugira se devo manter, aumentar, reduzir ou vender, considerando os scores fundamentalistas, DY, P/L, P/VP, ROE e margem de seguranca de Graham."
@@ -33,20 +33,6 @@
       "bazin_price": 39.0,
       "score": 5.0,
       "upside_graham_pct": 155.0
-    },
-    {
-      "ticker": "BBDC4",
-      "name": "Banco Bradesco S.A.",
-      "sector": "Serviços Financeiros",
-      "price": 18.29,
-      "pe_ratio": 8.71,
-      "pb_ratio": 1.08,
-      "dividend_yield_pct": 8.5,
-      "roe_pct": 13.37,
-      "graham_price": 28.35,
-      "bazin_price": 3.83,
-      "score": 5.0,
-      "upside_graham_pct": 55.0
     },
     {
       "ticker": "BBDC3",
@@ -119,6 +105,20 @@
       "upside_graham_pct": 69.0
     },
     {
+      "ticker": "EZTC3",
+      "name": "EZTEC Empreendimentos e Participações S.A.",
+      "sector": "Imobiliário",
+      "price": 12.01,
+      "pe_ratio": 5.72,
+      "pb_ratio": 0.65,
+      "dividend_yield_pct": 9.45,
+      "roe_pct": 11.29,
+      "graham_price": 29.62,
+      "bazin_price": 6.83,
+      "score": 5.0,
+      "upside_graham_pct": 146.6
+    },
+    {
       "ticker": "EVEN3",
       "name": "Even Construtora e Incorporadora S.A.",
       "sector": "Imobiliário",
@@ -133,18 +133,18 @@
       "upside_graham_pct": 320.6
     },
     {
-      "ticker": "EZTC3",
-      "name": "EZTEC Empreendimentos e Participações S.A.",
-      "sector": "Imobiliário",
-      "price": 12.01,
-      "pe_ratio": 5.72,
-      "pb_ratio": 0.65,
-      "dividend_yield_pct": 9.45,
-      "roe_pct": 11.29,
-      "graham_price": 29.62,
-      "bazin_price": 6.83,
+      "ticker": "INTB3",
+      "name": "Intelbras S.A. - Indústria de Telecomunicação Eletrônica Brasileira",
+      "sector": "Bens Industriais",
+      "price": 13.35,
+      "pe_ratio": 7.59,
+      "pb_ratio": 1.39,
+      "dividend_yield_pct": 8.45,
+      "roe_pct": 18.77,
+      "graham_price": 19.5,
+      "bazin_price": 23.33,
       "score": 5.0,
-      "upside_graham_pct": 146.6
+      "upside_graham_pct": 46.1
     }
   ],
   "top_fiis": [
