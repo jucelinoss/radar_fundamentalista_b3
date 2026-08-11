@@ -1477,8 +1477,27 @@
             <div class="modal-content">
                 <span class="close-btn" onclick="closeDetailModal()">&times;</span>
                 <div class="modal-header">
-                    <h2 id="modal-ticker" class="font-outfit">TICKER</h2>
-                    <p id="modal-name">Nome da Empresa</p>
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; padding-right:2.5rem;">
+                        <div>
+                            <h2 id="modal-ticker" class="font-outfit">TICKER</h2>
+                            <p id="modal-name" style="margin-bottom:0.25rem;">Nome da Empresa</p>
+                        </div>
+                        <div class="export-dropdown-container" style="position: relative;">
+                            <button type="button" class="btn-export-modal" onclick="toggleExportMenu(event, 'modal-export-menu')" aria-label="Exportar dados do ativo" title="Exportar dados deste ativo">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                <span>Exportar</span>
+                            </button>
+                            <div id="modal-export-menu" class="export-menu hidden">
+                                <button type="button" class="export-option" onclick="exportModalData('csv')">📊 Exportar CSV</button>
+                                <button type="button" class="export-option" onclick="exportModalData('json')">📄 Exportar JSON</button>
+                                <button type="button" class="export-option" onclick="exportModalData('copy')">📋 Copiar Resumo (Texto)</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="modal-body-grid">

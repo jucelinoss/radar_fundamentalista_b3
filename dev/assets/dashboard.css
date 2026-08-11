@@ -640,6 +640,71 @@
         }
         .modal-header p { font-size: 1rem; color: var(--text-muted); margin-bottom: 1rem; }
 
+        /* ── Modal Export Button & Actions ── */
+        .btn-export-modal {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            background: var(--surface);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius, 6px);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .btn-export-modal:hover {
+            background: var(--accent-bg);
+            border-color: var(--primary);
+            color: var(--text-primary);
+        }
+        .export-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.5rem 0.85rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            background: transparent;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .export-option:hover {
+            background: var(--accent-bg);
+            color: var(--positive);
+        }
+
+        /* ── Toast Notification ── */
+        .radar-toast {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            background: var(--card);
+            color: var(--text-primary);
+            border: 1px solid var(--card-border);
+            border-left: 4px solid var(--positive);
+            padding: 0.75rem 1.25rem;
+            border-radius: 6px;
+            box-shadow: 0 8px 24px var(--shadow);
+            font-size: 0.85rem;
+            font-weight: 600;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: slideUpToast 0.25s ease forwards;
+        }
+        @keyframes slideUpToast {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .modal-body-grid {
             display: grid; grid-template-columns: 1fr 1.2fr;
             gap: 1.5rem;

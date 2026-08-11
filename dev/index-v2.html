@@ -392,8 +392,27 @@
             <div class="modal-content">
                 <button type="button" class="close-btn" aria-label="Fechar detalhes do ativo" onclick="closeDetailModal()">&times;</button>
                 <div class="modal-header">
-                    <h2 id="modal-ticker">TICKER</h2>
-                    <p id="modal-name">Nome da Empresa</p>
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; padding-right:2.5rem;">
+                        <div>
+                            <h2 id="modal-ticker">TICKER</h2>
+                            <p id="modal-name" style="margin-bottom:0.25rem;">Nome da Empresa</p>
+                        </div>
+                        <div class="export-dropdown-container" style="position: relative;">
+                            <button type="button" class="btn-export-modal" onclick="toggleExportMenu(event, 'modal-export-menu')" aria-label="Exportar dados do ativo" title="Exportar dados deste ativo">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                <span>Exportar</span>
+                            </button>
+                            <div id="modal-export-menu" class="export-menu hidden">
+                                <button type="button" class="export-option" onclick="exportModalData('csv')">📊 Exportar CSV</button>
+                                <button type="button" class="export-option" onclick="exportModalData('json')">📄 Exportar JSON</button>
+                                <button type="button" class="export-option" onclick="exportModalData('copy')">📋 Copiar Resumo (Texto)</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="modal-body-grid">
@@ -446,8 +465,27 @@
             <div class="modal-content" style="max-width: 650px;">
                 <button type="button" class="close-btn" aria-label="Fechar detalhes do Tesouro" onclick="closeTdDetailModal()">&times;</button>
                 <div class="modal-header">
-                    <h2 id="td-modal-name">Título</h2>
-                    <p id="td-modal-subtitle">Tesouro Direto</p>
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; padding-right:2.5rem;">
+                        <div>
+                            <h2 id="td-modal-name">Título</h2>
+                            <p id="td-modal-subtitle" style="margin-bottom:0.25rem;">Tesouro Direto</p>
+                        </div>
+                        <div class="export-dropdown-container" style="position: relative;">
+                            <button type="button" class="btn-export-modal" onclick="toggleExportMenu(event, 'td-modal-export-menu')" aria-label="Exportar dados do título" title="Exportar dados deste título">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                <span>Exportar</span>
+                            </button>
+                            <div id="td-modal-export-menu" class="export-menu hidden">
+                                <button type="button" class="export-option" onclick="exportTdData('csv')">📊 Exportar CSV</button>
+                                <button type="button" class="export-option" onclick="exportTdData('json')">📄 Exportar JSON</button>
+                                <button type="button" class="export-option" onclick="exportTdData('copy')">📋 Copiar Resumo (Texto)</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="td-modal-info">
@@ -619,6 +657,8 @@
                 <div class="modal-header">
                     <h2 id="focus-modal-title">Expectativas do Mercado</h2>
                     <p id="focus-modal-subtitle">Boletim Focus (Mediana de Fechamento de Ano)</p>
+                    <div id="focus-modal-status-pill" class="hidden" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; padding: 8px 12px; margin-top: 10px; font-size: 0.85rem; color: var(--text-primary, #1e293b);">
+                    </div>
                 </div>
 
                 <div style="position: relative; height: 250px; width: 100%; margin: 1.5rem 0;">
