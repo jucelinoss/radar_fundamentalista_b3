@@ -612,6 +612,32 @@ const tableSortState = {};
 
             renderChart(currentAssetHistory, 'score');
 
+            // Populate modal asset data for export
+            const peRaw = row.getAttribute('data-pe');
+            const pbRaw = row.getAttribute('data-pb');
+            const roeRaw = row.getAttribute('data-roe');
+            const epsRaw = row.getAttribute('data-eps');
+            const vpaRaw = row.getAttribute('data-vpa');
+            window.currentModalAssetData = {
+                ticker: ticker,
+                name: row.getAttribute('data-name') || ticker,
+                type: type,
+                sector: row.getAttribute('data-sector') || '',
+                price: price,
+                pe: (peRaw !== null && peRaw !== 'null' && peRaw !== '') ? parseFloat(peRaw) : null,
+                pb: (pbRaw !== null && pbRaw !== 'null' && pbRaw !== '') ? parseFloat(pbRaw) : null,
+                dy: parseFloat(row.getAttribute('data-dy')) || 0,
+                roe: (roeRaw !== null && roeRaw !== 'null' && roeRaw !== '') ? parseFloat(roeRaw) : null,
+                score: parseFloat(row.getAttribute('data-score')) || 0,
+                bazin: parseFloat(row.getAttribute('data-bazin')) || 0,
+                graham: parseFloat(row.getAttribute('data-graham')) || 0,
+                eps: (epsRaw !== null && epsRaw !== 'null' && epsRaw !== '') ? parseFloat(epsRaw) : null,
+                vpa: (vpaRaw !== null && vpaRaw !== 'null' && vpaRaw !== '') ? parseFloat(vpaRaw) : null,
+                rate: parseFloat(row.getAttribute('data-rate')) || 0,
+                breakdown: JSON.parse(row.getAttribute('data-breakdown') || '[]'),
+                history: currentAssetHistory
+            };
+
             // Show Modal
             document.getElementById('detail-modal').classList.remove('hidden');
         }
@@ -2041,13 +2067,311 @@ const tableSortState = {};
         });
 
         function closeExportMenu() {
-            var menu = document.getElementById('export-menu');
-            if (menu) menu.style.display = 'none';
+            const allMenuIds = ['export-menu', 'modal-export-menu', 'td-modal-export-menu'];
+            allMenuIds.forEach(id => {
+                const m = document.getElementById(id);
+                if (m) {
+                    m.style.display = 'none';
+                    m.classList.add('hidden');
+                }
+            });
         }
 
-        function toggleExportMenu() {
-            const menu = document.getElementById('export-menu');
-            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        function toggleExportMenu(event, menuId) {
+            if (event) {
+                event.stopPropagation();
+            }
+            const targetId = menuId || 'export-menu';
+            const menu = document.getElementById(targetId);
+            if (!menu) return;
+
+            // Close all other export menus first
+            const allMenuIds = ['export-menu', 'modal-export-menu', 'td-modal-export-menu'];
+            allMenuIds.forEach(id => {
+                if (id !== targetId) {
+                    const m = document.getElementById(id);
+                    if (m) {
+                        m.style.display = 'none';
+                        m.classList.add('hidden');
+                    }
+                }
+            });
+
+            const isHidden = menu.style.display === 'none' || menu.classList.contains('hidden');
+            if (isHidden) {
+                menu.style.display = 'block';
+                menu.classList.remove('hidden');
+            } else {
+                menu.style.display = 'none';
+                menu.classList.add('hidden');
+            }
+        }
+
+        // Close export menus on outside click
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.export-dropdown-container') && !e.target.closest('#export-btn') && !e.target.closest('.btn-export-modal')) {
+                closeExportMenu();
+            }
+        });
+
+        function downloadFile(content, fileName, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function showToast(message) {
+            let toast = document.getElementById('radar-global-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'radar-global-toast';
+                toast.className = 'radar-toast';
+                document.body.appendChild(toast);
+            }
+            toast.innerHTML = `
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>${message}</span>
+            `;
+            toast.style.display = 'flex';
+
+            if (window._toastTimeout) clearTimeout(window._toastTimeout);
+            window._toastTimeout = setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3500);
+        }
+
+        function copyTextToClipboard(text, successMsg) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast(successMsg || 'Copiado para a área de transferência!');
+                }).catch(() => {
+                    fallbackCopy(text, successMsg);
+                });
+            } else {
+                fallbackCopy(text, successMsg);
+            }
+        }
+
+        function fallbackCopy(text, successMsg) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast(successMsg || 'Copiado para a área de transferência!');
+            } catch (e) {
+                alert('Não foi possível copiar automaticamente.');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function exportModalData(format) {
+            closeExportMenu();
+
+            const ticker = document.getElementById('modal-ticker')?.textContent || 'ATIVO';
+            const name = document.getElementById('modal-name')?.textContent || '';
+            const asset = window.currentModalAssetData || { ticker: ticker, name: name };
+
+            const typeLabel = asset.type === 'stock' ? 'Ação' : (asset.type === 'fii' ? 'Fundo Imobiliário' : (asset.type === 'fiagro' ? 'FIAGRO' : 'Ativo'));
+            const nowStr = new Date().toLocaleDateString('pt-BR');
+
+            if (format === 'json') {
+                const jsonData = {
+                    ticker: asset.ticker,
+                    name: asset.name,
+                    type: asset.type,
+                    sector: asset.sector || '',
+                    export_date: new Date().toISOString(),
+                    price: asset.price || 0,
+                    score: asset.score || 0,
+                    indicators: {
+                        pe_ratio: asset.pe,
+                        pb_ratio: asset.pb,
+                        dividend_yield: asset.dy,
+                        roe: asset.roe,
+                        graham_price: asset.graham,
+                        bazin_price: asset.bazin,
+                        eps: asset.eps,
+                        vpa: asset.vpa
+                    },
+                    scorecard_breakdown: asset.breakdown || [],
+                    history: asset.history || []
+                };
+                downloadFile(JSON.stringify(jsonData, null, 2), `${asset.ticker}_radar_fundamentalista.json`, 'application/json;charset=utf-8');
+                showToast(`JSON de ${asset.ticker} baixado com sucesso!`);
+            } else if (format === 'csv') {
+                let csv = [];
+                csv.push(`"Métrica","Valor"`);
+                csv.push(`"Ticker","${asset.ticker}"`);
+                csv.push(`"Nome","${(asset.name || '').replace(/"/g, '""')}"`);
+                csv.push(`"Tipo","${typeLabel}"`);
+                csv.push(`"Setor","${(asset.sector || '').replace(/"/g, '""')}"`);
+                csv.push(`"Data Exportação","${nowStr}"`);
+                csv.push(`"Preço Atual (R$)","${asset.price ? asset.price.toFixed(2) : '0.00'}"`);
+                csv.push(`"Score Radar","${asset.score ? asset.score.toFixed(2) : '0.00'}"`);
+                if (asset.type === 'stock') {
+                    csv.push(`"P/L","${asset.pe !== null && asset.pe !== undefined ? asset.pe.toFixed(2) : 'N/A'}"`);
+                    csv.push(`"P/VP","${asset.pb !== null && asset.pb !== undefined ? asset.pb.toFixed(2) : 'N/A'}"`);
+                    csv.push(`"Dividend Yield (12m)","${asset.dy ? (asset.dy * 100).toFixed(2) + '%' : '0.00%'}"`);
+                    csv.push(`"ROE","${asset.roe !== null && asset.roe !== undefined ? (asset.roe * 100).toFixed(2) + '%' : 'N/A'}"`);
+                    csv.push(`"LPA (Lucro por Ação)","${asset.eps !== null && asset.eps !== undefined ? asset.eps.toFixed(2) : 'N/A'}"`);
+                    csv.push(`"VPA (Valor Patrimonial)","${asset.vpa !== null && asset.vpa !== undefined ? asset.vpa.toFixed(2) : 'N/A'}"`);
+                    csv.push(`"Preço Justo Graham (R$)","${asset.graham ? asset.graham.toFixed(2) : 'N/A'}"`);
+                    csv.push(`"Preço Justo Bazin (R$)","${asset.bazin ? asset.bazin.toFixed(2) : 'N/A'}"`);
+                } else {
+                    csv.push(`"P/VP","${asset.pb !== null && asset.pb !== undefined ? asset.pb.toFixed(2) : 'N/A'}"`);
+                    csv.push(`"Dividend Yield (12m)","${asset.dy ? (asset.dy * 100).toFixed(2) + '%' : '0.00%'}"`);
+                    csv.push(`"Rendimento Médio Mensal (R$)","${asset.rate ? asset.rate.toFixed(2) : 'N/A'}"`);
+                    csv.push(`"VPA (Valor Patrimonial)","${asset.vpa !== null && asset.vpa !== undefined ? asset.vpa.toFixed(2) : 'N/A'}"`);
+                }
+
+                csv.push('');
+                csv.push(`"DETALHAMENTO DO SCORE"`);
+                csv.push(`"Critério","Pontuação Obtida","Pontuação Máxima","Descrição"`);
+                (asset.breakdown || []).forEach(b => {
+                    csv.push(`"${(b.label || '').replace(/"/g, '""')}","${b.score ? b.score.toFixed(2) : '0.00'}","${b.max ? b.max.toFixed(1) : '0.0'}","${(b.desc || '').replace(/"/g, '""')}"`);
+                });
+
+                if (asset.history && asset.history.length > 0) {
+                    csv.push('');
+                    csv.push(`"HISTÓRICO DE DADOS"`);
+                    csv.push(`"Data","Preço (R$)","DY (12m)","Score"`);
+                    asset.history.forEach(h => {
+                        const date = h.date || h.month || '';
+                        const p = h.price != null ? h.price.toFixed(2) : '';
+                        const dyVal = h.dy != null ? (h.dy * 100).toFixed(2) + '%' : '';
+                        const s = h.score != null ? h.score.toFixed(2) : '';
+                        csv.push(`"${date}","${p}","${dyVal}","${s}"`);
+                    });
+                }
+
+                downloadFile(csv.join('\n'), `${asset.ticker}_radar_fundamentalista.csv`, 'text/csv;charset=utf-8');
+                showToast(`CSV de ${asset.ticker} baixado com sucesso!`);
+            } else if (format === 'copy') {
+                let lines = [];
+                lines.push(`=== RADAR FUNDAMENTALISTA B3 ===`);
+                lines.push(`Ativo: ${asset.ticker} — ${asset.name}`);
+                lines.push(`Tipo: ${typeLabel} | Setor: ${asset.sector || 'N/I'} | Score Radar: ${asset.score ? asset.score.toFixed(2) : '0.00'} / 10`);
+                lines.push(``);
+                lines.push(`📊 INDICADORES FUNDAMENTALISTAS:`);
+                lines.push(`- Preço Atual: R$ ${asset.price ? asset.price.toFixed(2) : '0,00'}`);
+                lines.push(`- Dividend Yield (12m): ${asset.dy ? (asset.dy * 100).toFixed(2).replace('.', ',') + '%' : '0,00%'}`);
+                if (asset.type === 'stock') {
+                    lines.push(`- P/L (Preço / Lucro): ${asset.pe !== null && asset.pe !== undefined ? asset.pe.toFixed(2).replace('.', ',') + 'x' : 'N/A'}`);
+                    lines.push(`- P/VP (Preço / Valor Patrimonial): ${asset.pb !== null && asset.pb !== undefined ? asset.pb.toFixed(2).replace('.', ',') + 'x' : 'N/A'}`);
+                    lines.push(`- ROE (Retorno s/ Patrimônio): ${asset.roe !== null && asset.roe !== undefined ? (asset.roe * 100).toFixed(2).replace('.', ',') + '%' : 'N/A'}`);
+                    lines.push(`- LPA (Lucro por Ação): ${asset.eps !== null && asset.eps !== undefined ? 'R$ ' + asset.eps.toFixed(2).replace('.', ',') : 'N/A'}`);
+                    lines.push(`- VPA (Valor Patrimonial p/ Ação): ${asset.vpa !== null && asset.vpa !== undefined ? 'R$ ' + asset.vpa.toFixed(2).replace('.', ',') : 'N/A'}`);
+                    lines.push(`- Preço Justo Graham: ${asset.graham ? 'R$ ' + asset.graham.toFixed(2).replace('.', ',') : 'N/A'}`);
+                    lines.push(`- Preço Justo Bazin: ${asset.bazin ? 'R$ ' + asset.bazin.toFixed(2).replace('.', ',') : 'N/A'}`);
+                } else {
+                    lines.push(`- P/VP (Preço / Valor Patrimonial): ${asset.pb !== null && asset.pb !== undefined ? asset.pb.toFixed(2).replace('.', ',') + 'x' : 'N/A'}`);
+                    lines.push(`- Rendimento Médio Mensal: ${asset.rate ? 'R$ ' + asset.rate.toFixed(2).replace('.', ',') : 'N/A'}`);
+                    lines.push(`- VPA (Valor Patrimonial p/ Cota): ${asset.vpa !== null && asset.vpa !== undefined ? 'R$ ' + asset.vpa.toFixed(2).replace('.', ',') : 'N/A'}`);
+                }
+
+                if (asset.breakdown && asset.breakdown.length > 0) {
+                    lines.push(``);
+                    lines.push(`🎯 DETALHAMENTO DO SCORE:`);
+                    asset.breakdown.forEach(b => {
+                        if (b.label === 'Moderadores Macro (v3)') return;
+                        lines.push(`• ${b.label}: ${b.score.toFixed(2)} / ${b.max.toFixed(1)} (${b.desc || ''})`);
+                    });
+                }
+
+                lines.push(``);
+                lines.push(`Fonte: Radar Fundamentalista B3 (Exportado em ${nowStr})`);
+
+                copyTextToClipboard(lines.join('\n'), `Resumo de ${asset.ticker} copiado para a área de transferência!`);
+            }
+        }
+
+        function exportTdData(format) {
+            closeExportMenu();
+
+            const bond = window.currentTdBond || {
+                name: document.getElementById('td-modal-name')?.textContent || 'Título',
+                type: document.getElementById('td-modal-type')?.textContent || 'Tesouro'
+            };
+            const nowStr = new Date().toLocaleDateString('pt-BR');
+            const bondName = bond.name || 'Tesouro';
+
+            if (format === 'json') {
+                const jsonData = {
+                    title: bond.name,
+                    group: bond.group || bond.type || 'Tesouro Direto',
+                    type: bond.type,
+                    risk_profile: bond.risk_profile || '',
+                    buy_yield: bond.buy_yield,
+                    buy_price: bond.buy_price,
+                    sell_price: bond.sell_price,
+                    maturity_date: bond.maturity_date,
+                    score: bond.score,
+                    export_date: new Date().toISOString(),
+                    score_breakdown: bond.score_breakdown || [],
+                    history: bond.history || []
+                };
+                downloadFile(JSON.stringify(jsonData, null, 2), `${bondName.replace(/\s+/g, '_')}_tesouro.json`, 'application/json;charset=utf-8');
+                showToast(`JSON de ${bondName} baixado com sucesso!`);
+            } else if (format === 'csv') {
+                let csv = [];
+                csv.push(`"Métrica","Valor"`);
+                csv.push(`"Título","${bondName.replace(/"/g, '""')}"`);
+                csv.push(`"Tipo","${(bond.type || '').replace(/"/g, '""')}"`);
+                csv.push(`"Grupo","${(bond.group || '').replace(/"/g, '""')}"`);
+                csv.push(`"Perfil de Risco","${(bond.risk_profile || '').replace(/"/g, '""')}"`);
+                csv.push(`"Data Exportação","${nowStr}"`);
+                csv.push(`"Taxa Atual (a.a.)","${bond.buy_yield != null ? bond.buy_yield.toFixed(2) + '%' : 'N/A'}"`);
+                csv.push(`"Preço de Compra (R$)","${bond.buy_price != null ? bond.buy_price.toFixed(2) : 'N/A'}"`);
+                csv.push(`"Preço de Venda (R$)","${bond.sell_price != null ? bond.sell_price.toFixed(2) : 'N/A'}"`);
+                csv.push(`"Vencimento","${bond.maturity_date || 'N/A'}"`);
+                csv.push(`"Score Radar","${bond.score != null ? bond.score.toFixed(1) : 'N/A'}"`);
+
+                if (bond.score_breakdown && bond.score_breakdown.length > 0) {
+                    csv.push('');
+                    csv.push(`"DETALHAMENTO DO SCORE"`);
+                    csv.push(`"Critério","Pontuação Obtida","Pontuação Máxima"`);
+                    bond.score_breakdown.forEach(b => {
+                        csv.push(`"${(b.label || '').replace(/"/g, '""')}","${b.score != null ? b.score.toFixed(1) : '0.0'}","${b.max != null ? b.max.toFixed(0) : '0'}"`);
+                    });
+                }
+
+                downloadFile(csv.join('\n'), `${bondName.replace(/\s+/g, '_')}_tesouro.csv`, 'text/csv;charset=utf-8');
+                showToast(`CSV de ${bondName} baixado com sucesso!`);
+            } else if (format === 'copy') {
+                let lines = [];
+                lines.push(`=== RADAR FUNDAMENTALISTA B3 — TESOURO DIRETO ===`);
+                lines.push(`Título: ${bondName}`);
+                lines.push(`Tipo: ${bond.type || 'Tesouro'} | Perfil de Risco: ${bond.risk_profile || 'Normal'} | Score Radar: ${bond.score != null ? bond.score.toFixed(1) : 'N/A'} / 10`);
+                lines.push(``);
+                lines.push(`📊 INDICADORES DO TÍTULO:`);
+                lines.push(`- Taxa Atual: ${bond.buy_yield != null ? bond.buy_yield.toFixed(2).replace('.', ',') + '% a.a.' : 'N/A'}`);
+                lines.push(`- Preço de Compra: ${bond.buy_price != null ? 'R$ ' + bond.buy_price.toFixed(2).replace('.', ',') : 'N/A'}`);
+                lines.push(`- Preço de Venda: ${bond.sell_price != null ? 'R$ ' + bond.sell_price.toFixed(2).replace('.', ',') : 'N/A'}`);
+                lines.push(`- Vencimento: ${bond.maturity_date || 'N/A'}`);
+
+                if (bond.score_breakdown && bond.score_breakdown.length > 0) {
+                    lines.push(``);
+                    lines.push(`🎯 DETALHAMENTO DO SCORE:`);
+                    bond.score_breakdown.forEach(b => {
+                        lines.push(`• ${b.label}: ${b.score.toFixed(1)} / ${b.max.toFixed(0)}`);
+                    });
+                }
+
+                lines.push(``);
+                lines.push(`Fonte: Radar Fundamentalista B3 (Exportado em ${nowStr})`);
+
+                copyTextToClipboard(lines.join('\n'), `Resumo de ${bondName} copiado para a área de transferência!`);
+            }
         }
 
         function exportPDF() {
@@ -2259,7 +2583,9 @@ const tableSortState = {};
                     if (!options) return;
 
                     const labels = [];
+                    const globalSeen = new Set();
                     chart.data.datasets.forEach(function(dataset, datasetIndex) {
+                        if (dataset.skipKeyValueLabels) return;
                         const meta = chart.getDatasetMeta(datasetIndex);
                         if (meta.hidden) return;
                         const valid = dataset.data
@@ -2277,8 +2603,9 @@ const tableSortState = {};
                         });
                         const seen = new Set();
                         function addLabel(point, priority, type) {
-                            if (seen.has(point.index)) return;
+                            if (seen.has(point.index) || globalSeen.has(point.index)) return;
                             seen.add(point.index);
+                            globalSeen.add(point.index);
                             labels.push({
                                 datasetIndex: datasetIndex,
                                 index: point.index,
@@ -2787,10 +3114,18 @@ const tableSortState = {};
             let bgHistory = 'rgba(107, 114, 128, 0.08)';
 
             let currentYear = new Date().getFullYear();
+            let currentMonth = new Date().getMonth() + 1; // 1-12
             if (macro.fetched_at) {
                 const yr = parseInt(macro.fetched_at.substring(0, 4), 10);
                 if (!isNaN(yr)) currentYear = yr;
+                const mo = parseInt(macro.fetched_at.substring(5, 7), 10);
+                if (!isNaN(mo) && mo >= 1 && mo <= 12) currentMonth = mo;
             }
+
+            const monthNamesShort = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            const currentMonthName = monthNamesShort[currentMonth - 1];
+            const yearShort = String(currentYear).slice(-2);
+            const currentProgressPct = Math.round((currentMonth / 12) * 100);
 
             if (indicator === 'selic') {
                 title = 'Taxa Selic — Realizado vs Projeção Focus';
@@ -2826,11 +3161,9 @@ const tableSortState = {};
 
             // ── Extrair histórico e agregar por ano ──
             const rawHistory = macro[historyKey] || [];
-            // Agrupa por ano (pega último valor de cada ano para Selic/Câmbio, ou soma para IPCA)
             const histByYear = {};
             rawHistory.forEach(pt => {
                 let yr = null;
-                // Tenta extrair ano de formatos dd/mm/aaaa ou aaaa-mm-dd
                 if (pt.date) {
                     const parts = pt.date.split('/');
                     if (parts.length === 3) {
@@ -2845,64 +3178,123 @@ const tableSortState = {};
                 }
             });
 
-            // Define anos do histórico (5 anos: currentYear-5 até currentYear-1)
+            // Anos históricos fechados (currentYear-5 até currentYear-1)
             const histYears = [];
             for (let y = currentYear - 5; y < currentYear; y++) {
                 histYears.push(y);
             }
-            // IPCA (SGS 13522): valor acumulado 12m — pega último do ano (ex: Dez = IPCA oficial)
-            // Selic Meta (SGS 432): pega último valor do ano (ex: meta vigente em Dez)
-            // Câmbio (SGS 1): pega última cotação do ano
             const histValues = histYears.map(yr => {
                 const pts = histByYear[yr];
                 if (!pts || pts.length === 0) return null;
-                // Todos os indicadores agora usam o último valor do ano
                 const last = pts[pts.length - 1];
-                if (indicator === 'ipca') return Math.round(last * 10000) / 100; // decimal → %
-                if (indicator === 'selic') return Math.round(last * 10000) / 100; // decimal → %
-                return Math.round(last * 100) / 100; // câmbio já em R$
+                if (indicator === 'ipca') return Math.round(last * 10000) / 100;
+                if (indicator === 'selic') return Math.round(last * 10000) / 100;
+                return Math.round(last * 100) / 100;
             });
 
-            // Labels: 5 anos hist + 4 anos focus
-            const allLabels = histYears.concat([
-                currentYear, currentYear + 1, currentYear + 2, currentYear + 3
-            ]).map(String);
+            // Valor atual ("Você está aqui")
+            let todayValue = null;
+            if (indicator === 'selic') {
+                let rawSelic = macro.selic_meta ?? macro.selic ?? macro.SELIC_META ?? macro.CURRENT_SELIC;
+                if (rawSelic == null && rawHistory.length > 0) {
+                    rawSelic = rawHistory[rawHistory.length - 1].value;
+                }
+                if (rawSelic != null) {
+                    todayValue = rawSelic < 1 ? Math.round(rawSelic * 10000) / 100 : rawSelic;
+                }
+            } else {
+                let rawVal = null;
+                if (indicator === 'ipca') {
+                    rawVal = macro.ipca_12m ?? macro.ipca;
+                } else if (indicator === 'cambio') {
+                    rawVal = macro.cambio;
+                }
+                if (rawVal == null && rawHistory.length > 0) {
+                    rawVal = rawHistory[rawHistory.length - 1].value;
+                }
+                if (rawVal != null) {
+                    todayValue = indicator === 'ipca'
+                        ? (rawVal < 1 ? Math.round(rawVal * 10000) / 100 : rawVal)
+                        : Math.round(rawVal * 100) / 100;
+                }
+            }
 
-            // Dados: 5 hist + 4 focus (com gap null entre eles para separar visualmente)
-            const histDataset = histValues.concat([null, null, null, null]);
-            // Focus: nulls para os 5 anos históricos + valores atuais
-            const currentYearFocus = focusValues[0]; // pode ser null
+            const formatVal = (v) => {
+                if (v == null || isNaN(v)) return '—';
+                if (isPercent) return v.toFixed(2) + '%';
+                if (isCurrency) return 'R$ ' + v.toFixed(2);
+                return v.toFixed(2);
+            };
+
+            const todayValStr = formatVal(todayValue);
+            const focusEndYearStr = formatVal(focusValues[0]);
+
+            // Labels da Timeline
+            const todayLabel = `Hoje (${currentMonthName}/${yearShort})`;
+            const allLabels = histYears.map(String).concat([
+                todayLabel,
+                `${currentYear} (Focus)`,
+                String(currentYear + 1),
+                String(currentYear + 2),
+                String(currentYear + 3)
+            ]);
+
+            // Datasets
+            // Realizado: 5 anos passados + hoje (ponto de Hoje usa a cor do histórico)
+            const histDataset = histValues.concat([todayValue, null, null, null, null]);
+            // Focus: hoje + 4 projeções anuais (linha inicia em Hoje, mas oculta ponto em Hoje para manter apenas a cor do histórico)
             const focusDataset = [null, null, null, null, null]
-                .concat([currentYearFocus, focusValues[1], focusValues[2], focusValues[3]]);
+                .concat([todayValue, focusValues[0], focusValues[1], focusValues[2], focusValues[3]]);
 
             document.getElementById('focus-modal-title').textContent = title;
             document.getElementById('focus-modal-subtitle').textContent = subtitle;
 
-            // Tabela: histórico + projeções
+            // Status Pill (Despoluído & Direto)
+            const statusPill = document.getElementById('focus-modal-status-pill');
+            if (statusPill) {
+                statusPill.classList.remove('hidden');
+                statusPill.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; font-size: 0.84rem; flex-wrap: wrap; gap: 6px;">
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <span style="font-weight:700; color:${colorHistory};">📍 Hoje (${currentMonthName}/${yearShort}):</span> 
+                            <strong style="color:${colorHistory}; font-size: 0.92rem; font-weight:800;">${todayValStr}</strong>
+                            <span style="color:var(--text-secondary); font-size:0.78rem; font-weight:500;">(Mês ${currentMonth}/12)</span>
+                        </div>
+                        <div style="font-size:0.82rem; color:var(--text-secondary); font-weight:500;">
+                            Meta Focus ${currentYear}: <strong style="color:${colorFuture}; font-weight:700;">${focusEndYearStr}</strong>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Tabela: histórico + Você está aqui + projeções
             const tbody = document.getElementById('focus-modal-tbody');
             if (tbody) {
                 const tableRows = [];
                 // 5 anos históricos
                 histYears.forEach((yr, i) => {
                     const val = histValues[i];
-                    let valStr = val != null
-                        ? (isPercent ? val.toFixed(2) + '%' : isCurrency ? 'R$ ' + val.toFixed(2) : val.toFixed(2))
-                        : '—';
+                    const valStr = formatVal(val);
                     tableRows.push(`<tr>
                         <td style="font-weight:600;">${yr}</td>
                         <td style="font-size:0.85rem;color:var(--text-secondary);font-weight:500;">Realizado</td>
                         <td class="font-mono tabular" style="font-weight:700;color:${colorHistory};">${valStr}</td>
                     </tr>`);
                 });
-                // 4 anos projeção
+
+                // Linha "Você está aqui"
+                tableRows.push(`<tr style="background: rgba(59, 130, 246, 0.08); border-left: 3px solid ${colorHistory};">
+                    <td style="font-weight:700; color:${colorHistory};">${todayLabel}</td>
+                    <td style="font-size:0.85rem; color:${colorHistory}; font-weight:700;">📍 Você está aqui (${currentMonth}/12 meses)</td>
+                    <td class="font-mono tabular" style="font-weight:800; color:${colorHistory};">${todayValStr}</td>
+                </tr>`);
+
+                // 4 anos projeção Focus
                 for (let i = 0; i < 4; i++) {
                     const yr = currentYear + i;
                     const val = focusValues[i];
-                    let valStr = '—';
-                    if (val != null) {
-                        valStr = isPercent ? val.toFixed(2) + '%' : isCurrency ? 'R$ ' + val.toFixed(2) : val.toFixed(2);
-                    }
-                    const isFuture = (i === 0) ? 'Projeção (ano corrente)' : 'Projeção Focus';
+                    const valStr = formatVal(val);
+                    const isFuture = (i === 0) ? `Projeção Focus (Fim de ${yr})` : 'Projeção Focus';
                     tableRows.push(`<tr>
                         <td style="font-weight:600;">${yr}</td>
                         <td style="font-size:0.85rem;color:var(--text-secondary);font-weight:500;">${isFuture}</td>
@@ -2912,10 +3304,10 @@ const tableSortState = {};
                 tbody.innerHTML = tableRows.join('');
             }
 
-            // Show Modal
+            // Exibir modal
             document.getElementById('focus-detail-modal').classList.remove('hidden');
 
-            // Draw Chart
+            // Renderizar Gráfico Chart.js
             requestAnimationFrame(() => {
                 const canvas = document.getElementById('focus-detail-chart');
                 if (canvas) {
@@ -2934,14 +3326,15 @@ const tableSortState = {};
                             labels: allLabels,
                             datasets: [
                                 {
-                                    label: 'Realizado',
+                                    label: 'Realizado (Histórico)',
                                     data: histDataset,
                                     borderColor: colorHistory,
                                     backgroundColor: bgHistory,
                                     borderWidth: 2.5,
-                                    pointRadius: 5,
-                                    pointHoverRadius: 7,
+                                    pointRadius: function(c) { return c.dataIndex === 5 ? 7 : 5; },
+                                    pointHoverRadius: function(c) { return c.dataIndex === 5 ? 9 : 7; },
                                     pointBackgroundColor: colorHistory,
+                                    pointBorderColor: colorHistory,
                                     fill: true,
                                     tension: 0.3,
                                     spanGaps: false
@@ -2953,9 +3346,10 @@ const tableSortState = {};
                                     backgroundColor: bgFuture,
                                     borderWidth: 3,
                                     borderDash: [6, 3],
-                                    pointRadius: 6,
-                                    pointHoverRadius: 8,
+                                    pointRadius: function(c) { return c.dataIndex === 5 ? 0 : 6; },
+                                    pointHoverRadius: function(c) { return c.dataIndex === 5 ? 0 : 8; },
                                     pointBackgroundColor: colorFuture,
+                                    pointBorderColor: colorFuture,
                                     fill: true,
                                     tension: 0.2,
                                     spanGaps: false
@@ -2974,13 +3368,30 @@ const tableSortState = {};
                                     }
                                 },
                                 tooltip: {
-                                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                                    padding: 8,
+                                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                                    padding: 10,
+                                    filter: function(tooltipItem) {
+                                        if (tooltipItem.dataIndex === 5) {
+                                            return tooltipItem.datasetIndex === 0;
+                                        }
+                                        return true;
+                                    },
                                     callbacks: {
+                                        title: function(tooltipItems) {
+                                            if (!tooltipItems || !tooltipItems.length) return '';
+                                            const item = tooltipItems[0];
+                                            if (item.dataIndex === 5) {
+                                                return `📍 Posição Atual (${currentMonthName}/${yearShort})`;
+                                            }
+                                            return item.label;
+                                        },
                                         label: function(context) {
                                             const val = context.parsed.y;
                                             if (val === null || isNaN(val)) return '';
-                                            return context.dataset.label + ': ' + (isPercent ? val.toFixed(2) + '%' : isCurrency ? 'R$ ' + val.toFixed(2) : val.toFixed(2));
+                                            if (context.dataIndex === 5) {
+                                                return `Valor Atual: ${formatVal(val)} (Mês ${currentMonth}/12 decorridos)`;
+                                            }
+                                            return context.dataset.label + ': ' + formatVal(val);
                                         }
                                     }
                                 },
@@ -2993,17 +3404,25 @@ const tableSortState = {};
                             scales: {
                                 x: {
                                     grid: { display: false },
-                                    ticks: { color: tickColor, font: { weight: '600' } }
+                                    ticks: {
+                                        color: tickColor,
+                                        font: function(context) {
+                                            if (context.tick && context.tick.label && context.tick.label.startsWith('Hoje')) {
+                                                return { size: 11, weight: 'bold', family: 'Inter, sans-serif' };
+                                            }
+                                            return { size: 11, weight: '500', family: 'Inter, sans-serif' };
+                                        }
+                                    }
                                 },
                                 y: {
                                     grid: { color: gridColor },
                                     ticks: {
                                         color: tickColor,
-                                        callback: function(value) {
-                                            return isPercent ? value.toFixed(1) + '%' : isCurrency ? 'R$ ' + value.toFixed(1) : value.toFixed(1);
+                                        font: { size: 11, family: 'Inter, sans-serif' },
+                                        callback: function(v) {
+                                            return isPercent ? v.toFixed(1) + '%' : isCurrency ? 'R$ ' + v.toFixed(2) : v;
                                         }
-                                    },
-                                    grace: '15%'
+                                    }
                                 }
                             }
                         }

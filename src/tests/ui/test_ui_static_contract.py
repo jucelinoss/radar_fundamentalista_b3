@@ -405,7 +405,12 @@ class TestModalIsolation:
         assert td_start > 0, "#td-detail-modal element not found."
 
         # Check for Tesouro-specific labels in the modal template
-        section = html[td_start:td_start + 2000]
+        td_end = html.find('<!-- Help Modal -->', td_start)
+        if td_end < 0:
+            td_end = html.find('<script', td_start)
+        if td_end < 0:
+            td_end = td_start + 5000
+        section = html[td_start:td_end]
         tesouro_labels = ["Taxa Atual", "Vencimento", "Preço Compra", "Preço Venda"]
         for label in tesouro_labels:
             assert label in section, (
