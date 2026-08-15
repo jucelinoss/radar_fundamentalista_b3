@@ -86,14 +86,14 @@ class TestRenderTopPicksUniqueness:
         """Top Picks pertencem exclusivamente à Home."""
         # Count calls (exclude the function definition itself)
         calls = re.findall(r'renderTopPicks\s*\(', html)
-        assert len(calls) == 5, (     # 1 definition + 4 calls
-            f"Expected 5 matches (1 def + 4 calls), found {len(calls)}. "
+        assert len(calls) == 6, (     # 1 definition + 5 calls (global + 4 nichos)
+            f"Expected 6 matches (1 def + 5 calls), found {len(calls)}. "
             "Top Picks must be rendered only in Home."
         )
 
     def test_home_containers_present(self, html):
-        """Home chama renderTopPicks para stocks, fiis, fiagros, tesouro."""
-        for cid in ["home-top-stocks", "home-top-fiis",
+        """Home chama renderTopPicks para global, stocks, fiis, fiagros, tesouro."""
+        for cid in ["home-top-global", "home-top-stocks", "home-top-fiis",
                      "home-top-fiagros", "home-top-tesouro"]:
             # calls use single quotes: getElementById('home-top-stocks')
             pattern = (

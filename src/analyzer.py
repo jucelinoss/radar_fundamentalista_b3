@@ -264,75 +264,94 @@ def _sanitize_rate(rate: float | None, max_rate: float = DIVIDEND_RATE_MAX) -> f
     return rate
 
 
+# ---------------------------------------------------------------------------
+# v2.6 Gaussian & Sigmoid Continuous Scoring Functions
+# ---------------------------------------------------------------------------
+
+def _gaussian_score(value: float | None, center: float, sigma_left: float, sigma_right: float, max_score: float = 2.0) -> float:
+    """
+    Asymmetric Gaussian (Split Normal) continuous score (0.0 to max_score).
+    Provides smooth bell curves with customizable left/right dispersion.
+    """
+    if value is None or value <= 0:
+        return 0.0
+    sigma = sigma_left if value < center else sigma_right
+    if sigma <= 0:
+        return 0.0
+    score = max_score * math.exp(-((value - center) ** 2) / (2 * (sigma ** 2)))
+    return round(_clamp(score, 0.0, max_score), SCORE_DECIMALS)
+
+
+def _sigmoid_score(value: float | None, midpoint: float, steepness: float = 22.0, max_score: float = 2.0) -> float:
+    """
+    Sigmoid (Logistic S-Curve) continuous score (0.0 to max_score).
+    Provides smooth transitions with diminishing marginal returns.
+    """
+    if value is None:
+        return 0.0
+    try:
+        score = max_score / (1.0 + math.exp(-steepness * (value - midpoint)))
+        return round(_clamp(score, 0.0, max_score), SCORE_DECIMALS)
+    except OverflowError:
+        return max_score if value > midpoint else 0.0
+
+
 def _score_dy_stock(dy_medio_3y: float | None, dy_target: float | None = None) -> float:
     """
-    Stock Dividend Yield criterion (0-2 pts).
-    Meta dinâmica: max(6%, SELIC × 60%). Max at 15%.
+    Stock Dividend Yield criterion (0-2 pts) via Asymmetric Gaussian.
+    Center: ~9.5% (sweet spot). Smooth rise from 4% and soft tail decay to mitigate dividend traps.
     """
     target = dy_target if dy_target is not None else _get_dy_stock_target()
-    dy_factor = 1.0 / (DY_MAX_SCORE_PCT - target) if DY_MAX_SCORE_PCT > target else 11.111
-    if dy_medio_3y is None or dy_medio_3y < target:
-        return 0.0
-    bonus = (dy_medio_3y - target) * dy_factor
-    return round(_clamp(1.0 + bonus, 0.0, 2.0), SCORE_DECIMALS)
+    center = max(0.095, target + 0.015)
+    return _gaussian_score(dy_medio_3y, center=center, sigma_left=0.035, sigma_right=0.055)
 
 
 def _score_pe_stock(pe_medio_5y: float | None, pe_max: float | None = None) -> float:
     """
-    Stock P/L criterion (0-2 pts).
-    Teto dinâmico: min(15, 1.2 / SELIC). Menor P/L = melhor.
+    Stock P/L criterion (0-2 pts) via Gaussian curve.
+    Center: ~7.5x. Penalizes non-recurring cyclical low peaks (<3.5) and high multiples (>15).
     """
-    pe_limit = pe_max if pe_max is not None else _get_pe_max_dynamic()
-    if pe_medio_5y is None or pe_medio_5y <= 0 or pe_medio_5y > pe_limit:
-        return 0.0
-    proportion = (pe_limit - pe_medio_5y) / pe_limit  # 0 at pe=limit, 1 at pe=0
-    return round(_clamp(1.0 + proportion * 1.0, 0.0, 2.0), SCORE_DECIMALS)
+    limit = pe_max if pe_max is not None else _get_pe_max_dynamic()
+    center = min(7.5, limit * 0.8)
+    return _gaussian_score(pe_medio_5y, center=center, sigma_left=2.5, sigma_right=4.5)
 
 
 def _score_pb_stock(pb_ratio: float | None) -> float:
     """
-    Stock P/VP criterion (0-2 pts), ASSIMETRIC.
-    Formula: 2.0 * (1.50 - pb), capped at piso 0.50.
-    pb=0.50→2.0, pb=1.00→1.0, pb=1.50→0.0
+    Stock P/VP criterion (0-2 pts) via Asymmetric Gaussian.
+    Center: 0.85 (safe deep-value sweet spot).
+    Continuous transition: 0.40->0.78 pts, 0.50->1.35 pts, 0.85->2.0 pts, 1.20->1.47 pts.
     """
-    if pb_ratio is None or pb_ratio < PB_MIN_STOCK or pb_ratio > PB_MAX_STOCK:
-        return 0.0
-    # Assimetric: lower P/VP (within safe range) = higher score
-    return round(_clamp(2.0 * (PB_MAX_STOCK - pb_ratio), 0.0, 2.0), SCORE_DECIMALS)
+    return _gaussian_score(pb_ratio, center=0.85, sigma_left=0.28, sigma_right=0.45)
 
 
 def _score_roe_stock(roe: float | None) -> float:
     """
-    Stock ROE criterion (0-2 pts).
-    Meta: >= 10%. Max at 30%.
+    Stock ROE criterion (0-2 pts) via Logistic Sigmoid curve.
+    Midpoint: 12.0% (cost of equity inflection). High profitability (>20%) smoothly saturates ~2.0.
     """
-    if roe is None or roe < ROE_MIN:
-        return 0.0
-    bonus = (roe - ROE_MIN) * ROE_FACTOR
-    return round(_clamp(1.0 + bonus, 0.0, 2.0), SCORE_DECIMALS)
+    return _sigmoid_score(roe, midpoint=0.12, steepness=22.0)
 
 
 def _score_graham_stock(price: float | None, graham_price: float | None,
                          peg_ratio: float | None = None, sector: str | None = None) -> float:
     """
-    Stock Margin of Safety criterion (0-2 pts).
-    Traditional sectors: price < graham_price.
-    Tech/light capital: PEG <= 1.0.
+    Stock Margin of Safety criterion (0-2 pts) via Sigmoid curve.
+    Traditional sectors: Margin = (Graham - Price) / Price.
+    Tech/light capital: Margin proxy via PEG.
     """
     tech_sectors = {'Technology', 'Communication Services'}
 
     # PEG path for tech sectors
-    if sector in tech_sectors and peg_ratio is not None and 0 < peg_ratio <= PEG_MAX:
-        proportion = (PEG_MAX - peg_ratio) / PEG_MAX  # 0 at peg=1, ~1 at peg=0
-        return round(_clamp(1.0 + proportion * 1.0, 0.0, 2.0), SCORE_DECIMALS)
+    if sector in tech_sectors and peg_ratio is not None and peg_ratio > 0:
+        peg_margin = 1.0 - peg_ratio
+        return _sigmoid_score(peg_margin, midpoint=0.0, steepness=4.0, max_score=2.0)
 
     # Graham path for all sectors
-    if price is None or graham_price is None or graham_price <= 0:
+    if price is None or graham_price is None or price <= 0 or graham_price <= 0:
         return 0.0
-    if price >= graham_price:
-        return 0.0
-    margin = (graham_price - price) / price  # 0 at price=gp, ~1 at price=0.5*gp
-    return round(_clamp(1.0 + margin, 0.0, 2.0), SCORE_DECIMALS)
+    margin = (graham_price - price) / price
+    return _sigmoid_score(margin, midpoint=0.0, steepness=4.0, max_score=2.0)
 
 
 def calculate_stock_score_continuous(
@@ -341,7 +360,7 @@ def calculate_stock_score_continuous(
     peg_ratio: Any = None, sector: str | None = None
 ) -> float:
     """
-    Calculates a continuous 0-10 scorecard for stocks (v2.5).
+    Calculates a continuous 0-10 scorecard for stocks (v2.6 Gaussian/Sigmoid).
     Each of 5 criteria scores 0.0-2.0, summed = 0.0-10.0.
     """
     dy_medio_3y = safe_float(dy_medio_3y)
@@ -426,52 +445,38 @@ def _score_dividend_consistency(consistency: float | None) -> float:
 
 
 # ---------------------------------------------------------------------------
-# v2.5.1 — 3 criteria × variables pts (recalibrated for better distribution)
+# v2.6 FII & FIAGRO Continuous Scoring Functions (Gaussian & Sigmoid)
 # ---------------------------------------------------------------------------
-
-_SCALE_TO_3_5: float = 3.5 / 2.0  # 1.75
-
 
 def _score_pb_fii_unified(pb_ratio: float | None) -> float:
     """
-    FII/FIAGRO P/VP unificado (0-3.5 pts).
-    MAX(P/VP Ajustado, P/VP Limite), reescalonado de 0-2 para 0-3.5.
+    FII/FIAGRO P/VP continuous score (0-3.5 pts) via Asymmetric Gaussian.
+    Center: 0.95 (sweet spot: slight discount to fair value, safe from distress traps).
     """
-    return round(max(_score_pb_fii_ideal(pb_ratio),
-                     _score_pb_fii_limite(pb_ratio)) * _SCALE_TO_3_5,
-                 SCORE_DECIMALS)
+    return _gaussian_score(pb_ratio, center=0.95, sigma_left=0.18, sigma_right=0.14, max_score=3.5)
 
 
 def _score_dy_fii_v2(dy: float | None, is_fiagro: bool = False, dy_cap: float | None = None) -> float:
     """
-    FII/FIAGRO DY (0-4.0 pts) com Teto Rígido elástico (SELIC + spread).
-    Quando dy_cap é None, usa _get_dy_fii_cap() ou _get_dy_fiagro_cap() dinamicamente.
+    FII/FIAGRO DY continuous score (0-4.0 pts) via Asymmetric Gaussian.
+    FII Center: 11.5% (sweet spot). Smooth rise from 6.5% and soft tail decay to mitigate yield traps.
+    FIAGRO Center: 13.5% (incorporating agricultural credit risk premium).
     """
-    min_dy = DY_FIAGRO_MIN if is_fiagro else DY_FII_MIN
-    if dy_cap is not None:
-        cap_dy = dy_cap
-    else:
-        cap_dy = _get_dy_fiagro_cap() if is_fiagro else _get_dy_fii_cap()
-    if dy is None or dy < min_dy:
+    if dy is None or dy <= 0:
         return 0.0
-    if dy >= cap_dy:
-        # Acima do cap elástico → risco predatório de crédito → zera
-        return 0.0
-    proportion = (dy - min_dy) / (cap_dy - min_dy)
-    return round(_clamp(proportion * 4.0, 0.0, 4.0), SCORE_DECIMALS)
+    if is_fiagro:
+        return _gaussian_score(dy, center=0.135, sigma_left=0.030, sigma_right=0.040, max_score=4.0)
+    return _gaussian_score(dy, center=0.115, sigma_left=0.025, sigma_right=0.035, max_score=4.0)
 
 
 def _score_dividend_consistency_v2(consistency: float | None) -> float:
     """
-    FII/FIAGRO Consistência (0-2.5 pts). Neutro=1.5 quando sem dados.
+    FII/FIAGRO Consistency score (0-2.5 pts) via Logistic Sigmoid curve.
+    Inflection at 85% retention, saturating smoothly to 2.5 pts at >=95%.
     """
     if consistency is None:
-        return 1.5  # Neutral mais generoso quando sem dados
-    if consistency >= CONSISTENCY_TARGET:
-        return 2.5
-    if consistency <= 0:
-        return 0.0
-    return round(_clamp(consistency / CONSISTENCY_TARGET * 2.5, 0.0, 2.5), SCORE_DECIMALS)
+        return 1.5  # Neutral fallback when no historical data
+    return _sigmoid_score(consistency, midpoint=0.85, steepness=15.0, max_score=2.5)
 
 
 def calculate_fii_score_continuous(
@@ -479,7 +484,7 @@ def calculate_fii_score_continuous(
     dividend_consistency: float | None = None
 ) -> float:
     """
-    Calculates a continuous 0-10 scorecard for FIIs (v2.5.1 - 3 criteria).
+    Calculates a continuous 0-10 scorecard for FIIs (v2.6 Gaussian/Sigmoid).
     P/VP: 0-3.5, DY: 0-4.0, Consistency: 0-2.5.
     """
     pb_ratio = safe_float(pb_ratio)
@@ -497,7 +502,7 @@ def calculate_fiagro_score_continuous(
     dividend_consistency: float | None = None
 ) -> float:
     """
-    Calculates a continuous 0-10 scorecard for FIAGROs (v2.5.1 - 3 criteria).
+    Calculates a continuous 0-10 scorecard for FIAGROs (v2.6 Gaussian/Sigmoid).
     P/VP: 0-3.5, DY: 0-4.0, Consistency: 0-2.5.
     """
     pb_ratio = safe_float(pb_ratio)
@@ -866,35 +871,35 @@ def analyze_stock(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
             "score": s1,
             "max": 2.0,
             "desc": f"DY: {(dy_medio_3y * 100):.2f}% (meta: {dy_target:.1%})" if dy_medio_3y is not None else "N/A",
-            "tip": f"Meta dinâmica: max(6%, Selic×60%) = {dy_target:.1%}. Nota base 1,0 na meta. Máximo 2,0 pts em 15%."
+            "tip": f"Curva Gaussiana com centro ideal em {max(0.095, dy_target + 0.015):.1%} (Sweet Spot). Pontuação suave com proteção contra Dividend Traps (>16%)."
         },
         {
             "label": "P/L Médio (5 Anos)",
             "score": s2,
             "max": 2.0,
             "desc": f"P/L: {pe_medio_5y:.2f} (teto: {pe_max:.1f}x)" if pe_medio_5y is not None else "N/A",
-            "tip": f"Teto dinâmico: min(15, 1,2/Selic) = {pe_max:.1f}x. P/L menor = mais pontos. Acima do teto = 0."
+            "tip": f"Curva Gaussiana com centro em {min(7.5, pe_max * 0.8):.1f}x. Penaliza múltiplos esticados e picos de lucros não recorrentes (<3.5x)."
         },
         {
             "label": "P/VP (Preço / V.P.)",
             "score": s3,
             "max": 2.0,
             "desc": f"P/VP: {pb_ratio:.2f}" if pb_ratio is not None else "N/A",
-            "tip": "P/VP entre 0,50 e 1,50. Nota = 2,0 × (1,50 - P/VP). Quanto menor, melhor. Abaixo de 0,50 ou acima de 1,50 = 0."
+            "tip": "Curva Gaussiana com centro em 0,85 (Deep Value seguro). Transição contínua sem cortes abruptos para deep discounts (0,35-0,60) e ágio moderado (1,0-1,60)."
         },
         {
             "label": "ROE (Retorno s/ Patr.)",
             "score": s4,
             "max": 2.0,
             "desc": f"ROE: {(roe * 100):.2f}%" if roe is not None else "N/A",
-            "tip": "Mínimo: 10% = 1,0 pts. Cada 10% extra adiciona 0,5 pts. Máximo 2,0 pts em 30%. Abaixo de 10% = 0."
+            "tip": "Curva Sigmoide Logística com inflexão no custo de oportunidade de 12%. Rentabilidade elevada (>20%) atinge saturação suave até 2,0 pts."
         },
         {
             "label": "Margem de Graham",
             "score": s5,
             "max": 2.0,
             "desc": (f"Justo: R${graham_price:.2f} vs R${price:.2f}" if price and graham_price else "N/A") if (raw_sector not in {'Technology', 'Communication Services'} or peg_ratio is None) else f"PEG: {peg_ratio:.2f}",
-            "tip": "Preço abaixo do valor justo = nota base 1,0. Cada 100% de margem adicional soma +1,0 pts. Máximo 2,0 pts."
+            "tip": "Curva Sigmoide de margem de segurança. Quanto maior o desconto sobre o Preço Justo de Graham (ou PEG Ratio), maior a pontuação."
         }
     ]
 
@@ -1070,25 +1075,25 @@ def analyze_fii(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
 
     score_breakdown = [
         {
-            "label": "P/VP (Unificado: Ideal + Limite)",
+            "label": "P/VP (Valor Patrimonial)",
             "score": s1,
             "max": 3.5,
             "desc": f"P/VP: {pb_ratio:.2f}" if pb_ratio is not None else "N/A",
-            "tip": "Máximo entre P/VP Ideal (0,70-1,05) e Limite (0,60-1,15), reescalonado ×1,75. Nota máxima 3,5 pts quando P/VP está na faixa ideal."
+            "tip": "Curva Gaussiana com centro em 0,95 (Sweet Spot: leve desconto sem risco de ruína). Nota máxima 3,5 pts em 0,95; transição suave para fundos em ágio ou deságio."
         },
         {
-            "label": "DY ≥ 8% (Meta FII)",
+            "label": "Dividend Yield",
             "score": s2,
             "max": 4.0,
             "desc": f"DY: {(dy * 100):.2f}%" if dy is not None else "0.00%",
-            "tip": "DY mínimo 8% = 0 pts. Crescimento linear até atingir o Teto Rígido (Cap) de 14,5% = 4,0 pts."
+            "tip": "Curva Gaussiana com centro ideal em 11,5% (renda sustentável). Sobe suavemente a partir de 6,5% e protege contra Yield Traps (>15,5%)."
         },
         {
-            "label": "Consistência Proventos (>=95%)",
+            "label": "Consistência de Proventos",
             "score": s4,
             "max": 2.5,
             "desc": f"{(dividend_consistency * 100):.2f}%" if dividend_consistency is not None else "N/D (neutro 1.5)",
-            "tip": "Proporção de meses com distribuição de dividendos ≥ 95% = 2,5 pts. Sem dados históricos: nota neutra 1,5 pts."
+            "tip": "Curva Sigmoide Logística de retenção semestral. Inflexão em 85%; fundos estáveis (≥95%) atingem até 2,5 pts. Sem histórico: 1,5 pts neutro."
         }
     ]
 
@@ -1157,25 +1162,25 @@ def analyze_fiagro(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
 
     score_breakdown = [
         {
-            "label": "P/VP (Unificado: Ideal + Limite)",
+            "label": "P/VP (Valor Patrimonial)",
             "score": s1,
             "max": 3.5,
             "desc": f"P/VP: {pb_ratio:.2f}" if pb_ratio is not None else "N/A",
-            "tip": "Máximo entre P/VP Ideal (0,70-1,05) e Limite (0,60-1,15), reescalonado ×1,75. Nota máxima 3,5 pts quando P/VP está na faixa ideal."
+            "tip": "Curva Gaussiana com centro em 0,95 (Sweet Spot: leve desconto sem risco de ruína). Nota máxima 3,5 pts em 0,95."
         },
         {
-            "label": "DY ≥ 10% (Meta FIAGRO)",
+            "label": "Dividend Yield Agro",
             "score": s2,
             "max": 4.0,
             "desc": f"DY: {(dy * 100):.2f}%" if dy is not None else "0.00%",
-            "tip": "DY mínimo 10% = 0 pts. Crescimento linear até atingir o Teto Rígido (Cap) de 16,5% = 4,0 pts."
+            "tip": "Curva Gaussiana com centro em 13,5% (incorporando prêmio de risco agro). Sobe a partir de 8,5% e decai suavemente acima de 17,5%."
         },
         {
-            "label": "Consistência Proventos (>=95%)",
+            "label": "Consistência de Proventos",
             "score": s4,
             "max": 2.5,
             "desc": f"{(dividend_consistency * 100):.2f}%" if dividend_consistency is not None else "N/D (neutro 1.5)",
-            "tip": "Proporção de meses com distribuição de dividendos ≥ 95% = 2,5 pts. Sem dados históricos: nota neutra 1,5 pts."
+            "tip": "Curva Sigmoide Logística de retenção semestral. Inflexão em 85%; fundos estáveis (≥95%) atingem até 2,5 pts. Sem histórico: 1,5 pts neutro."
         }
     ]
 

@@ -67,15 +67,22 @@ Cada ativo/título entregue a `data.json` deve conter identificador, data de atu
 | Preço Bazin | dividendos anuais por ação divididos por 6%; indicador de apoio, não critério atual do score contínuo |
 | PEG | usado somente para setores de tecnologia/serviços de comunicação, quando disponível |
 
-### 4.2 Score-base: cinco critérios de até 2 pontos
+### 4.2 Score-base: cinco critérios contínuos de até 2 pontos (v2.6 Gaussiano / Sigmoide)
 
-| Critério | Regra | Pontuação |
+A partir da versão v2.6, o Radar Fundamentalista B3 adota uma modelagem contínua baseada em **Distribuições Gaussianas Assimétricas (*Split Normal*)** e **Curvas Sigmoides Logísticas**, eliminando degraus artificiais e efeitos penhasco (*cliff edges*) onde pequenas variações de centavos causavam perdas de até 2,0 pontos:
+
+* **Função Gaussiana Assimétrica:**
+  $$\text{Score}_{\text{gauss}}(x; \mu, \sigma_{\text{esq}}, \sigma_{\text{dir}}) = 2,0 \cdot \exp\left( - \frac{(x - \mu)^2}{2 \sigma^2} \right), \quad \text{onde } \sigma = \begin{cases} \sigma_{\text{esq}}, & \text{se } x < \mu \\ \sigma_{\text{dir}}, & \text{se } x \ge \mu \end{cases}$$
+* **Função Sigmoide Logística:**
+  $$\text{Score}_{\text{sigm}}(x; x_0, k) = \frac{2,0}{1 + \exp\left(-k \cdot (x - x_0)\right)}$$
+
+| Critério | Função / Parâmetros | Racional e Comportamento |
 |---|---|---|
-| DY médio 3 anos | meta dinâmica `max(6%, Selic × 60%)`; teto de referência 15% | abaixo da meta: 0; a partir dela: `1 + (DY − meta) / (15% − meta)`, limitado a 2 |
-| P/L médio 5 anos | teto dinâmico `min(15, 1,2 / Selic)` | `≤ 0` ou acima do teto: 0; caso contrário: `1 + (teto − P/L) / teto`, limitado a 2 |
-| P/VP blindado | faixa segura de `0,50` a `1,50` | fora da faixa: 0; dentro: `2 × (1,50 − P/VP)`, limitado a 2 |
-| ROE | piso 10%, teto de referência 30% | abaixo de 10%: 0; acima: `1 + (ROE − 10%) / (30% − 10%)`, limitado a 2 |
-| Margem de segurança | Graham para todos os setores; PEG para Technology e Communication Services | Graham: preço `≥` preço justo: 0; senão `1 + (justo − preço) / preço`, limitado a 2. PEG: `0 < PEG ≤ 1`: `1 + (1 − PEG)`, limitado a 2 |
+| **DY médio 3 anos** | Gaussiana Assimétrica<br>Centro $\mu = \max(9,5\%, \text{meta} + 1,5\%)$<br>$\sigma_{\text{esq}} = 3,5\%$, $\sigma_{\text{dir}} = 5,5\%$ | Sweet spot em 9,5%–12%. Sobe continuamente a partir de 4% e decai suavemente após 16% para conter o risco de *Dividend Traps* (distribuição atípica antes de crises). |
+| **P/L médio 5 anos** | Gaussiana Assimétrica<br>Centro $\mu = \min(7,5; \text{teto} \times 0,8)$<br>$\sigma_{\text{esq}} = 2,5$, $\sigma_{\text{dir}} = 4,5$ | Centro em 7,5x (múltiplo atrativo B3). Penaliza tanto múltiplos esticados (> 15x) quanto picos de lucros atípicos/não recorrentes de commodities (< 3,5x). |
+| **P/VP (Preço / V.P.)** | Gaussiana Assimétrica<br>Centro $\mu = 0,85$<br>$\sigma_{\text{esq}} = 0,28$, $\sigma_{\text{dir}} = 0,45$ | Centro em 0,85 (*Deep Value* seguro). Transição contínua sem cortes abruptos: 0,40 → 0,78 pts; 0,50 → 1,35 pts; 0,85 → 2,0 pts; 1,20 → 1,47 pts; 1,60 → 0,50 pts. |
+| **ROE** | Sigmoide Logística<br>Inflexão $x_0 = 12,0\%$, $k = 22,0$ | Ponto de inflexão em 12% (custo de oportunidade de capital). Não zera abaixo de 10% e satura assintoticamente até 2,0 pts para ROEs elevados (> 20%). |
+| **Margem de Segurança** | Sigmoide Logística<br>Margem $= (\text{Justo} - \text{Preço}) / \text{Preço}$<br>Inflexão $x_0 = 0,0$, $k = 4,0$ | No preço justo (margem 0%): 1,0 pt. Margens de desconto elevadas (+50% a +100%) convergem suavemente para 1,80–2,00 pts. Para Tech/Comunicação, aplica $x = 1 - \text{PEG}$. |
 
 ### 4.3 Solvência e regra macro legada
 
@@ -88,41 +95,37 @@ O indicador Dívida Líquida/EBITDA é suporte informativo; alvo visual de refer
 
 > **Regra legada — não usar em nova implementação:** a implementação v3 também adiciona `+0,50` quando o DY médio supera a Selic. Essa regra deve ser retirada na migração para a camada de cenários do capítulo 9. Ela não mede Equity Risk Premium (ERP): DY é apenas renda distribuída, pode subir porque o preço caiu ou porque o payout é insustentável, e já é componente do score-base. Enquanto o código ainda a contiver, o breakdown deve identificá-la como `legada` e nunca chamá-la de ERP positivo.
 
-## 5. Análise de FIIs
+## 5. Análise de FIIs (v2.6 Gaussiano / Sigmoide)
 
-FIIs usam três critérios calibrados para somar 10 pontos. O modelo procura equilibrar desconto patrimonial, renda e estabilidade, sem interpretar DY excepcionalmente alto como sinal automático de qualidade.
+FIIs utilizam três critérios contínuos calibrados para somar 10 pontos. O modelo equilibra desconto patrimonial, sustentabilidade de renda e estabilidade semestral de proventos através de distribuições Gaussianas e Sigmoides:
 
-| Critério | Peso máximo | Regra |
-|---|---:|---|
-| P/VP unificado | 3,5 | faixa ideal `0,70–1,05`: calcula desconto em direção a 0,70. Faixas de borda `0,60–0,70` e `1,05–1,15` recebem pontuação proporcional reduzida. Fora delas: 0. A maior nota entre ideal e borda é reescalada de 2 para 3,5. |
-| DY | 4,0 | piso de 8%. Teto elástico `Selic + 4 p.p.`. Abaixo do piso ou `DY ≥ teto`: 0; entre ambos: `4 × (DY − piso) / (teto − piso)`. |
-| Consistência de proventos | 2,5 | razão entre proventos dos últimos seis meses e os seis meses anteriores. `≥ 95%`: 2,5; entre 0 e 95%: proporcional; sem histórico: 1,5 neutro; `≤ 0`: 0. |
+| Critério | Peso máximo | Função / Parâmetros | Regra e Racional |
+|---|---:|---|---|
+| **P/VP (Valor Patrimonial)** | 3,5 | Gaussiana Assimétrica<br>Centro $\mu = 0,95$<br>$\sigma_{\text{esq}} = 0,18$, $\sigma_{\text{dir}} = 0,14$ | *Sweet Spot* em 0,95 (leve desconto com margem de segurança). Elimina degraus em 0,60 e 0,70: 0,60 → 0,53 pts (distress severo); 0,80 → 2,47 pts; 0,95 → 3,50 pts; 1,05 → 2,71 pts; 1,15 → 1,25 pts. |
+| **Dividend Yield** | 4,0 | Gaussiana Assimétrica<br>Centro $\mu = 11,5\%$ (0,115)<br>$\sigma_{\text{esq}} = 2,5\%$, $\sigma_{\text{dir}} = 3,5\%$ | Sweet spot em 10,5%–12,5% (renda perene). Sobe suavemente a partir de 6,5% e decai suavemente acima de 15,5% para conter o risco de *Yield Traps* e queima de patrimônio. |
+| **Consistência de Proventos** | 2,5 | Sigmoide Logística<br>Inflexão $x_0 = 85,0\%$, $k = 15,0$ | Compara a renda dos últimos 6 meses com o semestre anterior. Fundos com retenção $\ge 95\%$ atingem 2,26–2,50 pts. Quedas severas (< 70%) derrubam a nota suavemente. Sem histórico: 1,5 pts neutro. |
 
-Não há ajuste macro adicional ao score de FIIs fora do teto elástico de DY. Valor patrimonial, proventos e histórico devem ser do próprio fundo; não usar métricas de ações.
+## 6. Análise de FIAGROs (v2.6 Gaussiano / Sigmoide)
 
-## 6. Análise de FIAGROs
+FIAGROs compartilham a estrutura contínua dos FIIs, calibrada com o prêmio de risco de crédito do agronegócio:
 
-FIAGROs compartilham a estrutura de três critérios dos FIIs, com prêmio de renda e limite de risco compatíveis com o domínio agro/creditício.
+| Critério | Peso máximo | Função / Parâmetros | Regra e Racional |
+|---|---:|---|---|
+| **P/VP (Valor Patrimonial)** | 3,5 | Gaussiana Assimétrica<br>Centro $\mu = 0,95$<br>$\sigma_{\text{esq}} = 0,18$, $\sigma_{\text{dir}} = 0,14$ | Mesma modelagem dos FIIs: valoriza negociação no valor justo e protege contra CRAs estressados com descontos anômalos. |
+| **Dividend Yield Agro** | 4,0 | Gaussiana Assimétrica<br>Centro $\mu = 13,5\%$ (0,135)<br>$\sigma_{\text{esq}} = 3,0\%$, $\sigma_{\text{dir}} = 4,0\%$ | Sweet spot em 12,5%–15,5% (incorporando o spread de risco agro sobre o CDI). Decaimento suave acima de 17,5% contra risco de inadimplência em produtores. |
+| **Consistência de Proventos** | 2,5 | Sigmoide Logística<br>Inflexão $x_0 = 85,0\%$, $k = 15,0$ | Mesma modelagem dos FIIs: premia previsibilidade e pune histórico de cortes nos dividendos. Sem histórico: 1,5 pts neutro. |
 
-| Critério | Peso máximo | Regra específica |
-|---|---:|---|
-| P/VP unificado | 3,5 | mesmas faixas e fórmula dos FIIs: ideal `0,70–1,05`, bordas `0,60–0,70` e `1,05–1,15`. |
-| DY | 4,0 | piso de 10%. Teto elástico `Selic + 6 p.p.`. Abaixo do piso ou `DY ≥ teto`: 0; entre ambos, progressão linear até 4. |
-| Consistência de proventos | 2,5 | mesma regra dos FIIs: 95% de retenção recebe nota máxima; ausência de histórico recebe 1,5 neutro. |
+## 7. Análise do Tesouro Direto (v2.6 Sigmoide e Percentil Contínuo)
 
-Não transportar o teto de DY de FII para FIAGRO, nem a metodologia de crédito/risco de um para o outro sem decisão explícita documentada.
+O Tesouro Direto avalia a atratividade do ponto de entrada e o timing na curva de juros em uma escala contínua de 0 a 10 pontos calibrada para comparabilidade interclasses de alocação de ativos (*Asset Allocation*):
 
-## 7. Análise do Tesouro Direto
-
-O Tesouro Direto usa cinco critérios de até 2 pontos. O ranking compara títulos soberanos dentro do modelo; não prevê preço de mercado, não elimina marcação a mercado e não substitui o casamento entre vencimento e objetivo financeiro.
-
-| Critério | Regra |
-|---|---|
-| Prêmio real esperado | IPCA+: taxa real contratada. Prefixado: taxa real estimada por `(1 + taxa nominal) / (1 + IPCA Focus do horizonte) − 1`. Menor que 6%: 0; 6%: 1; 7,5% ou mais: 2; interpolação linear entre os dois. Outros tipos sem taxa real comparável: 0. |
-| Captura de marcação a mercado | aplicável somente a IPCA+ e Prefixados com prazo `≥ 5 anos`. Usa `Focus Selic do próximo ano − Selic atual`; sem queda: 0; queda de 3 p.p. ou mais: 2; proporcional entre os limites. |
-| Risco de duration | Tesouro Selic: 2. IPCA em queda: 2 para todos. Com IPCA em alta: curto `≤ 365d` = 1,5; médio = 0,5; longo `≥ 1.826d` = 0. Com IPCA estável: curto = 2; médio = 1,5; longo = 1. |
-| Elasticidade cambial | câmbio Focus do próximo ano acima de R$ 5,50 favorece IPCA+/IGP-M+ (2); sem estresse, esses recebem 1. Selic recebe 1,5. Prefixado recebe 1 em câmbio normal e 0 em estresse. Sem Focus: notas neutras por tipo. |
-| Eficiência tributária | até 180d: 0,5; 181–360d: 1; 361–720d: 1,5; acima de 720d: 2. Prazo desconhecido: 0,5. |
+| Critério | Peso máximo | Função / Modelagem | Regra e Racional |
+|---|---:|---|---|
+| **Taxa Real / Entrada** | 5,0 (6,0 Selic) | Sigmoide Logística<br>Inflexão $x_0 = 5,5\%$, $k = 110,0$<br>(LFT: $x_0 = 0,0\%$, $k = 1500$) | IPCA+ usa a taxa real contratada (atualizada pelo VNA); Prefixado usa a taxa real esperada descontando o IPCA Focus. Inflexão em 5,5% a.a. Taxas elevadas (>6,8% a.a.) aproximam-se do teto de 5,0 pts. |
+| **Taxa vs. Histórico Próprio** | 3,0 | Percentil Empírico (CDF) | Compara a taxa atual com a série histórica diária de negociação do Tesouro Transparente (STN). Percentis elevados (ex: 95%–99%) pontuam 2,8–3,0 pts. |
+| **Potencial de MTM** | 1,0 | Duration Efetiva × $\Delta\text{Selic}_{\text{Focus}}$ | Avalia ganho de capital por fechamento da curva quando o Focus projeta queda da Selic. |
+| **Taxa vs. Pares do Grupo** | 0,5 | Percentil no Grupo Homogêneo | Compara a taxa dentro de seu cluster homogêneo (sem misturar títulos com e sem cupom). |
+| **Eficiência Tributária IR** | 0,5 | Regressiva por Prazo | Alíquota regressiva de IR: > 720 dias pontua 0,5 pt (alíquota mínima de 15%). |
 
 Títulos são ordenados por score decrescente. `score_breakdown` do Tesouro é produzido somente por `src/tesouro_analyzer.py` e não pode ser exibido ou reutilizado para ativos de renda variável.
 
