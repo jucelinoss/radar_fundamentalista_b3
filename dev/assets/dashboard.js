@@ -122,18 +122,20 @@ const tableSortState = {};
             // Atualizar label do PDF
             const pdfLabel = document.getElementById('pdf-label');
             if (pdfLabel) {
-                const names = { home: 'Home', stocks: 'Ações', fiis: 'FIIs', fiagros: 'FIAGROs', sectors: 'Setores', rendafixa: 'Tesouro Direto' };
+                const names = { home: 'Home', global: 'Top Brasil', stocks: 'Ações', fiis: 'FIIs', fiagros: 'FIAGROs', sectors: 'Setores', rendafixa: 'Tesouro Direto' };
                 pdfLabel.textContent = names[tab] || tab;
             }
             const allBtns = document.querySelectorAll('.tab-btn');
             const btnHome = allBtns[0];
-            const btnStocks = allBtns[1];
-            const btnFiis = allBtns[2];
-            const btnFiagros = allBtns[3];
-            const btnSectors = allBtns[4];
-            const btnRendaFixa = allBtns[5];
+            const btnGlobal = allBtns[1];
+            const btnStocks = allBtns[2];
+            const btnFiis = allBtns[3];
+            const btnFiagros = allBtns[4];
+            const btnSectors = allBtns[5];
+            const btnRendaFixa = allBtns[6];
 
             const panelHome = document.getElementById('panel-home');
+            const panelGlobal = document.getElementById('panel-global');
             const panelStocks = document.getElementById('panel-stocks');
             const panelFiis = document.getElementById('panel-fiis');
             const panelFiagros = document.getElementById('panel-fiagros');
@@ -142,7 +144,7 @@ const tableSortState = {};
             const filtersRow = document.querySelector('.filters-row');
 
             allBtns.forEach(b => b.classList.remove('active'));
-            [panelHome, panelStocks, panelFiis, panelFiagros, panelSectors, panelRendaFixa].forEach(p => {
+            [panelHome, panelGlobal, panelStocks, panelFiis, panelFiagros, panelSectors, panelRendaFixa].forEach(p => {
                 if (p) p.classList.add('hidden');
             });
             if (filtersRow) filtersRow.classList.toggle('hidden', !['stocks', 'fiis', 'fiagros'].includes(tab));
@@ -150,6 +152,12 @@ const tableSortState = {};
             if (tab === 'home') {
                 if (btnHome) btnHome.classList.add('active');
                 if (panelHome) panelHome.classList.remove('hidden');
+            } else if (tab === 'global') {
+                if (btnGlobal) btnGlobal.classList.add('active');
+                if (panelGlobal) panelGlobal.classList.remove('hidden');
+                if (window.dashboardData) {
+                    renderGlobalPanel(window.dashboardData);
+                }
             } else if (tab === 'stocks') {
                 if (btnStocks) btnStocks.classList.add('active');
                 if (panelStocks) panelStocks.classList.remove('hidden');
@@ -1539,6 +1547,7 @@ const tableSortState = {};
                     }).join('');
 
                     // Initialize view and tab filters
+                    renderGlobalPanel(data);
                     if (typeof checkRefreshStatus === 'function') checkRefreshStatus();
                     filterTable();
                 });
@@ -1730,6 +1739,19 @@ const tableSortState = {};
             // ---- Top Picks ----
             const home = data.home || {};
 
+            // Top Global Interclasses (Top 5 Absoluto de Todas as Classes)
+            var allGlobalItems = []
+                .concat((data.stocks || []).map(function(s) { return Object.assign({}, s, { _type: 'stock' }); }))
+                .concat((data.fiis || []).map(function(f) { return Object.assign({}, f, { _type: 'fii' }); }))
+                .concat((data.fiagros || []).map(function(g) { return Object.assign({}, g, { _type: 'fiagro' }); }))
+                .concat((data.tesouro_direto || []).filter(function(td) { return isTdAvailableForPurchase(td, true); }).map(function(t) { return Object.assign({}, t, { _type: 'tesouro' }); }));
+
+            allGlobalItems.sort(function(a, b) { return (b.score || 0) - (a.score || 0); });
+
+            renderTopPicks(document.getElementById('home-top-global'),
+                allGlobalItems.slice(0, 5)
+            );
+
             // Top Stocks
             renderTopPicks(document.getElementById('home-top-stocks'),
                 (home.top_stocks || data.top_stocks || []).slice(0, 5).map(function(s) {
@@ -1760,6 +1782,236 @@ const tableSortState = {};
                     return Object.assign({}, s, { _type: 'tesouro' });
                 })
             );
+        }
+
+        let globalSortKey = 'score';
+        let globalSortAsc = false;
+        let currentGlobalFilter = 'all';
+
+        function filterGlobalClass(filterType) {
+            currentGlobalFilter = filterType;
+            const btnIds = ['all', 'premium', 'tesouro', 'fii', 'fiagro', 'stock'];
+            btnIds.forEach(id => {
+                const btn = document.getElementById(`btn-global-filter-${id}`);
+                if (btn) {
+                    if (id === filterType) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                }
+            });
+            if (window.dashboardData) {
+                renderGlobalPanel(window.dashboardData);
+            }
+        }
+
+        function sortGlobalTable(key) {
+            if (globalSortKey === key) {
+                globalSortAsc = !globalSortAsc;
+            } else {
+                globalSortKey = key;
+                globalSortAsc = key === 'ticker' || key === 'rank';
+            }
+            if (window.dashboardData) {
+                renderGlobalPanel(window.dashboardData);
+            }
+        }
+
+        function renderGlobalPanel(data) {
+            if (!data) return;
+            const tbody = document.getElementById('global-tbody');
+            const countEl = document.getElementById('global-count');
+            if (!tbody) return;
+
+            let items = [];
+
+            // 1. Stocks
+            (data.stocks || []).forEach(s => {
+                const pe = s.pe_ratio != null ? s.pe_ratio.toFixed(1) + 'x' : 'N/A';
+                const pb = s.pb_ratio != null ? s.pb_ratio.toFixed(2) : 'N/A';
+                const roe = s.roe != null ? (s.roe * 100).toFixed(1) + '%' : 'N/A';
+                const dy = s.dividend_yield != null ? (s.dividend_yield * 100).toFixed(1) + '%' : '0.0%';
+                const graham = s.graham_price ? 'R$ ' + s.graham_price.toFixed(2) : '';
+                const highlight = graham ? `Graham ${graham} · ROE ${roe}` : `ROE ${roe}`;
+
+                items.push({
+                    ticker: s.ticker,
+                    name: s.name,
+                    type: 'stock',
+                    typeLabel: '📈 Ação',
+                    priceOrRate: s.price ? 'R$ ' + s.price.toFixed(2) : 'N/A',
+                    priceVal: s.price || 0,
+                    yield: 'DY ' + dy,
+                    yieldVal: s.dividend_yield || 0,
+                    metric: `P/VP ${pb} · P/L ${pe}`,
+                    metricVal: s.pb_ratio || 0,
+                    highlight: highlight,
+                    score: s.score || 0,
+                    badge: s.score >= 8.0 ? 'premium' : (s.score >= 6.0 ? 'bom' : (s.score >= 4.0 ? 'regular' : 'risco')),
+                    raw: s
+                });
+            });
+
+            // 2. FIIs
+            (data.fiis || []).forEach(f => {
+                const pb = f.pb_ratio != null ? f.pb_ratio.toFixed(2) : 'N/A';
+                const dy = f.dividend_yield != null ? (f.dividend_yield * 100).toFixed(1) + '%' : '0.0%';
+                const cons = f.dividend_consistency != null ? (f.dividend_consistency * 100).toFixed(0) + '%' : 'N/D';
+                const highlight = `P/VP ${pb} · Retenção ${cons}`;
+
+                items.push({
+                    ticker: f.ticker,
+                    name: f.name,
+                    type: 'fii',
+                    typeLabel: '🏢 FII',
+                    priceOrRate: f.price ? 'R$ ' + f.price.toFixed(2) : 'N/A',
+                    priceVal: f.price || 0,
+                    yield: 'DY ' + dy,
+                    yieldVal: f.dividend_yield || 0,
+                    metric: `P/VP ${pb}`,
+                    metricVal: f.pb_ratio || 0,
+                    highlight: highlight,
+                    score: f.score || 0,
+                    badge: f.score >= 8.0 ? 'premium' : (f.score >= 6.0 ? 'bom' : (f.score >= 4.0 ? 'regular' : 'risco')),
+                    raw: f
+                });
+            });
+
+            // 3. FIAGROs
+            (data.fiagros || []).forEach(g => {
+                const pb = g.pb_ratio != null ? g.pb_ratio.toFixed(2) : 'N/A';
+                const dy = g.dividend_yield != null ? (g.dividend_yield * 100).toFixed(1) + '%' : '0.0%';
+                const cons = g.dividend_consistency != null ? (g.dividend_consistency * 100).toFixed(0) + '%' : 'N/D';
+                const highlight = `Spread Agro · Retenção ${cons}`;
+
+                items.push({
+                    ticker: g.ticker,
+                    name: g.name,
+                    type: 'fiagro',
+                    typeLabel: '🌱 FIAGRO',
+                    priceOrRate: g.price ? 'R$ ' + g.price.toFixed(2) : 'N/A',
+                    priceVal: g.price || 0,
+                    yield: 'DY ' + dy,
+                    yieldVal: g.dividend_yield || 0,
+                    metric: `P/VP ${pb}`,
+                    metricVal: g.pb_ratio || 0,
+                    highlight: highlight,
+                    score: g.score || 0,
+                    badge: g.score >= 8.0 ? 'premium' : (g.score >= 6.0 ? 'bom' : (g.score >= 4.0 ? 'regular' : 'risco')),
+                    raw: g
+                });
+            });
+
+            // 4. Tesouro Direto
+            (data.tesouro_direto || []).filter(td => isTdAvailableForPurchase(td, true)).forEach(t => {
+                const isSelic = t.type === 'Selic' || t.type === 'Reserva';
+                const rateFmt = isSelic ? ('Selic ' + (t.buy_yield >= 0 ? '+' : '') + (t.buy_yield * 100).toFixed(4) + '%') : (t.type === 'Prefixado' ? (t.buy_yield * 100).toFixed(2) + '% a.a.' : 'IPCA + ' + (t.buy_yield * 100).toFixed(2) + '%');
+                const yieldFmt = isSelic ? 'Pós-fixado Selic' : (t.type === 'Prefixado' ? 'Prefixado Nominal' : 'Juro Real ' + (t.buy_yield * 100).toFixed(2) + '%');
+                const perc = t.historical_yield_percentile != null ? 'P' + t.historical_yield_percentile + ' STN' : 'STN';
+                const days = t.days_to_maturity ? t.days_to_maturity + 'd' : '';
+                const highlight = isSelic ? 'Reserva de Liquidez' : `VNA Soberano · ${perc} · ${days}`;
+
+                items.push({
+                    ticker: t.name,
+                    name: t.name,
+                    type: 'tesouro',
+                    typeLabel: '🪙 Tesouro',
+                    priceOrRate: rateFmt,
+                    priceVal: t.buy_yield || 0,
+                    yield: yieldFmt,
+                    yieldVal: t.buy_yield || 0,
+                    metric: perc,
+                    metricVal: t.historical_yield_percentile || 0,
+                    highlight: highlight,
+                    score: t.score || 0,
+                    badge: t.badge || (t.score >= 8.0 ? 'premium' : (t.score >= 6.0 ? 'bom' : (t.score >= 4.0 ? 'regular' : 'risco'))),
+                    raw: t
+                });
+            });
+
+            // Filter
+            if (currentGlobalFilter === 'premium') {
+                items = items.filter(i => i.score >= 8.0);
+            } else if (currentGlobalFilter !== 'all') {
+                items = items.filter(i => i.type === currentGlobalFilter);
+            }
+
+            // Sort
+            items.sort((a, b) => {
+                let valA, valB;
+                if (globalSortKey === 'rank' || globalSortKey === 'score') {
+                    valA = a.score;
+                    valB = b.score;
+                } else if (globalSortKey === 'ticker') {
+                    valA = a.ticker;
+                    valB = b.ticker;
+                    return globalSortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                } else if (globalSortKey === 'type') {
+                    valA = a.type;
+                    valB = b.type;
+                    return globalSortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                } else if (globalSortKey === 'price') {
+                    valA = a.priceVal;
+                    valB = b.priceVal;
+                } else if (globalSortKey === 'yield') {
+                    valA = a.yieldVal;
+                    valB = b.yieldVal;
+                } else if (globalSortKey === 'metric') {
+                    valA = a.metricVal;
+                    valB = b.metricVal;
+                } else if (globalSortKey === 'badge') {
+                    valA = a.score;
+                    valB = b.score;
+                } else {
+                    valA = a.score;
+                    valB = b.score;
+                }
+                return globalSortAsc ? valA - valB : valB - valA;
+            });
+
+            if (countEl) {
+                countEl.textContent = `${items.length} ${items.length === 1 ? 'ativo' : 'ativos'}`;
+            }
+
+            tbody.innerHTML = items.map((item, idx) => {
+                const rank = idx + 1;
+                const badgeClass = getScoreRangeClass(item.score);
+                const badgeLabel = item.badge === 'premium' || item.score >= 8.0 ? 'PREMIUM' : (item.badge === 'bom' || item.score >= 6.0 ? 'BOM' : (item.badge === 'regular' || item.score >= 4.0 ? 'REGULAR' : 'RISCO'));
+                let onclick = '';
+                if (item.type === 'tesouro') {
+                    const safeName = item.name.replace(/'/g, "\\'");
+                    onclick = `openTdDetailFromHome('${safeName}')`;
+                } else {
+                    onclick = `openDetailModal('${item.ticker}', '${item.type}')`;
+                }
+
+                const typeBadgeStyle = item.type === 'stock' ? 'background:rgba(59,130,246,0.15);color:var(--primary);' :
+                    item.type === 'fii' ? 'background:rgba(16,185,129,0.15);color:var(--accent-green);' :
+                    item.type === 'fiagro' ? 'background:rgba(245,158,11,0.15);color:var(--accent-gold);' :
+                    'background:rgba(139,92,246,0.15);color:#a78bfa;';
+
+                return `
+                <tr onclick="${onclick}" style="cursor:pointer;">
+                    <td style="font-weight:700; color:var(--text-muted); width:45px;">#${rank}</td>
+                    <td>
+                        <div style="font-weight:700; color:var(--text-primary);">${item.ticker}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted); max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.name}</div>
+                    </td>
+                    <td>
+                        <span style="font-size:0.75rem; padding:0.2rem 0.5rem; border-radius:6px; font-weight:600; display:inline-block; ${typeBadgeStyle}">
+                            ${item.typeLabel}
+                        </span>
+                    </td>
+                    <td style="font-weight:600;">${item.priceOrRate}</td>
+                    <td class="positive" style="font-weight:600;">${item.yield}</td>
+                    <td style="font-size:0.85rem;">${item.metric}</td>
+                    <td style="font-size:0.8rem; color:var(--text-secondary);">${item.highlight}</td>
+                    <td>
+                        <span class="score-pill ${badgeClass}">${formatScore(item.score)}</span>
+                    </td>
+                    <td>
+                        <span class="td-badge ${item.badge || 'regular'}">${badgeLabel}</span>
+                    </td>
+                </tr>`;
+            }).join('');
         }
 
         function isTdAvailableForPurchase(td, allowSummary) {
