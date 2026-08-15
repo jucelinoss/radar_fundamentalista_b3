@@ -7,7 +7,7 @@ and top picks, then renders the Jinja2 template to produce dashboard.html.
 import json
 import logging
 import os
-from datetime import date, datetime
+from datetime import date, datetime, timezone, timedelta
 from typing import Any
 
 import database
@@ -588,7 +588,8 @@ def generate_dashboard() -> None:
         for b in tesouro_direto_payload[:5]
     ] if tesouro_direto_payload else []
 
-    now: datetime = datetime.now()
+    br_tz = timezone(timedelta(hours=-3))
+    now: datetime = datetime.now(br_tz)
     timestamp_str: str = now.strftime("%d/%m/%Y %H:%M:%S")
 
     data_payload = {

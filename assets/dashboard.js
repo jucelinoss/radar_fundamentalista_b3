@@ -1731,7 +1731,14 @@ const tableSortState = {};
                 const homeTs = document.getElementById('home-timestamp');
                 if (homeTs && macro.fetched_at) {
                     const focusOfficial = macro.data_sources?.focus === 'bcb_expectativas_odata';
-                    homeTs.textContent = 'Atualizado em: ' + macro.fetched_at +
+                    let formattedMacroTs = macro.fetched_at;
+                    try {
+                        const d = new Date(macro.fetched_at);
+                        if (!isNaN(d.getTime())) {
+                            formattedMacroTs = d.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+                        }
+                    } catch (e) {}
+                    homeTs.textContent = 'Atualizado em: ' + formattedMacroTs +
                         (focusOfficial ? ' · Focus: BCB/OData' : ' · ⚠️ Focus indisponível');
                 }
             }
