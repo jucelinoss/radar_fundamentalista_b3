@@ -4830,6 +4830,8 @@ const tableSortState = {};
                 const buyYield = Number(td.buy_yield) || 0;
                 let nominalYield = buyYield * 100;
                 const tipo = (td.type || td.group || '').toLowerCase();
+                const name = (td.name || td.ticker || '').toLowerCase();
+                const hasCoupon = name.includes('juros semestrais') || name.includes('com juros') || tipo.includes('com juros') || tipo.includes('renda+') || tipo.includes('educa+');
                 if (tipo.includes('selic') || td.yield_kind === 'selic_spread') {
                     nominalYield = (selicMeta + buyYield) * 100;
                 } else if (tipo.includes('ipca')) {
@@ -4842,7 +4844,8 @@ const tableSortState = {};
                     label: `${td.name || td.ticker} (Yield ~${nominalYield.toFixed(2)}% a.a.)`,
                     dy: nominalYield,
                     price: price,
-                    taxType: 'tesouro'
+                    taxType: 'tesouro',
+                    hasCoupon: hasCoupon
                 });
             });
 
@@ -4865,7 +4868,7 @@ const tableSortState = {};
             const filtered = selectedCat === 'all' ? catalog : catalog.filter(item => item.category === selectedCat);
 
             assetSelect.innerHTML = filtered.map(item => {
-                return `<option value="${item.id}" data-category="${item.category}" data-dy="${item.dy.toFixed(2)}" data-price="${item.price.toFixed(2)}" data-tax="${item.taxType}">${item.label}</option>`;
+                return `<option value="${item.id}" data-category="${item.category}" data-dy="${item.dy.toFixed(2)}" data-price="${item.price.toFixed(2)}" data-tax="${item.taxType}" data-has-coupon="${item.hasCoupon ? 'true' : 'false'}">${item.label}</option>`;
             }).join('');
 
             if (mode === 'goal') {
@@ -4963,9 +4966,11 @@ const tableSortState = {};
 
             let price = 0;
             let cat = 'stocks';
+            let hasCoupon = true;
             if (opt) {
                 price = parseFloat(opt.dataset.price) || 0;
                 cat = opt.dataset.category || 'stocks';
+                hasCoupon = opt.dataset.hasCoupon !== 'false';
             }
 
             if (price > 0 && sharesEl && sharesRow) {
@@ -4979,7 +4984,11 @@ const tableSortState = {};
 
             if (magicDescEl) {
                 if (cat === 'tesouro') {
-                    magicDescEl.textContent = `Títulos do Tesouro possuem garantia soberana da União e retenção de IR na fonte de 15% após 2 anos.`;
+                    if (!hasCoupon) {
+                        magicDescEl.textContent = `⚠️ Título sem cupom: os rendimentos não caem mensalmente na conta e são pagos integralmente no vencimento/resgate. Para renda periódica, utilize títulos com Juros Semestrais, FIIs ou Ações de dividendos.`;
+                    } else {
+                        magicDescEl.textContent = `Títulos do Tesouro com juros semestrais pagam cupons diretamente na conta com retenção de IR na fonte (15% após 2 anos).`;
+                    }
                 } else if (cat === 'fiis' || cat === 'fiagros') {
                     magicDescEl.textContent = `Rendimentos mensais de FIIs e FIAGROs são 100% isentos de Imposto de Renda para pessoas físicas.`;
                 } else {
@@ -5003,6 +5012,10 @@ const tableSortState = {};
             const monthlyIncomeEl = document.getElementById('calc-snow-result-monthly-income');
             const magicTitleEl = document.getElementById('calc-magic-number-title');
             const magicDescEl = document.getElementById('calc-magic-number-desc');
+            const magicIconEl = document.getElementById('calc-snow-magic-icon');
+            const magicCardTitleEl = document.getElementById('calc-snow-card-title');
+            const monthlyIncomeLabelEl = document.getElementById('calc-snow-monthly-income-label');
+            const divLabelEl = document.getElementById('calc-snow-result-dividends-label');
 
             if (!initialEl || !monthlyEl || !dyEl || !yearsEl) return;
 
@@ -5050,25 +5063,48 @@ const tableSortState = {};
             if (taxEl) {
                 taxEl.textContent = taxRate > 0 ? `R$ ${finalTaxEstimated.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${(taxRate * 100).toFixed(1)}% retido)` : `R$ 0,00 (Isento)`;
             }
-            if (monthlyIncomeEl) monthlyIncomeEl.textContent = `R$ ${finalMonthlyNetIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / mês líquido`;
 
             let price = 0;
             let cat = 'stocks';
+            let hasCoupon = true;
             if (opt) {
                 price = parseFloat(opt.dataset.price) || 0;
                 cat = opt.dataset.category || 'stocks';
+                hasCoupon = opt.dataset.hasCoupon !== 'false';
             }
 
-            const unitName = cat === 'tesouro' ? 'títulos' : (cat === 'stocks' ? 'ações' : 'cotas');
-            if (price > 0 && monthlyNetRate > 0) {
-                const magicNumber = Math.ceil(1 / monthlyNetRate);
-                const magicCapital = magicNumber * price;
-                if (magicTitleEl) magicTitleEl.textContent = `Magic Number: ${magicNumber.toLocaleString('pt-BR')} ${unitName}`;
-                if (magicDescEl) magicDescEl.textContent = `Com R$ ${magicCapital.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} investidos, seus proventos líquidos compram 1 novo ${unitName.slice(0, -1)} todos os meses automaticamente!`;
-            } else if (monthlyNetRate > 0) {
-                const magicNumber = Math.ceil(1 / monthlyNetRate);
-                if (magicTitleEl) magicTitleEl.textContent = `Ponto de Virada: ~${magicNumber}x de Yield`;
-                if (magicDescEl) magicDescEl.textContent = `A uma taxa líquida de ${(netAnnualDy * 100).toFixed(2)}% a.a., cada R$ ${(1 / monthlyNetRate * 100).toFixed(0)} investidos geram R$ 100 de novos aportes automáticos todo mês.`;
+            const isNonCouponTreasury = (cat === 'tesouro' && !hasCoupon);
+
+            if (isNonCouponTreasury) {
+                if (magicCardTitleEl) magicCardTitleEl.textContent = 'Acumulação de Capital & Juros Compostos';
+                if (magicIconEl) magicIconEl.textContent = '🏛️';
+                if (magicTitleEl) magicTitleEl.textContent = 'Título sem Cupom (Capitalização no PU)';
+                if (magicDescEl) {
+                    magicDescEl.textContent = `Este título reinveste 100% dos juros e da correção monetária no próprio Preço Unitário (PU). Não distribui proventos periódicos em conta: o ganho total acumulado (R$ ${finalDividendsNet.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}) é resgatado no vencimento.`;
+                }
+                if (divLabelEl) divLabelEl.textContent = 'Rentabilidade Acumulada em Juros/Correção (Líquida):';
+                if (monthlyIncomeLabelEl) monthlyIncomeLabelEl.textContent = 'Rendimento Médio Mensal Equivalente (no Vencimento):';
+                if (monthlyIncomeEl) monthlyIncomeEl.textContent = `R$ ${finalMonthlyNetIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / mês (acumulado)`;
+            } else {
+                if (magicCardTitleEl) magicCardTitleEl.textContent = 'O Efeito Bola de Neve (Magic Number)';
+                if (magicIconEl) magicIconEl.textContent = '❄️';
+                if (divLabelEl) divLabelEl.textContent = 'Renda Gerada por Juros/Dividendos (Líquida):';
+                if (monthlyIncomeLabelEl) monthlyIncomeLabelEl.textContent = 'Renda Mensal Líquida no Final do Período:';
+                if (monthlyIncomeEl) monthlyIncomeEl.textContent = `R$ ${finalMonthlyNetIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / mês líquido`;
+
+                const unitName = cat === 'tesouro' ? 'títulos' : (cat === 'stocks' ? 'ações' : 'cotas');
+                const singleUnitName = cat === 'tesouro' ? 'novo título' : (cat === 'stocks' ? 'nova ação' : 'nova cota');
+
+                if (price > 0 && monthlyNetRate > 0) {
+                    const magicNumber = Math.ceil(1 / monthlyNetRate);
+                    const magicCapital = magicNumber * price;
+                    if (magicTitleEl) magicTitleEl.textContent = `Magic Number: ${magicNumber.toLocaleString('pt-BR')} ${unitName}`;
+                    if (magicDescEl) magicDescEl.textContent = `Com R$ ${magicCapital.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} investidos, seus proventos líquidos compram 1 ${singleUnitName} todos os meses automaticamente!`;
+                } else if (monthlyNetRate > 0) {
+                    const magicNumber = Math.ceil(1 / monthlyNetRate);
+                    if (magicTitleEl) magicTitleEl.textContent = `Ponto de Virada: ~${magicNumber}x de Yield`;
+                    if (magicDescEl) magicDescEl.textContent = `A uma taxa líquida de ${(netAnnualDy * 100).toFixed(2)}% a.a., cada R$ ${(1 / monthlyNetRate * 100).toFixed(0)} investidos geram R$ 100 de novos aportes automáticos todo mês.`;
+                }
             }
 
             renderSnowballChart(historyPoints);

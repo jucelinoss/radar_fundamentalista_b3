@@ -296,3 +296,11 @@ class TestCalculatorDOMContract:
         assert "data.tesouro_direto" in js_content
         assert "setComparePreset('top_tesouro')" in js_content or "type === 'top_tesouro'" in js_content
         assert "_class: 'tesouro'" in js_content
+
+    def test_simulator_non_coupon_treasury_handling(self, html_content, js_content):
+        """Valida que títulos do Tesouro sem cupom recebem tratamento de capitalização no PU em vez de Magic Number."""
+        assert 'id="calc-snow-card-title"' in html_content
+        assert 'id="calc-snow-magic-icon"' in html_content
+        assert 'hasCoupon' in js_content
+        assert 'isNonCouponTreasury' in js_content
+        assert 'Título sem Cupom (Capitalização no PU)' in js_content

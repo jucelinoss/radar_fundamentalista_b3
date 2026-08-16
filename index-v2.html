@@ -578,9 +578,9 @@
                 </div>
 
                 <div class="calc-card">
-                    <h3 style="font-size: 0.95rem; font-weight: 700;">O Efeito Bola de Neve (Magic Number)</h3>
-                    <div class="calc-magic-badge">
-                        <div class="calc-magic-icon">❄️</div>
+                    <h3 id="calc-snow-card-title" style="font-size: 0.95rem; font-weight: 700;">O Efeito Bola de Neve (Magic Number)</h3>
+                    <div class="calc-magic-badge" id="calc-snow-magic-badge">
+                        <div class="calc-magic-icon" id="calc-snow-magic-icon">❄️</div>
                         <div class="calc-magic-text">
                             <strong id="calc-magic-number-title">Magic Number: Calculando...</strong>
                             <span id="calc-magic-number-desc">O número de cotas ou títulos para reinvestir 1 nova cota todo mês 100% com proventos líquidos.</span>
@@ -596,7 +596,7 @@
                             <span class="calc-stat-val" id="calc-snow-result-invested">R$ 0,00</span>
                         </div>
                         <div class="calc-stat-item">
-                            <span style="color: var(--text-secondary);">Renda Gerada por Juros/Dividendos (Líquida):</span>
+                            <span id="calc-snow-result-dividends-label" style="color: var(--text-secondary);">Renda Gerada por Juros/Dividendos (Líquida):</span>
                             <span class="calc-stat-val" id="calc-snow-result-dividends" style="color: var(--gold);">R$ 0,00</span>
                         </div>
                         <div class="calc-stat-item">
@@ -604,7 +604,7 @@
                             <span class="calc-stat-val" id="calc-snow-result-tax" style="color: var(--text-muted);">R$ 0,00</span>
                         </div>
                         <div class="calc-stat-item">
-                            <span style="color: var(--text-secondary);">Renda Mensal Líquida no Final do Período:</span>
+                            <span id="calc-snow-monthly-income-label" style="color: var(--text-secondary);">Renda Mensal Líquida no Final do Período:</span>
                             <span class="calc-stat-val" id="calc-snow-result-monthly-income" style="font-weight: 800; color: var(--positive);">R$ 0,00 / mês</span>
                         </div>
                     </div>
