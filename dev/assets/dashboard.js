@@ -168,7 +168,7 @@ const tableSortState = {};
                     fiis: 'FIIs',
                     fiagros: 'FIAGROs',
                     compare: 'Comparador',
-                    calculator: 'Simulador',
+                    calculator: 'Calculadora de Investimentos',
                     macro: 'Previsor Macro',
                     sectors: 'Setores',
                     rendafixa: 'Tesouro Direto'
@@ -257,6 +257,9 @@ const tableSortState = {};
 
             filterTable();
             if (typeof syncUrlFromState === 'function') syncUrlFromState();
+            if (typeof initTableColumnResizers === 'function') {
+                setTimeout(initTableColumnResizers, 60);
+            }
         }
 
         function filterTable() {
@@ -2577,6 +2580,9 @@ const tableSortState = {};
                     }).join('');
                     if (countEl) countEl.textContent = tdData.length + ' título' + (tdData.length !== 1 ? 's' : '');
                 }
+                if (typeof initTableColumnResizers === 'function') {
+                    setTimeout(initTableColumnResizers, 30);
+                }
             }
 
             // ---- ETTJ: cria somente quando o painel puder ser medido ----
@@ -2986,7 +2992,7 @@ const tableSortState = {};
                     csv.push(`"DETALHAMENTO DO SCORE"`);
                     csv.push(`"Critério","Pontuação Obtida","Pontuação Máxima"`);
                     bond.score_breakdown.forEach(b => {
-                        csv.push(`"${(b.label || '').replace(/"/g, '""')}","${b.score != null ? b.score.toFixed(1) : '0.0'}","${b.max != null ? b.max.toFixed(0) : '0'}"`);
+                        csv.push(`"${(b.label || '').replace(/"/g, '""')}","${b.score != null ? b.score.toFixed(1) : '0.0'}","${b.max != null ? (b.max % 1 === 0 ? b.max.toFixed(0) : b.max.toFixed(1)) : '0'}"`);
                     });
                 }
 
@@ -3008,7 +3014,7 @@ const tableSortState = {};
                     lines.push(``);
                     lines.push(`🎯 DETALHAMENTO DO SCORE:`);
                     bond.score_breakdown.forEach(b => {
-                        lines.push(`• ${b.label}: ${b.score.toFixed(1)} / ${b.max.toFixed(0)}`);
+                        lines.push(`• ${b.label}: ${b.score.toFixed(1)} / ${(b.max % 1 === 0 ? b.max.toFixed(0) : b.max.toFixed(1))}`);
                     });
                 }
 
@@ -3667,7 +3673,7 @@ const tableSortState = {};
                         itemEl.innerHTML = [
                             '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem;">',
                             '  <span class="hint" tabindex="0" data-tip="', b.tip || '', '" style="font-weight:700;font-size:0.85rem;">', b.label, ' ⓘ</span>',
-                            '  <span style="font-size:0.85rem;color:var(--text-secondary);font-weight:600;">', b.score.toFixed(1), ' / ', b.max.toFixed(0), '</span>',
+                            '  <span style="font-size:0.85rem;color:var(--text-secondary);font-weight:600;">', b.score.toFixed(1), ' / ', (b.max % 1 === 0 ? b.max.toFixed(0) : b.max.toFixed(1)), '</span>',
                             '</div>',
                             '<div class="bar-container">',
                             '  <div class="bar-fill" style="width:', pct, '%;background:', barColor, ';"></div>',
@@ -4744,16 +4750,73 @@ const tableSortState = {};
             currentCalcMode = mode;
             const btnGoal = document.getElementById('btn-calc-mode-goal');
             const btnSnow = document.getElementById('btn-calc-mode-snowball');
+            const btnRf = document.getElementById('btn-calc-mode-compare-rf');
+            const btnFire = document.getElementById('btn-calc-mode-fire');
+            const btnRules = document.getElementById('btn-calc-mode-rules');
+
             const gridGoal = document.getElementById('calc-grid-goal');
             const gridSnow = document.getElementById('calc-grid-snowball');
+            const gridRf = document.getElementById('calc-grid-compare-rf');
+            const gridFire = document.getElementById('calc-grid-fire');
+            const gridRules = document.getElementById('calc-grid-rules');
 
             if (btnGoal) btnGoal.classList.toggle('active', mode === 'goal');
             if (btnSnow) btnSnow.classList.toggle('active', mode === 'snowball');
+            if (btnRf) btnRf.classList.toggle('active', mode === 'compare_rf');
+            if (btnFire) btnFire.classList.toggle('active', mode === 'fire');
+            if (btnRules) btnRules.classList.toggle('active', mode === 'rules');
+
             if (gridGoal) gridGoal.classList.toggle('hidden', mode !== 'goal');
             if (gridSnow) gridSnow.classList.toggle('hidden', mode !== 'snowball');
+            if (gridRf) gridRf.classList.toggle('hidden', mode !== 'compare_rf');
+            if (gridFire) gridFire.classList.toggle('hidden', mode !== 'fire');
+            if (gridRules) gridRules.classList.toggle('hidden', mode !== 'rules');
 
             if (mode === 'goal') calculateIncomeGoal();
-            else calculateSnowball();
+            else if (mode === 'snowball') calculateSnowball();
+            else if (mode === 'compare_rf') calculateRfComparison();
+            else if (mode === 'fire') calculateFireRetirement();
+            else if (mode === 'rules') calculateAllRules();
+        }
+
+        function setGoalPreset(val) {
+            const input = document.getElementById('calc-goal-target');
+            if (input) {
+                input.value = val;
+                const buttons = document.querySelectorAll('#calc-grid-goal .calc-preset-btn');
+                buttons.forEach(b => b.classList.toggle('active', b.textContent.includes(val.toLocaleString('pt-BR'))));
+                calculateIncomeGoal();
+            }
+        }
+
+        function setSnowMonthlyPreset(val) {
+            const input = document.getElementById('calc-snow-monthly');
+            if (input) {
+                input.value = val;
+                const buttons = document.querySelectorAll('#calc-grid-snowball .calc-preset-btn');
+                buttons.forEach(b => b.classList.toggle('active', b.textContent.includes(val.toLocaleString('pt-BR'))));
+                calculateSnowball();
+            }
+        }
+
+        function setRfAmountPreset(val) {
+            const input = document.getElementById('calc-rf-amount');
+            if (input) {
+                input.value = val;
+                const buttons = document.querySelectorAll('#calc-grid-compare-rf .calc-preset-btn');
+                buttons.forEach(b => b.classList.toggle('active', b.textContent.includes(val.toLocaleString('pt-BR'))));
+                calculateRfComparison();
+            }
+        }
+
+        function setFireCapitalPreset(val) {
+            const input = document.getElementById('calc-fire-capital');
+            if (input) {
+                input.value = val;
+                const buttons = document.querySelectorAll('#calc-grid-fire .calc-preset-btn');
+                buttons.forEach(b => b.classList.toggle('active', b.textContent.includes(val >= 1000000 ? `${val / 1000000} Milh` : `${val / 1000}k`)));
+                calculateFireRetirement();
+            }
         }
 
         function getCalculatorAssetCatalog() {
@@ -5107,6 +5170,19 @@ const tableSortState = {};
                 }
             }
 
+            // Atualiza barra de progresso visual
+            const pctInvested = balance > 0 ? Math.min(100, Math.max(0, Math.round((totalInvested / balance) * 100))) : 50;
+            const pctReturns = 100 - pctInvested;
+            const barInvested = document.getElementById('calc-snow-bar-invested');
+            const barReturns = document.getElementById('calc-snow-bar-returns');
+            const textInvested = document.getElementById('calc-snow-pct-invested');
+            const textReturns = document.getElementById('calc-snow-pct-returns');
+
+            if (barInvested) barInvested.style.width = `${pctInvested}%`;
+            if (barReturns) barReturns.style.width = `${pctReturns}%`;
+            if (textInvested) textInvested.textContent = `${pctInvested}% (R$ ${totalInvested.toLocaleString('pt-BR', { maximumFractionDigits: 0 })})`;
+            if (textReturns) textReturns.textContent = `${pctReturns}% (R$ ${finalDividendsNet.toLocaleString('pt-BR', { maximumFractionDigits: 0 })})`;
+
             renderSnowballChart(historyPoints);
         }
 
@@ -5184,10 +5260,302 @@ const tableSortState = {};
             });
         }
 
+        function calculateRfComparison() {
+            const amountInput = document.getElementById('calc-rf-amount');
+            const daysSelect = document.getElementById('calc-rf-days');
+            const cdiInput = document.getElementById('calc-rf-cdi');
+            const cdbPctInput = document.getElementById('calc-rf-cdb-pct');
+            const lciPctInput = document.getElementById('calc-rf-lci-pct');
+            const tdYieldInput = document.getElementById('calc-rf-td-yield');
+
+            const amount = Math.max(100, parseFloat(amountInput?.value) || 10000);
+            const days = parseInt(daysSelect?.value) || 720;
+            const years = days / 365.0;
+            const cdiRate = (parseFloat(cdiInput?.value) || 13.0) / 100.0;
+            const cdbPct = (parseFloat(cdbPctInput?.value) || 110.0) / 100.0;
+            const lciPct = (parseFloat(lciPctInput?.value) || 92.0) / 100.0;
+            const tdYield = (parseFloat(tdYieldInput?.value) || 14.5) / 100.0;
+
+            // Alíquota regressiva de IR Renda Fixa
+            let taxRate = 0.15;
+            if (days <= 180) taxRate = 0.225;
+            else if (days <= 360) taxRate = 0.20;
+            else if (days <= 720) taxRate = 0.175;
+            else taxRate = 0.15;
+
+            // 1. CDB (Tributado)
+            const cdbGrossAnnual = cdiRate * cdbPct;
+            const cdbTotalGross = amount * Math.pow(1 + cdbGrossAnnual, years);
+            const cdbProfitGross = cdbTotalGross - amount;
+            const cdbTax = cdbProfitGross * taxRate;
+            const cdbNet = cdbTotalGross - cdbTax;
+
+            // 2. LCI / LCA (Isento de IR)
+            const lciNetAnnual = cdiRate * lciPct;
+            const lciNet = amount * Math.pow(1 + lciNetAnnual, years);
+
+            // 3. Tesouro Direto (Tributado)
+            const tdTotalGross = amount * Math.pow(1 + tdYield, years);
+            const tdProfitGross = tdTotalGross - amount;
+            const tdTax = tdProfitGross * taxRate;
+            const tdNet = tdTotalGross - tdTax;
+
+            // Atualiza UI
+            const cdbGrossTaxEl = document.getElementById('calc-cdb-gross-tax');
+            const cdbNetValEl = document.getElementById('calc-cdb-net-val');
+            const lciNetValEl = document.getElementById('calc-lci-net-val');
+            const tdGrossTaxEl = document.getElementById('calc-td-gross-tax');
+            const tdNetValEl = document.getElementById('calc-td-net-val');
+
+            if (cdbGrossTaxEl) cdbGrossTaxEl.textContent = `${(cdbGrossAnnual * 100).toFixed(2)}% a.a. (IR ${(taxRate * 100).toFixed(1)}%)`;
+            if (cdbNetValEl) cdbNetValEl.textContent = `R$ ${cdbNet.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+            if (lciNetValEl) lciNetValEl.textContent = `R$ ${lciNet.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+            if (tdGrossTaxEl) tdGrossTaxEl.textContent = `${(tdYield * 100).toFixed(2)}% a.a. (IR ${(taxRate * 100).toFixed(1)}%)`;
+            if (tdNetValEl) tdNetValEl.textContent = `R$ ${tdNet.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+            // Identifica o Vencedor
+            const cardCdb = document.getElementById('calc-card-cdb');
+            const cardLci = document.getElementById('calc-card-lci');
+            const cardTd = document.getElementById('calc-card-td');
+            const badgeCdb = document.getElementById('badge-winner-cdb');
+            const badgeLci = document.getElementById('badge-winner-lci');
+            const badgeTd = document.getElementById('badge-winner-td');
+
+            const maxNet = Math.max(cdbNet, lciNet, tdNet);
+
+            if (cardCdb) cardCdb.classList.toggle('winner', Math.abs(cdbNet - maxNet) < 0.01);
+            if (badgeCdb) badgeCdb.classList.toggle('hidden', Math.abs(cdbNet - maxNet) >= 0.01);
+
+            if (cardLci) cardLci.classList.toggle('winner', Math.abs(lciNet - maxNet) < 0.01);
+            if (badgeLci) badgeLci.classList.toggle('hidden', Math.abs(lciNet - maxNet) >= 0.01);
+
+            if (cardTd) cardTd.classList.toggle('winner', Math.abs(tdNet - maxNet) < 0.01);
+            if (badgeTd) badgeTd.classList.toggle('hidden', Math.abs(tdNet - maxNet) >= 0.01);
+
+            // Ponto de Equilíbrio (Break-Even)
+            const cdbEquiv = (lciPct / (1 - taxRate)) * 100;
+            const equivDescEl = document.getElementById('calc-rf-equiv-desc');
+            if (equivDescEl) {
+                equivDescEl.textContent = `Para este prazo de ${days} dias (IR ${(taxRate * 100).toFixed(1)}%), uma LCI de ${(lciPct * 100).toFixed(0)}% do CDI equivale a um CDB de ${cdbEquiv.toFixed(1)}% do CDI. Qualquer CDB acima disso rende mais líquido!`;
+            }
+        }
+
+        function calculateFireRetirement() {
+            const capitalInput = document.getElementById('calc-fire-capital');
+            const swrSelect = document.getElementById('calc-fire-swr');
+            const strategySelect = document.getElementById('calc-fire-strategy');
+
+            const capital = Math.max(1000, parseFloat(capitalInput?.value) || 500000);
+            const swr = parseFloat(swrSelect?.value) || 0.04;
+            const strategy = strategySelect?.value || 'mixed';
+
+            const annualWithdrawal = capital * swr;
+            const monthlyWithdrawal = annualWithdrawal / 12.0;
+            const dailyWithdrawal = annualWithdrawal / 365.0;
+
+            const monthlyEl = document.getElementById('calc-fire-monthly');
+            const annualEl = document.getElementById('calc-fire-annual');
+            const dailyEl = document.getElementById('calc-fire-daily');
+            const statusEl = document.getElementById('calc-fire-status');
+            const insightDescEl = document.getElementById('calc-fire-insight-desc');
+
+            if (monthlyEl) monthlyEl.textContent = `R$ ${monthlyWithdrawal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / mês`;
+            if (annualEl) annualEl.textContent = `R$ ${annualWithdrawal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ano`;
+            if (dailyEl) dailyEl.textContent = `R$ ${dailyWithdrawal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / dia`;
+
+            if (statusEl) {
+                if (swr <= 0.04) {
+                    statusEl.textContent = '100% Perpétuo (Capital Intacto)';
+                    statusEl.style.color = 'var(--positive)';
+                } else if (swr <= 0.05) {
+                    statusEl.textContent = 'Muito Seguro (30+ Anos)';
+                    statusEl.style.color = 'var(--positive)';
+                } else {
+                    statusEl.textContent = 'Moderado (Requer Monitoramento)';
+                    statusEl.style.color = 'var(--gold)';
+                }
+            }
+
+            if (insightDescEl) {
+                const swrPct = (swr * 100).toFixed(1);
+                insightDescEl.textContent = `Com R$ ${capital.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} investidos e uma taxa de retirada de ${swrPct}% a.a., você saca R$ ${monthlyWithdrawal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} todo mês reajustado pela inflação sem esgotar o patrimônio principal.`;
+            }
+        }
+
+        function calculateRule200() {
+            const input = document.getElementById('rule-200-income');
+            const resEl = document.getElementById('rule-200-result');
+            const income = Math.max(10, parseFloat(input?.value) || 5000);
+            const target = income * 200;
+            if (resEl) resEl.textContent = `R$ ${target.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+
+        function calculateRule300() {
+            const input = document.getElementById('rule-300-income');
+            const resEl = document.getElementById('rule-300-result');
+            const expense = Math.max(10, parseFloat(input?.value) || 5000);
+            const target = expense * 300;
+            if (resEl) resEl.textContent = `R$ ${target.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+
+        function calculateRule72() {
+            const input = document.getElementById('rule-72-rate');
+            const resEl = document.getElementById('rule-72-result');
+            const descEl = document.getElementById('rule-72-desc');
+            const rate = Math.max(0.1, parseFloat(input?.value) || 12.0);
+            const years = 72.0 / rate;
+            if (resEl) resEl.textContent = `${years.toFixed(1)} anos`;
+            if (descEl) descEl.textContent = `A ${rate.toFixed(1)}% a.a., R$ 100k viram R$ 200k em ${years.toFixed(1)} anos e R$ 400k em ${(years * 2).toFixed(1)} anos!`;
+        }
+
+        function calculateRule503020() {
+            const input = document.getElementById('rule-503020-salary');
+            const needsEl = document.getElementById('rule-503020-res-needs');
+            const wantsEl = document.getElementById('rule-503020-res-wants');
+            const savingsEl = document.getElementById('rule-503020-res-savings');
+            const salary = Math.max(100, parseFloat(input?.value) || 6000);
+
+            const needs = salary * 0.50;
+            const wants = salary * 0.30;
+            const savings = salary * 0.20;
+
+            if (needsEl) needsEl.textContent = `R$ ${needs.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (wantsEl) wantsEl.textContent = `R$ ${wants.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (savingsEl) savingsEl.textContent = `R$ ${savings.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / mês`;
+        }
+
+        function calculateRuleGraham() {
+            const lpaInput = document.getElementById('rule-graham-lpa');
+            const vpaInput = document.getElementById('rule-graham-vpa');
+            const priceInput = document.getElementById('rule-graham-price');
+            const resEl = document.getElementById('rule-graham-result');
+            const marginEl = document.getElementById('rule-graham-margin');
+
+            const lpa = Math.max(0.01, parseFloat(lpaInput?.value) || 3.50);
+            const vpa = Math.max(0.01, parseFloat(vpaInput?.value) || 25.00);
+            const price = Math.max(0.01, parseFloat(priceInput?.value) || 32.00);
+
+            const grahamVal = Math.sqrt(22.5 * lpa * vpa);
+            const marginPct = ((grahamVal - price) / price) * 100;
+
+            if (resEl) resEl.textContent = `R$ ${grahamVal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (marginEl) {
+                if (marginPct >= 0) {
+                    marginEl.textContent = `+${marginPct.toFixed(1)}% de Margem (Desconto)`;
+                    marginEl.style.color = 'var(--positive)';
+                } else {
+                    marginEl.textContent = `${marginPct.toFixed(1)}% (Negociando com Ágio)`;
+                    marginEl.style.color = 'var(--negative)';
+                }
+            }
+        }
+
+        function calculateRuleBazin() {
+            const input = document.getElementById('rule-bazin-dpa');
+            const priceInput = document.getElementById('rule-bazin-price');
+            const resEl = document.getElementById('rule-bazin-result');
+            const marginEl = document.getElementById('rule-bazin-margin');
+
+            const dpa = Math.max(0.01, parseFloat(input?.value) || 2.40);
+            const price = Math.max(0.01, parseFloat(priceInput?.value) || 30.00);
+            const ceilingPrice = dpa / 0.06;
+            const marginPct = ((ceilingPrice - price) / price) * 100;
+
+            if (resEl) resEl.textContent = `R$ ${ceilingPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (marginEl) {
+                if (marginPct >= 0) {
+                    marginEl.textContent = `+${marginPct.toFixed(1)}% abaixo do Teto`;
+                    marginEl.style.color = 'var(--positive)';
+                } else {
+                    marginEl.textContent = `${marginPct.toFixed(1)}% acima do Teto (Caro p/ 6% DY)`;
+                    marginEl.style.color = 'var(--negative)';
+                }
+            }
+        }
+
+        function calculateRulePeg() {
+            const peInput = document.getElementById('rule-peg-pe');
+            const growthInput = document.getElementById('rule-peg-growth');
+            const resEl = document.getElementById('rule-peg-result');
+            const descEl = document.getElementById('rule-peg-desc');
+
+            const pe = Math.max(0.1, parseFloat(peInput?.value) || 8.5);
+            const growth = Math.max(0.1, parseFloat(growthInput?.value) || 15.0);
+            const peg = pe / growth;
+
+            if (resEl) {
+                if (peg < 1.0) {
+                    resEl.textContent = `${peg.toFixed(2)} (Excelente Oportunidade)`;
+                    resEl.style.color = 'var(--positive)';
+                } else if (peg <= 1.5) {
+                    resEl.textContent = `${peg.toFixed(2)} (Valuation Justo)`;
+                    resEl.style.color = 'var(--gold)';
+                } else {
+                    resEl.textContent = `${peg.toFixed(2)} (P/L Esticado)`;
+                    resEl.style.color = 'var(--negative)';
+                }
+            }
+            if (descEl) {
+                if (peg < 1.0) descEl.textContent = 'Ação em fase de alto crescimento negociando com valuation muito atrativo!';
+                else if (peg <= 1.5) descEl.textContent = 'Preço alinhado ao ritmo de expansão dos lucros da empresa.';
+                else descEl.textContent = 'Múltiplo P/L elevado exige aceleração substancial de lucros futuros.';
+            }
+        }
+
+        function calculateRuleFii() {
+            const distribInput = document.getElementById('rule-fii-distrib');
+            const priceInput = document.getElementById('rule-fii-price');
+            const resEl = document.getElementById('rule-fii-result');
+            const yieldEl = document.getElementById('rule-fii-yield');
+
+            const distrib = Math.max(0.01, parseFloat(distribInput?.value) || 0.90);
+            const price = Math.max(0.1, parseFloat(priceInput?.value) || 105.00);
+
+            const ceilingPrice = distrib / 0.0075;
+            const monthlyYield = (distrib / price) * 100;
+            const annualYield = monthlyYield * 12;
+
+            if (resEl) resEl.textContent = `R$ ${ceilingPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (yieldEl) {
+                yieldEl.textContent = `${monthlyYield.toFixed(2)}% a.m. (${annualYield.toFixed(1)}% a.a. isento)`;
+                yieldEl.style.color = monthlyYield >= 0.75 ? 'var(--positive)' : 'var(--gold)';
+            }
+        }
+
+        function calculateRuleAge() {
+            const input = document.getElementById('rule-age-val');
+            const stocksEl = document.getElementById('rule-age-stocks');
+            const bondsEl = document.getElementById('rule-age-bonds');
+            const age = Math.min(100, Math.max(0, parseInt(input?.value) || 35));
+
+            const stocksPct = Math.max(0, 100 - age);
+            const bondsPct = 100 - stocksPct;
+
+            if (stocksEl) stocksEl.textContent = `${stocksPct}%`;
+            if (bondsEl) bondsEl.textContent = `${bondsPct}%`;
+        }
+
+        function calculateAllRules() {
+            calculateRuleGraham();
+            calculateRuleBazin();
+            calculateRulePeg();
+            calculateRuleFii();
+            calculateRule200();
+            calculateRule300();
+            calculateRule72();
+            calculateRule503020();
+            calculateRuleAge();
+        }
+
         function renderCalculatorPanel() {
             populateCalculatorSelects();
             if (currentCalcMode === 'goal') calculateIncomeGoal();
-            else calculateSnowball();
+            else if (currentCalcMode === 'snowball') calculateSnowball();
+            else if (currentCalcMode === 'compare_rf') calculateRfComparison();
+            else if (currentCalcMode === 'fire') calculateFireRetirement();
+            else if (currentCalcMode === 'rules') calculateAllRules();
         }
 
         /* ── Macro Forecaster & Scenario Simulator ── */
@@ -5821,4 +6189,150 @@ const tableSortState = {};
         }
 
         window.addEventListener('hashchange', syncStateFromUrl);
+
+        // ══════════════════════════════════════════════════════════════════════════════
+        // RECURSO DE REDIMENSIONAMENTO DE COLUNAS ESTILO EXCEL
+        // ══════════════════════════════════════════════════════════════════════════════
+        function initTableColumnResizers() {
+            const tables = document.querySelectorAll('.table-scroll > table, .table-wrap table, .compare-table, .macro-tesouro-table');
+            tables.forEach((table, tableIdx) => {
+                const thead = table.querySelector('thead');
+                if (!thead) return;
+                const headers = thead.querySelectorAll('th');
+                const tableId = table.id || table.closest('.table-wrap')?.id || `tbl_${tableIdx}`;
+
+                headers.forEach((th, colIdx) => {
+                    // Restaura largura salva se existir
+                    try {
+                        const savedWidth = localStorage.getItem(`radar_col_w_${tableId}_${colIdx}`);
+                        if (savedWidth && Number(savedWidth) >= 40) {
+                            th.style.width = savedWidth + 'px';
+                            th.style.minWidth = savedWidth + 'px';
+                        }
+                    } catch (e) {}
+
+                    // Evita duplicar resizers
+                    if (th.querySelector('.col-resizer')) return;
+
+                    const resizer = document.createElement('div');
+                    resizer.className = 'col-resizer';
+                    resizer.title = 'Arraste para redimensionar a coluna (duplo clique para auto-ajustar)';
+
+                    // Impede que clique no divisor ative a ordenação da tabela
+                    resizer.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                    });
+
+                    // Duplo clique: Auto-fit ao conteúdo (estilo Excel)
+                    resizer.addEventListener('dblclick', function(e) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        autoFitColumn(table, th, colIdx, tableId);
+                    });
+
+                    // Mousedown: Inicia o arrasto
+                    resizer.addEventListener('mousedown', function(e) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        startColumnResize(e.pageX, table, th, resizer, colIdx, tableId);
+                    });
+
+                    // Touch: Suporte para tablets / touchscreens
+                    resizer.addEventListener('touchstart', function(e) {
+                        if (e.touches && e.touches[0]) {
+                            e.stopPropagation();
+                            startColumnResize(e.touches[0].pageX, table, th, resizer, colIdx, tableId);
+                        }
+                    }, { passive: false });
+
+                    th.appendChild(resizer);
+                });
+            });
+        }
+
+        function startColumnResize(startX, table, th, resizer, colIdx, tableId) {
+            resizer.classList.add('resizing');
+            document.body.classList.add('is-col-resizing');
+
+            const startWidth = th.getBoundingClientRect().width;
+            const minWidth = 45; // Largura mínima em pixels
+
+            // Fixa larguras atuais dos outros cabeçalhos para evitar colapso de layout
+            const allHeaders = table.querySelectorAll('thead th');
+            allHeaders.forEach(h => {
+                if (!h.style.width) {
+                    const w = Math.round(h.getBoundingClientRect().width);
+                    h.style.width = w + 'px';
+                    h.style.minWidth = w + 'px';
+                }
+            });
+
+            function onMouseMove(e) {
+                const currentX = e.pageX !== undefined ? e.pageX : (e.touches ? e.touches[0].pageX : startX);
+                const delta = currentX - startX;
+                const newWidth = Math.max(minWidth, Math.round(startWidth + delta));
+                th.style.width = newWidth + 'px';
+                th.style.minWidth = newWidth + 'px';
+            }
+
+            function onMouseUp(e) {
+                resizer.classList.remove('resizing');
+                document.body.classList.remove('is-col-resizing');
+
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+                document.removeEventListener('touchmove', onMouseMove);
+                document.removeEventListener('touchend', onMouseUp);
+
+                // Salva a preferência de largura do usuário no localStorage
+                try {
+                    const finalW = Math.round(th.getBoundingClientRect().width);
+                    localStorage.setItem(`radar_col_w_${tableId}_${colIdx}`, finalW);
+                } catch (err) {}
+            }
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+            document.addEventListener('touchmove', onMouseMove, { passive: true });
+            document.addEventListener('touchend', onMouseUp);
+        }
+
+        function autoFitColumn(table, th, colIndex, tableId) {
+            const tempCanvas = document.createElement('canvas');
+            const context = tempCanvas.getContext('2d');
+            const computedStyle = window.getComputedStyle(th);
+            context.font = `${computedStyle.fontWeight} ${computedStyle.fontSize} ${computedStyle.fontFamily}`;
+
+            // Largura do texto do cabeçalho
+            let maxWidth = context.measureText(th.innerText || th.textContent).width + 36;
+
+            // Largura dos textos das linhas no corpo da tabela
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(tr => {
+                const td = tr.children[colIndex];
+                if (td) {
+                    const tdStyle = window.getComputedStyle(td);
+                    context.font = `${tdStyle.fontWeight} ${tdStyle.fontSize} ${tdStyle.fontFamily}`;
+                    const textWidth = context.measureText(td.innerText || td.textContent).width + 28;
+                    if (textWidth > maxWidth) maxWidth = textWidth;
+                }
+            });
+
+            const finalWidth = Math.min(650, Math.max(50, Math.ceil(maxWidth)));
+            th.style.width = finalWidth + 'px';
+            th.style.minWidth = finalWidth + 'px';
+
+            try {
+                localStorage.setItem(`radar_col_w_${tableId}_${colIndex}`, finalWidth);
+            } catch (err) {}
+        }
+
+        // Inicializa resizers após carga do DOM e nas trocas de aba
+        window.initTableColumnResizers = initTableColumnResizers;
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => setTimeout(initTableColumnResizers, 150));
+        } else {
+            setTimeout(initTableColumnResizers, 150);
+        }
+        window.addEventListener('load', () => setTimeout(initTableColumnResizers, 200));
 

@@ -320,6 +320,22 @@ th:hover { color: var(--text-primary); }
 .sortable-header[aria-sort="ascending"]::after { content: '↑'; color: var(--primary-accent); }
 .sortable-header[aria-sort="descending"]::after { content: '↓'; color: var(--primary-accent); }
 .sortable-header:focus-visible { outline: 2px solid var(--primary-accent); outline-offset: -2px; }
+
+/* ── Tooltips das Colunas (.hint) ── */
+.hint {
+    position: relative;
+    cursor: help;
+    border-bottom: 1px dotted var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    transition: var(--transition);
+}
+.hint:hover,
+.hint:focus {
+    color: var(--primary-accent);
+    border-bottom-color: var(--primary-accent);
+}
+
 td {
     padding: 0.38rem 0.5rem;
     border-bottom: 1px solid var(--card-border-subtle);
@@ -355,10 +371,15 @@ tbody tr:hover td:first-child { background: var(--accent-bg); }
     color: var(--text-primary);
 }
 .name-cell {
-    min-width: 85px; max-width: 140px;
-    overflow: hidden; text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 0.76rem; color: var(--text-muted);
+    max-width: 240px;
+    min-width: 130px;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: normal;
+    line-height: 1.3;
+    font-size: 0.76rem;
+    color: var(--text-muted);
 }
 .sparkline-cell {
     padding: 0.25rem 0.35rem;
@@ -369,6 +390,46 @@ tbody tr:hover td:first-child { background: var(--accent-bg); }
     width: 52px;
     height: 16px;
     display: block;
+}
+
+/* ── Excel-like Column Resizing ── */
+th {
+    position: relative;
+    user-select: none;
+}
+.col-resizer {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 9px;
+    height: 100%;
+    cursor: col-resize;
+    user-select: none;
+    z-index: 15;
+    touch-action: none;
+}
+.col-resizer::after {
+    content: '';
+    position: absolute;
+    right: 2px;
+    top: 20%;
+    bottom: 20%;
+    width: 2px;
+    background: transparent;
+    border-radius: 1px;
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+.col-resizer:hover::after,
+.col-resizer.resizing::after {
+    background: var(--primary-accent, #3b82f6);
+    box-shadow: 0 0 6px rgba(59, 130, 246, 0.7);
+    top: 0;
+    bottom: 0;
+}
+body.is-col-resizing,
+body.is-col-resizing * {
+    cursor: col-resize !important;
+    user-select: none !important;
 }
 
 /* ── Sector Analysis Compact Table ── */
@@ -1615,28 +1676,198 @@ tbody tr:hover td:first-child { background: var(--accent-bg); }
             border-radius: var(--radius);
             padding: 0.9rem 1.1rem;
         }
-        .calc-magic-icon { font-size: 1.8rem; }
-        .calc-magic-text strong {
-            color: var(--positive);
-            font-size: 1.1rem;
-            display: block;
+        .calc-presets-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            margin-top: 0.25rem;
         }
-        .calc-magic-text span {
-            font-size: 0.8rem;
+        .calc-preset-btn {
+            background: var(--surface);
+            border: 1px solid var(--card-border);
             color: var(--text-secondary);
+            border-radius: 9999px;
+            padding: 0.2rem 0.55rem;
+            font-size: 0.74rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .calc-preset-btn:hover {
+            background: var(--primary-glow, rgba(59, 130, 246, 0.15));
+            border-color: var(--primary-accent);
+            color: var(--text-primary);
+        }
+        .calc-preset-btn.active {
+            background: var(--primary-accent);
+            border-color: var(--primary-accent);
+            color: #fff;
+        }
+        .calc-progress-container {
+            margin-top: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+        .calc-progress-bar {
+            height: 12px;
+            width: 100%;
+            border-radius: 6px;
+            background: var(--surface);
+            display: flex;
+            overflow: hidden;
+            border: 1px solid var(--card-border);
+        }
+        .calc-progress-invested {
+            background: #3b82f6;
+            transition: width 0.3s ease;
+        }
+        .calc-progress-returns {
+            background: #10b981;
+            transition: width 0.3s ease;
+        }
+        .calc-progress-legend {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .calc-compare-card {
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 1rem;
+            background: var(--surface);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            transition: var(--transition);
+        }
+        .calc-compare-card.winner {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+        }
+        .calc-winner-badge {
+            background: #10b981;
+            color: #fff;
+            font-size: 0.70rem;
+            font-weight: 700;
+            padding: 0.15rem 0.5rem;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            align-self: flex-start;
+        }
+        .calc-rules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 1.15rem;
+        }
+        @media (max-width: 768px) {
+            .calc-rules-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .calc-rule-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 1.15rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            min-width: 0;
+            transition: var(--transition);
+        }
+        .calc-rule-card:hover {
+            border-color: var(--primary-accent);
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+        .calc-rule-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .calc-rule-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .calc-rule-formula-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            font-family: monospace;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary-accent);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            white-space: normal;
+            word-break: break-word;
+            flex-shrink: 0;
+        }
+        .calc-rule-desc {
+            font-size: 0.80rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+        .calc-rule-inputs-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.6rem;
+        }
+        @media (max-width: 420px) {
+            .calc-rule-inputs-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        .calc-rule-card .calc-input-group label {
+            font-size: 0.76rem;
+            white-space: normal;
+            line-height: 1.25;
+            min-height: 1.9em;
+            display: flex;
+            align-items: flex-end;
+        }
+        .calc-rule-card .calc-input-group input {
+            width: 100%;
+            min-width: 0;
+            padding: 0.45rem 0.65rem;
+            font-size: 0.9rem;
+        }
+        .calc-rule-result {
+            background: var(--surface);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
         }
 
         /* ── Macro Tesouro Table Responsivo ── */
         .macro-tesouro-table {
             width: 100%;
-            min-width: 760px;
+            min-width: 820px;
             border-collapse: collapse;
+            table-layout: auto;
         }
         .macro-tesouro-table th,
         .macro-tesouro-table td {
-            padding: 0.65rem 0.85rem;
+            padding: 0.75rem 0.85rem;
             border-bottom: 1px solid var(--card-border);
             vertical-align: middle;
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.4;
         }
         .macro-tesouro-table th {
             font-size: 0.76rem;
@@ -1646,13 +1877,55 @@ tbody tr:hover td:first-child { background: var(--accent-bg); }
             color: var(--text-muted);
             background: var(--surface);
             white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        .macro-tesouro-table td:nth-child(1) {
+            min-width: 180px;
+            max-width: 220px;
+            font-weight: 600;
+        }
+        .macro-tesouro-table td:nth-child(2) {
+            min-width: 130px;
+            white-space: nowrap;
+        }
+        .macro-tesouro-table td:nth-child(3) {
+            min-width: 130px;
+        }
+        .macro-tesouro-table td:nth-child(4) {
+            min-width: 170px;
+            max-width: 220px;
+        }
+        .macro-tesouro-table td:nth-child(5) {
+            min-width: 230px;
         }
         .macro-tesouro-table tr:hover {
             background: var(--card-hover);
         }
 
+        /* ── Responsividade Geral & Word-Wrap para Tabelas de Simulador ── */
+        .calc-card .table-scroll table td,
+        .compare-table td {
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
         /* ── Responsividade Aprimorada Geral ── */
         @media (max-width: 768px) {
+            .macro-tesouro-table {
+                min-width: 680px;
+            }
+            .macro-tesouro-table th,
+            .macro-tesouro-table td {
+                padding: 0.5rem 0.6rem;
+                font-size: 0.76rem;
+            }
+            .macro-clickable-ticker {
+                font-size: 0.72rem;
+                padding: 0.15rem 0.4rem;
+            }
             .tabs-row {
                 overflow-x: auto;
                 white-space: nowrap;
