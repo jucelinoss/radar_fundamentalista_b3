@@ -23,6 +23,45 @@ const tableSortState = {};
             return (value * 100).toFixed(2) + suffix;
         }
 
+        // ── Sparkline SVG Generator (ultraleve para tabelas) ──
+        function generateSparklineSvg(historyJson) {
+            if (!historyJson) return '<span style="color:var(--text-muted);font-size:0.75rem;">—</span>';
+            let history = [];
+            try {
+                history = typeof historyJson === 'string' ? JSON.parse(historyJson) : historyJson;
+            } catch (e) {
+                return '<span style="color:var(--text-muted);font-size:0.75rem;">—</span>';
+            }
+            if (!Array.isArray(history) || history.length < 2) return '<span style="color:var(--text-muted);font-size:0.75rem;">—</span>';
+
+            const prices = history.map(h => typeof h.price === 'number' ? h.price : (parseFloat(h.price) || 0)).filter(p => p > 0);
+            if (prices.length < 2) return '<span style="color:var(--text-muted);font-size:0.75rem;">—</span>';
+
+            const sampled = prices.length > 14 ? prices.slice(-14) : prices;
+            const min = Math.min(...sampled);
+            const max = Math.max(...sampled);
+            const range = max - min || 1;
+
+            const w = 52, h = 16, padY = 2;
+            const pts = sampled.map((p, idx) => {
+                const x = (idx / (sampled.length - 1)) * w;
+                const y = h - padY - ((p - min) / range) * (h - padY * 2);
+                return `${x.toFixed(1)},${y.toFixed(1)}`;
+            });
+
+            const isPositive = sampled[sampled.length - 1] >= sampled[0];
+            const trendClass = isPositive ? 'up' : 'down';
+            const polylinePts = pts.join(' ');
+            const lastPt = pts[pts.length - 1].split(',');
+            const areaPts = `0,${h} ` + polylinePts + ` ${w},${h}`;
+
+            return `<svg class="sparkline-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" title="${isPositive ? 'Tendência 12m: Alta' : 'Tendência 12m: Queda'}">
+                <polygon class="sparkline-area ${trendClass}" points="${areaPts}" />
+                <polyline class="sparkline-line ${trendClass}" points="${polylinePts}" />
+                <circle class="sparkline-dot ${trendClass}" cx="${lastPt[0]}" cy="${lastPt[1]}" />
+            </svg>`;
+        }
+
         // ── v2.5 Continuous scoring helpers (replicate Python analyzer logic) ──
 
         function clamp(val, min, max) {
@@ -122,56 +161,68 @@ const tableSortState = {};
             // Atualizar label do PDF
             const pdfLabel = document.getElementById('pdf-label');
             if (pdfLabel) {
-                const names = { home: 'Home', global: 'Top Brasil', stocks: 'Ações', fiis: 'FIIs', fiagros: 'FIAGROs', sectors: 'Setores', rendafixa: 'Tesouro Direto' };
+                const names = {
+                    home: 'Home',
+                    global: 'Top Brasil',
+                    stocks: 'Ações',
+                    fiis: 'FIIs',
+                    fiagros: 'FIAGROs',
+                    compare: 'Comparador',
+                    calculator: 'Simulador',
+                    macro: 'Previsor Macro',
+                    sectors: 'Setores',
+                    rendafixa: 'Tesouro Direto'
+                };
                 pdfLabel.textContent = names[tab] || tab;
             }
             const allBtns = document.querySelectorAll('.tab-btn');
-            const btnHome = allBtns[0];
-            const btnGlobal = allBtns[1];
-            const btnStocks = allBtns[2];
-            const btnFiis = allBtns[3];
-            const btnFiagros = allBtns[4];
-            const btnSectors = allBtns[5];
-            const btnRendaFixa = allBtns[6];
-
             const panelHome = document.getElementById('panel-home');
             const panelGlobal = document.getElementById('panel-global');
             const panelStocks = document.getElementById('panel-stocks');
             const panelFiis = document.getElementById('panel-fiis');
             const panelFiagros = document.getElementById('panel-fiagros');
+            const panelCompare = document.getElementById('panel-compare');
+            const panelCalculator = document.getElementById('panel-calculator');
+            const panelMacro = document.getElementById('panel-macro');
             const panelSectors = document.getElementById('panel-sectors');
             const panelRendaFixa = document.getElementById('panel-rendafixa');
             const filtersRow = document.querySelector('.filters-row');
 
-            allBtns.forEach(b => b.classList.remove('active'));
-            [panelHome, panelGlobal, panelStocks, panelFiis, panelFiagros, panelSectors, panelRendaFixa].forEach(p => {
+            allBtns.forEach(b => {
+                const onclick = b.getAttribute('onclick') || '';
+                b.classList.toggle('active', onclick.includes(`'${tab}'`));
+            });
+
+            [panelHome, panelGlobal, panelStocks, panelFiis, panelFiagros, panelCompare, panelCalculator, panelMacro, panelSectors, panelRendaFixa].forEach(p => {
                 if (p) p.classList.add('hidden');
             });
             if (filtersRow) filtersRow.classList.toggle('hidden', !['stocks', 'fiis', 'fiagros'].includes(tab));
 
             if (tab === 'home') {
-                if (btnHome) btnHome.classList.add('active');
                 if (panelHome) panelHome.classList.remove('hidden');
             } else if (tab === 'global') {
-                if (btnGlobal) btnGlobal.classList.add('active');
                 if (panelGlobal) panelGlobal.classList.remove('hidden');
                 if (window.dashboardData) {
                     renderGlobalPanel(window.dashboardData);
                 }
             } else if (tab === 'stocks') {
-                if (btnStocks) btnStocks.classList.add('active');
                 if (panelStocks) panelStocks.classList.remove('hidden');
             } else if (tab === 'fiis') {
-                if (btnFiis) btnFiis.classList.add('active');
                 if (panelFiis) panelFiis.classList.remove('hidden');
             } else if (tab === 'fiagros') {
-                if (btnFiagros) btnFiagros.classList.add('active');
                 if (panelFiagros) panelFiagros.classList.remove('hidden');
+            } else if (tab === 'compare') {
+                if (panelCompare) panelCompare.classList.remove('hidden');
+                if (window.dashboardData) renderComparePanel();
+            } else if (tab === 'calculator') {
+                if (panelCalculator) panelCalculator.classList.remove('hidden');
+                if (window.dashboardData) renderCalculatorPanel();
+            } else if (tab === 'macro') {
+                if (panelMacro) panelMacro.classList.remove('hidden');
+                runMacroForecastSimulation();
             } else if (tab === 'sectors') {
-                if (btnSectors) btnSectors.classList.add('active');
                 if (panelSectors) panelSectors.classList.remove('hidden');
             } else if (tab === 'rendafixa') {
-                if (btnRendaFixa) btnRendaFixa.classList.add('active');
                 if (panelRendaFixa) panelRendaFixa.classList.remove('hidden');
                 // O Chart.js precisa medir um painel visível. Esperar o próximo frame
                 // evita canvas com largura/altura incorretas após a troca de aba.
@@ -197,7 +248,7 @@ const tableSortState = {};
                 if (sectorFilter) sectorFilter.classList.add('hidden');
                 if (scoreFilter) scoreFilter.classList.remove('hidden');
                 if (discountFilter) discountFilter.classList.remove('hidden');
-            } else { // home, sectors, rendafixa
+            } else { // home, compare, calculator, sectors, rendafixa
                 if (indexFilter) indexFilter.classList.add('hidden');
                 if (sectorFilter) sectorFilter.classList.add('hidden');
                 if (scoreFilter) scoreFilter.classList.add('hidden');
@@ -205,6 +256,7 @@ const tableSortState = {};
             }
 
             filterTable();
+            if (typeof syncUrlFromState === 'function') syncUrlFromState();
         }
 
         function filterTable() {
@@ -320,8 +372,8 @@ const tableSortState = {};
             const rows = Array.from(tbody.getElementsByTagName('tr'));
 
             let isNumeric = true;
-            if (type === 'stocks' && (colIdx === 0 || colIdx === 1 || colIdx === 2)) isNumeric = false;
-            else if ((type === 'fiis' || type === 'fiagros') && (colIdx === 0 || colIdx === 1)) isNumeric = false;
+            if (type === 'stocks' && (colIdx === 0 || colIdx === 1 || colIdx === 2 || colIdx === 4)) isNumeric = false;
+            else if ((type === 'fiis' || type === 'fiagros') && (colIdx === 0 || colIdx === 1 || colIdx === 3)) isNumeric = false;
             else if (type === 'sectors' && colIdx === 0) isNumeric = false;
 
             const previous = tableSortState[type] || {};
@@ -373,79 +425,308 @@ const tableSortState = {};
         }
 
         function openSectorDetailModal(sectorName) {
-            document.getElementById('sector-modal-name').textContent = sectorName;
-
+            const nameEl = document.getElementById('sector-modal-name');
+            const statsEl = document.getElementById('sector-modal-stats');
             const tbody = document.getElementById('sector-modal-tbody');
-            tbody.innerHTML = '';
+            if (nameEl) nameEl.textContent = sectorName;
+            if (tbody) tbody.innerHTML = '';
 
-            // Get all stock rows in stocks-tbody
-            const stockRows = document.querySelectorAll('#stocks-tbody tr');
             let foundStocks = [];
+            const data = window.dashboardData || {};
 
-            stockRows.forEach(row => {
-                const rowSector = row.getAttribute('data-sector');
-                if (rowSector === sectorName) {
-                    const ticker = row.getAttribute('data-ticker');
-                    const name = row.getAttribute('data-name');
-                    const price = parseFloat(row.getAttribute('data-price')) || 0;
-                    const peRaw = row.getAttribute('data-pe');
-                    const pe = (peRaw !== null && peRaw !== 'null' && peRaw !== '') ? parseFloat(peRaw) : null;
-                    const pbRaw = row.getAttribute('data-pb');
-                    const pb = (pbRaw !== null && pbRaw !== 'null' && pbRaw !== '') ? parseFloat(pbRaw) : null;
-                    const dy = parseFloat(row.getAttribute('data-dy')) || 0;
-                    const score = parseFloat(row.getAttribute('data-score')) || 0;
-
-                    foundStocks.push({ ticker, name, price, pe, pb, dy, score });
-                }
-            });
-
-            // Sort by Score desc, then by Dividend Yield desc (Bao opcao filter)
-            foundStocks.sort((a, b) => b.score - a.score || b.dy - a.dy);
-
-            if (foundStocks.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">Nenhuma empresa cadastrada neste setor.</td></tr>';
+            if (Array.isArray(data.stocks) && data.stocks.length > 0) {
+                foundStocks = data.stocks.filter(s => s.sector === sectorName).map(s => ({
+                    ticker: s.ticker,
+                    name: s.name || s.ticker,
+                    price: Number(s.price) || 0,
+                    pe: s.pe_ratio != null ? Number(s.pe_ratio) : null,
+                    pb: s.pb_ratio != null ? Number(s.pb_ratio) : null,
+                    dy: Number(s.dividend_yield) || 0,
+                    score: Number(s.score) || 0,
+                    indices: s.indices || []
+                }));
             } else {
-                foundStocks.forEach(stock => {
-                    const tr = document.createElement('tr');
-                    tr.style.cursor = 'pointer';
-                    tr.onclick = (e) => {
-                        closeSectorDetailModal();
-                        openDetailModal(stock.ticker, 'stock');
-                        e.stopPropagation();
-                    };
+                const stockRows = document.querySelectorAll('#stocks-tbody tr');
+                stockRows.forEach(row => {
+                    const rowSector = row.getAttribute('data-sector');
+                    if (rowSector === sectorName) {
+                        const ticker = row.getAttribute('data-ticker');
+                        const name = row.getAttribute('data-name');
+                        const price = parseFloat(row.getAttribute('data-price')) || 0;
+                        const peRaw = row.getAttribute('data-pe');
+                        const pe = (peRaw !== null && peRaw !== 'null' && peRaw !== '') ? parseFloat(peRaw) : null;
+                        const pbRaw = row.getAttribute('data-pb');
+                        const pb = (pbRaw !== null && pbRaw !== 'null' && pbRaw !== '') ? parseFloat(pbRaw) : null;
+                        const dy = parseFloat(row.getAttribute('data-dy')) || 0;
+                        const score = parseFloat(row.getAttribute('data-score')) || 0;
 
-                    tr.innerHTML = `
-                    <td class="ticker-cell">${stock.ticker}</td>
-                    <td>${stock.name}</td>
-                    <td>R$ ${stock.price.toFixed(2)}</td>
-                    <td class="${stock.pe !== null && stock.pe > 0 && stock.pe <= 15 ? 'positive' : 'warning'}">
-                        ${stock.pe !== null ? stock.pe.toFixed(2) : 'N/A'}
-                    </td>
-                    <td class="${stock.pb !== null && stock.pb > 0 && stock.pb <= 1.5 ? 'positive' : 'warning'}">
-                        ${stock.pb !== null ? stock.pb.toFixed(2) : 'N/A'}
-                    </td>
-                    <td class="${stock.dy >= 0.06 ? 'positive' : 'negative'}">
-                        ${(stock.dy * 100).toFixed(2)}%
-                    </td>
-                    <td>
-                        <span class="score-pill ${getScoreRangeClass(stock.score)}">${formatScore(stock.score)}</span>
-                    </td>
-                `;
-                    tbody.appendChild(tr);
+                        foundStocks.push({ ticker, name, price, pe, pb, dy, score, indices: [] });
+                    }
                 });
             }
 
-            document.getElementById('sector-detail-modal').classList.remove('hidden');
+            // Sort by Score desc, then by Dividend Yield desc
+            foundStocks.sort((a, b) => (b.score - a.score) || (b.dy - a.dy));
+
+            if (statsEl) {
+                const count = foundStocks.length;
+                const avgScore = count > 0 ? (foundStocks.reduce((acc, s) => acc + s.score, 0) / count) : 0;
+                const avgDy = count > 0 ? (foundStocks.reduce((acc, s) => acc + s.dy, 0) / count * 100) : 0;
+                const profStocks = foundStocks.filter(s => s.pe !== null && s.pe > 0);
+                const avgPeStr = profStocks.length > 0 ? (profStocks.reduce((acc, s) => acc + s.pe, 0) / profStocks.length).toFixed(2) + 'x' : 'N/A';
+
+                statsEl.innerHTML = `
+                    <span style="background:var(--surface); padding:0.25rem 0.6rem; border-radius:4px; border:1px solid var(--card-border);"><strong>${count}</strong> empresas</span>
+                    <span style="background:var(--surface); padding:0.25rem 0.6rem; border-radius:4px; border:1px solid var(--card-border);">Score Médio: <strong>${avgScore.toFixed(2)}</strong></span>
+                    <span style="background:var(--surface); padding:0.25rem 0.6rem; border-radius:4px; border:1px solid var(--card-border); color:var(--positive);">DY Médio: <strong>${avgDy.toFixed(2)}%</strong></span>
+                    <span style="background:var(--surface); padding:0.25rem 0.6rem; border-radius:4px; border:1px solid var(--card-border);">P/L Médio: <strong>${avgPeStr}</strong></span>
+                `;
+            }
+
+            if (foundStocks.length === 0) {
+                if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 1.5rem;">Nenhuma empresa cadastrada neste setor.</td></tr>';
+            } else if (tbody) {
+                tbody.innerHTML = foundStocks.map(stock => {
+                    const peFormatted = stock.pe !== null ? stock.pe.toFixed(2) : 'N/A';
+                    const pbFormatted = stock.pb !== null ? stock.pb.toFixed(2) : 'N/A';
+                    const dyFormatted = (stock.dy * 100).toFixed(2) + '%';
+                    const peClass = (stock.pe !== null && stock.pe > 0 && stock.pe <= 15) ? 'positive' : 'warning';
+                    const pbClass = (stock.pb !== null && stock.pb > 0 && stock.pb <= 1.5) ? 'positive' : 'warning';
+                    const dyClass = stock.dy >= 0.06 ? 'positive' : 'negative';
+
+                    return `
+                    <tr onclick="closeSectorDetailModal(); openDetailModal('${stock.ticker}', 'stock');" style="cursor: pointer;">
+                        <td class="ticker-cell" style="font-weight:700;">${stock.ticker}</td>
+                        <td class="name-cell" title="${(stock.name || '').replace(/"/g, '&quot;')}" style="font-size:0.78rem; max-width:240px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:help;">${stock.name}</td>
+                        <td style="font-weight:600;">R$ ${stock.price.toFixed(2)}</td>
+                        <td class="${peClass}">${peFormatted}</td>
+                        <td class="${pbClass}">${pbFormatted}</td>
+                        <td class="${dyClass}" style="font-weight:600;">${dyFormatted}</td>
+                        <td style="text-align:center;">
+                            <span class="score-pill ${getScoreRangeClass(stock.score)}">${formatScore(stock.score)}</span>
+                        </td>
+                    </tr>`;
+                }).join('');
+            }
+
+            const modal = document.getElementById('sector-detail-modal');
+            if (modal) modal.classList.remove('hidden');
         }
 
         function closeSectorDetailModal() {
-            document.getElementById('sector-detail-modal').classList.add('hidden');
+            const modal = document.getElementById('sector-detail-modal');
+            if (modal) modal.classList.add('hidden');
         }
 
         function closeSectorModalOnOutsideClick(event) {
-            if (event.target === document.getElementById('sector-detail-modal')) {
+            const modal = document.getElementById('sector-detail-modal');
+            if (modal && event.target === modal) {
                 closeSectorDetailModal();
             }
+        }
+
+        function switchSectorIndexView(view) {
+            const btnSectors = document.getElementById('btn-view-sectors');
+            const btnIndices = document.getElementById('btn-view-indices');
+            const containerSectors = document.getElementById('view-sectors-container');
+            const containerIndices = document.getElementById('view-indices-container');
+
+            if (btnSectors) btnSectors.classList.toggle('active', view === 'sectors');
+            if (btnIndices) btnIndices.classList.toggle('active', view === 'indices');
+            if (containerSectors) containerSectors.classList.toggle('hidden', view !== 'sectors');
+            if (containerIndices) containerIndices.classList.toggle('hidden', view !== 'indices');
+        }
+
+        function renderIndicesSummaryTable(data) {
+            const tbody = document.getElementById('indices-tbody');
+            const countEl = document.getElementById('indices-count');
+            if (!tbody || !data) return;
+
+            const stocks = Array.isArray(data.stocks) ? data.stocks : [];
+            const fiis = Array.isArray(data.fiis) ? data.fiis : [];
+            const fiagros = Array.isArray(data.fiagros) ? data.fiagros : [];
+
+            const indexDefs = [
+                { code: 'IBOV', label: 'IBOV · Ibovespa', desc: 'Ações monitoradas do principal índice de liquidez e peso da B3', type: 'stock' },
+                { code: 'IDIV', label: 'IDIV · Índice de Dividendos', desc: 'Ações com melhor histórico e consistência de dividendos', type: 'stock' },
+                { code: 'SMLL', label: 'SMLL · Small Caps (SMAL11)', desc: 'Empresas de menor e média capitalização com alto potencial', type: 'stock' },
+                { code: 'IFIX', label: 'IFIX · Fundos Imobiliários', desc: 'Carteira dos principais FIIs listados e acompanhados no radar', type: 'fii' },
+                { code: 'IFNC', label: 'IFNC · Índice Financeiro', desc: 'Bancos, seguradoras e empresas de intermediação financeira', type: 'stock' },
+                { code: 'IEE', label: 'IEE · Energia Elétrica', desc: 'Geradoras, transmissoras e distribuidoras de energia elétrica', type: 'stock' },
+                { code: 'IAGRO', label: 'IAGRO · Agronegócio & FIAGROs', desc: 'Cadeia agroindustrial e fundos de investimento do agronegócio', type: 'fiagro' }
+            ];
+
+            const summaries = indexDefs.map(def => {
+                let items = [];
+                if (def.code === 'IFIX') {
+                    items = fiis;
+                } else if (def.code === 'IAGRO') {
+                    items = [
+                        ...fiagros,
+                        ...stocks.filter(s => (s.sector || '').toLowerCase().includes('agro') || (s.sector || '').toLowerCase().includes('alimentos'))
+                    ];
+                } else {
+                    items = stocks.filter(s => Array.isArray(s.indices) && s.indices.includes(def.code));
+                }
+
+                const count = items.length;
+                const avgScore = count > 0 ? (items.reduce((acc, i) => acc + (Number(i.score) || 0), 0) / count) : 0;
+                const avgDy = count > 0 ? (items.reduce((acc, i) => acc + (Number(i.dividend_yield) || 0), 0) / count * 100) : 0;
+                
+                let avgMultiple = 'N/A';
+                if (def.type === 'fii' || def.type === 'fiagro') {
+                    const validPb = items.filter(i => i.pb_ratio != null && i.pb_ratio > 0);
+                    avgMultiple = validPb.length > 0 ? 'P/VP ' + (validPb.reduce((acc, i) => acc + Number(i.pb_ratio), 0) / validPb.length).toFixed(2) : 'N/A';
+                } else {
+                    const validPe = items.filter(i => i.pe_ratio != null && i.pe_ratio > 0);
+                    avgMultiple = validPe.length > 0 ? 'P/L ' + (validPe.reduce((acc, i) => acc + Number(i.pe_ratio), 0) / validPe.length).toFixed(1) + 'x' : 'N/A';
+                }
+
+                return {
+                    ...def,
+                    count,
+                    avgScore,
+                    avgDy,
+                    avgMultiple
+                };
+            });
+
+            if (countEl) countEl.textContent = `${summaries.length} índices`;
+
+            tbody.innerHTML = summaries.map(idx => {
+                return `
+                <tr onclick="openIndexDetailModal('${idx.code}')" style="cursor: pointer;">
+                    <td class="name-cell" style="font-weight: 600;" title="${idx.desc}">
+                        <div style="font-weight: 700; color: var(--text-primary);">${idx.label}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">${idx.desc}</div>
+                    </td>
+                    <td style="text-align: center; font-weight: 700;">${idx.count}</td>
+                    <td style="text-align: center;">
+                        <span class="score-pill ${getScoreRangeClass(idx.avgScore)}">${formatScore(idx.avgScore)}</span>
+                    </td>
+                    <td class="positive" style="text-align: right; font-weight: 700;">${idx.avgDy.toFixed(2)}%</td>
+                    <td style="text-align: right; font-size: 0.82rem; font-weight: 600;">${idx.avgMultiple}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function openIndexDetailModal(indexCode) {
+            const data = window.dashboardData || {};
+            const stocks = Array.isArray(data.stocks) ? data.stocks : [];
+            const fiis = Array.isArray(data.fiis) ? data.fiis : [];
+            const fiagros = Array.isArray(data.fiagros) ? data.fiagros : [];
+
+            const indexInfo = {
+                'IBOV': { name: 'Índice Bovespa (IBOV)', desc: 'Ações monitoradas do principal índice de liquidez da B3' },
+                'IDIV': { name: 'Índice de Dividendos (IDIV)', desc: 'Empresas com histórico sólido e consistência de proventos' },
+                'SMLL': { name: 'Índice Small Caps (SMLL / SMAL11)', desc: 'Empresas de menor e média capitalização com alto potencial' },
+                'IFIX': { name: 'Índice de Fundos Imobiliários (IFIX)', desc: 'Fundos Imobiliários acompanhados no radar e listados na B3' },
+                'IFNC': { name: 'Índice Financeiro (IFNC)', desc: 'Bancos, seguradoras e empresas do setor financeiro' },
+                'IEE': { name: 'Índice de Energia Elétrica (IEE)', desc: 'Empresas geradoras, transmissoras e distribuidoras de energia' },
+                'IAGRO': { name: 'Cadeia do Agronegócio (IAGRO)', desc: 'FIAGROs e empresas ligadas ao agronegócio brasileiro' }
+            }[indexCode] || { name: `Índice ${indexCode}`, desc: 'Carteira teórica de ativos' };
+
+            let foundItems = [];
+
+            if (indexCode === 'IFIX') {
+                foundItems = fiis.map(f => ({
+                    ticker: f.ticker,
+                    name: f.name || f.ticker,
+                    price: Number(f.price) || 0,
+                    pe: null,
+                    pb: f.pb_ratio != null ? Number(f.pb_ratio) : null,
+                    dy: Number(f.dividend_yield) || 0,
+                    score: Number(f.score) || 0,
+                    type: 'fii'
+                }));
+            } else if (indexCode === 'IAGRO') {
+                foundItems = [
+                    ...fiagros.map(fg => ({
+                        ticker: fg.ticker,
+                        name: fg.name || fg.ticker,
+                        price: Number(fg.price) || 0,
+                        pe: null,
+                        pb: fg.pb_ratio != null ? Number(fg.pb_ratio) : null,
+                        dy: Number(fg.dividend_yield) || 0,
+                        score: Number(fg.score) || 0,
+                        type: 'fiagro'
+                    })),
+                    ...stocks.filter(s => (s.sector || '').toLowerCase().includes('agro') || (s.sector || '').toLowerCase().includes('alimentos')).map(s => ({
+                        ticker: s.ticker,
+                        name: s.name || s.ticker,
+                        price: Number(s.price) || 0,
+                        pe: s.pe_ratio != null ? Number(s.pe_ratio) : null,
+                        pb: s.pb_ratio != null ? Number(s.pb_ratio) : null,
+                        dy: Number(s.dividend_yield) || 0,
+                        score: Number(s.score) || 0,
+                        type: 'stock'
+                    }))
+                ];
+            } else {
+                foundItems = stocks.filter(s => Array.isArray(s.indices) && s.indices.includes(indexCode)).map(s => ({
+                    ticker: s.ticker,
+                    name: s.name || s.ticker,
+                    price: Number(s.price) || 0,
+                    pe: s.pe_ratio != null ? Number(s.pe_ratio) : null,
+                    pb: s.pb_ratio != null ? Number(s.pb_ratio) : null,
+                    dy: Number(s.dividend_yield) || 0,
+                    score: Number(s.score) || 0,
+                    type: 'stock'
+                }));
+            }
+
+            foundItems.sort((a, b) => (b.score - a.score) || (b.dy - a.dy));
+
+            const nameEl = document.getElementById('sector-modal-name');
+            const statsEl = document.getElementById('sector-modal-stats');
+            const tbody = document.getElementById('sector-modal-tbody');
+
+            if (nameEl) nameEl.textContent = indexInfo.name;
+            if (statsEl) {
+                const count = foundItems.length;
+                const avgScore = count > 0 ? (foundItems.reduce((acc, s) => acc + s.score, 0) / count) : 0;
+                const avgDy = count > 0 ? (foundItems.reduce((acc, s) => acc + s.dy, 0) / count * 100) : 0;
+                const profStocks = foundItems.filter(s => s.pe !== null && s.pe > 0);
+                const avgPeStr = profStocks.length > 0 ? (profStocks.reduce((acc, s) => acc + s.pe, 0) / profStocks.length).toFixed(2) + 'x' : (indexCode === 'IFIX' ? 'FIIs' : 'N/A');
+
+                statsEl.innerHTML = `
+                    <span style="background:var(--surface); padding:0.25rem 0.6rem; border-radius:4px; border:1px solid var(--card-border);"><strong>${count}</strong> ativos</span>
+                    <span style="background:var(--surface); padding:0.25rem 0.6rem; border-radius:4px; border:1px solid var(--card-border);">Score Médio: <strong>${avgScore.toFixed(2)}</strong></span>
+                    <span style="background:var(--surface); padding:0.25rem 0.6rem; border-radius:4px; border:1px solid var(--card-border); color:var(--positive);">DY Médio: <strong>${avgDy.toFixed(2)}%</strong></span>
+                    <span style="background:var(--surface); padding:0.25rem 0.6rem; border-radius:4px; border:1px solid var(--card-border);">Múltiplo: <strong>${avgPeStr}</strong></span>
+                `;
+            }
+
+            if (tbody) {
+                if (foundItems.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 1.5rem;">Nenhum ativo cadastrado para este índice.</td></tr>';
+                } else {
+                    tbody.innerHTML = foundItems.map(item => {
+                        const peFormatted = item.pe !== null ? item.pe.toFixed(2) : 'N/A';
+                        const pbFormatted = item.pb !== null ? item.pb.toFixed(2) : 'N/A';
+                        const dyFormatted = (item.dy * 100).toFixed(2) + '%';
+                        const peClass = (item.pe !== null && item.pe > 0 && item.pe <= 15) ? 'positive' : 'warning';
+                        const pbClass = (item.pb !== null && item.pb > 0 && item.pb <= 1.5) ? 'positive' : 'warning';
+                        const dyClass = item.dy >= 0.06 ? 'positive' : 'negative';
+
+                        return `
+                        <tr onclick="closeSectorDetailModal(); openDetailModal('${item.ticker}', '${item.type || 'stock'}');" style="cursor: pointer;">
+                            <td class="ticker-cell" style="font-weight:700;">${item.ticker}</td>
+                            <td class="name-cell" title="${(item.name || '').replace(/"/g, '&quot;')}" style="font-size:0.78rem; max-width:240px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:help;">${item.name}</td>
+                            <td style="font-weight:600;">R$ ${item.price.toFixed(2)}</td>
+                            <td class="${peClass}">${peFormatted}</td>
+                            <td class="${pbClass}">${pbFormatted}</td>
+                            <td class="${dyClass}" style="font-weight:600;">${dyFormatted}</td>
+                            <td style="text-align:center;">
+                                <span class="score-pill ${getScoreRangeClass(item.score)}">${formatScore(item.score)}</span>
+                            </td>
+                        </tr>`;
+                    }).join('');
+                }
+            }
+
+            const modal = document.getElementById('sector-detail-modal');
+            if (modal) modal.classList.remove('hidden');
         }
 
         let activeChart = null;
@@ -453,11 +734,94 @@ const tableSortState = {};
         let currentAssetType = '';
         let currentAssetMetrics = {};
         let currentAssetRange = 10;
+        function formatBreakdownDesc(item, metrics, type) {
+            if (!item || !item.desc) return 'N/A';
+            let desc = String(item.desc).trim();
+
+            if (desc === 'N/A' || desc === 'N/D' || desc === 'null') {
+                const labelLower = (item.label || '').toLowerCase();
+                
+                if (labelLower.includes('p/l') || labelLower.includes('lucro')) {
+                    if (metrics && metrics.eps !== null && metrics.eps !== undefined && metrics.eps <= 0) {
+                        return `N/A — Prejuízo recente (LPA R$ ${metrics.eps.toFixed(2)}; P/L inaplicável)`;
+                    } else if (metrics && metrics.roe !== null && metrics.roe !== undefined && metrics.roe <= 0) {
+                        return `N/A — Prejuízo contábil no período (ROE: ${(metrics.roe * 100).toFixed(1)}%)`;
+                    } else {
+                        return 'N/A — Histórico de lucros deficitário ou indisponível';
+                    }
+                }
+                
+                if (labelLower.includes('graham') || labelLower.includes('peg')) {
+                    if (metrics && metrics.eps !== null && metrics.eps !== undefined && metrics.eps <= 0) {
+                        return 'N/A — Inaplicável (Fórmula de Graham exige LPA > 0)';
+                    } else if (metrics && metrics.vpa !== null && metrics.vpa !== undefined && metrics.vpa <= 0) {
+                        return 'N/A — Inaplicável (Patrimônio Líquido negativo)';
+                    } else {
+                        return 'N/A — Graham requer lucros e patrimônio positivos';
+                    }
+                }
+                
+                if (labelLower.includes('yield') || labelLower.includes('dy')) {
+                    return 'N/A — Sem distribuição de proventos no período';
+                }
+                
+                if (labelLower.includes('p/vp') || labelLower.includes('patrimonial')) {
+                    return 'N/A — Patrimônio Líquido negativo ou não informado';
+                }
+                
+                if (labelLower.includes('roe') || labelLower.includes('rentabilidade')) {
+                    return 'N/A — Lucro líquido ou patrimônio indisponível';
+                }
+                
+                if (labelLower.includes('consistência') || labelLower.includes('proventos')) {
+                    return 'N/A — Histórico de pagamentos recente (< 3 anos) ou irregular';
+                }
+            }
+            
+            return desc;
+        }
 
         function openDetailModal(ticker, type) {
             const rows = document.querySelectorAll(`[data-ticker="${ticker}"]`);
-            if (rows.length === 0) return;
-            const row = rows[0];
+            let row = rows.length > 0 ? rows[0] : null;
+
+            const data = window.dashboardData || {};
+            let asset = null;
+            if (!type) {
+                if (data.stocks && data.stocks.some(s => s.ticker === ticker)) type = 'stock';
+                else if (data.fiis && data.fiis.some(f => f.ticker === ticker)) type = 'fii';
+                else if (data.fiagros && data.fiagros.some(fa => fa.ticker === ticker)) type = 'fiagro';
+                else type = 'stock';
+            }
+
+            if (type === 'stock') asset = (data.stocks || []).find(s => s.ticker === ticker);
+            else if (type === 'fii') asset = (data.fiis || []).find(f => f.ticker === ticker);
+            else if (type === 'fiagro') asset = (data.fiagros || []).find(fa => fa.ticker === ticker);
+
+            if (!row && !asset) return;
+
+            if (!row && asset) {
+                row = {
+                    getAttribute: function(attr) {
+                        if (attr === 'data-name') return asset.name || ticker;
+                        if (attr === 'data-sector') return asset.sector || '';
+                        if (attr === 'data-price') return asset.price != null ? String(asset.price) : '0';
+                        if (attr === 'data-pe') return asset.pe_ratio != null ? String(asset.pe_ratio) : (asset.pe != null ? String(asset.pe) : null);
+                        if (attr === 'data-pb') return asset.pb_ratio != null ? String(asset.pb_ratio) : (asset.pb != null ? String(asset.pb) : null);
+                        if (attr === 'data-dy') return asset.dividend_yield != null ? String(asset.dividend_yield) : (asset.dy != null ? String(asset.dy) : '0');
+                        if (attr === 'data-roe') return asset.roe != null ? String(asset.roe) : null;
+                        if (attr === 'data-score') return asset.score != null ? String(asset.score) : '0';
+                        if (attr === 'data-bazin') return asset.bazin_price != null ? String(asset.bazin_price) : (asset.bazin != null ? String(asset.bazin) : '0');
+                        if (attr === 'data-graham') return asset.graham_price != null ? String(asset.graham_price) : (asset.graham != null ? String(asset.graham) : '0');
+                        if (attr === 'data-eps') return asset.eps != null ? String(asset.eps) : (asset.lpa != null ? String(asset.lpa) : null);
+                        if (attr === 'data-vpa') return asset.vpa != null ? String(asset.vpa) : null;
+                        if (attr === 'data-rate') return asset.dividend_rate != null ? String(asset.dividend_rate) : (asset.rate != null ? String(asset.rate) : '0');
+                        if (attr === 'data-breakdown') return typeof asset.score_breakdown === 'string' ? asset.score_breakdown : JSON.stringify(asset.score_breakdown || []);
+                        if (attr === 'data-history') return typeof asset.history_json === 'string' ? asset.history_json : JSON.stringify(asset.history_json || []);
+                        return null;
+                    }
+                };
+            }
 
             // Configure dropdown options based on asset type
             const selectEl = document.getElementById('chart-indicator-select');
@@ -532,6 +896,7 @@ const tableSortState = {};
                     if (item.label === 'Moderadores Macro (v3)') return;
                     var pct = Math.round((item.score / item.max) * 100);
                     var barColor = item.score >= (item.max * 0.75) ? '#10b981' : item.score >= (item.max * 0.40) ? '#f59e0b' : '#ef4444';
+                    var contextualDesc = formatBreakdownDesc(item, currentAssetMetrics, 'stock');
                     var el = document.createElement('div');
                     el.className = 'breakdown-item';
                     el.innerHTML = [
@@ -542,7 +907,7 @@ const tableSortState = {};
                         '<div class="bar-container">',
                         '  <div class="bar-fill" style="width:', pct, '%;background:', barColor, ';"></div>',
                         '</div>',
-                        '<small style="color:var(--text-secondary);display:block;margin-top:0.15rem;font-size:0.8rem;">', item.desc, '</small>'
+                        '<small style="color:var(--text-secondary);display:block;margin-top:0.15rem;font-size:0.8rem;">', contextualDesc, '</small>'
                     ].join('');
                     scorecard.appendChild(el);
                 });
@@ -580,6 +945,7 @@ const tableSortState = {};
                 breakdown.forEach(function(item) {
                     var pct = Math.round((item.score / item.max) * 100);
                     var barColor = item.score >= (item.max * 0.75) ? '#10b981' : item.score >= (item.max * 0.40) ? '#f59e0b' : '#ef4444';
+                    var contextualDesc = formatBreakdownDesc(item, currentAssetMetrics, type);
                     var el = document.createElement('div');
                     el.className = 'breakdown-item';
                     el.innerHTML = [
@@ -590,7 +956,7 @@ const tableSortState = {};
                         '<div class="bar-container">',
                         '  <div class="bar-fill" style="width:', pct, '%;background:', barColor, ';"></div>',
                         '</div>',
-                        '<small style="color:var(--text-secondary);display:block;margin-top:0.15rem;font-size:0.8rem;">', item.desc, '</small>'
+                        '<small style="color:var(--text-secondary);display:block;margin-top:0.15rem;font-size:0.8rem;">', contextualDesc, '</small>'
                     ].join('');
                     scorecard.appendChild(el);
                 });
@@ -648,6 +1014,7 @@ const tableSortState = {};
 
             // Show Modal
             document.getElementById('detail-modal').classList.remove('hidden');
+            if (typeof syncUrlFromState === 'function') syncUrlFromState();
         }
 
         function closeDetailModal() {
@@ -659,6 +1026,7 @@ const tableSortState = {};
             currentAssetHistory = [];
             currentAssetType = '';
             currentAssetMetrics = {};
+            if (typeof syncUrlFromState === 'function') syncUrlFromState();
         }
 
         function closeModalOnOutsideClick(event) {
@@ -1443,9 +1811,10 @@ const tableSortState = {};
                             <td class="ticker-cell">
                                 ${tickerHtml(stock.ticker, indices)}
                             </td>
-                            <td class="name-cell">${stock.name}</td>
-                            <td>${stock.sector}</td>
+                            <td class="name-cell" title="${(stock.name || '').replace(/"/g, '&quot;')}">${stock.name}</td>
+                            <td title="${(stock.sector || '').replace(/"/g, '&quot;')}">${stock.sector}</td>
                             <td>${priceFormatted}</td>
+                            <td class="sparkline-cell">${generateSparklineSvg(stock.history_json)}</td>
                             <td>${stock.book_value ? `R$ ${stock.book_value.toFixed(2)}` : 'N/A'}</td>
                             <td class="${peClass}">${peFormatted}</td>
                             <td class="${pbClass}">${pbFormatted}</td>
@@ -1482,8 +1851,9 @@ const tableSortState = {};
                             data-breakdown='${JSON.stringify(fii.score_breakdown || []).replace(/'/g, "&apos;")}'
                             data-history='${fii.history_json || "[]"}'>
                             <td class="ticker-cell">${fii.ticker}</td>
-                            <td class="name-cell">${fii.name}</td>
+                            <td class="name-cell" title="${(fii.name || '').replace(/"/g, '&quot;')}">${fii.name}</td>
                             <td>${priceFormatted}</td>
+                            <td class="sparkline-cell">${generateSparklineSvg(fii.history_json)}</td>
                             <td>${fii.book_value ? `R$ ${fii.book_value.toFixed(2)}` : 'N/A'}</td>
                             <td class="${pbClass}">${pbFormatted}</td>
                             <td class="${dyClass}">${dyFormatted}</td>
@@ -1517,8 +1887,9 @@ const tableSortState = {};
                             data-breakdown='${JSON.stringify(fiagro.score_breakdown || []).replace(/'/g, "&apos;")}'
                             data-history='${fiagro.history_json || "[]"}'>
                             <td class="ticker-cell">${fiagro.ticker}</td>
-                            <td class="name-cell">${fiagro.name}</td>
+                            <td class="name-cell" title="${(fiagro.name || '').replace(/"/g, '&quot;')}">${fiagro.name}</td>
                             <td>${priceFormatted}</td>
+                            <td class="sparkline-cell">${generateSparklineSvg(fiagro.history_json)}</td>
                             <td>${fiagro.book_value ? `R$ ${fiagro.book_value.toFixed(2)}` : 'N/A'}</td>
                             <td class="${pbClass}">${pbFormatted}</td>
                             <td class="${dyClass}">${dyFormatted}</td>
@@ -1536,7 +1907,7 @@ const tableSortState = {};
                         
                         return `
                         <tr onclick="openSectorDetailModal('${sector.name}')" style="cursor: pointer;">
-                            <td class="name-cell" style="font-weight: 600;">${sector.name}</td>
+                            <td class="name-cell" style="font-weight: 600;" title="${(sector.name || '').replace(/"/g, '&quot;')}">${sector.name}</td>
                             <td>${sector.count}</td>
                             <td>
                                 <span class="score-pill ${getScoreRangeClass(sector.avg_score)}">${formatScore(sector.avg_score)}</span>
@@ -1546,10 +1917,15 @@ const tableSortState = {};
                         </tr>`;
                     }).join('');
 
+                    renderIndicesSummaryTable(data);
+
                     // Initialize view and tab filters
+                    initCompareModule();
+                    populateCalculatorSelects();
                     renderGlobalPanel(data);
                     if (typeof checkRefreshStatus === 'function') checkRefreshStatus();
                     filterTable();
+                    syncStateFromUrl();
                 });
         }
 
@@ -2000,7 +2376,7 @@ const tableSortState = {};
                     <td style="font-weight:700; color:var(--text-muted); width:45px;">#${rank}</td>
                     <td>
                         <div style="font-weight:700; color:var(--text-primary);">${item.ticker}</div>
-                        <div style="font-size:0.75rem; color:var(--text-muted); max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.name}</div>
+                        <div class="name-cell" title="${(item.name || '').replace(/"/g, '&quot;')}" style="font-size:0.75rem; color:var(--text-muted); max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:help;">${item.name}</div>
                     </td>
                     <td>
                         <span style="font-size:0.75rem; padding:0.2rem 0.5rem; border-radius:6px; font-weight:600; display:inline-block; ${typeBadgeStyle}">
@@ -2188,7 +2564,7 @@ const tableSortState = {};
                             (td.risk_profile ? '<br><small title="Risco de oscilação em venda antecipada; separado do score de oportunidade.">Risco: ' + td.risk_profile + '</small>' : '');
                         return '<tr onclick="openTdDetailModal(\'' + tdJson + '\')" style="cursor:pointer;" title="' + breakdownTip.replace(/"/g, '&quot;') + '">' +
                             '<td class="font-mono tabular td-rank-cell" style="font-weight:600;">' + generalRank + '</td>' +
-                            '<td class="name-cell" style="font-weight:600;">' + name + '</td>' +
+                            '<td class="name-cell" style="font-weight:600;" title="' + (name || '').replace(/"/g, '&quot;') + '">' + name + '</td>' +
                             '<td class="td-tipo">' + group + groupRank + '</td>' +
                             '<td class="font-mono tabular" style="font-weight:600;color:var(--positive);">' + yieldStr + '</td>' +
                             '<td class="font-mono tabular" title="Percentil da taxa atual no histórico do título">' + yieldPercentile + '</td>' +
@@ -2228,7 +2604,8 @@ const tableSortState = {};
                         const values = keys.map(function(k) { return Number(curveObj[k]) * 100; });
                         const minVal = Math.min(...values);
                         const maxVal = Math.max(...values);
-                        const padding = Math.max((maxVal - minVal) * 0.15, 0.5);
+                        const range = maxVal - minVal;
+                        const padding = Math.max(range * 0.25, 0.4);
                         const yMin = Math.max(0, minVal - padding);
                         const yMax = maxVal + padding;
 
@@ -2284,7 +2661,12 @@ const tableSortState = {};
                                 scales: {
                                     x: {
                                         grid: { display: false },
-                                        ticks: { color: tickColor, maxTicksLimit: 8, maxRotation: 0 }
+                                        ticks: {
+                                            color: tickColor,
+                                            maxTicksLimit: 8,
+                                            maxRotation: 0,
+                                            font: { size: 10, weight: '500', family: 'Inter, sans-serif' }
+                                        }
                                     },
                                     y: {
                                         min: parseFloat(yMin.toFixed(2)),
@@ -2292,7 +2674,9 @@ const tableSortState = {};
                                         grid: { color: gridColor },
                                         ticks: {
                                             color: tickColor,
-                                            callback: function(value) { return value.toFixed(2) + '%'; }
+                                            maxTicksLimit: 5,
+                                            font: { size: 10, family: 'Inter, sans-serif' },
+                                            callback: function(value) { return value.toFixed(1) + '%'; }
                                         }
                                     }
                                 }
@@ -3197,9 +3581,28 @@ const tableSortState = {};
         }
 
         function openTdDetailFromHome(name) {
-            const data = window.dashboardData;
+            const data = window.dashboardData || {};
             const tdData = data.tesouro_direto || [];
-            const bond = tdData.find(function(b) { return b.name === name; });
+            let bond = tdData.find(function(b) { return b.name === name; });
+            if (!bond && name) {
+                const normName = name.toLowerCase().replace(/\+/g, '').trim();
+                bond = tdData.find(function(b) {
+                    const bNorm = (b.name || '').toLowerCase().replace(/\+/g, '').trim();
+                    return bNorm.includes(normName) || normName.includes(bNorm);
+                });
+            }
+            if (!bond && name) {
+                // Fallback: busca por tipo de titulo se nao encontrar pelo ano
+                const typeTerms = ['selic', 'ipca', 'prefixado', 'renda', 'educa'];
+                for (let i = 0; i < typeTerms.length; i++) {
+                    if (name.toLowerCase().includes(typeTerms[i])) {
+                        bond = tdData.find(function(b) {
+                            return (b.type || '').toLowerCase().includes(typeTerms[i]) || (b.name || '').toLowerCase().includes(typeTerms[i]);
+                        });
+                        if (bond) break;
+                    }
+                }
+            }
             if (bond) {
                 const tdJson = encodeURIComponent(JSON.stringify(bond));
                 openTdDetailModal(tdJson);
@@ -3354,8 +3757,29 @@ const tableSortState = {};
         }
 
         window.focusChartInstance = null;
+        let currentFocusIndicator = 'selic';
+        let currentFocusLookback = 5;
+
+        function setFocusLookback(years) {
+            currentFocusLookback = parseInt(years, 10) || 5;
+            const selectEl = document.getElementById('focus-lookback-select');
+            if (selectEl) selectEl.value = String(currentFocusLookback);
+            ['3', '5', '10'].forEach(y => {
+                const btn = document.getElementById(`focus-range-btn-${y}`);
+                if (btn) btn.classList.toggle('active', parseInt(y, 10) === currentFocusLookback);
+            });
+            if (currentFocusIndicator) {
+                renderFocusModalContent(currentFocusIndicator, currentFocusLookback);
+            }
+        }
 
         function openFocusDetailModal(indicator) {
+            currentFocusIndicator = indicator || 'selic';
+            setFocusLookback(5);
+            document.getElementById('focus-detail-modal').classList.remove('hidden');
+        }
+
+        function renderFocusModalContent(indicator, lookbackYears) {
             const data = window.dashboardData;
             if (!data || !data.macro_state) return;
             const macro = data.macro_state;
@@ -3437,9 +3861,9 @@ const tableSortState = {};
                 }
             });
 
-            // Anos históricos fechados (currentYear-5 até currentYear-1)
+            // Anos históricos fechados conforme lookback selecionado (3, 5 ou 10 anos)
             const histYears = [];
-            for (let y = currentYear - 5; y < currentYear; y++) {
+            for (let y = currentYear - lookbackYears; y < currentYear; y++) {
                 histYears.push(y);
             }
             const histValues = histYears.map(yr => {
@@ -3498,12 +3922,12 @@ const tableSortState = {};
                 String(currentYear + 3)
             ]);
 
+            const todayIndex = histYears.length;
+            const nullsPrefix = new Array(histYears.length).fill(null);
+
             // Datasets
-            // Realizado: 5 anos passados + hoje (ponto de Hoje usa a cor do histórico)
             const histDataset = histValues.concat([todayValue, null, null, null, null]);
-            // Focus: hoje + 4 projeções anuais (linha inicia em Hoje, mas oculta ponto em Hoje para manter apenas a cor do histórico)
-            const focusDataset = [null, null, null, null, null]
-                .concat([todayValue, focusValues[0], focusValues[1], focusValues[2], focusValues[3]]);
+            const focusDataset = nullsPrefix.concat([todayValue, focusValues[0], focusValues[1], focusValues[2], focusValues[3]]);
 
             document.getElementById('focus-modal-title').textContent = title;
             document.getElementById('focus-modal-subtitle').textContent = subtitle;
@@ -3530,7 +3954,6 @@ const tableSortState = {};
             const tbody = document.getElementById('focus-modal-tbody');
             if (tbody) {
                 const tableRows = [];
-                // 5 anos históricos
                 histYears.forEach((yr, i) => {
                     const val = histValues[i];
                     const valStr = formatVal(val);
@@ -3563,9 +3986,6 @@ const tableSortState = {};
                 tbody.innerHTML = tableRows.join('');
             }
 
-            // Exibir modal
-            document.getElementById('focus-detail-modal').classList.remove('hidden');
-
             // Renderizar Gráfico Chart.js
             requestAnimationFrame(() => {
                 const canvas = document.getElementById('focus-detail-chart');
@@ -3590,8 +4010,8 @@ const tableSortState = {};
                                     borderColor: colorHistory,
                                     backgroundColor: bgHistory,
                                     borderWidth: 2.5,
-                                    pointRadius: function(c) { return c.dataIndex === 5 ? 7 : 5; },
-                                    pointHoverRadius: function(c) { return c.dataIndex === 5 ? 9 : 7; },
+                                    pointRadius: function(c) { return c.dataIndex === todayIndex ? 7 : 5; },
+                                    pointHoverRadius: function(c) { return c.dataIndex === todayIndex ? 9 : 7; },
                                     pointBackgroundColor: colorHistory,
                                     pointBorderColor: colorHistory,
                                     fill: true,
@@ -3605,8 +4025,8 @@ const tableSortState = {};
                                     backgroundColor: bgFuture,
                                     borderWidth: 3,
                                     borderDash: [6, 3],
-                                    pointRadius: function(c) { return c.dataIndex === 5 ? 0 : 6; },
-                                    pointHoverRadius: function(c) { return c.dataIndex === 5 ? 0 : 8; },
+                                    pointRadius: function(c) { return c.dataIndex === todayIndex ? 0 : 6; },
+                                    pointHoverRadius: function(c) { return c.dataIndex === todayIndex ? 0 : 8; },
                                     pointBackgroundColor: colorFuture,
                                     pointBorderColor: colorFuture,
                                     fill: true,
@@ -3630,7 +4050,7 @@ const tableSortState = {};
                                     backgroundColor: 'rgba(15, 23, 42, 0.95)',
                                     padding: 10,
                                     filter: function(tooltipItem) {
-                                        if (tooltipItem.dataIndex === 5) {
+                                        if (tooltipItem.dataIndex === todayIndex) {
                                             return tooltipItem.datasetIndex === 0;
                                         }
                                         return true;
@@ -3639,7 +4059,7 @@ const tableSortState = {};
                                         title: function(tooltipItems) {
                                             if (!tooltipItems || !tooltipItems.length) return '';
                                             const item = tooltipItems[0];
-                                            if (item.dataIndex === 5) {
+                                            if (item.dataIndex === todayIndex) {
                                                 return `📍 Posição Atual (${currentMonthName}/${yearShort})`;
                                             }
                                             return item.label;
@@ -3647,7 +4067,7 @@ const tableSortState = {};
                                         label: function(context) {
                                             const val = context.parsed.y;
                                             if (val === null || isNaN(val)) return '';
-                                            if (context.dataIndex === 5) {
+                                            if (context.dataIndex === todayIndex) {
                                                 return `Valor Atual: ${formatVal(val)} (Mês ${currentMonth}/12 decorridos)`;
                                             }
                                             return context.dataset.label + ': ' + formatVal(val);
@@ -3714,93 +4134,1642 @@ const tableSortState = {};
             var activeEl = null;
             var hideTimeout = null;
 
-            function showTooltip(el) {
-                if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
-                var text = el.getAttribute('data-tip');
+            function positionTooltip(target) {
+                var text = target.getAttribute('data-tip');
                 if (!text) return;
-                tip.textContent = '';
-                tip.innerHTML = text;
+                tip.textContent = text;
                 tip.style.display = 'block';
-                tip.classList.add('visible');
-                positionTooltip(el);
-                activeEl = el;
-            }
 
-            function positionTooltip(el) {
-                var rect = el.getBoundingClientRect();
-                var tipRect = tip.getBoundingClientRect();
-                var top = rect.bottom + 10;
-                var left = rect.left + rect.width / 2 - tipRect.width / 2;
-                if (left < 8) left = 8;
-                if (left + tipRect.width > window.innerWidth - 8) {
-                    left = window.innerWidth - tipRect.width - 8;
+                var rect = target.getBoundingClientRect();
+                var tipW = tip.offsetWidth;
+                var tipH = tip.offsetHeight;
+                var pad = 8;
+
+                var left = rect.left + (rect.width / 2) - (tipW / 2);
+                left = Math.max(pad, Math.min(left, window.innerWidth - tipW - pad));
+
+                var top = rect.top - tipH - 6;
+                if (top < pad) {
+                    top = rect.bottom + 6;
                 }
-                if (top + tipRect.height > window.innerHeight - 8) {
-                    top = rect.top - tipRect.height - 10;
-                    tip.style.setProperty('--arrow-rotate', '180deg');
-                    tip.style.setProperty('--arrow-top', 'auto');
-                    tip.style.setProperty('--arrow-bottom', '-10px');
-                } else {
-                    tip.style.setProperty('--arrow-rotate', '0deg');
-                    tip.style.setProperty('--arrow-top', '-10px');
-                    tip.style.setProperty('--arrow-bottom', 'auto');
-                }
-                var arrowLeft = Math.max(10, Math.min(rect.left + rect.width / 2 - left - 5, tipRect.width - 15));
-                tip.style.setProperty('--arrow-left', arrowLeft + 'px');
-                tip.style.top = top + 'px';
+
                 tip.style.left = left + 'px';
+                tip.style.top = top + 'px';
             }
 
-            function hideTooltip() {
-                if (hideTimeout) { clearTimeout(hideTimeout); }
+            function onMouseEnter(e) {
+                var target = e.target.closest('.hint');
+                if (!target) return;
+                if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
+                activeEl = target;
+                positionTooltip(target);
+            }
+
+            function onMouseLeave(e) {
+                var target = e.target.closest('.hint');
+                if (!target) return;
                 hideTimeout = setTimeout(function() {
-                    tip.classList.remove('visible');
                     tip.style.display = 'none';
                     activeEl = null;
-                    hideTimeout = null;
-                }, 100);
+                }, 80);
             }
 
-            function cancelHide() {
-                if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
+            function onFocus(e) {
+                if (e.target.classList && e.target.classList.contains('hint')) {
+                    positionTooltip(e.target);
+                }
             }
 
-            document.querySelectorAll('.hint').forEach(function(el) {
-                el.addEventListener('mouseenter', function(e) { cancelHide(); showTooltip(this); });
-                el.addEventListener('mouseleave', function(e) { hideTooltip(); });
-                el.addEventListener('focus', function(e) { cancelHide(); showTooltip(this); });
-                el.addEventListener('blur', function(e) { hideTooltip(); });
-                el.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    if (document.activeElement === this) { this.blur(); }
-                    else { this.focus(); }
+            function onBlur(e) {
+                if (e.target.classList && e.target.classList.contains('hint')) {
+                    tip.style.display = 'none';
+                }
+            }
+
+            document.addEventListener('mouseover', onMouseEnter);
+            document.addEventListener('mouseout', onMouseLeave);
+            document.addEventListener('focusin', onFocus);
+            document.addEventListener('focusout', onBlur);
+
+            window.initHints = function(container) {
+                // Delegation handles new elements automatically
+            };
+        })();
+
+        /* ── Comparador Head-to-Head (2 a 4 ativos) ── */
+        let selectedCompareTickers = [];
+        let compareChartInstance = null;
+        let currentCompareClassFilter = 'all';
+
+        function loadCompareTickersFromStorage() {
+            try {
+                const raw = localStorage.getItem('radar_compare_tickers');
+                if (raw) selectedCompareTickers = JSON.parse(raw);
+            } catch (e) {
+                selectedCompareTickers = [];
+            }
+        }
+
+        function findAssetByTicker(ticker) {
+            if (!window.dashboardData || !ticker) return null;
+            const cleanTick = String(ticker).toUpperCase().replace('.SA', '').trim();
+            const data = window.dashboardData;
+
+            if (data.stocks) {
+                const s = data.stocks.find(a => (a.ticker || '').toUpperCase() === cleanTick);
+                if (s) return { ...s, _class: 'stock', _classLabel: 'Ação' };
+            }
+            if (data.fiis) {
+                const f = data.fiis.find(a => (a.ticker || '').toUpperCase() === cleanTick);
+                if (f) return { ...f, _class: 'fii', _classLabel: 'FII' };
+            }
+            if (data.fiagros) {
+                const g = data.fiagros.find(a => (a.ticker || '').toUpperCase() === cleanTick);
+                if (g) return { ...g, _class: 'fiagro', _classLabel: 'FIAGRO' };
+            }
+            if (data.tesouro_direto) {
+                const normTick = cleanTick.replace(/\s+/g, ' ');
+                let t = data.tesouro_direto.find(a => {
+                    const normName = (a.name || '').toUpperCase().replace(/\s+/g, ' ');
+                    const normT = (a.ticker || '').toUpperCase().replace(/\s+/g, ' ');
+                    return normName === normTick || normT === normTick;
+                });
+                if (!t) {
+                    t = data.tesouro_direto.find(a => {
+                        const normName = (a.name || '').toUpperCase().replace(/\s+/g, ' ');
+                        return normName && normTick && (normName.includes(normTick) || normTick.includes(normName));
+                    });
+                }
+                if (t) return { ...t, ticker: t.name, _class: 'tesouro', _classLabel: 'Tesouro' };
+            }
+            return null;
+        }
+
+        function getAllSearchableAssets() {
+            if (!window.dashboardData) return [];
+            const list = [];
+            const data = window.dashboardData;
+            if (data.stocks) data.stocks.forEach(s => list.push({ ticker: s.ticker, name: s.name, type: 'stock', classLabel: 'Ação', score: s.score }));
+            if (data.fiis) data.fiis.forEach(f => list.push({ ticker: f.ticker, name: f.name, type: 'fii', classLabel: 'FII', score: f.score }));
+            if (data.fiagros) data.fiagros.forEach(g => list.push({ ticker: g.ticker, name: g.name, type: 'fiagro', classLabel: 'FIAGRO', score: g.score }));
+            if (data.tesouro_direto) data.tesouro_direto.forEach(t => list.push({ ticker: t.name, name: t.group || t.name, type: 'tesouro', classLabel: 'Tesouro', score: t.score }));
+            return list;
+        }
+
+        function addTickerToCompare(ticker) {
+            if (!ticker) return;
+            const clean = ticker.trim().toUpperCase();
+            if (selectedCompareTickers.includes(clean)) return;
+            if (selectedCompareTickers.length >= 4) {
+                selectedCompareTickers.shift();
+            }
+            selectedCompareTickers.push(clean);
+            try {
+                localStorage.setItem('radar_compare_tickers', JSON.stringify(selectedCompareTickers));
+            } catch (e) {}
+            renderComparePanel();
+            if (typeof syncUrlFromState === 'function') syncUrlFromState();
+        }
+
+        function removeTickerFromCompare(ticker) {
+            selectedCompareTickers = selectedCompareTickers.filter(t => t !== ticker);
+            try {
+                localStorage.setItem('radar_compare_tickers', JSON.stringify(selectedCompareTickers));
+            } catch (e) {}
+            renderComparePanel();
+            if (typeof syncUrlFromState === 'function') syncUrlFromState();
+        }
+
+        function addCurrentAssetToCompare() {
+            const tickerEl = document.getElementById('modal-ticker');
+            if (!tickerEl) return;
+            const ticker = tickerEl.textContent.trim();
+            if (!ticker || ticker === 'TICKER') return;
+            addTickerToCompare(ticker);
+            closeDetailModal();
+            switchTab('compare');
+        }
+
+        function onCompareClassFilterChange(filterValue) {
+            currentCompareClassFilter = filterValue || 'all';
+            const data = window.dashboardData || {};
+            
+            if (currentCompareClassFilter !== 'all') {
+                // Filter selection to assets matching chosen class
+                selectedCompareTickers = selectedCompareTickers.filter(t => {
+                    const a = findAssetByTicker(t);
+                    return a && a._class === currentCompareClassFilter;
+                });
+                
+                // If fewer than 2 remain, preload Top 3 of chosen class
+                if (selectedCompareTickers.length < 2) {
+                    if (currentCompareClassFilter === 'stock') {
+                        selectedCompareTickers = (data.top_stocks || data.stocks || []).slice(0, 3).map(s => s.ticker);
+                    } else if (currentCompareClassFilter === 'fii') {
+                        selectedCompareTickers = (data.top_fiis || data.fiis || []).slice(0, 3).map(f => f.ticker);
+                    } else if (currentCompareClassFilter === 'fiagro') {
+                        selectedCompareTickers = (data.top_fiagros || data.fiagros || []).slice(0, 3).map(fa => fa.ticker);
+                    } else if (currentCompareClassFilter === 'tesouro') {
+                        const tdList = (data.tesouro_direto || []).filter(function(td) {
+                            return (typeof isTdAvailableForPurchase === 'function') ? isTdAvailableForPurchase(td, true) : true;
+                        });
+                        selectedCompareTickers = (tdList.length >= 3 ? tdList : (data.tesouro_direto || [])).slice(0, 3).map(t => t.name);
+                    }
+                }
+            }
+            
+            try {
+                localStorage.setItem('radar_compare_tickers', JSON.stringify(selectedCompareTickers));
+            } catch (e) {}
+            renderComparePanel();
+            if (typeof syncUrlFromState === 'function') syncUrlFromState();
+        }
+
+        function onCompareSearchInput(query) {
+            const listEl = document.getElementById('compare-autocomplete-list');
+            if (!listEl) return;
+            const q = (query || '').trim().toLowerCase();
+            if (!q) {
+                listEl.classList.add('hidden');
+                listEl.innerHTML = '';
+                return;
+            }
+            let all = getAllSearchableAssets();
+            if (currentCompareClassFilter && currentCompareClassFilter !== 'all') {
+                all = all.filter(a => a.type === currentCompareClassFilter);
+            }
+            const filtered = all.filter(a => a.ticker.toLowerCase().includes(q) || (a.name || '').toLowerCase().includes(q)).slice(0, 8);
+            if (filtered.length === 0) {
+                listEl.innerHTML = '<div style="padding:0.5rem 0.75rem;font-size:0.8rem;color:var(--text-muted);">Nenhum ativo encontrado</div>';
+                listEl.classList.remove('hidden');
+                return;
+            }
+            listEl.innerHTML = filtered.map(item => `
+                <button type="button" class="export-option" style="display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;padding:0.45rem 0.75rem;" onclick="addTickerToCompare('${item.ticker.replace(/'/g, "\\'")}'); document.getElementById('compare-search-input').value=''; document.getElementById('compare-autocomplete-list').classList.add('hidden');">
+                    <div>
+                        <strong style="color:var(--text-primary);font-size:0.85rem;">${item.ticker}</strong>
+                        <span style="font-size:0.75rem;color:var(--text-secondary);margin-left:0.35rem;">${item.name || ''}</span>
+                    </div>
+                    <span class="index-pill" style="font-size:0.65rem;">${item.classLabel}</span>
+                </button>
+            `).join('');
+            listEl.classList.remove('hidden');
+        }
+
+        function setComparePreset(type) {
+            const data = window.dashboardData || {};
+            if (type === 'top_stocks') {
+                const list = (data.top_stocks || data.stocks || []).slice(0, 3).map(s => s.ticker);
+                selectedCompareTickers = list.length >= 2 ? list : ['BBAS3', 'PETR4', 'VALE3'];
+                currentCompareClassFilter = 'stock';
+            } else if (type === 'top_fiis') {
+                const list = (data.top_fiis || data.fiis || []).slice(0, 3).map(f => f.ticker);
+                selectedCompareTickers = list.length >= 2 ? list : ['HGLG11', 'KNCR11', 'XPML11'];
+                currentCompareClassFilter = 'fii';
+            } else if (type === 'top_tesouro') {
+                const tdList = (data.tesouro_direto || []).filter(function(td) {
+                    return (typeof isTdAvailableForPurchase === 'function') ? isTdAvailableForPurchase(td, true) : true;
+                });
+                const list = (tdList.length >= 3 ? tdList : (data.tesouro_direto || [])).slice(0, 3).map(t => t.name);
+                selectedCompareTickers = list.length >= 2 ? list : ['Tesouro Prefixado 2029', 'Tesouro IPCA+ 2032', 'Tesouro Selic 2031'];
+                currentCompareClassFilter = 'tesouro';
+            } else if (type === 'mixed') {
+                const stock = (data.top_stocks && data.top_stocks[0]) ? data.top_stocks[0].ticker : (data.stocks && data.stocks[0] ? data.stocks[0].ticker : 'BBAS3');
+                const fii = (data.top_fiis && data.top_fiis[0]) ? data.top_fiis[0].ticker : (data.fiis && data.fiis[0] ? data.fiis[0].ticker : 'HGLG11');
+                const tdList = (data.tesouro_direto || []).filter(function(td) {
+                    return (typeof isTdAvailableForPurchase === 'function') ? isTdAvailableForPurchase(td, true) : true;
+                });
+                const td = tdList[0] ? tdList[0].name : (data.tesouro_direto && data.tesouro_direto[0] ? data.tesouro_direto[0].name : 'Tesouro IPCA+ 2040');
+                selectedCompareTickers = [stock, fii, td];
+                currentCompareClassFilter = 'all';
+            }
+            const filterEl = document.getElementById('compare-class-filter');
+            if (filterEl) filterEl.value = currentCompareClassFilter;
+
+            try {
+                localStorage.setItem('radar_compare_tickers', JSON.stringify(selectedCompareTickers));
+            } catch (e) {}
+            renderComparePanel();
+            if (typeof syncUrlFromState === 'function') syncUrlFromState();
+        }
+
+        function renderComparePanel() {
+            const chipsContainer = document.getElementById('compare-selected-chips');
+            const contentContainer = document.getElementById('compare-content');
+            if (!chipsContainer || !contentContainer) return;
+
+            if (selectedCompareTickers.length === 0) {
+                if (window.dashboardData && window.dashboardData.top_stocks && window.dashboardData.top_stocks.length >= 3) {
+                    selectedCompareTickers = [
+                        window.dashboardData.top_stocks[0].ticker,
+                        window.dashboardData.top_stocks[1].ticker,
+                        window.dashboardData.top_stocks[2].ticker
+                    ];
+                } else if (window.dashboardData && window.dashboardData.stocks && window.dashboardData.stocks.length >= 3) {
+                    selectedCompareTickers = [
+                        window.dashboardData.stocks[0].ticker,
+                        window.dashboardData.stocks[1].ticker,
+                        window.dashboardData.stocks[2].ticker
+                    ];
+                }
+            }
+
+            chipsContainer.innerHTML = selectedCompareTickers.map(t => `
+                <div class="compare-chip">
+                    <span>${t}</span>
+                    <button type="button" class="compare-chip-remove" onclick="removeTickerFromCompare('${t.replace(/'/g, "\\'")}')" aria-label="Remover ${t}">&times;</button>
+                </div>
+            `).join('');
+
+            const assets = selectedCompareTickers.map(t => findAssetByTicker(t)).filter(Boolean);
+
+            const presetButtonsHtml = `
+                <div style="display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap; margin-bottom:1rem; padding:0.65rem 0.85rem; background:var(--surface); border:1px solid var(--card-border); border-radius:var(--radius-sm);">
+                    <span style="font-size:0.76rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.04em;">⚡ Presets Rápidos:</span>
+                    <button type="button" class="preset-scenario-btn" onclick="setComparePreset('top_stocks')">👑 Top 3 Ações</button>
+                    <button type="button" class="preset-scenario-btn" onclick="setComparePreset('top_fiis')">🏢 Top 3 FIIs</button>
+                    <button type="button" class="preset-scenario-btn" onclick="setComparePreset('top_tesouro')">🏛️ Top 3 Tesouro</button>
+                    <button type="button" class="preset-scenario-btn" onclick="setComparePreset('mixed')">⚖️ Misto (Ação + FII + Tesouro)</button>
+                </div>
+            `;
+
+            if (assets.length < 2) {
+                contentContainer.innerHTML = `
+                    ${presetButtonsHtml}
+                    <div class="compare-table-card" style="padding:2.5rem 1.5rem; text-align:center;">
+                        <div style="font-size:2rem;margin-bottom:0.5rem;">⚖️</div>
+                        <h3 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:0.35rem;">Selecione ao menos 2 ativos para comparar</h3>
+                        <p style="font-size:0.85rem;color:var(--text-secondary);max-width:500px;margin:0 auto 1.25rem;">Use o campo de busca acima ou os presets rápidos para comparar ações, fundos imobiliários, FIAGROs ou títulos públicos do Tesouro Direto.</p>
+                        <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;">
+                            <button type="button" class="action-btn" onclick="addTickerToCompare('PETR4');addTickerToCompare('PRIO3');">PETR4 vs PRIO3</button>
+                            <button type="button" class="action-btn" onclick="addTickerToCompare('BBAS3');addTickerToCompare('ITUB4');">BBAS3 vs ITUB4</button>
+                            <button type="button" class="action-btn" onclick="addTickerToCompare('HGLG11');addTickerToCompare('BTLG11');">HGLG11 vs BTLG11</button>
+                        </div>
+                    </div>
+                `;
+                if (compareChartInstance) {
+                    compareChartInstance.destroy();
+                    compareChartInstance = null;
+                }
+                return;
+            }
+
+            function getWinnerIdx(vals, higherIsBetter = true) {
+                let bestVal = null;
+                let bestIdx = -1;
+                vals.forEach((v, idx) => {
+                    if (v === null || v === undefined || isNaN(v)) return;
+                    if (bestVal === null) {
+                        bestVal = v;
+                        bestIdx = idx;
+                    } else if (higherIsBetter && v > bestVal) {
+                        bestVal = v;
+                        bestIdx = idx;
+                    } else if (!higherIsBetter && v < bestVal && v > 0) {
+                        bestVal = v;
+                        bestIdx = idx;
+                    }
+                });
+                return bestIdx;
+            }
+
+            const prices = assets.map(a => a.price || a.buy_price || null);
+            const vpas = assets.map(a => a.book_value || null);
+            const pes = assets.map(a => a._class === 'stock' && a.pe_ratio !== null && a.pe_ratio !== undefined ? a.pe_ratio : null);
+            const pbs = assets.map(a => (a._class === 'stock' || a._class === 'fii' || a._class === 'fiagro') && a.pb_ratio !== null && a.pb_ratio !== undefined ? a.pb_ratio : null);
+            const dys = assets.map(a => a.dividend_yield !== null && a.dividend_yield !== undefined ? a.dividend_yield : (a.buy_yield || null));
+            const roes = assets.map(a => a._class === 'stock' && a.roe !== null && a.roe !== undefined ? a.roe : null);
+            const scores = assets.map(a => a.score || 0);
+
+            const winPe = getWinnerIdx(pes, false);
+            const winPb = getWinnerIdx(pbs, false);
+            const winDy = getWinnerIdx(dys, true);
+            const winRoe = getWinnerIdx(roes, true);
+            const winScore = getWinnerIdx(scores, true);
+
+            function renderCell(val, idx, winIdx, formatFn) {
+                const isWin = (idx === winIdx && val !== null && val !== undefined);
+                const text = formatFn ? formatFn(val) : (val !== null && val !== undefined ? val : '—');
+                return `<td class="${isWin ? 'winner' : ''}">${text}</td>`;
+            }
+
+            // Check if mixed asset classes are being compared
+            const hasMultipleClasses = new Set(assets.map(a => a._class)).size > 1;
+
+            contentContainer.innerHTML = `
+                ${presetButtonsHtml}
+
+                ${hasMultipleClasses ? `
+                <div style="margin-bottom:1rem; padding:0.75rem 1rem; background:rgba(59, 130, 246, 0.08); border-left:4px solid var(--primary-accent); border-radius:var(--radius-sm); font-size:0.8rem; color:var(--text-secondary); line-height:1.45;">
+                    💡 <strong>Comparação Multi-Classes:</strong> Indicadores universais (Preço, Score, Yield) são comparados diretamente. Métricas específicas de empresas (P/L, ROE, Graham) trazem observações contextuais para os títulos de Renda Fixa e FIIs.
+                </div>
+                ` : ''}
+
+                <div class="compare-table-card">
+                    <div class="table-scroll">
+                        <table class="compare-table">
+                            <thead>
+                                <tr>
+                                    <th>Indicador / Métrica</th>
+                                    ${assets.map(a => `
+                                        <th>
+                                            <div style="display:flex;flex-direction:column;align-items:center;gap:0.2rem;">
+                                                <strong style="font-size:1.05rem;color:var(--text-primary);cursor:pointer;" onclick="${a._class === 'tesouro' ? `openTdDetailFromHome('${a.name.replace(/'/g, "\\'")}')` : `openDetailModal('${a.ticker}', '${a._class}')`}">${a.ticker || a.name} ↗</strong>
+                                                <span style="font-size:0.75rem;color:var(--text-secondary);font-weight:normal;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.name || ''}</span>
+                                                <span class="index-pill" style="font-size:0.65rem;">${a._classLabel}</span>
+                                            </div>
+                                        </th>
+                                    `).join('')}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th colspan="${assets.length + 1}" style="background:var(--surface-2); text-align:left; font-size:0.76rem; text-transform:uppercase; letter-spacing:0.05em; padding:0.45rem 1rem; color:var(--text-secondary);">📊 Métricas Universais de Retorno & Risco</th>
+                                </tr>
+                                <tr>
+                                    <td><strong>Preço / Cotação / PU</strong></td>
+                                    ${assets.map((a, i) => renderCell(prices[i], i, -1, v => v ? `R$ ${Number(v).toFixed(2)}` : '—')).join('')}
+                                </tr>
+                                <tr>
+                                    <td><strong>Score Radar (0 a 10)</strong></td>
+                                    ${assets.map((a, i) => renderCell(scores[i], i, winScore, v => `<span class="score-pill ${getScoreRangeClass(v)}" style="display:inline-block;padding:0.2rem 0.6rem;font-size:0.85rem;">${formatScore(v)}</span>`)).join('')}
+                                </tr>
+                                <tr>
+                                    <td><strong>Rendimento Anual (DY / Taxa)</strong></td>
+                                    ${assets.map((a, i) => renderCell(dys[i], i, winDy, v => v ? `${(v * 100).toFixed(2)}% a.a.` : '—')).join('')}
+                                </tr>
+                                <tr>
+                                    <td><strong>Liquidez & Negociação</strong></td>
+                                    ${assets.map(a => `<td>${a._class === 'tesouro' ? '<span style="font-size:0.8rem;color:var(--positive);">D+0 / D+1 (Tesouro Nacional)</span>' : '<span style="font-size:0.8rem;color:var(--text-secondary);">D+2 (Mercado B3)</span>'}</td>`).join('')}
+                                </tr>
+
+                                <tr>
+                                    <th colspan="${assets.length + 1}" style="background:var(--surface-2); text-align:left; font-size:0.76rem; text-transform:uppercase; letter-spacing:0.05em; padding:0.45rem 1rem; color:var(--text-secondary);">📈 Valuation & Renda Variável (Ações & FIIs)</th>
+                                </tr>
+                                <tr>
+                                    <td><strong>P/VP (Preço / Valor Patr.)</strong></td>
+                                    ${assets.map((a, i) => {
+                                        if (a._class === 'tesouro') return `<td style="color:var(--text-muted);font-size:0.76rem;">— (Renda Fixa)</td>`;
+                                        return renderCell(pbs[i], i, winPb, v => v !== null ? Number(v).toFixed(2) : '—');
+                                    }).join('')}
+                                </tr>
+                                <tr>
+                                    <td><strong>P/L (Preço / Lucro)</strong></td>
+                                    ${assets.map((a, i) => {
+                                        if (a._class === 'tesouro') return `<td style="color:var(--text-muted);font-size:0.76rem;">— (Renda Fixa)</td>`;
+                                        if (a._class === 'fii' || a._class === 'fiagro') return `<td style="color:var(--text-muted);font-size:0.76rem;">— (Fundo Imob.)</td>`;
+                                        return renderCell(pes[i], i, winPe, v => v !== null && v > 0 ? Number(v).toFixed(2) : (v !== null ? 'Negativo' : '—'));
+                                    }).join('')}
+                                </tr>
+                                <tr>
+                                    <td><strong>ROE (Rentabilidade PL)</strong></td>
+                                    ${assets.map((a, i) => {
+                                        if (a._class !== 'stock') return `<td style="color:var(--text-muted);font-size:0.76rem;">— (Inaplicável)</td>`;
+                                        return renderCell(roes[i], i, winRoe, v => v !== null ? `${(v * 100).toFixed(2)}%` : '—');
+                                    }).join('')}
+                                </tr>
+                                <tr>
+                                    <td><strong>VPA (Valor Patr. / Cota)</strong></td>
+                                    ${assets.map((a, i) => {
+                                        if (a._class === 'tesouro') return `<td style="color:var(--text-muted);font-size:0.76rem;">— (VNA / PU)</td>`;
+                                        return renderCell(vpas[i], i, -1, v => v ? `R$ ${Number(v).toFixed(2)}` : '—');
+                                    }).join('')}
+                                </tr>
+                                <tr>
+                                    <td><strong>Preço Teto (Bazin)</strong></td>
+                                    ${assets.map((a, i) => {
+                                        if (a._class === 'tesouro') return `<td style="color:var(--text-muted);font-size:0.76rem;">— (Juro Contratado)</td>`;
+                                        return renderCell(a.bazin_price, i, -1, v => v ? `R$ ${Number(v).toFixed(2)}` : '—');
+                                    }).join('')}
+                                </tr>
+                                <tr>
+                                    <td><strong>Preço Justo (Graham)</strong></td>
+                                    ${assets.map((a, i) => {
+                                        if (a._class !== 'stock') return `<td style="color:var(--text-muted);font-size:0.76rem;">— (Exclusivo Ações)</td>`;
+                                        return renderCell(a.graham_price, i, -1, v => v ? `R$ ${Number(v).toFixed(2)}` : '—');
+                                    }).join('')}
+                                </tr>
+
+                                <tr>
+                                    <th colspan="${assets.length + 1}" style="background:var(--surface-2); text-align:left; font-size:0.76rem; text-transform:uppercase; letter-spacing:0.05em; padding:0.45rem 1rem; color:var(--text-secondary);">🏛️ Renda Fixa & Títulos Públicos</th>
+                                </tr>
+                                <tr>
+                                    <td><strong>Indexador / Motor de Retorno</strong></td>
+                                    ${assets.map(a => {
+                                        if (a._class === 'tesouro') return `<td style="font-weight:600;color:var(--gold);font-size:0.82rem;">${a.type || 'Público Federal'}</td>`;
+                                        if (a._class === 'fii') return `<td style="font-size:0.8rem;color:var(--text-secondary);">Aluguéis / CRI</td>`;
+                                        if (a._class === 'fiagro') return `<td style="font-size:0.8rem;color:var(--text-secondary);">Crédito Agro (CRA)</td>`;
+                                        return `<td style="font-size:0.8rem;color:var(--text-secondary);">Lucros & Dividendos</td>`;
+                                    }).join('')}
+                                </tr>
+                                <tr>
+                                    <td><strong>Vencimento / Prazo</strong></td>
+                                    ${assets.map(a => {
+                                        if (a._class === 'tesouro') return `<td style="font-weight:600;color:var(--text-primary);font-size:0.82rem;">${a.maturity || 'Data Contratual'}</td>`;
+                                        return `<td style="font-size:0.8rem;color:var(--text-secondary);">Perpétua (Sem Vencimento)</td>`;
+                                    }).join('')}
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="compare-chart-card" style="margin-top:1.25rem;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+                        <div>
+                            <h3 style="font-size:0.95rem;font-weight:700;color:var(--text-primary);">Desempenho Relativo de Preço (% nos últimos 12 meses)</h3>
+                            <p style="font-size:0.78rem;color:var(--text-muted);">Variação percentual normalizada base 0% para comparar a trajetória de rentabilidade.</p>
+                        </div>
+                    </div>
+                    <div style="position:relative;height:260px;width:100%;">
+                        <canvas id="compare-chart-canvas"></canvas>
+                    </div>
+                </div>
+            `;
+
+            renderCompareChart(assets);
+        }
+
+        function renderCompareChart(assets) {
+            const canvas = document.getElementById('compare-chart-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if (compareChartInstance) {
+                compareChartInstance.destroy();
+                compareChartInstance = null;
+            }
+
+            const palette = ['#3b82f6', '#10b981', '#f59e0b', '#a855f7'];
+            const datasets = [];
+            let commonDates = [];
+
+            assets.forEach((asset, idx) => {
+                let history = [];
+                try {
+                    if (asset.history && Array.isArray(asset.history)) {
+                        history = asset.history;
+                    } else if (asset.history_json) {
+                        history = typeof asset.history_json === 'string' ? JSON.parse(asset.history_json) : asset.history_json;
+                    }
+                } catch (e) {
+                    history = [];
+                }
+                if (!history || history.length < 2) return;
+
+                const sampled = history.length > 14 ? history.slice(-14) : history;
+                if (commonDates.length === 0) {
+                    commonDates = sampled.map(h => {
+                        const parts = (h.date || '').split('-');
+                        return parts.length >= 2 ? `${parts[1]}/${parts[0]}` : h.date;
+                    });
+                }
+
+                const basePrice = (sampled[0].price != null ? Number(sampled[0].price) : (Number(sampled[0].buy_price) || 1));
+                const dataPct = sampled.map(h => {
+                    const p = (h.price != null ? Number(h.price) : (Number(h.buy_price) || basePrice));
+                    return Number((((p - basePrice) / basePrice) * 100).toFixed(2));
+                });
+
+                const color = palette[idx % palette.length];
+                datasets.push({
+                    label: asset.ticker || asset.name,
+                    data: dataPct,
+                    borderColor: color,
+                    backgroundColor: 'transparent',
+                    borderWidth: 2.5,
+                    pointRadius: 3,
+                    pointHoverRadius: 6,
+                    tension: 0.2
                 });
             });
 
-            document.addEventListener('touchstart', function(e) {
-                if (!e.target.closest('.hint') && activeEl) { activeEl.blur(); hideTooltip(); }
-            });
-            document.addEventListener('mousedown', function(e) {
-                if (!e.target.closest('.hint') && activeEl) { hideTooltip(); }
-            });
+            if (datasets.length === 0) return;
 
-            window.addEventListener('scroll', function() { if (activeEl) positionTooltip(activeEl); }, true);
-            window.addEventListener('resize', function() { if (activeEl) positionTooltip(activeEl); });
+            const isLight = !document.body.classList.contains('dark');
+            const gridColor = isLight ? '#e2e4ea' : '#282c38';
+            const tickColor = isLight ? '#6b7084' : '#8b8fa3';
 
-            window.initHints = function(root) {
-                (root || document).querySelectorAll('.hint').forEach(function(el) {
-                    if (!el.dataset.hintInited) {
-                        el.dataset.hintInited = '1';
-                        el.addEventListener('mouseenter', function(e) { cancelHide(); showTooltip(this); });
-                        el.addEventListener('mouseleave', function(e) { hideTooltip(); });
-                        el.addEventListener('focus', function(e) { cancelHide(); showTooltip(this); });
-                        el.addEventListener('blur', function(e) { hideTooltip(); });
-                        el.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            if (document.activeElement === this) { this.blur(); }
-                            else { this.focus(); }
+            compareChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: commonDates,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: { color: tickColor, font: { size: 11, weight: '600', family: 'Inter, sans-serif' } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.dataset.label}: ${context.parsed.y >= 0 ? '+' : ''}${context.parsed.y.toFixed(2)}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: tickColor, font: { size: 10, family: 'Inter, sans-serif' } }
+                        },
+                        y: {
+                            grid: { color: gridColor },
+                            ticks: {
+                                color: tickColor,
+                                font: { size: 10, family: 'Inter, sans-serif' },
+                                callback: v => `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        /* ── Calculadora / Simulador de Renda Passiva & Bola de Neve ── */
+        let snowballChartInstance = null;
+        let currentCalcMode = 'goal';
+
+        function switchCalcMode(mode) {
+            currentCalcMode = mode;
+            const btnGoal = document.getElementById('btn-calc-mode-goal');
+            const btnSnow = document.getElementById('btn-calc-mode-snowball');
+            const gridGoal = document.getElementById('calc-grid-goal');
+            const gridSnow = document.getElementById('calc-grid-snowball');
+
+            if (btnGoal) btnGoal.classList.toggle('active', mode === 'goal');
+            if (btnSnow) btnSnow.classList.toggle('active', mode === 'snowball');
+            if (gridGoal) gridGoal.classList.toggle('hidden', mode !== 'goal');
+            if (gridSnow) gridSnow.classList.toggle('hidden', mode !== 'snowball');
+
+            if (mode === 'goal') calculateIncomeGoal();
+            else calculateSnowball();
+        }
+
+        function getCalculatorAssetCatalog() {
+            const data = window.dashboardData || {};
+            const macro = data.macro_state || {};
+            const selicMeta = macro.selic_meta != null ? macro.selic_meta : (macro.selic != null ? macro.selic : 0.14);
+            const ipcaFocus = (macro.focus_ipca && macro.focus_ipca[0] != null) ? macro.focus_ipca[0] : 0.045;
+
+            const catalog = [];
+
+            // 1. Estratégias Diversificadas
+            catalog.push(
+                { id: 'custom', category: 'strategies', label: 'Estratégia Customizada (DY manual)', dy: 9.0, price: 0, taxType: 'exempt' },
+                { id: 'top_brasil', category: 'strategies', label: 'Top Brasil Diversificado (DY ~9.5%)', dy: 9.5, price: 0, taxType: 'exempt' },
+                { id: 'top_stocks', category: 'strategies', label: 'Top Ações Dividendos (DY ~8.5%)', dy: 8.5, price: 0, taxType: 'stock' },
+                { id: 'top_fiis', category: 'strategies', label: 'Top FIIs Imobiliários (DY ~10.5%)', dy: 10.5, price: 0, taxType: 'exempt' },
+                { id: 'top_tesouro', category: 'strategies', label: 'Top Tesouro IPCA+ / Selic (Yield ~12.5%)', dy: 12.5, price: 1000, taxType: 'tesouro' }
+            );
+
+            // 2. Ações B3
+            if (Array.isArray(data.stocks)) {
+                data.stocks.slice(0, 30).forEach(s => {
+                    const dy = (Number(s.dividend_yield) || 0) * 100;
+                    if (dy > 0) {
+                        catalog.push({
+                            id: s.ticker,
+                            category: 'stocks',
+                            label: `${s.ticker} - ${s.name || ''} (DY ${dy.toFixed(1)}%)`,
+                            dy: dy,
+                            price: Number(s.price) || 0,
+                            taxType: 'stock'
                         });
                     }
                 });
-            };
-        })();
+            }
+
+            // 3. FIIs
+            if (Array.isArray(data.fiis)) {
+                data.fiis.slice(0, 30).forEach(f => {
+                    const dy = (Number(f.dividend_yield) || 0) * 100;
+                    if (dy > 0) {
+                        catalog.push({
+                            id: f.ticker,
+                            category: 'fiis',
+                            label: `${f.ticker} - ${f.name || ''} (DY ${dy.toFixed(1)}%)`,
+                            dy: dy,
+                            price: Number(f.price) || 0,
+                            taxType: 'exempt'
+                        });
+                    }
+                });
+            }
+
+            // 4. FIAGROs
+            if (Array.isArray(data.fiagros)) {
+                data.fiagros.slice(0, 20).forEach(fg => {
+                    const dy = (Number(fg.dividend_yield) || 0) * 100;
+                    if (dy > 0) {
+                        catalog.push({
+                            id: fg.ticker,
+                            category: 'fiagros',
+                            label: `${fg.ticker} - ${fg.name || ''} (DY ${dy.toFixed(1)}%)`,
+                            dy: dy,
+                            price: Number(fg.price) || 0,
+                            taxType: 'exempt'
+                        });
+                    }
+                });
+            }
+
+            // 5. Tesouro Direto
+            const tdList = Array.isArray(data.tesouro_direto) ? data.tesouro_direto : [];
+            tdList.forEach(td => {
+                const buyYield = Number(td.buy_yield) || 0;
+                let nominalYield = buyYield * 100;
+                const tipo = (td.type || td.group || '').toLowerCase();
+                if (tipo.includes('selic') || td.yield_kind === 'selic_spread') {
+                    nominalYield = (selicMeta + buyYield) * 100;
+                } else if (tipo.includes('ipca')) {
+                    nominalYield = (((1 + ipcaFocus) * (1 + buyYield) - 1)) * 100;
+                }
+                const price = Number(td.buy_price || td.unit_price || td.price) || 1000;
+                catalog.push({
+                    id: td.name || td.ticker,
+                    category: 'tesouro',
+                    label: `${td.name || td.ticker} (Yield ~${nominalYield.toFixed(2)}% a.a.)`,
+                    dy: nominalYield,
+                    price: price,
+                    taxType: 'tesouro'
+                });
+            });
+
+            return catalog;
+        }
+
+        function populateCalculatorSelects() {
+            if (!window.dashboardData) return;
+            filterCalculatorAssets('goal');
+            filterCalculatorAssets('snow');
+        }
+
+        function filterCalculatorAssets(mode) {
+            const categorySelect = document.getElementById(mode === 'goal' ? 'calc-goal-category' : 'calc-snow-category');
+            const assetSelect = document.getElementById(mode === 'goal' ? 'calc-goal-asset' : 'calc-snow-asset');
+            if (!categorySelect || !assetSelect) return;
+
+            const selectedCat = categorySelect.value || 'all';
+            const catalog = getCalculatorAssetCatalog();
+            const filtered = selectedCat === 'all' ? catalog : catalog.filter(item => item.category === selectedCat);
+
+            assetSelect.innerHTML = filtered.map(item => {
+                return `<option value="${item.id}" data-category="${item.category}" data-dy="${item.dy.toFixed(2)}" data-price="${item.price.toFixed(2)}" data-tax="${item.taxType}">${item.label}</option>`;
+            }).join('');
+
+            if (mode === 'goal') {
+                onGoalAssetChange();
+            } else {
+                onSnowballAssetChange();
+            }
+        }
+
+        function onGoalCategoryChange() {
+            filterCalculatorAssets('goal');
+        }
+
+        function onSnowCategoryChange() {
+            filterCalculatorAssets('snow');
+        }
+
+        function onGoalAssetChange() {
+            const select = document.getElementById('calc-goal-asset');
+            const dyInput = document.getElementById('calc-goal-custom-dy');
+            if (!select || !dyInput) return;
+            const opt = select.selectedOptions[0];
+            if (opt && opt.dataset.dy) {
+                dyInput.value = parseFloat(opt.dataset.dy).toFixed(1);
+            }
+            calculateIncomeGoal();
+        }
+
+        function onSnowballAssetChange() {
+            const select = document.getElementById('calc-snow-asset');
+            const dyInput = document.getElementById('calc-snow-dy');
+            if (!select || !dyInput) return;
+            const opt = select.selectedOptions[0];
+            if (opt && opt.dataset.dy) {
+                dyInput.value = parseFloat(opt.dataset.dy).toFixed(1);
+            }
+            calculateSnowball();
+        }
+
+        function _getEffectiveTaxRate(taxSelectorVal, assetTaxType) {
+            if (taxSelectorVal === 'exempt') return 0;
+            if (taxSelectorVal === 'stock_jcp') return 0.0375; // ~25% JCP tributado a 15%
+            if (taxSelectorVal === 'fixed_15') return 0.15;
+            if (taxSelectorVal === 'fixed_22_5') return 0.225;
+            // auto
+            if (assetTaxType === 'exempt') return 0;
+            if (assetTaxType === 'stock') return 0.0375; // Estimativa média ponderada B3
+            if (assetTaxType === 'tesouro') return 0.15; // Regressiva longo prazo > 2 anos
+            return 0;
+        }
+
+        function calculateIncomeGoal() {
+            const targetEl = document.getElementById('calc-goal-target');
+            const dyEl = document.getElementById('calc-goal-custom-dy');
+            const taxSelect = document.getElementById('calc-goal-tax');
+            const assetSelect = document.getElementById('calc-goal-asset');
+
+            const totalEl = document.getElementById('calc-goal-result-total');
+            const netEl = document.getElementById('calc-goal-result-net');
+            const grossEl = document.getElementById('calc-goal-result-gross');
+            const taxEl = document.getElementById('calc-goal-result-tax');
+            const netYieldEl = document.getElementById('calc-goal-result-net-yield');
+            const sharesRow = document.getElementById('calc-goal-shares-row');
+            const sharesEl = document.getElementById('calc-goal-result-shares');
+            const dailyEl = document.getElementById('calc-goal-result-daily');
+            const magicDescEl = document.getElementById('calc-goal-magic-desc');
+
+            if (!targetEl || !dyEl || !totalEl) return;
+
+            const monthlyNetTarget = parseFloat(targetEl.value) || 0;
+            const grossDyAnnual = (parseFloat(dyEl.value) || 9.0) / 100;
+
+            const opt = assetSelect ? assetSelect.selectedOptions[0] : null;
+            const assetTaxType = opt ? (opt.dataset.tax || 'exempt') : 'exempt';
+            const taxMode = taxSelect ? taxSelect.value : 'auto';
+            const taxRate = _getEffectiveTaxRate(taxMode, assetTaxType);
+
+            const netDyAnnual = grossDyAnnual * (1 - taxRate);
+            const annualNetTarget = monthlyNetTarget * 12;
+            const totalRequired = netDyAnnual > 0 ? (annualNetTarget / netDyAnnual) : 0;
+            const annualGross = (1 - taxRate) > 0 ? (annualNetTarget / (1 - taxRate)) : annualNetTarget;
+            const monthlyGross = annualGross / 12;
+            const annualTax = annualGross - annualNetTarget;
+            const dailyNet = annualNetTarget / 365;
+
+            totalEl.textContent = `R$ ${totalRequired.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (netEl) netEl.textContent = `R$ ${monthlyNetTarget.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / mês`;
+            if (grossEl) grossEl.textContent = `R$ ${monthlyGross.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / mês (R$ ${annualGross.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ano)`;
+            if (taxEl) {
+                const taxPctStr = (taxRate * 100).toFixed(2);
+                taxEl.textContent = taxRate > 0 ? `R$ ${annualTax.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ano (${taxPctStr}%)` : `R$ 0,00 (Isento)`;
+            }
+            if (netYieldEl) netYieldEl.textContent = `${(netDyAnnual * 100).toFixed(2)}% a.a. (Bruto: ${(grossDyAnnual * 100).toFixed(2)}%)`;
+            if (dailyEl) dailyEl.textContent = `R$ ${dailyNet.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / dia líquido`;
+
+            let price = 0;
+            let cat = 'stocks';
+            if (opt) {
+                price = parseFloat(opt.dataset.price) || 0;
+                cat = opt.dataset.category || 'stocks';
+            }
+
+            if (price > 0 && sharesEl && sharesRow) {
+                const unitCount = Math.ceil(totalRequired / price);
+                const unitName = cat === 'tesouro' ? 'títulos' : (cat === 'stocks' ? 'ações' : 'cotas');
+                sharesRow.classList.remove('hidden');
+                sharesEl.textContent = `${unitCount.toLocaleString('pt-BR')} ${unitName} (a R$ ${price.toFixed(2)})`;
+            } else if (sharesRow) {
+                sharesRow.classList.add('hidden');
+            }
+
+            if (magicDescEl) {
+                if (cat === 'tesouro') {
+                    magicDescEl.textContent = `Títulos do Tesouro possuem garantia soberana da União e retenção de IR na fonte de 15% após 2 anos.`;
+                } else if (cat === 'fiis' || cat === 'fiagros') {
+                    magicDescEl.textContent = `Rendimentos mensais de FIIs e FIAGROs são 100% isentos de Imposto de Renda para pessoas físicas.`;
+                } else {
+                    magicDescEl.textContent = `Ações distribuem dividendos isentos e JCP tributado em 15% na fonte, com alíquota média combinada de ~3,75%.`;
+                }
+            }
+        }
+
+        function calculateSnowball() {
+            const initialEl = document.getElementById('calc-snow-initial');
+            const monthlyEl = document.getElementById('calc-snow-monthly');
+            const dyEl = document.getElementById('calc-snow-dy');
+            const yearsEl = document.getElementById('calc-snow-years');
+            const taxSelect = document.getElementById('calc-snow-tax');
+            const assetSelect = document.getElementById('calc-snow-asset');
+
+            const totalEl = document.getElementById('calc-snow-result-total');
+            const investedEl = document.getElementById('calc-snow-result-invested');
+            const divEl = document.getElementById('calc-snow-result-dividends');
+            const taxEl = document.getElementById('calc-snow-result-tax');
+            const monthlyIncomeEl = document.getElementById('calc-snow-result-monthly-income');
+            const magicTitleEl = document.getElementById('calc-magic-number-title');
+            const magicDescEl = document.getElementById('calc-magic-number-desc');
+
+            if (!initialEl || !monthlyEl || !dyEl || !yearsEl) return;
+
+            const initialCapital = parseFloat(initialEl.value) || 0;
+            const monthlyContribution = parseFloat(monthlyEl.value) || 0;
+            const grossAnnualDy = (parseFloat(dyEl.value) || 10.0) / 100;
+
+            const opt = assetSelect ? assetSelect.selectedOptions[0] : null;
+            const assetTaxType = opt ? (opt.dataset.tax || 'exempt') : 'exempt';
+            const taxMode = taxSelect ? taxSelect.value : 'auto';
+            const taxRate = _getEffectiveTaxRate(taxMode, assetTaxType);
+
+            const netAnnualDy = grossAnnualDy * (1 - taxRate);
+            const monthlyNetRate = Math.pow(1 + netAnnualDy, 1 / 12) - 1;
+            const years = parseInt(yearsEl.value, 10) || 5;
+            const months = years * 12;
+
+            let balance = initialCapital;
+            let totalInvested = initialCapital;
+            let historyPoints = [];
+
+            for (let m = 1; m <= months; m++) {
+                const netDividend = balance * monthlyNetRate;
+                balance = balance + netDividend + monthlyContribution;
+                totalInvested += monthlyContribution;
+
+                if (m % 12 === 0 || m === months) {
+                    historyPoints.push({
+                        year: `Ano ${Math.round(m / 12)}`,
+                        invested: Math.round(totalInvested),
+                        balance: Math.round(balance),
+                        dividends: Math.round(balance - totalInvested)
+                    });
+                }
+            }
+
+            const finalDividendsNet = Math.max(0, balance - totalInvested);
+            const finalDividendsGross = (1 - taxRate) > 0 ? (finalDividendsNet / (1 - taxRate)) : finalDividendsNet;
+            const finalTaxEstimated = finalDividendsGross - finalDividendsNet;
+            const finalMonthlyNetIncome = balance * monthlyNetRate;
+
+            if (totalEl) totalEl.textContent = `R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (investedEl) investedEl.textContent = `R$ ${totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (divEl) divEl.textContent = `R$ ${finalDividendsNet.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (taxEl) {
+                taxEl.textContent = taxRate > 0 ? `R$ ${finalTaxEstimated.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${(taxRate * 100).toFixed(1)}% retido)` : `R$ 0,00 (Isento)`;
+            }
+            if (monthlyIncomeEl) monthlyIncomeEl.textContent = `R$ ${finalMonthlyNetIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / mês líquido`;
+
+            let price = 0;
+            let cat = 'stocks';
+            if (opt) {
+                price = parseFloat(opt.dataset.price) || 0;
+                cat = opt.dataset.category || 'stocks';
+            }
+
+            const unitName = cat === 'tesouro' ? 'títulos' : (cat === 'stocks' ? 'ações' : 'cotas');
+            if (price > 0 && monthlyNetRate > 0) {
+                const magicNumber = Math.ceil(1 / monthlyNetRate);
+                const magicCapital = magicNumber * price;
+                if (magicTitleEl) magicTitleEl.textContent = `Magic Number: ${magicNumber.toLocaleString('pt-BR')} ${unitName}`;
+                if (magicDescEl) magicDescEl.textContent = `Com R$ ${magicCapital.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} investidos, seus proventos líquidos compram 1 novo ${unitName.slice(0, -1)} todos os meses automaticamente!`;
+            } else if (monthlyNetRate > 0) {
+                const magicNumber = Math.ceil(1 / monthlyNetRate);
+                if (magicTitleEl) magicTitleEl.textContent = `Ponto de Virada: ~${magicNumber}x de Yield`;
+                if (magicDescEl) magicDescEl.textContent = `A uma taxa líquida de ${(netAnnualDy * 100).toFixed(2)}% a.a., cada R$ ${(1 / monthlyNetRate * 100).toFixed(0)} investidos geram R$ 100 de novos aportes automáticos todo mês.`;
+            }
+
+            renderSnowballChart(historyPoints);
+        }
+
+        function renderSnowballChart(points) {
+            const canvas = document.getElementById('snowball-chart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if (snowballChartInstance) {
+                snowballChartInstance.destroy();
+                snowballChartInstance = null;
+            }
+            if (!points || points.length === 0) return;
+
+            const isLight = !document.body.classList.contains('dark');
+            const gridColor = isLight ? '#e2e4ea' : '#282c38';
+            const tickColor = isLight ? '#6b7084' : '#8b8fa3';
+
+            snowballChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: points.map(p => p.year),
+                    datasets: [
+                        {
+                            label: 'Total Aportado',
+                            data: points.map(p => p.invested),
+                            backgroundColor: 'rgba(59, 63, 84, 0.45)',
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Patrimônio Total (c/ Dividendos)',
+                            data: points.map(p => p.balance),
+                            backgroundColor: '#10b981',
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: { color: tickColor, font: { size: 10, weight: '600', family: 'Inter, sans-serif' } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.dataset.label}: R$ ${context.parsed.y.toLocaleString('pt-BR')}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: tickColor, font: { size: 10, family: 'Inter, sans-serif' } }
+                        },
+                        y: {
+                            grid: { color: gridColor },
+                            ticks: {
+                                color: tickColor,
+                                font: { size: 10, family: 'Inter, sans-serif' },
+                                callback: v => `R$ ${(v / 1000).toFixed(0)}k`
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderCalculatorPanel() {
+            populateCalculatorSelects();
+            if (currentCalcMode === 'goal') calculateIncomeGoal();
+            else calculateSnowball();
+        }
+
+        /* ── Macro Forecaster & Scenario Simulator ── */
+
+        function applyMacroScenario(scenarioKey) {
+            const selicEl = document.getElementById('macro-sim-selic');
+            const ipcaEl = document.getElementById('macro-sim-ipca');
+            const fiscalEl = document.getElementById('macro-sim-fiscal');
+            const debtEl = document.getElementById('macro-sim-debt');
+            const buttons = document.querySelectorAll('#macro-preset-buttons .preset-scenario-btn');
+
+            buttons.forEach(b => {
+                const onclick = b.getAttribute('onclick') || '';
+                b.classList.toggle('active', onclick.includes(`'${scenarioKey}'`));
+            });
+
+            if (scenarioKey === 'rate_cut') {
+                if (selicEl) selicEl.value = '-200';
+                if (ipcaEl) ipcaEl.value = 'low';
+                if (fiscalEl) fiscalEl.value = 'surplus';
+                if (debtEl) debtEl.value = 'easy';
+            } else if (scenarioKey === 'fiscal_crisis') {
+                if (selicEl) selicEl.value = '200';
+                if (ipcaEl) ipcaEl.value = 'high';
+                if (fiscalEl) fiscalEl.value = 'deficit';
+                if (debtEl) debtEl.value = 'tight';
+            } else if (scenarioKey === 'fiscal_consolidation') {
+                if (selicEl) selicEl.value = '-100';
+                if (ipcaEl) ipcaEl.value = 'target';
+                if (fiscalEl) fiscalEl.value = 'surplus';
+                if (debtEl) debtEl.value = 'easy';
+            } else if (scenarioKey === 'rate_hike') {
+                if (selicEl) selicEl.value = '200';
+                if (ipcaEl) ipcaEl.value = 'high';
+                if (fiscalEl) fiscalEl.value = 'neutral';
+                if (debtEl) debtEl.value = 'tight';
+            } else if (scenarioKey === 'debt_stress') {
+                if (selicEl) selicEl.value = '100';
+                if (ipcaEl) ipcaEl.value = 'target';
+                if (fiscalEl) fiscalEl.value = 'neutral';
+                if (debtEl) debtEl.value = 'tight';
+            } else if (scenarioKey === 'flight_to_quality') {
+                if (selicEl) selicEl.value = '0';
+                if (ipcaEl) ipcaEl.value = 'high';
+                if (fiscalEl) fiscalEl.value = 'deficit';
+                if (debtEl) debtEl.value = 'neutral';
+            }
+
+            runMacroForecastSimulation();
+        }
+
+        function runMacroForecastSimulation() {
+            const selicEl = document.getElementById('macro-sim-selic');
+            const ipcaEl = document.getElementById('macro-sim-ipca');
+            const fiscalEl = document.getElementById('macro-sim-fiscal');
+            const debtEl = document.getElementById('macro-sim-debt');
+
+            const selicDelta = selicEl ? parseInt(selicEl.value, 10) : 0;
+            const ipcaLevel = ipcaEl ? ipcaEl.value : 'target';
+            const fiscalLevel = fiscalEl ? fiscalEl.value : 'neutral';
+            const debtLevel = debtEl ? debtEl.value : 'neutral';
+
+            // Update Label Badges
+            const selicLabel = document.getElementById('macro-sim-selic-label');
+            const ipcaLabel = document.getElementById('macro-sim-ipca-label');
+            const fiscalLabel = document.getElementById('macro-sim-fiscal-label');
+            const debtLabel = document.getElementById('macro-sim-debt-label');
+
+            if (selicLabel) {
+                if (selicDelta < 0) {
+                    selicLabel.textContent = `Queda (${(selicDelta / 100).toFixed(2)}%)`;
+                    selicLabel.style.color = 'var(--positive)';
+                } else if (selicDelta > 0) {
+                    selicLabel.textContent = `Alta (+${(selicDelta / 100).toFixed(2)}%)`;
+                    selicLabel.style.color = 'var(--negative)';
+                } else {
+                    selicLabel.textContent = 'Estável / Neutro';
+                    selicLabel.style.color = 'var(--primary-accent)';
+                }
+            }
+
+            if (ipcaLabel) {
+                if (ipcaLevel === 'low') {
+                    ipcaLabel.textContent = 'Desinflação (< 3%)';
+                    ipcaLabel.style.color = 'var(--positive)';
+                } else if (ipcaLevel === 'high') {
+                    ipcaLabel.textContent = 'Acelerado (> 5.5%)';
+                    ipcaLabel.style.color = 'var(--negative)';
+                } else {
+                    ipcaLabel.textContent = 'Na Meta (~4%)';
+                    ipcaLabel.style.color = 'var(--gold)';
+                }
+            }
+
+            if (fiscalLabel) {
+                if (fiscalLevel === 'surplus') {
+                    fiscalLabel.textContent = 'Ajuste / Dívida em Queda';
+                    fiscalLabel.style.color = 'var(--positive)';
+                } else if (fiscalLevel === 'deficit') {
+                    fiscalLabel.textContent = 'Descontrole / Risco Alto';
+                    fiscalLabel.style.color = 'var(--negative)';
+                } else {
+                    fiscalLabel.textContent = 'Equilibrado';
+                    fiscalLabel.style.color = 'var(--primary-accent)';
+                }
+            }
+
+            if (debtLabel) {
+                if (debtLevel === 'easy') {
+                    debtLabel.textContent = 'Crédito Barato';
+                    debtLabel.style.color = 'var(--positive)';
+                } else if (debtLevel === 'tight') {
+                    debtLabel.textContent = 'Crédito Caro & Escasso';
+                    debtLabel.style.color = 'var(--negative)';
+                } else {
+                    debtLabel.textContent = 'Equilibrado';
+                    debtLabel.style.color = 'var(--primary-accent)';
+                }
+            }
+
+            // 1. Diagnostic Summary Banner
+            const bannerEl = document.getElementById('macro-forecast-banner');
+            if (bannerEl) {
+                let summaryTitle = '';
+                let summaryText = '';
+                let borderColor = 'var(--primary-accent)';
+
+                if (fiscalLevel === 'deficit') {
+                    summaryTitle = '💥 Descontrole Fiscal, Dívida Pública em Alta & Abertura da Curva Longa';
+                    summaryText = 'A expansão desordenada dos gastos públicos eleva a relação Dívida/PIB e o prêmio de risco país (CDS Brasil). O mercado exige taxas reais históricas nos títulos longos (IPCA+ 6.8% a 7.5%). Isso gera forte volatilidade temporária na marcação a mercado dos papéis longos, mas abre janelas raras de aporte para quem carrega até o vencimento.';
+                    borderColor = 'var(--negative)';
+                } else if (fiscalLevel === 'surplus' && selicDelta <= 0) {
+                    summaryTitle = '🏛️ Consolidação Fiscal, Queda de Juros & Rali Generalizado (Bull Market)';
+                    summaryText = 'Contas públicas com superávit primário reduzem o prêmio de risco sovereign, ancoram a inflação e permitem cortes sustentáveis na Selic. A Curva de Juros (ETTJ) fecha com força, gerando lucros massivos de Marcação a Mercado no Tesouro IPCA+ e explosão de múltiplos em Ações e FIIs de Tijolo.';
+                    borderColor = 'var(--positive)';
+                } else if (selicDelta > 0 || ipcaLevel === 'high') {
+                    summaryTitle = '🛡️ Aperto Monetário, Custo de Dívida Alto & Blindagem em CDI / IPCA+';
+                    summaryText = 'Com juros e inflação elevados, ativos de duration longa sofrem reprecificação. O fluxo institucional busca refúgio no Tesouro Selic (LFT), em FIIs de papel (CRI) com yields inflacionários e em ações com caixa líquido e dividendos imediatos.';
+                    borderColor = 'var(--gold)';
+                } else {
+                    summaryTitle = '⚖️ Cenário Macroeconômico de Equilíbrio';
+                    summaryText = 'Condições normais de mercado. Alocação balanceada entre a proteção inflacionária do Tesouro IPCA+, a rentabilidade de caixa do Tesouro Selic e o valuation descontado em ações de valor.';
+                    borderColor = 'var(--primary-accent)';
+                }
+
+                bannerEl.style.borderLeftColor = borderColor;
+                bannerEl.innerHTML = `
+                    <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.35rem;">${summaryTitle}</div>
+                    <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">${summaryText}</div>
+                `;
+            }
+
+            // 2. Raio-X & Marcação a Mercado do Tesouro Direto
+            const tesouroTbody = document.getElementById('macro-tesouro-table-tbody');
+            const tesouroVerdictBadge = document.getElementById('macro-tesouro-verdict-badge');
+
+            if (tesouroVerdictBadge) {
+                if (fiscalLevel === 'surplus' && selicDelta < 0) {
+                    tesouroVerdictBadge.textContent = '🚀 Rali de Marcação a Mercado (+20% a +45%)';
+                    tesouroVerdictBadge.className = 'macro-impact-badge macro-impact-high-pos';
+                } else if (fiscalLevel === 'deficit') {
+                    tesouroVerdictBadge.textContent = '⚠️ Prêmio de Risco Alto (Oportunidade para Vencimento)';
+                    tesouroVerdictBadge.className = 'macro-impact-badge macro-impact-mod-neg';
+                } else if (selicDelta > 0) {
+                    tesouroVerdictBadge.textContent = '🛡️ Refúgio no Tesouro Selic';
+                    tesouroVerdictBadge.className = 'macro-impact-badge macro-impact-mod-pos';
+                } else {
+                    tesouroVerdictBadge.textContent = '⚖️ Curva Equilibrada';
+                    tesouroVerdictBadge.className = 'macro-impact-badge macro-impact-neutral';
+                }
+            }
+
+            if (tesouroTbody) {
+                let mtmIpcaShort = '';
+                let mtmIpcaLong = '';
+                let mtmPre = '';
+
+                if (fiscalLevel === 'surplus' && selicDelta <= -100) {
+                    mtmIpcaShort = '<span class="positive font-mono" style="font-weight:700;">+8% a +16% (Forte Alta no PU)</span>';
+                    mtmIpcaLong = '<span class="positive font-mono" style="font-weight:700;">+25% a +50% (Explosão de MtM)</span>';
+                    mtmPre = '<span class="positive font-mono" style="font-weight:700;">+15% a +30% (Rali Expressivo)</span>';
+                } else if (fiscalLevel === 'deficit') {
+                    mtmIpcaShort = '<span class="warning font-mono">-3% a -8% (Oscilação temporária)</span>';
+                    mtmIpcaLong = '<span class="negative font-mono" style="font-weight:700;">-15% a -30% (Deságio de curto prazo)</span>';
+                    mtmPre = '<span class="negative font-mono" style="font-weight:700;">-12% a -25% (Risco de corrosão)</span>';
+                } else if (selicDelta > 0) {
+                    mtmIpcaShort = '<span class="warning font-mono">-2% a -5% (Leve oscilação)</span>';
+                    mtmIpcaLong = '<span class="warning font-mono">-8% a -15% (Queda no PU)</span>';
+                    mtmPre = '<span class="negative font-mono">-6% a -14% (Perda de atratividade)</span>';
+                } else {
+                    mtmIpcaShort = '<span class="font-mono">Estável / Rentabilidade Contratada</span>';
+                    mtmIpcaLong = '<span class="font-mono">Estável / Rentabilidade Contratada</span>';
+                    mtmPre = '<span class="font-mono">Estável / Rentabilidade Contratada</span>';
+                }
+
+                tesouroTbody.innerHTML = `
+                    <tr>
+                        <td>
+                            <div style="font-weight:700; color:var(--text-primary); margin-bottom: 0.25rem;">Tesouro Selic (LFT)</div>
+                            <div style="display:flex; flex-wrap:wrap; gap:0.25rem;">
+                                <span class="macro-clickable-ticker" onclick="openTdDetailFromHome('Tesouro Selic 2029')">Tesouro Selic 2029 ↗</span>
+                                <span class="macro-clickable-ticker" onclick="openTdDetailFromHome('Tesouro Selic 2031')">Tesouro Selic 2031 ↗</span>
+                            </div>
+                        </td>
+                        <td><span style="font-weight:600;">100% Selic + Ágio</span></td>
+                        <td><span class="macro-impact-badge macro-impact-high-pos" style="font-size:0.7rem;">Duration Zero (1 Dia)</span></td>
+                        <td><span class="positive" style="font-weight:700;">✓ Volatilidade Nula (Imune a MtM)</span></td>
+                        <td style="font-size:0.78rem; color:var(--text-secondary);">
+                            ${selicDelta >= 0 || fiscalLevel === 'deficit'
+                                ? '<strong>Reserva de Oportunidade:</strong> Máxima segurança para aguardar os picos de juros sem risco de oscilação negativa.'
+                                : 'Excelente para liquidez imediata e reserva de emergência.'}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div style="font-weight:700; color:var(--text-primary); margin-bottom: 0.25rem;">Tesouro IPCA+ Médio</div>
+                            <div style="display:flex; flex-wrap:wrap; gap:0.25rem;">
+                                <span class="macro-clickable-ticker" onclick="openTdDetailFromHome('Tesouro IPCA+ 2029')">Tesouro IPCA+ 2029 ↗</span>
+                                <span class="macro-clickable-ticker" onclick="openTdDetailFromHome('Tesouro IPCA+ 2035')">Tesouro IPCA+ 2035 ↗</span>
+                            </div>
+                        </td>
+                        <td><span style="font-weight:600; color:var(--gold);">IPCA + Juro Real</span></td>
+                        <td><span class="macro-impact-badge macro-impact-neutral" style="font-size:0.7rem;">Média (4 a 8 Anos)</span></td>
+                        <td>${mtmIpcaShort}</td>
+                        <td style="font-size:0.78rem; color:var(--text-secondary);">
+                            ${fiscalLevel === 'deficit'
+                                ? '<strong>Oportunidade Histórica:</strong> Travar taxas acima de IPCA + 6.5% garante riqueza real no vencimento.'
+                                : 'Excelente equilíbrio entre proteção contra inflação e potencial de valorização.'}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div style="font-weight:700; color:var(--text-primary); margin-bottom: 0.25rem;">Tesouro IPCA+ Longo & RendA+</div>
+                            <div style="display:flex; flex-wrap:wrap; gap:0.25rem;">
+                                <span class="macro-clickable-ticker" onclick="openTdDetailFromHome('Tesouro IPCA+ 2045')">Tesouro IPCA+ 2045 ↗</span>
+                                <span class="macro-clickable-ticker" onclick="openTdDetailFromHome('Tesouro RendA+')">Tesouro RendA+ ↗</span>
+                                <span class="macro-clickable-ticker" onclick="openTdDetailFromHome('Tesouro Educa+')">Tesouro Educa+ ↗</span>
+                            </div>
+                        </td>
+                        <td><span style="font-weight:600; color:var(--gold);">IPCA + Juro Real</span></td>
+                        <td><span class="macro-impact-badge macro-impact-mod-neg" style="font-size:0.7rem;">Ultra-Longa (12 a 20+ Anos)</span></td>
+                        <td>${mtmIpcaLong}</td>
+                        <td style="font-size:0.78rem; color:var(--text-secondary);">
+                            ${fiscalLevel === 'surplus' && selicDelta < 0
+                                ? '<strong>Venda Antecipada:</strong> Momento ideal para realizar lucros de marcação a mercado e embolsar o rali.'
+                                : '<strong>Aposentadoria:</strong> Foco exclusivo no carregamento até o vencimento com juros compostos reais.'}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div style="font-weight:700; color:var(--text-primary); margin-bottom: 0.25rem;">Tesouro Prefixado</div>
+                            <div style="display:flex; flex-wrap:wrap; gap:0.25rem;">
+                                <span class="macro-clickable-ticker" onclick="openTdDetailFromHome('Tesouro Prefixado 2027')">Tesouro Prefixado 2027 ↗</span>
+                                <span class="macro-clickable-ticker" onclick="openTdDetailFromHome('Tesouro Prefixado 2031')">Tesouro Prefixado 2031 ↗</span>
+                            </div>
+                        </td>
+                        <td><span style="font-weight:600;">Taxa Nominal Fixa</span></td>
+                        <td><span class="macro-impact-badge macro-impact-neutral" style="font-size:0.7rem;">Média (2 a 6 Anos)</span></td>
+                        <td>${mtmPre}</td>
+                        <td style="font-size:0.78rem; color:var(--text-secondary);">
+                            ${fiscalLevel === 'deficit' || ipcaLevel === 'high'
+                                ? '<strong>Alerta de Risco:</strong> Evitar; descontrole fiscal pode gerar inflação acima da taxa fixa contratada.'
+                                : '<strong>Trade de Ciclo:</strong> Excelente se houver certeza de corte de juros e controle fiscal.'}
+                        </td>
+                    </tr>
+                `;
+            }
+
+            // 3. Asset Classes Impact Cards
+            const classesGrid = document.getElementById('macro-asset-classes-grid');
+            if (classesGrid) {
+                const isBullMarket = selicDelta < 0 && fiscalLevel === 'surplus';
+                const isFiscalStress = fiscalLevel === 'deficit';
+
+                const classesData = [
+                    {
+                        title: 'Ações Cíclicas & Consumo',
+                        sub: 'Varejo, Construção Civil, Shopping Centers',
+                        icon: '🛒',
+                        impact: isBullMarket ? 'high-pos' : isFiscalStress ? 'high-neg' : (selicDelta > 0 ? 'mod-neg' : 'neutral'),
+                        badgeText: isBullMarket ? '🔥 Forte Rali (+20% a +40%)' : isFiscalStress ? '❄️ Risco de Compressão Severa' : '➔ Desempenho Regular',
+                        mechanism: isBullMarket
+                            ? 'A queda dos juros combinada à solvência fiscal destrava o crédito imobiliário, reduz drasticamente as despesas financeiras das empresas e expande os lucros.'
+                            : isFiscalStress
+                            ? 'O descontrole da dívida pública pressiona as taxas de juros de mercado, encarece os financiamentos e retrai as vendas a prazo.'
+                            : 'Depende do crescimento orgânico das vendas e eficiência de custos operacionais.',
+                        examples: [
+                            { ticker: 'CYRE3', type: 'stock' },
+                            { ticker: 'DIRR3', type: 'stock' },
+                            { ticker: 'MULT3', type: 'stock' },
+                            { ticker: 'LREN3', type: 'stock' }
+                        ]
+                    },
+                    {
+                        title: 'Utilidade Pública & Elétricas',
+                        sub: 'Transmissão, Geração e Saneamento',
+                        icon: '⚡',
+                        impact: isBullMarket ? 'high-pos' : (ipcaLevel === 'high' || isFiscalStress ? 'mod-pos' : 'neutral'),
+                        badgeText: isBullMarket ? '📈 Expansão de Múltiplos' : (ipcaLevel === 'high' || isFiscalStress ? '🛡️ Blindagem Inflacionária' : '➔ Fluxo de Caixa Perene'),
+                        mechanism: 'Contratos de concessão reajustados por IPCA/IGP-M e monopólios naturais garantem receita corrigida. No descontrole fiscal, funcionam como refúgio seguro.',
+                        examples: [
+                            { ticker: 'EGIE3', type: 'stock' },
+                            { ticker: 'TAEE11', type: 'stock' },
+                            { ticker: 'CPLE3', type: 'stock' },
+                            { ticker: 'SBSP3', type: 'stock' }
+                        ]
+                    },
+                    {
+                        title: 'Setor Financeiro & Bancos',
+                        sub: 'Grandes Bancos e Seguradoras',
+                        icon: '🏦',
+                        impact: selicDelta > 0 || isFiscalStress ? 'mod-pos' : 'mod-pos',
+                        badgeText: selicDelta > 0 || isFiscalStress ? '💰 Margens com Juros Elevadas' : '📈 Expansão da Carteira de Crédito',
+                        mechanism: 'Bancos conseguem repassar juros e manter ROE elevado; seguradoras lucram alto com a aplicação do floating em CDI.',
+                        examples: [
+                            { ticker: 'ITUB4', type: 'stock' },
+                            { ticker: 'BBAS3', type: 'stock' },
+                            { ticker: 'BBSE3', type: 'stock' },
+                            { ticker: 'PSSA3', type: 'stock' }
+                        ]
+                    },
+                    {
+                        title: 'Exportadoras & Commodities',
+                        sub: 'Minério de Ferro, Petróleo, Papel & Celulose',
+                        icon: '🚢',
+                        impact: isFiscalStress || ipcaLevel === 'high' ? 'high-pos' : 'neutral',
+                        badgeText: isFiscalStress ? '🛡️ Hedge Cambial / Dólar Forte' : '🌐 Demanda Global',
+                        mechanism: 'Receitas 100% em moeda forte (USD) descorrelacionadas do risco Brasil. Atuam como escudo patrimonial direto se a dívida pública desvalorizar o Real.',
+                        examples: [
+                            { ticker: 'VALE3', type: 'stock' },
+                            { ticker: 'PETR4', type: 'stock' },
+                            { ticker: 'SUZB3', type: 'stock' }
+                        ]
+                    },
+                    {
+                        title: 'FIIs de Tijolo (Imóveis Físicos)',
+                        sub: 'Galpões Logísticos, Shoppings e Lajes Corporativas',
+                        icon: '🏢',
+                        impact: isBullMarket ? 'high-pos' : isFiscalStress ? 'mod-neg' : 'neutral',
+                        badgeText: isBullMarket ? '🚀 Rali de Cotas (Fechamento da ETTJ)' : isFiscalStress ? '📉 Cotas com Desconto (P/VP < 0.90)' : '➔ Rendimento Regular',
+                        mechanism: isBullMarket
+                            ? 'O fechamento da taxa de desconto no mercado secundário valoriza as cotas e reaquece a demanda por locação física.'
+                            : 'Juros altos forçam as cotas a negociar com desconto sobre o valor patrimonial.',
+                        examples: [
+                            { ticker: 'HGLG11', type: 'fii' },
+                            { ticker: 'KNRI11', type: 'fii' },
+                            { ticker: 'XPML11', type: 'fii' }
+                        ]
+                    },
+                    {
+                        title: 'FIIs de Papel & FIAGROs',
+                        sub: 'Crédito Imobiliário e Agropecuário (CRI/CRA)',
+                        icon: '📄',
+                        impact: (ipcaLevel === 'high' || selicDelta > 0 || isFiscalStress) && debtLevel !== 'tight' ? 'high-pos' : 'neutral',
+                        badgeText: (ipcaLevel === 'high' || isFiscalStress) ? '💵 Dividendos Mensais Turbinados' : '➔ Renda Recorrente',
+                        mechanism: 'Repasse integral e mensal do IPCA e do CDI aos cotistas com isenção de Imposto de Renda.',
+                        examples: [
+                            { ticker: 'KNCR11', type: 'fii' },
+                            { ticker: 'KNSC11', type: 'fii' },
+                            { ticker: 'RURA11', type: 'fiagro' }
+                        ]
+                    }
+                ];
+
+                classesGrid.innerHTML = classesData.map(c => {
+                    const badgeClass = `macro-impact-${c.impact}`;
+                    const examplesHtml = (c.examples || []).map(ex => {
+                        return `<span class="macro-clickable-ticker" onclick="openDetailModal('${ex.ticker}', '${ex.type}')">${ex.ticker} ↗</span>`;
+                    }).join(' ');
+
+                    return `
+                    <div class="macro-forecast-card">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem;">
+                                <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem;">
+                                    <span>${c.icon}</span>
+                                    <span>${c.title}</span>
+                                </div>
+                            </div>
+                            <div style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 0.6rem;">${c.sub}</div>
+                            <div class="macro-impact-badge ${badgeClass}" style="margin-bottom: 0.75rem;">${c.badgeText}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.45;">${c.mechanism}</div>
+                        </div>
+                        <div style="margin-top: 0.85rem; padding-top: 0.6rem; border-top: 1px dashed var(--card-border); font-size: 0.74rem; color: var(--text-muted); display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem;">
+                            <span style="font-weight: 600;">🔍 Detalhar Ativos:</span>
+                            ${examplesHtml}
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+
+            // 4. Top Winners & Vulnerable Assets Lists
+            const winnersList = document.getElementById('macro-winners-list');
+            const vulnerableList = document.getElementById('macro-vulnerable-list');
+
+            if (winnersList) {
+                let winners = [];
+                if (fiscalLevel === 'surplus' && selicDelta <= 0) {
+                    winners = [
+                        { ticker: 'CYRE3', name: 'Cyrela Brazil Realty', reason: 'Vendas e lançamentos imobiliários aceleram com crédito barato', type: 'stock' },
+                        { ticker: 'MULT3', name: 'Multiplan Shoppings', reason: 'Vendas de lojistas em alta e taxa de desconto de valuation em queda', type: 'stock' },
+                        { ticker: 'HGLG11', name: 'CSHG Logística FII', reason: 'Fechamento da curva de juros impulsiona o valor de mercado das cotas', type: 'fii' },
+                        { ticker: 'DIRR3', name: 'Direcional Engenharia', reason: 'Forte demanda habitacional com crédito acessível e alto ROE', type: 'stock' },
+                        { ticker: 'LREN3', name: 'Lojas Renner', reason: 'Recuperação do consumo discricionário e despesas financeiras em queda', type: 'stock' }
+                    ];
+                } else if (fiscalLevel === 'deficit' || ipcaLevel === 'high') {
+                    winners = [
+                        { ticker: 'VALE3', name: 'Vale S.A.', reason: 'Hedge em dólar e zero dependência de orçamento público ou Selic interna', type: 'stock' },
+                        { ticker: 'BBSE3', name: 'BB Seguridade', reason: 'Resultado financeiro com floating alto em CDI e zero endividamento', type: 'stock' },
+                        { ticker: 'EGIE3', name: 'Engie Brasil Energia', reason: 'Contratos indexados a IPCA/IGP-M protegem fluxo de caixa real', type: 'stock' },
+                        { ticker: 'KNCR11', name: 'Kinea Rendimentos FII', reason: '100% CDI+ distribui dividendos extraordinários livres de IR', type: 'fii' },
+                        { ticker: 'BBAS3', name: 'Banco do Brasil', reason: 'Spread bancário elevado e crédito agro subsidiado/protegido', type: 'stock' }
+                    ];
+                } else {
+                    winners = [
+                        { ticker: 'ITUB4', name: 'Itaú Unibanco', reason: 'Balanço conservador, ROE > 21% e diversificação de receitas', type: 'stock' },
+                        { ticker: 'TAEE11', name: 'Taesa Transmissão', reason: 'Contratos longos de transmissão e previsibilidade absoluta', type: 'stock' },
+                        { ticker: 'PSSA3', name: 'Porto Seguro', reason: 'Excelente combinação de seguro com rendimento financeiro', type: 'stock' },
+                        { ticker: 'XPML11', name: 'XP Malls FII', reason: 'Portfólio de shoppings com dominância regional e fluxo estável', type: 'fii' }
+                    ];
+                }
+
+                winnersList.innerHTML = winners.map(w => {
+                    return `
+                    <div onclick="openDetailModal('${w.ticker}', '${w.type}')" style="background: var(--surface); border: 1px solid var(--card-border); padding: 0.65rem 0.85rem; border-radius: var(--radius-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; transition: background 0.15s;">
+                        <div>
+                            <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem;">
+                                <span>${w.ticker}</span>
+                                <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 400;">(${w.name})</span>
+                            </div>
+                            <div style="font-size: 0.76rem; color: var(--positive); margin-top: 0.2rem;">✓ ${w.reason}</div>
+                        </div>
+                        <span style="font-size: 0.72rem; font-weight: 700; color: var(--primary-accent); background: var(--surface-2); padding: 0.2rem 0.45rem; border-radius: 4px;">Ver Ficha →</span>
+                    </div>`;
+                }).join('');
+            }
+
+            if (vulnerableList) {
+                let vulnerable = [];
+                if (fiscalLevel === 'deficit' || debtLevel === 'tight') {
+                    vulnerable = [
+                        { ticker: 'AZUL4 / GOLL4', tickers: ['AZUL4', 'GOLL4'], name: 'Aéreas & Alavancadas', reason: 'Endividamento maciço em dólar/CDI e margens operacionais sensíveis a combustível', type: 'stock' },
+                        { ticker: 'CASH3 / LWSA3', tickers: ['CASH3', 'LWSA3'], name: 'Tecnologia / Growth Sem Lucro', reason: 'Taxa de desconto alta reduz drasticamente o valor presente dos lucros futuros', type: 'stock' },
+                        { ticker: 'Empresas Dív/EBITDA > 3.0x', tickers: [], name: 'Empresas Altamente Endividadas', reason: 'Custo de rolagem da dívida consome a maior parte do lucro operacional', type: 'stock' }
+                    ];
+                } else if (selicDelta < 0 && ipcaLevel === 'low') {
+                    vulnerable = [
+                        { ticker: 'Fundos FII CDI+ pós-fixados', tickers: ['KNCR11'], name: 'FIIs de Papel indexados a CDI', reason: 'Com a queda da Selic, o valor absoluto dos dividendos distribuídos diminui', type: 'fii' },
+                        { ticker: 'Empresas de Caixa Líquido Excessivo', tickers: [], name: 'Exportadoras sem Dívida', reason: 'Deixam de auferir rendimentos financeiros extraordinários de CDI na conta', type: 'stock' }
+                    ];
+                } else {
+                    vulnerable = [
+                        { ticker: 'Ativos com P/L > 25x', tickers: [], name: 'Empresas sem Margem de Segurança', reason: 'Múltiplos esticados sem crescimento correspondente de lucros', type: 'stock' },
+                        { ticker: 'FIIs com Vacância > 20%', tickers: [], name: 'Fundos com Imóveis Desocupados', reason: 'Risco de custos de condomínio e perda de poder de repasse de aluguel', type: 'fii' }
+                    ];
+                }
+
+                vulnerableList.innerHTML = vulnerable.map(v => {
+                    const chips = (v.tickers || []).map(t => `<span class="macro-clickable-ticker" onclick="openDetailModal('${t}', '${v.type}')">${t} ↗</span>`).join(' ');
+                    return `
+                    <div style="background: var(--surface); border: 1px solid var(--card-border); padding: 0.65rem 0.85rem; border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 200px;">
+                            <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+                                <span>${v.ticker}</span>
+                                <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 400;">(${v.name})</span>
+                            </div>
+                            <div style="font-size: 0.76rem; color: var(--negative); margin-top: 0.2rem;">⚠️ ${v.reason}</div>
+                        </div>
+                        ${chips ? `<div>${chips}</div>` : ''}
+                    </div>`;
+                }).join('');
+            }
+
+            // 5. Playbook Content
+            const playbookEl = document.getElementById('macro-playbook-content');
+            if (playbookEl) {
+                if (fiscalLevel === 'deficit') {
+                    playbookEl.innerHTML = `
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;">
+                            <div>
+                                <strong style="color: var(--primary-accent); display: block; margin-bottom: 0.25rem;">1. Travar Juros Reais Históricos no Tesouro IPCA+</strong>
+                                Em momentos de pânico fiscal, as taxas superam IPCA + 6.8%. Aporte no <span class="macro-clickable-ticker" onclick="openTdDetailFromHome('Tesouro IPCA+ 2029')">Tesouro IPCA+ 2029 ↗</span> ou <span class="macro-clickable-ticker" onclick="openTdDetailFromHome('Tesouro IPCA+ 2035')">IPCA+ 2035 ↗</span> para carregar até o vencimento.
+                            </div>
+                            <div>
+                                <strong style="color: var(--primary-accent); display: block; margin-bottom: 0.25rem;">2. Manter Reserva Robusta em Tesouro Selic</strong>
+                                Garante liquidez imediata com <span class="macro-clickable-ticker" onclick="openTdDetailFromHome('Tesouro Selic 2029')">Tesouro Selic 2029 ↗</span> sem sofrer oscilações negativas no curto prazo.
+                            </div>
+                            <div>
+                                <strong style="color: var(--primary-accent); display: block; margin-bottom: 0.25rem;">3. Blindagem com Ações Dolarizadas & Exportadoras</strong>
+                                Aumente a exposição em <span class="macro-clickable-ticker" onclick="openDetailModal('VALE3', 'stock')">VALE3 ↗</span>, <span class="macro-clickable-ticker" onclick="openDetailModal('PETR4', 'stock')">PETR4 ↗</span> e <span class="macro-clickable-ticker" onclick="openDetailModal('SUZB3', 'stock')">SUZB3 ↗</span> para proteger o patrimônio contra desvalorizações cambiais do Real.
+                            </div>
+                        </div>
+                    `;
+                } else if (fiscalLevel === 'surplus' && selicDelta <= 0) {
+                    playbookEl.innerHTML = `
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;">
+                            <div>
+                                <strong style="color: var(--primary-accent); display: block; margin-bottom: 0.25rem;">1. Capturar Rali de Marcação a Mercado no Tesouro</strong>
+                                Títulos como <span class="macro-clickable-ticker" onclick="openTdDetailFromHome('Tesouro IPCA+ 2045')">Tesouro IPCA+ 2045 ↗</span> e <span class="macro-clickable-ticker" onclick="openTdDetailFromHome('Tesouro Prefixado 2031')">Prefixado 2031 ↗</span> apresentam valorizações expressivas de PU que podem ser realizadas para reinvestimento.
+                            </div>
+                            <div>
+                                <strong style="color: var(--primary-accent); display: block; margin-bottom: 0.25rem;">2. Aumentar Posições em FIIs de Tijolo & Small Caps</strong>
+                                Ativos como <span class="macro-clickable-ticker" onclick="openDetailModal('HGLG11', 'fii')">HGLG11 ↗</span>, <span class="macro-clickable-ticker" onclick="openDetailModal('XPML11', 'fii')">XPML11 ↗</span> e <span class="macro-clickable-ticker" onclick="openDetailModal('CYRE3', 'stock')">CYRE3 ↗</span> possuem a maior assimetria positiva no ciclo de corte de juros.
+                            </div>
+                            <div>
+                                <strong style="color: var(--primary-accent); display: block; margin-bottom: 0.25rem;">3. Reduzir Caixa Ocioso em Renda Fixa Pós-Fixada</strong>
+                                Com a taxa Selic recuando, o custo de oportunidade de ficar fora da bolsa aumenta consideravelmente.
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    playbookEl.innerHTML = `
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;">
+                            <div>
+                                <strong style="color: var(--primary-accent); display: block; margin-bottom: 0.25rem;">1. Estratégia Triangular de Alocação</strong>
+                                Mantenha o portfólio dividido entre Ações de Dividendos (<span class="macro-clickable-ticker" onclick="openDetailModal('BBSE3', 'stock')">BBSE3 ↗</span>, <span class="macro-clickable-ticker" onclick="openDetailModal('TAEE11', 'stock')">TAEE11 ↗</span>) + FIIs (<span class="macro-clickable-ticker" onclick="openDetailModal('KNCR11', 'fii')">KNCR11 ↗</span>) + <span class="macro-clickable-ticker" onclick="openTdDetailFromHome('Tesouro IPCA+ 2029')">Tesouro IPCA+ ↗</span>.
+                            </div>
+                            <div>
+                                <strong style="color: var(--primary-accent); display: block; margin-bottom: 0.25rem;">2. Aportes Mensais pelo Preço Teto de Bazin</strong>
+                                Aproveite as cotações estáveis para comprar ativos de alta qualidade com margem de segurança.
+                            </div>
+                            <div>
+                                <strong style="color: var(--primary-accent); display: block; margin-bottom: 0.25rem;">3. Reinvestimento Total de Proventos</strong>
+                                Acelere o efeito dos juros compostos reinvestindo imediatamente os dividendos e cupons recebidos.
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        /* ── Deep Linking / URL State Sync ── */
+        let isSyncingFromUrl = false;
+
+        function syncUrlFromState() {
+            if (isSyncingFromUrl) return;
+            const params = new URLSearchParams();
+            if (currentTab && currentTab !== 'home') {
+                params.set('tab', currentTab);
+            }
+            const searchInput = document.getElementById('search-bar');
+            if (searchInput && searchInput.value.trim()) {
+                params.set('q', searchInput.value.trim());
+            }
+            const sectorFilter = document.getElementById('sector-filter');
+            if (sectorFilter && sectorFilter.value !== 'all') {
+                params.set('sector', sectorFilter.value);
+            }
+            const indexFilter = document.getElementById('index-filter');
+            if (indexFilter && indexFilter.value !== 'all') {
+                params.set('index', indexFilter.value);
+            }
+            const scoreFilter = document.getElementById('score-range-filter');
+            if (scoreFilter && scoreFilter.value !== 'all') {
+                params.set('score', scoreFilter.value);
+            }
+            const discountFilter = document.getElementById('discount-filter');
+            if (discountFilter && discountFilter.value !== 'all') {
+                params.set('discount', discountFilter.value);
+            }
+            if (selectedCompareTickers && selectedCompareTickers.length > 0 && currentTab === 'compare') {
+                params.set('compare', selectedCompareTickers.join(','));
+            }
+
+            const hashStr = params.toString();
+            const newHash = hashStr ? `#${hashStr}` : '';
+            if (window.location.hash !== newHash) {
+                try {
+                    history.replaceState(null, '', newHash || window.location.pathname);
+                } catch (e) {
+                    window.location.hash = newHash;
+                }
+            }
+        }
+
+        function syncStateFromUrl() {
+            const rawHash = window.location.hash.replace(/^#/, '');
+            if (!rawHash) return;
+            isSyncingFromUrl = true;
+
+            try {
+                const params = new URLSearchParams(rawHash);
+                const tab = params.get('tab');
+                const q = params.get('q');
+                const sector = params.get('sector');
+                const index = params.get('index');
+                const score = params.get('score');
+                const discount = params.get('discount');
+                const compare = params.get('compare');
+                const asset = params.get('asset');
+                const assetType = params.get('type') || 'stock';
+
+                if (compare) {
+                    selectedCompareTickers = compare.split(',').map(t => t.trim().toUpperCase()).filter(Boolean).slice(0, 4);
+                }
+
+                if (q) {
+                    const sEl = document.getElementById('search-bar');
+                    if (sEl) sEl.value = q;
+                }
+                if (sector) {
+                    const secEl = document.getElementById('sector-filter');
+                    if (secEl) secEl.value = sector;
+                }
+                if (index) {
+                    const idxEl = document.getElementById('index-filter');
+                    if (idxEl) idxEl.value = index;
+                }
+                if (score) {
+                    const scrEl = document.getElementById('score-range-filter');
+                    if (scrEl) scrEl.value = score;
+                }
+                if (discount) {
+                    const discEl = document.getElementById('discount-filter');
+                    if (discEl) discEl.value = discount;
+                }
+
+                if (tab) {
+                    switchTab(tab);
+                }
+
+                if (asset) {
+                    setTimeout(() => {
+                        if (assetType === 'tesouro') openTdDetailFromHome(asset);
+                        else openDetailModal(asset, assetType);
+                    }, 100);
+                }
+            } finally {
+                isSyncingFromUrl = false;
+            }
+        }
+
+        window.addEventListener('hashchange', syncStateFromUrl);
+
