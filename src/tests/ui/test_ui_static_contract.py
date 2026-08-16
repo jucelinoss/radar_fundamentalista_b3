@@ -514,3 +514,40 @@ class TestGeneratorFieldsInUI:
         assert 'item.sector' not in body, (
             "sector must NOT be in renderTopPicks. Detail is only DY and P/VP."
         )
+
+
+# ===================================================================
+# 9.  Novas Funcionalidades (Comparador, Simulador, Sparklines, Deep Linking)
+# ===================================================================
+
+class TestClientSideFeatureEnhancements:
+    """Valida a integridade estrutural das features 100% client-side sem login."""
+
+    def test_compare_panel_and_logic_exist(self, html):
+        """Painel de comparador head-to-head e funcoes devem existir."""
+        assert 'id="panel-compare"' in html, "Missing #panel-compare in HTML."
+        assert 'renderComparePanel' in html, "Missing renderComparePanel in JS."
+        assert 'addTickerToCompare' in html, "Missing addTickerToCompare in JS."
+        assert 'removeTickerFromCompare' in html, "Missing removeTickerFromCompare in JS."
+        assert 'modal-compare-btn' in html, "Missing compare button in asset modal."
+
+    def test_calculator_panel_and_logic_exist(self, html):
+        """Painel do simulador de renda passiva / bola de neve e funcoes devem existir."""
+        assert 'id="panel-calculator"' in html, "Missing #panel-calculator in HTML."
+        assert 'calculateIncomeGoal' in html, "Missing calculateIncomeGoal in JS."
+        assert 'calculateSnowball' in html, "Missing calculateSnowball in JS."
+        assert 'switchCalcMode' in html, "Missing switchCalcMode in JS."
+        assert 'calc-magic-number' in html, "Missing magic number element in HTML/CSS."
+
+    def test_sparklines_svg_integration(self, html):
+        """Sparklines ultraleves em SVG devem estar integradas nas tabelas."""
+        assert 'generateSparklineSvg' in html, "Missing generateSparklineSvg in JS."
+        assert 'sparkline-svg' in html, "Missing .sparkline-svg in CSS/JS."
+        assert 'sparkline-cell' in html, "Missing .sparkline-cell in CSS/JS."
+
+    def test_deep_linking_hash_sync(self, html):
+        """Sincronizacao de estado via hash de URL para navegacao e compartilhamento."""
+        assert 'syncUrlFromState' in html, "Missing syncUrlFromState in JS."
+        assert 'syncStateFromUrl' in html, "Missing syncStateFromUrl in JS."
+        assert 'hashchange' in html, "Missing hashchange event listener in JS."
+
