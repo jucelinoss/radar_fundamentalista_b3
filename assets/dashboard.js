@@ -2986,7 +2986,7 @@ const tableSortState = {};
                     csv.push(`"DETALHAMENTO DO SCORE"`);
                     csv.push(`"Critério","Pontuação Obtida","Pontuação Máxima"`);
                     bond.score_breakdown.forEach(b => {
-                        csv.push(`"${(b.label || '').replace(/"/g, '""')}","${b.score != null ? b.score.toFixed(1) : '0.0'}","${b.max != null ? b.max.toFixed(0) : '0'}"`);
+                        csv.push(`"${(b.label || '').replace(/"/g, '""')}","${b.score != null ? b.score.toFixed(1) : '0.0'}","${b.max != null ? (b.max % 1 === 0 ? b.max.toFixed(0) : b.max.toFixed(1)) : '0'}"`);
                     });
                 }
 
@@ -3008,7 +3008,7 @@ const tableSortState = {};
                     lines.push(``);
                     lines.push(`🎯 DETALHAMENTO DO SCORE:`);
                     bond.score_breakdown.forEach(b => {
-                        lines.push(`• ${b.label}: ${b.score.toFixed(1)} / ${b.max.toFixed(0)}`);
+                        lines.push(`• ${b.label}: ${b.score.toFixed(1)} / ${(b.max % 1 === 0 ? b.max.toFixed(0) : b.max.toFixed(1))}`);
                     });
                 }
 
@@ -3667,7 +3667,7 @@ const tableSortState = {};
                         itemEl.innerHTML = [
                             '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem;">',
                             '  <span class="hint" tabindex="0" data-tip="', b.tip || '', '" style="font-weight:700;font-size:0.85rem;">', b.label, ' ⓘ</span>',
-                            '  <span style="font-size:0.85rem;color:var(--text-secondary);font-weight:600;">', b.score.toFixed(1), ' / ', b.max.toFixed(0), '</span>',
+                            '  <span style="font-size:0.85rem;color:var(--text-secondary);font-weight:600;">', b.score.toFixed(1), ' / ', (b.max % 1 === 0 ? b.max.toFixed(0) : b.max.toFixed(1)), '</span>',
                             '</div>',
                             '<div class="bar-container">',
                             '  <div class="bar-fill" style="width:', pct, '%;background:', barColor, ';"></div>',

@@ -37,7 +37,7 @@ for s in stocks:
     sector = s['sector']
     
     score_v2 = calculate_stock_score_continuous(
-        dy_medio_3y=dy_3y or dy,
+        dy_medio_3y=dy,
         pe_medio_5y=pe_5y or pe,
         pb_ratio=pb,
         roe=roe,
@@ -47,14 +47,14 @@ for s in stocks:
         sector=sector
     )
     
-    s_dy = _score_dy_stock(dy_3y or dy)
+    s_dy = _score_dy_stock(dy)
     s_pe = _score_pe_stock(pe_5y or pe)
     s_pb = _score_pb_stock(pb)
     s_roe = _score_roe_stock(roe)
     s_graham = _score_graham_stock(price, graham, peg_ratio=None, sector=sector)
     
     breakdown = [
-        {"label": "DY Médio 3a (ou DY)", "score": s_dy, "max": 2.0, "desc": f"{(dy_3y or dy or 0)*100:.2f}%" if (dy_3y or dy) else "N/A", "tip": "Curva Gaussiana com centro em 9,5% (renda sustentável Bazin). Sobe suavemente e protege contra Dividend Traps (>15%)."},
+        {"label": "Dividend Yield", "score": s_dy, "max": 2.0, "desc": f"{(dy or 0)*100:.2f}%" if dy else "N/A", "tip": "Padrão Investidor 10 / B3 (Proventos LTM 12 meses). Curva Gaussiana com centro em 9,5% (renda sustentável Bazin) e proteção contra Dividend Traps (>16%)."},
         {"label": "P/L Médio 5a (ou P/L)", "score": s_pe, "max": 2.0, "desc": f"{pe_5y or pe:.2f}x" if (pe_5y or pe) else "N/A", "tip": "Curva Gaussiana com centro em 6,5x (múltiplo histórico B3 Póvoa). Evita picos cíclicos de commodities e transita suavemente para múltiplos altos."},
         {"label": "P/VP (Valor Patrimonial)", "score": s_pb, "max": 2.0, "desc": f"{pb:.2f}" if pb is not None else "N/A", "tip": "Curva Gaussiana com centro em 0,80 (Sweet Spot Deep Value Barsi/Graham). Permite descontos profundos de forma contínua com segurança."},
         {"label": "ROE (Rentabilidade)", "score": s_roe, "max": 2.0, "desc": f"{(roe*100):.2f}%" if roe is not None else "N/A", "tip": "Curva Sigmoide Logística. Inflexão em 12% (custo de capital Damodaran); empresas rentáveis (ROE > 20%) aproximam-se suavemente de 2,0 pts."},

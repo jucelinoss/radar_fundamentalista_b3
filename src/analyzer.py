@@ -859,7 +859,7 @@ def analyze_stock(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
     # v2.5 continuous score — com limites dinâmicos Selic-based
     dy_target = _get_dy_stock_target()    # max(6%, Selic × 60%)
     pe_max = _get_pe_max_dynamic()        # min(15, 1.2 / Selic)
-    s1 = _score_dy_stock(dy_medio_3y, dy_target=dy_target)
+    s1 = _score_dy_stock(dy, dy_target=dy_target)
     s2 = _score_pe_stock(pe_medio_5y, pe_max=pe_max)
     s3 = _score_pb_stock(pb_ratio)
     s4 = _score_roe_stock(roe)
@@ -885,7 +885,7 @@ def analyze_stock(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
     if operating_income is not None and interest_expense_raw is not None and interest_expense_raw < 0:
         icj = operating_income / abs(interest_expense_raw)
         if icj < 1.0:
-            score_v2 = round(max(0.0, score_v2 - 1.0), SCORE_DECIMALS)
+            score_v2 = round(max(0.0, score_v2 - 1.0), ROUND_DECIMALS)
             macro_warnings.append(f"⚠️ Cobertura de Juros (ICJ): {icj:.2f}x (< 1,0) → -1,0 pts")
 
     # Contexto descritivo para P/L e Graham caso N/A
@@ -912,11 +912,11 @@ def analyze_stock(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
 
     score_breakdown = [
         {
-            "label": "Dividend Yield Médio (3 Anos)",
+            "label": "Dividend Yield",
             "score": s1,
             "max": 2.0,
-            "desc": f"DY: {(dy_medio_3y * 100):.2f}% (meta: {dy_target:.1%})" if dy_medio_3y is not None else "N/A (Sem proventos no período)",
-            "tip": f"Curva Gaussiana com centro ideal em {max(0.095, dy_target + 0.015):.1%} (Sweet Spot). Pontuação suave com proteção contra Dividend Traps (>16%)."
+            "desc": f"DY: {(dy * 100):.2f}% (meta: {dy_target:.1%})" if dy is not None else "N/A (Sem proventos no período)",
+            "tip": f"Padrão Investidor 10 / B3 (Proventos LTM 12 meses). Curva Gaussiana com centro ideal em {max(0.095, dy_target + 0.015):.1%} (Sweet Spot Bazin) e proteção contra Dividend Traps (>16%)."
         },
         {
             "label": "P/L Médio (5 Anos)",
