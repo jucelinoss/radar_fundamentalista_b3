@@ -12,11 +12,11 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="icons/icon.svg">
-    <!-- Google Fonts: Inter & Outfit -->
+    <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <!-- Chart.js for Historical charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -39,10 +39,19 @@
     <div class="container">
         <header>
             <div class="header-inner">
-                <div class="logo-icon">RB</div>
+                <div class="logo-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="m4.93 4.93 4.24 4.24"></path>
+                        <path d="m14.83 9.17 4.24-4.24"></path>
+                        <path d="m14.83 14.83 4.24 4.24"></path>
+                        <path d="m9.17 14.83-4.24 4.24"></path>
+                        <circle cx="12" cy="12" r="2.5"></circle>
+                    </svg>
+                </div>
                 <div class="logo-text">
                     <h1>Radar Fundamentalista B3</h1>
-                    <p>Graham · Bazin · FIIs · FIAGROs · Score Contínuo v2.5</p>
+                    <p class="header-sub-tag"><span class="status-live-dot"></span> B3 Mercado &middot; Value Investing &amp; Inteligência Quantitativa</p>
                 </div>
                 <div class="header-right">
                     <div style="position: relative; display: inline-block;">
@@ -74,7 +83,7 @@
                             <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
                             <line x1="12" y1="17" x2="12.01" y2="17"></line>
                         </svg>
-                        <span>Como Funciona?</span>
+                        <span>Metodologia</span>
                     </button>
                     <button id="theme-toggle-btn" onclick="toggleTheme()" class="action-btn">
                         <svg id="theme-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -82,20 +91,26 @@
                         </svg>
                         <span>Tema</span>
                     </button>
-                    <span class="header-ts">Atualizado em: <span id="timestamp-container">Carregando...</span></span>
-                    <span class="disclaimer">⚠️ Não é recomendação de investimento. Dados via APIs públicas B3 + análise fundamentalista.</span>
+                    <div class="header-status-box">
+                        <span class="header-ts">Atualizado: <span id="timestamp-container">Carregando...</span></span>
+                        <span class="disclaimer-badge">Uso Informativo &middot; Dados B3 / BCB</span>
+                    </div>
                 </div>
             </div>
         </header>
 
         <!-- Tabs -->
         <nav class="tabs-row" aria-label="Navegação principal">
-            <button class="tab-btn active" onclick="switchTab('home')">🏠 Home</button>
-            <button class="tab-btn" onclick="switchTab('stocks')">📈 Ações</button>
+            <button class="tab-btn active" onclick="switchTab('home')">Home</button>
+            <button class="tab-btn" onclick="switchTab('global')">Top Brasil</button>
+            <button class="tab-btn" onclick="switchTab('stocks')">Ações</button>
+            <button class="tab-btn" onclick="switchTab('sectors')">Setores & Índices</button>
             <button class="tab-btn" onclick="switchTab('fiis')">FIIs</button>
             <button class="tab-btn" onclick="switchTab('fiagros')">FIAGROs</button>
-            <button class="tab-btn" onclick="switchTab('sectors')">Análise Setorial</button>
-            <button class="tab-btn" onclick="switchTab('rendafixa')">🪙 Tesouro Direto</button>
+            <button class="tab-btn" onclick="switchTab('rendafixa')">Tesouro Direto</button>
+            <button class="tab-btn" onclick="switchTab('compare')">Comparador</button>
+            <button class="tab-btn" onclick="switchTab('calculator')">🧮 Calculadora</button>
+            <button class="tab-btn" onclick="switchTab('macro')">Previsor Macro</button>
         </nav>
 
         <!-- Filters -->
@@ -136,18 +151,122 @@
         <!-- Home: único local para visão macro e Top Picks -->
         <section id="panel-home" aria-label="Visão geral">
             <div class="home-grid">
-                <article class="macro-card selic" onclick="openFocusDetailModal('selic')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openFocusDetailModal('selic')"><span class="macro-label">Selic atual</span><strong id="macro-selic" class="macro-value">—</strong><span id="macro-selic-trend" class="macro-trend stable">→ Selic</span><span id="macro-selic-expect" class="macro-expect selic"></span><span id="macro-selic-focus" class="macro-sub"></span></article>
-                <article class="macro-card ipca" onclick="openFocusDetailModal('ipca')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openFocusDetailModal('ipca')"><span class="macro-label">IPCA (12 meses)</span><strong id="macro-ipca" class="macro-value">—</strong><span id="macro-ipca-trend" class="macro-trend stable">→ IPCA</span><span id="macro-ipca-expect" class="macro-expect ipca"></span><span id="macro-ipca-focus" class="macro-sub"></span></article>
-                <article class="macro-card cambio" onclick="openFocusDetailModal('cambio')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openFocusDetailModal('cambio')"><span class="macro-label">Câmbio</span><strong id="macro-cambio" class="macro-value">—</strong><span id="macro-cambio-expect" class="macro-expect cambio"></span><span id="macro-cambio-focus" class="macro-sub"></span></article>
+                <article class="macro-card selic" onclick="openFocusDetailModal('selic')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openFocusDetailModal('selic')">
+                    <div class="macro-card-header">
+                        <span class="macro-label">Taxa Básica (Selic)</span>
+                        <span id="macro-selic-trend" class="macro-trend stable">→ Selic</span>
+                    </div>
+                    <strong id="macro-selic" class="macro-value">—</strong>
+                    <span id="macro-selic-expect" class="macro-expect selic"></span>
+                    <div id="macro-selic-focus" class="macro-sub"></div>
+                </article>
+                <article class="macro-card ipca" onclick="openFocusDetailModal('ipca')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openFocusDetailModal('ipca')">
+                    <div class="macro-card-header">
+                        <span class="macro-label">Inflação IPCA (12m)</span>
+                        <span id="macro-ipca-trend" class="macro-trend stable">→ IPCA</span>
+                    </div>
+                    <strong id="macro-ipca" class="macro-value">—</strong>
+                    <span id="macro-ipca-expect" class="macro-expect ipca"></span>
+                    <div id="macro-ipca-focus" class="macro-sub"></div>
+                </article>
+                <article class="macro-card cambio" onclick="openFocusDetailModal('cambio')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openFocusDetailModal('cambio')">
+                    <div class="macro-card-header">
+                        <span class="macro-label">Câmbio Comercial</span>
+                        <span id="macro-cambio-trend" class="macro-trend stable">→ USD/BRL</span>
+                    </div>
+                    <strong id="macro-cambio" class="macro-value">—</strong>
+                    <span id="macro-cambio-expect" class="macro-expect cambio"></span>
+                    <div id="macro-cambio-focus" class="macro-sub"></div>
+                </article>
             </div>
             <p id="home-timestamp" class="macro-sub"></p>
+
             <div class="home-picks-grid">
-                <section class="home-pick-card"><h2>Top Ações</h2><div id="home-top-stocks"></div></section>
-                <section class="home-pick-card"><h2>Top FIIs</h2><div id="home-top-fiis"></div></section>
-                <section id="home-top-fiagros-card" class="home-pick-card"><h2>Top FIAGROs</h2><div id="home-top-fiagros"></div></section>
-                <section class="home-pick-card"><h2>Top Tesouro</h2><div id="home-top-tesouro"></div></section>
+                <section id="home-top-global-card" class="home-pick-card featured-global">
+                    <div class="home-pick-header">
+                        <h2>Top Brasil</h2>
+                        <span class="pick-badge-highlight">Geral</span>
+                    </div>
+                    <div id="home-top-global"></div>
+                </section>
+                <section class="home-pick-card">
+                    <div class="home-pick-header">
+                        <h2>Top Ações</h2>
+                        <span class="pick-badge-sub">B3</span>
+                    </div>
+                    <div id="home-top-stocks"></div>
+                </section>
+                <section class="home-pick-card">
+                    <div class="home-pick-header">
+                        <h2>Top FIIs</h2>
+                        <span class="pick-badge-sub">Imobiliário</span>
+                    </div>
+                    <div id="home-top-fiis"></div>
+                </section>
+                <section id="home-top-fiagros-card" class="home-pick-card">
+                    <div class="home-pick-header">
+                        <h2>Top FIAGROs</h2>
+                        <span class="pick-badge-sub">Agro</span>
+                    </div>
+                    <div id="home-top-fiagros"></div>
+                </section>
+                <section class="home-pick-card">
+                    <div class="home-pick-header">
+                        <h2>Top Tesouro</h2>
+                        <span class="pick-badge-sub">Renda Fixa</span>
+                    </div>
+                    <div id="home-top-tesouro"></div>
+                </section>
             </div>
         </section>
+
+        <!-- Global Interclasses Panel -->
+        <div id="panel-global" class="table-wrap hidden">
+            <div class="table-header-bar">
+                <span>🇧🇷 Top Brasil — Oportunidades Interclasses (Régua Única 0 a 10)</span>
+                <span class="font-mono tabular" id="global-count">0 ativos</span>
+            </div>
+            
+            <!-- Interclasses Allocation Thermometer -->
+            <div class="home-grid" style="margin: 0.75rem; gap: 0.5rem;">
+                <article class="macro-card" style="cursor:default;"><span class="macro-label">🏛️ Tesouro Direto</span><strong class="macro-value" style="color:var(--accent-green);">8,36 ⭐</strong><span class="macro-sub">91,7% Premium · VNA + Juro Real</span></article>
+                <article class="macro-card" style="cursor:default;"><span class="macro-label">🏢 FIIs de Renda</span><strong class="macro-value" style="color:var(--accent-green);">6,79 🟢</strong><span class="macro-sub">42,5% Premium · Renda Imobiliária</span></article>
+                <article class="macro-card" style="cursor:default;"><span class="macro-label">🌾 FIAGROs</span><strong class="macro-value" style="color:var(--accent-gold);">5,78 🟡</strong><span class="macro-sub">15,8% Premium · Spread Agro</span></article>
+                <article class="macro-card" style="cursor:default;"><span class="macro-label">📈 Ações B3</span><strong class="macro-value" style="color:var(--primary);">4,80 🟠</strong><span class="macro-sub">4,4% Premium · Deep Value / ROE</span></article>
+            </div>
+
+            <!-- Interclasses Quick Filters -->
+            <div style="display:flex; flex-wrap:wrap; gap:0.4rem; padding:0 0.75rem 0.75rem 0.75rem; align-items:center;">
+                <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">Filtrar:</span>
+                <button class="action-btn active" id="btn-global-filter-all" onclick="filterGlobalClass('all')">Todos (249)</button>
+                <button class="action-btn" id="btn-global-filter-premium" onclick="filterGlobalClass('premium')">⭐ Apenas Premium (≥ 8.0)</button>
+                <button class="action-btn" id="btn-global-filter-tesouro" onclick="filterGlobalClass('tesouro')">🪙 Tesouro (36)</button>
+                <button class="action-btn" id="btn-global-filter-fii" onclick="filterGlobalClass('fii')">🏢 FIIs (120)</button>
+                <button class="action-btn" id="btn-global-filter-fiagro" onclick="filterGlobalClass('fiagro')">🌱 FIAGROs (38)</button>
+                <button class="action-btn" id="btn-global-filter-stock" onclick="filterGlobalClass('stock')">📈 Ações (91)</button>
+            </div>
+
+            <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th onclick="sortGlobalTable('rank')">Rank</th>
+                        <th onclick="sortGlobalTable('ticker')">Ativo / Título</th>
+                        <th onclick="sortGlobalTable('type')">Classe</th>
+                        <th onclick="sortGlobalTable('price')">Cotação / Taxa</th>
+                        <th onclick="sortGlobalTable('yield')">DY / Juro Real</th>
+                        <th onclick="sortGlobalTable('metric')">Múltiplo / Ciclo</th>
+                        <th>Destaque Fundamentalista</th>
+                        <th onclick="sortGlobalTable('score')">Score</th>
+                        <th onclick="sortGlobalTable('badge')">Classificação</th>
+                    </tr>
+                </thead>
+                <tbody id="global-tbody">
+                    <!-- Carregado via JS -->
+                </tbody>
+            </table>
+            </div>
+        </div>
 
         <!-- Stocks Panel -->
         <div id="panel-stocks" class="table-wrap hidden">
@@ -163,29 +282,30 @@
                         <th onclick="sortTable('stocks', 1)">Nome</th>
                         <th onclick="sortTable('stocks', 2)">Setor</th>
                         <th onclick="sortTable('stocks', 3)">Preço</th>
-                        <th onclick="sortTable('stocks', 4)">
-                            <span class="hint" tabindex="0" data-tip="Valor Patrimonial por Ação. Patrimônio líquido dividido pelo número de ações. Referência para o P/VP.">VPA</span>
-                        </th>
+                        <th>Tendência 12M</th>
                         <th onclick="sortTable('stocks', 5)">
-                            <span class="hint" tabindex="0" data-tip="Preço sobre Lucro (P/E). Quanto o mercado paga por cada R$ 1,00 de lucro. Quanto menor, mais barata. Ideal: &lt; 15.">P/L</span>
+                            <span class="hint" tabindex="0" data-tip="Valor Patrimonial por Ação. Patrimônio líquido dividido pelo número de ações. Referência para o P/VP." title="Valor Patrimonial por Ação. Patrimônio líquido dividido pelo número de ações. Referência para o P/VP.">VPA</span>
                         </th>
                         <th onclick="sortTable('stocks', 6)">
-                            <span class="hint" tabindex="0" data-tip="Preço sobre Valor Patrimonial (P/B). Compara o preço ao patrimônio líquido por ação. Abaixo de 1,00 = desconto. Ideal: &lt; 1,5.">P/VP</span>
+                            <span class="hint" tabindex="0" data-tip="Preço sobre Lucro (P/E). Quanto o mercado paga por cada R$ 1,00 de lucro. Quanto menor, mais barata. Ideal: &lt; 15." title="Preço sobre Lucro (P/E). Quanto o mercado paga por cada R$ 1,00 de lucro. Quanto menor, mais barata. Ideal: < 15.">P/L</span>
                         </th>
                         <th onclick="sortTable('stocks', 7)">
-                            <span class="hint" tabindex="0" data-tip="Dividend Yield. Retorno em dividendos nos últimos 12 meses dividido pelo preço atual. Ideal: &ge; 6%.">DY</span>
+                            <span class="hint" tabindex="0" data-tip="Preço sobre Valor Patrimonial (P/B). Compara o preço ao patrimônio líquido por ação. Abaixo de 1,00 = desconto. Ideal: &lt; 1,5." title="Preço sobre Valor Patrimonial (P/B). Compara o preço ao patrimônio líquido por ação. Abaixo de 1,00 = desconto. Ideal: < 1,5.">P/VP</span>
                         </th>
                         <th onclick="sortTable('stocks', 8)">
-                            <span class="hint" tabindex="0" data-tip="Return on Equity. Rentabilidade: lucro líquido &divide; patrimônio líquido. Mede a eficiência da gestão. Ideal: &ge; 10%.">ROE</span>
+                            <span class="hint" tabindex="0" data-tip="Dividend Yield. Retorno em dividendos nos últimos 12 meses dividido pelo preço atual. Ideal: &ge; 6%." title="Dividend Yield. Retorno em dividendos nos últimos 12 meses dividido pelo preço atual. Ideal: ≥ 6%.">DY</span>
                         </th>
                         <th onclick="sortTable('stocks', 9)">
-                            <span class="hint" tabindex="0" data-tip="Preço Teto de Décio Bazin. Máximo que se deve pagar para garantir retorno de 6% a.a. em dividendos: Dividendo Anual &divide; 0,06.">Teto Bazin</span>
+                            <span class="hint" tabindex="0" data-tip="Return on Equity. Rentabilidade: lucro líquido &divide; patrimônio líquido. Mede a eficiência da gestão. Ideal: &ge; 10%." title="Return on Equity. Rentabilidade: lucro líquido ÷ patrimônio líquido. Mede a eficiência da gestão. Ideal: ≥ 10%.">ROE</span>
                         </th>
                         <th onclick="sortTable('stocks', 10)">
-                            <span class="hint" tabindex="0" data-tip="Valor Justo de Benjamin Graham. Preço intrínseco = &radic;(22,5 &times; LPA &times; VPA). Abaixo dele = margem de segurança.">Justo Graham</span>
+                            <span class="hint" tabindex="0" data-tip="Preço Teto de Décio Bazin. Máximo que se deve pagar para garantir retorno de 6% a.a. em dividendos: Dividendo Anual &divide; 0,06." title="Preço Teto de Décio Bazin. Máximo que se deve pagar para garantir retorno de 6% a.a. em dividendos: Dividendo Anual ÷ 0,06.">Teto Bazin</span>
                         </th>
                         <th onclick="sortTable('stocks', 11)">
-                            <span class="hint" tabindex="0" data-tip="Score contínuo 0-10. 5 critérios: DY, P/L, P/VP, ROE e Margem de Graham (cada 0-2). Quanto maior, mais a ação atende aos critérios de value investing (empresa lucrativa, saudável e barata).">Score</span>
+                            <span class="hint" tabindex="0" data-tip="Valor Justo de Benjamin Graham. Preço intrínseco = &radic;(22,5 &times; LPA &times; VPA). Abaixo dele = margem de segurança." title="Valor Justo de Benjamin Graham. Preço intrínseco = √(22,5 × LPA × VPA). Abaixo dele = margem de segurança.">Justo Graham</span>
+                        </th>
+                        <th onclick="sortTable('stocks', 12)">
+                            <span class="hint" tabindex="0" data-tip="Score contínuo 0-10. 5 critérios: DY, P/L, P/VP, ROE e Margem de Graham (cada 0-2). Quanto maior, mais a ação atende aos critérios de value investing (empresa lucrativa, saudável e barata)." title="Score contínuo 0-10. 5 critérios: DY, P/L, P/VP, ROE e Margem de Graham (cada 0-2). Quanto maior, mais a ação atende aos critérios de value investing.">Score</span>
                         </th>
                     </tr>
                 </thead>
@@ -209,20 +329,21 @@
                         <th onclick="sortTable('fiis', 0)">Ticker</th>
                         <th onclick="sortTable('fiis', 1)">Nome</th>
                         <th onclick="sortTable('fiis', 2)">Preço</th>
-                        <th onclick="sortTable('fiis', 3)">
-                            <span class="hint" tabindex="0" data-tip="Valor Patrimonial por cota. Patrimônio líquido do fundo dividido pelo total de cotas. Referência para o P/VP.">VPA</span>
-                        </th>
+                        <th>Tendência 12M</th>
                         <th onclick="sortTable('fiis', 4)">
-                            <span class="hint" tabindex="0" data-tip="Preço sobre Valor Patrimonial do fundo. Entre 0,70 e 1,05 é considerado ideal (desconto moderado a valor justo).">P/VP</span>
+                            <span class="hint" tabindex="0" data-tip="Valor Patrimonial por cota. Patrimônio líquido do fundo dividido pelo total de cotas. Referência para o P/VP." title="Valor Patrimonial por cota. Patrimônio líquido do fundo dividido pelo total de cotas. Referência para o P/VP.">VPA</span>
                         </th>
                         <th onclick="sortTable('fiis', 5)">
-                            <span class="hint" tabindex="0" data-tip="Dividend Yield anual do fundo. Mede o retorno em dividendos sobre o preço da cota. Mínimo ideal: 8%.">DY</span>
+                            <span class="hint" tabindex="0" data-tip="Preço sobre Valor Patrimonial do fundo. Entre 0,70 e 1,05 é considerado ideal (desconto moderado a valor justo)." title="Preço sobre Valor Patrimonial do fundo. Entre 0,70 e 1,05 é considerado ideal (desconto moderado a valor justo).">P/VP</span>
                         </th>
                         <th onclick="sortTable('fiis', 6)">
-                            <span class="hint" tabindex="0" data-tip="Valor total estimado de dividendos pagos pelo fundo nos últimos 12 meses por cota.">Dividendo Anual</span>
+                            <span class="hint" tabindex="0" data-tip="Dividend Yield anual do fundo. Mede o retorno em dividendos sobre o preço da cota. Mínimo ideal: 8%." title="Dividend Yield anual do fundo. Mede o retorno em dividendos sobre o preço da cota. Mínimo ideal: 8%.">DY</span>
                         </th>
                         <th onclick="sortTable('fiis', 7)">
-                            <span class="hint" tabindex="0" data-tip="Score fundamentalista contínuo de 0 a 10. Avalia preço, renda e critérios de sustentabilidade definidos para FIIs.">Score</span>
+                            <span class="hint" tabindex="0" data-tip="Valor total estimado de dividendos pagos pelo fundo nos últimos 12 meses por cota." title="Valor total estimado de dividendos pagos pelo fundo nos últimos 12 meses por cota.">Dividendo Anual</span>
+                        </th>
+                        <th onclick="sortTable('fiis', 8)">
+                            <span class="hint" tabindex="0" data-tip="Score fundamentalista contínuo de 0 a 10. Avalia preço, renda e critérios de sustentabilidade definidos para FIIs." title="Score fundamentalista contínuo de 0 a 10. Avalia preço, renda e critérios de sustentabilidade definidos para FIIs.">Score</span>
                         </th>
                     </tr>
                 </thead>
@@ -246,20 +367,21 @@
                         <th onclick="sortTable('fiagros', 0)">Ticker</th>
                         <th onclick="sortTable('fiagros', 1)">Nome</th>
                         <th onclick="sortTable('fiagros', 2)">Preço</th>
-                        <th onclick="sortTable('fiagros', 3)">
-                            <span class="hint" tabindex="0" data-tip="Valor Patrimonial por cota. Patrimônio líquido do fundo dividido pelo total de cotas. Referência para o P/VP.">VPA</span>
-                        </th>
+                        <th>Tendência 12M</th>
                         <th onclick="sortTable('fiagros', 4)">
-                            <span class="hint" tabindex="0" data-tip="Preço sobre Valor Patrimonial do fundo. Entre 0,70 e 1,05 é considerado ideal (desconto moderado a valor justo).">P/VP</span>
+                            <span class="hint" tabindex="0" data-tip="Valor Patrimonial por cota. Patrimônio líquido do fundo dividido pelo total de cotas. Referência para o P/VP." title="Valor Patrimonial por cota. Patrimônio líquido do fundo dividido pelo total de cotas. Referência para o P/VP.">VPA</span>
                         </th>
                         <th onclick="sortTable('fiagros', 5)">
-                            <span class="hint" tabindex="0" data-tip="Dividend Yield anual do fundo. FIAGROs exigem retorno maior: mínimo ideal de 10% (vs 8% dos FIIs) devido ao risco de crédito agropecuário.">DY</span>
+                            <span class="hint" tabindex="0" data-tip="Preço sobre Valor Patrimonial do fundo. Entre 0,70 e 1,05 é considerado ideal (desconto moderado a valor justo)." title="Preço sobre Valor Patrimonial do fundo. Entre 0,70 e 1,05 é considerado ideal (desconto moderado a valor justo).">P/VP</span>
                         </th>
                         <th onclick="sortTable('fiagros', 6)">
-                            <span class="hint" tabindex="0" data-tip="Valor total estimado de dividendos pagos pelo fundo nos últimos 12 meses por cota.">Dividendo Anual</span>
+                            <span class="hint" tabindex="0" data-tip="Dividend Yield anual do fundo. FIAGROs exigem retorno maior: mínimo ideal de 10% (vs 8% dos FIIs) devido ao risco de crédito agropecuário." title="Dividend Yield anual do fundo. FIAGROs exigem retorno maior: mínimo ideal de 10% (vs 8% dos FIIs) devido ao risco de crédito agropecuário.">DY</span>
                         </th>
                         <th onclick="sortTable('fiagros', 7)">
-                            <span class="hint" tabindex="0" data-tip="Score fundamentalista contínuo de 0 a 10. Avalia preço, renda e critérios de sustentabilidade definidos para FIAGROs.">Score</span>
+                            <span class="hint" tabindex="0" data-tip="Valor total estimado de dividendos pagos pelo fundo nos últimos 12 meses por cota." title="Valor total estimado de dividendos pagos pelo fundo nos últimos 12 meses por cota.">Dividendo Anual</span>
+                        </th>
+                        <th onclick="sortTable('fiagros', 8)">
+                            <span class="hint" tabindex="0" data-tip="Score fundamentalista contínuo de 0 a 10. Avalia preço, renda e critérios de sustentabilidade definidos para FIAGROs." title="Score fundamentalista contínuo de 0 a 10. Avalia preço, renda e critérios de sustentabilidade definidos para FIAGROs.">Score</span>
                         </th>
                     </tr>
                 </thead>
@@ -270,76 +392,937 @@
             </div>
         </div>
 
-        <!-- Sector Analysis Panel -->
-        <div id="panel-sectors" class="table-wrap hidden">
-            <div class="table-header-bar">
-                <span>Análise Setorial</span>
-                <span class="font-mono tabular" id="sectors-count">0 setores</span>
+        <!-- Compare Panel (Head-to-Head) -->
+        <section id="panel-compare" class="compare-container hidden" aria-label="Comparador de Ativos">
+            <div class="compare-header-box">
+                <div class="compare-title-area">
+                    <h2>Comparador Lado a Lado</h2>
+                    <p>Compare de 2 a 4 ativos para analisar múltiplos, valuation e histórico relativo.</p>
+                </div>
+                <div class="compare-controls-area">
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; width: 100%; align-items: center;">
+                        <select id="compare-class-filter" class="filter-select" style="min-width: 170px;" onchange="onCompareClassFilterChange(this.value)">
+                            <option value="all">🌐 Todas as Classes</option>
+                            <option value="stock">📈 Apenas Ações</option>
+                            <option value="fii">🏢 Apenas FIIs</option>
+                            <option value="fiagro">🌱 Apenas FIAGROs</option>
+                            <option value="tesouro">🪙 Apenas Tesouro</option>
+                        </select>
+                        <div class="compare-search-box" style="flex: 1; min-width: 200px;">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="compare-search-input" class="filter-input" placeholder="Adicionar ativo (ex: PETR4, HGLG11)..." autocomplete="off" oninput="onCompareSearchInput(this.value)">
+                            <div id="compare-autocomplete-list" class="export-menu hidden" style="top:100%; left:0; right:0; max-height:220px; overflow-y:auto; width:100%; z-index: 100;"></div>
+                        </div>
+                    </div>
+                    <div class="compare-chips" id="compare-selected-chips">
+                        <!-- Dynamic chips -->
+                    </div>
+                </div>
             </div>
-            <div class="table-scroll">
-            <table>
-                <thead>
-                    <tr>
-                        <th onclick="sortTable('sectors', 0)">Setor</th>
-                        <th onclick="sortTable('sectors', 1)">Nº Empresas</th>
-                        <th onclick="sortTable('sectors', 2)">
-                            <span class="hint" tabindex="0" data-tip="Média do Score Fundamentalista (0-10) das empresas do setor. Quanto maior, melhor a saúde financeira média.">Score Médio</span>
-                        </th>
-                        <th onclick="sortTable('sectors', 3)">
-                            <span class="hint" tabindex="0" data-tip="Dividend Yield médio do setor. Indica o retorno médio em dividendos do conjunto de empresas.">DY Médio</span>
-                        </th>
-                        <th onclick="sortTable('sectors', 4)">
-                            <span class="hint" tabindex="0" data-tip="Preço sobre Lucro (P/L) médio do setor. Ajuda a comparar valuation entre setores.">P/L Médio</span>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody id="sectors-tbody">
-                    <!-- Carregado via JS -->
-                </tbody>
-            </table>
+
+            <div id="compare-content">
+                <!-- Dynamic comparison table & chart -->
+            </div>
+        </section>
+
+        <!-- Calculator Panel (Calculadora de Investimentos Inteligente) -->
+        <section id="panel-calculator" class="calc-container hidden" aria-label="Calculadora de Investimentos">
+            <div class="compare-header-box" style="justify-content: space-between;">
+                <div>
+                    <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary);">🧮 Calculadora de Investimentos Inteligente</h2>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">Simulações financeiras com impacto tributário real (IR/JCP): metas de renda, juros compostos, comparador de renda fixa e retirada para aposentadoria.</p>
+                </div>
+                <div class="calc-mode-selector">
+                    <button type="button" class="calc-mode-btn active" id="btn-calc-mode-goal" onclick="switchCalcMode('goal')">🎯 Meta de Renda Mensal</button>
+                    <button type="button" class="calc-mode-btn" id="btn-calc-mode-snowball" onclick="switchCalcMode('snowball')">📈 Acumulação & Reinvestimento</button>
+                    <button type="button" class="calc-mode-btn" id="btn-calc-mode-compare-rf" onclick="switchCalcMode('compare_rf')">⚖️ Comparador Renda Fixa</button>
+                    <button type="button" class="calc-mode-btn" id="btn-calc-mode-fire" onclick="switchCalcMode('fire')">🛡️ Viver de Renda (Saque Vitalício)</button>
+                    <button type="button" class="calc-mode-btn" id="btn-calc-mode-rules" onclick="switchCalcMode('rules')">💡 Regras Práticas & Valuation</button>
+                </div>
+            </div>
+
+            <!-- Modo 1: Meta de Renda -->
+            <div class="calc-grid" id="calc-grid-goal">
+                <div class="calc-card">
+                    <h3 style="font-size: 0.95rem; font-weight: 700;">Parâmetros da Meta</h3>
+                    <div class="calc-input-group">
+                        <label for="calc-goal-target">Renda Líquida Mensal Desejada (R$)</label>
+                        <input type="number" id="calc-goal-target" value="1000" min="10" step="50" oninput="calculateIncomeGoal()">
+                        <div class="calc-presets-row">
+                            <button type="button" class="calc-preset-btn" onclick="setGoalPreset(500)">R$ 500</button>
+                            <button type="button" class="calc-preset-btn active" onclick="setGoalPreset(1000)">R$ 1.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="setGoalPreset(2500)">R$ 2.500</button>
+                            <button type="button" class="calc-preset-btn" onclick="setGoalPreset(5000)">R$ 5.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="setGoalPreset(10000)">R$ 10.000</button>
+                        </div>
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-goal-category">Classe / Tipo de Ativo</label>
+                        <select id="calc-goal-category" onchange="onGoalCategoryChange()">
+                            <option value="all">🌐 Todas as Classes & Estratégias</option>
+                            <option value="strategies">👑 Estratégias & Carteiras Recomendadas</option>
+                            <option value="stocks">📈 Ações B3 (Dividendos / Graham)</option>
+                            <option value="fiis">🏢 FIIs (Fundos Imobiliários)</option>
+                            <option value="fiagros">🌱 FIAGROs (Agronegócio)</option>
+                            <option value="tesouro">🪙 Tesouro Direto (Renda Fixa Pública)</option>
+                        </select>
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-goal-asset">Ativo ou Título Específico</label>
+                        <select id="calc-goal-asset" onchange="onGoalAssetChange()">
+                            <!-- Populado dinamicamente -->
+                        </select>
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-goal-custom-dy">Rentabilidade / DY Bruto Anual (%)</label>
+                        <input type="number" id="calc-goal-custom-dy" value="9.0" min="0.5" max="50" step="0.1" oninput="calculateIncomeGoal()">
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-goal-tax">Tributação & Regime Fiscal (IR / JCP)</label>
+                        <select id="calc-goal-tax" onchange="calculateIncomeGoal()">
+                            <option value="auto">⚡ Automático (Conforme ativo selecionado)</option>
+                            <option value="exempt">🟢 100% Isento de IR (FIIs / Dividendos Puros)</option>
+                            <option value="stock_jcp">🟡 Ações c/ JCP (~25% JCP a 15% IR = ~3,75% efetivo)</option>
+                            <option value="fixed_15">🔴 Renda Fixa / Tesouro > 2 anos (15,0% IR retido)</option>
+                            <option value="fixed_22_5">🔴 Renda Fixa Curto Prazo < 180d (22,5% IR)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="calc-card">
+                    <h3 style="font-size: 0.95rem; font-weight: 700;">Resultado da Simulação</h3>
+                    <div class="calc-result-box">
+                        <div class="calc-stat-item">
+                            <span style="color: var(--text-secondary);">Patrimônio Total Necessário:</span>
+                            <span class="calc-stat-val" id="calc-goal-result-total" style="font-size: 1.3rem; color: var(--positive);">R$ 0,00</span>
+                        </div>
+                        <div class="calc-stat-item">
+                            <span style="color: var(--text-secondary);">Renda Líquida no Bolso:</span>
+                            <span class="calc-stat-val" id="calc-goal-result-net" style="color: var(--positive); font-weight: 800;">R$ 0,00 / mês</span>
+                        </div>
+                        <div class="calc-stat-item">
+                            <span style="color: var(--text-secondary);">Renda Bruta Estimada:</span>
+                            <span class="calc-stat-val" id="calc-goal-result-gross">R$ 0,00 / mês</span>
+                        </div>
+                        <div class="calc-stat-item">
+                            <span style="color: var(--text-secondary);">Imposto de Renda Retido (IR):</span>
+                            <span class="calc-stat-val" id="calc-goal-result-tax" style="color: var(--text-muted);">R$ 0,00 / ano</span>
+                        </div>
+                        <div class="calc-stat-item">
+                            <span style="color: var(--text-secondary);">Yield Líquido Efetivo:</span>
+                            <span class="calc-stat-val" id="calc-goal-result-net-yield">0,00% a.a.</span>
+                        </div>
+                        <div class="calc-stat-item" id="calc-goal-shares-row">
+                            <span style="color: var(--text-secondary);">Cotas / Títulos Necessários:</span>
+                            <span class="calc-stat-val" id="calc-goal-result-shares">0</span>
+                        </div>
+                        <div class="calc-stat-item">
+                            <span style="color: var(--text-secondary);">Rendimento Diário Médio (Líquido):</span>
+                            <span class="calc-stat-val" id="calc-goal-result-daily">R$ 0,00</span>
+                        </div>
+                    </div>
+                    <div class="calc-magic-badge" id="calc-goal-magic-box">
+                        <div class="calc-magic-icon">💡</div>
+                        <div class="calc-magic-text">
+                            <strong id="calc-goal-magic-title">Visão Tributária & Diversificação</strong>
+                            <span id="calc-goal-magic-desc">FIIs e FIAGROs são isentos de IR na distribuição mensal. Títulos do Tesouro sofrem retenção de 15% após 2 anos.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modo 2: Efeito Bola de Neve -->
+            <div class="calc-grid hidden" id="calc-grid-snowball">
+                <div class="calc-card">
+                    <h3 style="font-size: 0.95rem; font-weight: 700;">Parâmetros de Acumulação</h3>
+                    <div class="calc-input-group">
+                        <label for="calc-snow-initial">Aporte Inicial (R$)</label>
+                        <input type="number" id="calc-snow-initial" value="5000" min="0" step="500" oninput="calculateSnowball()">
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-snow-monthly">Aporte Mensal (R$)</label>
+                        <input type="number" id="calc-snow-monthly" value="500" min="0" step="50" oninput="calculateSnowball()">
+                        <div class="calc-presets-row">
+                            <button type="button" class="calc-preset-btn" onclick="setSnowMonthlyPreset(200)">R$ 200</button>
+                            <button type="button" class="calc-preset-btn active" onclick="setSnowMonthlyPreset(500)">R$ 500</button>
+                            <button type="button" class="calc-preset-btn" onclick="setSnowMonthlyPreset(1000)">R$ 1.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="setSnowMonthlyPreset(2000)">R$ 2.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="setSnowMonthlyPreset(5000)">R$ 5.000</button>
+                        </div>
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-snow-category">Classe / Tipo de Ativo</label>
+                        <select id="calc-snow-category" onchange="onSnowCategoryChange()">
+                            <option value="all">🌐 Todas as Classes & Estratégias</option>
+                            <option value="strategies">👑 Estratégias & Carteiras Recomendadas</option>
+                            <option value="stocks">📈 Ações B3 (Dividendos / Graham)</option>
+                            <option value="fiis">🏢 FIIs (Fundos Imobiliários)</option>
+                            <option value="fiagros">🌱 FIAGROs (Agronegócio)</option>
+                            <option value="tesouro">🪙 Tesouro Direto (Renda Fixa Pública)</option>
+                        </select>
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-snow-asset">Ativo ou Título Específico</label>
+                        <select id="calc-snow-asset" onchange="onSnowballAssetChange()">
+                            <!-- Populado dinamicamente -->
+                        </select>
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-snow-dy">Rentabilidade / DY Bruto Anual (%)</label>
+                        <input type="number" id="calc-snow-dy" value="10.0" min="0.5" max="40" step="0.1" oninput="calculateSnowball()">
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-snow-tax">Tributação & Regime Fiscal (IR / JCP)</label>
+                        <select id="calc-snow-tax" onchange="calculateSnowball()">
+                            <option value="auto">⚡ Automático (Conforme ativo selecionado)</option>
+                            <option value="exempt">🟢 100% Isento de IR (FIIs / Dividendos Puros)</option>
+                            <option value="stock_jcp">🟡 Ações c/ JCP (~25% JCP a 15% IR = ~3,75% efetivo)</option>
+                            <option value="fixed_15">🔴 Renda Fixa / Tesouro > 2 anos (15,0% IR retido)</option>
+                            <option value="fixed_22_5">🔴 Renda Fixa Curto Prazo < 180d (22,5% IR)</option>
+                        </select>
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-snow-years">Prazo da Projeção (Anos)</label>
+                        <select id="calc-snow-years" onchange="calculateSnowball()">
+                            <option value="3">3 Anos</option>
+                            <option value="5" selected>5 Anos</option>
+                            <option value="10">10 Anos</option>
+                            <option value="15">15 Anos</option>
+                            <option value="20">20 Anos</option>
+                            <option value="30">30 Anos (Aposentadoria)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="calc-card">
+                    <h3 id="calc-snow-card-title" style="font-size: 0.95rem; font-weight: 700;">Acumulação com Reinvestimento Automático (Magic Number)</h3>
+                    <div class="calc-magic-badge" id="calc-snow-magic-badge">
+                        <div class="calc-magic-icon" id="calc-snow-magic-icon">📈</div>
+                        <div class="calc-magic-text">
+                            <strong id="calc-magic-number-title">Magic Number: Calculando...</strong>
+                            <span id="calc-magic-number-desc">O número de cotas ou títulos para reinvestir 1 nova cota todo mês 100% com proventos líquidos.</span>
+                        </div>
+                    </div>
+                    <div class="calc-result-box">
+                        <div class="calc-stat-item">
+                            <span style="color: var(--text-secondary);">Patrimônio Final Estimado:</span>
+                            <span class="calc-stat-val" id="calc-snow-result-total" style="font-size: 1.2rem; color: var(--positive);">R$ 0,00</span>
+                        </div>
+                        <div class="calc-stat-item">
+                            <span style="color: var(--text-secondary);">Total Aportado do Bolso:</span>
+                            <span class="calc-stat-val" id="calc-snow-result-invested">R$ 0,00</span>
+                        </div>
+                        <div class="calc-stat-item">
+                            <span id="calc-snow-result-dividends-label" style="color: var(--text-secondary);">Renda Gerada por Juros/Dividendos (Líquida):</span>
+                            <span class="calc-stat-val" id="calc-snow-result-dividends" style="color: var(--gold);">R$ 0,00</span>
+                        </div>
+                        <div class="calc-progress-container">
+                            <div class="calc-progress-bar">
+                                <div class="calc-progress-invested" id="calc-snow-bar-invested" style="width: 50%;"></div>
+                                <div class="calc-progress-returns" id="calc-snow-bar-returns" style="width: 50%;"></div>
+                            </div>
+                            <div class="calc-progress-legend">
+                                <span>🔵 Aportes: <strong id="calc-snow-pct-invested">50%</strong></span>
+                                <span>🟢 Juros / Proventos: <strong id="calc-snow-pct-returns">50%</strong></span>
+                            </div>
+                        </div>
+                        <div class="calc-stat-item" style="margin-top: 0.5rem;">
+                            <span style="color: var(--text-secondary);">Imposto de Renda Acumulado (Estimado):</span>
+                            <span class="calc-stat-val" id="calc-snow-result-tax" style="color: var(--text-muted);">R$ 0,00</span>
+                        </div>
+                        <div class="calc-stat-item">
+                            <span id="calc-snow-monthly-income-label" style="color: var(--text-secondary);">Renda Mensal Líquida no Final do Período:</span>
+                            <span class="calc-stat-val" id="calc-snow-result-monthly-income" style="font-weight: 800; color: var(--positive);">R$ 0,00 / mês</span>
+                        </div>
+                    </div>
+                    <div style="position: relative; height: 220px; width: 100%; margin-top: 0.5rem;">
+                        <canvas id="snowball-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modo 3: Comparador de Renda Fixa (CDB vs LCI vs Tesouro) -->
+            <div class="calc-grid hidden" id="calc-grid-compare-rf">
+                <div class="calc-card">
+                    <h3 style="font-size: 0.95rem; font-weight: 700;">Parâmetros de Comparação</h3>
+                    <div class="calc-input-group">
+                        <label for="calc-rf-amount">Valor a Investir (R$)</label>
+                        <input type="number" id="calc-rf-amount" value="10000" min="100" step="1000" oninput="calculateRfComparison()">
+                        <div class="calc-presets-row">
+                            <button type="button" class="calc-preset-btn" onclick="setRfAmountPreset(5000)">R$ 5.000</button>
+                            <button type="button" class="calc-preset-btn active" onclick="setRfAmountPreset(10000)">R$ 10.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="setRfAmountPreset(50000)">R$ 50.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="setRfAmountPreset(100000)">R$ 100.000</button>
+                        </div>
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-rf-days">Prazo de Aplicação</label>
+                        <select id="calc-rf-days" onchange="calculateRfComparison()">
+                            <option value="180">6 Meses (180 dias — IR 22,5%)</option>
+                            <option value="360">1 Ano (360 dias — IR 20,0%)</option>
+                            <option value="720" selected>2 Anos (720 dias — IR 17,5%)</option>
+                            <option value="1080">3 Anos (1.080 dias — IR 15,0%)</option>
+                            <option value="1800">5 Anos (1.800 dias — IR 15,0%)</option>
+                        </select>
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-rf-cdi">Taxa Selic / CDI de Referência (% a.a.)</label>
+                        <input type="number" id="calc-rf-cdi" value="13.00" min="1" max="30" step="0.25" oninput="calculateRfComparison()">
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-rf-cdb-pct">Opção A: CDB / LC / RDB (% do CDI — Tributado)</label>
+                        <input type="number" id="calc-rf-cdb-pct" value="110.0" min="50" max="200" step="1" oninput="calculateRfComparison()">
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-rf-lci-pct">Opção B: LCI / LCA / CRI / CRA (% do CDI — Isento de IR)</label>
+                        <input type="number" id="calc-rf-lci-pct" value="92.0" min="50" max="200" step="1" oninput="calculateRfComparison()">
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-rf-td-yield">Opção C: Tesouro Prefixado / IPCA+ (Taxa Bruta % a.a.)</label>
+                        <input type="number" id="calc-rf-td-yield" value="14.50" min="1" max="30" step="0.1" oninput="calculateRfComparison()">
+                    </div>
+                </div>
+
+                <div class="calc-card">
+                    <h3 style="font-size: 0.95rem; font-weight: 700;">Resultado Comparativo Líquido</h3>
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <!-- CDB Card -->
+                        <div class="calc-compare-card" id="calc-card-cdb">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <strong>🏦 CDB / LC Tributado</strong>
+                                <span class="calc-winner-badge hidden" id="badge-winner-cdb">🏆 Mais Vantajoso</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                                <span style="color:var(--text-secondary);">Taxa Bruta / IR:</span>
+                                <span id="calc-cdb-gross-tax">14.30% a.a. (IR 17.5%)</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.95rem; font-weight:700;">
+                                <span style="color:var(--text-secondary);">Resgate Líquido:</span>
+                                <span id="calc-cdb-net-val" style="color:var(--positive);">R$ 0,00</span>
+                            </div>
+                        </div>
+
+                        <!-- LCI Card -->
+                        <div class="calc-compare-card" id="calc-card-lci">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <strong>🌱 LCI / LCA Isenta</strong>
+                                <span class="calc-winner-badge hidden" id="badge-winner-lci">🏆 Mais Vantajoso</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                                <span style="color:var(--text-secondary);">Taxa Líquida / IR:</span>
+                                <span>11.96% a.a. (0.0% Isento)</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.95rem; font-weight:700;">
+                                <span style="color:var(--text-secondary);">Resgate Líquido:</span>
+                                <span id="calc-lci-net-val" style="color:var(--positive);">R$ 0,00</span>
+                            </div>
+                        </div>
+
+                        <!-- Tesouro Card -->
+                        <div class="calc-compare-card" id="calc-card-td">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <strong>🪙 Tesouro Direto</strong>
+                                <span class="calc-winner-badge hidden" id="badge-winner-td">🏆 Mais Vantajoso</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                                <span style="color:var(--text-secondary);">Taxa Bruta / IR:</span>
+                                <span id="calc-td-gross-tax">14.50% a.a. (IR 17.5%)</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.95rem; font-weight:700;">
+                                <span style="color:var(--text-secondary);">Resgate Líquido:</span>
+                                <span id="calc-td-net-val" style="color:var(--positive);">R$ 0,00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="calc-magic-badge" style="margin-top: 0.5rem;">
+                        <div class="calc-magic-icon">💡</div>
+                        <div class="calc-magic-text">
+                            <strong id="calc-rf-equiv-title">Ponto de Equilíbrio (Break-Even)</strong>
+                            <span id="calc-rf-equiv-desc">Calculando equivalência tributária...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modo 4: Aposentadoria & Retirada Segura (FIRE) -->
+            <div class="calc-grid hidden" id="calc-grid-fire">
+                <div class="calc-card">
+                    <h3 style="font-size: 0.95rem; font-weight: 700;">Parâmetros da Aposentadoria</h3>
+                    <div class="calc-input-group">
+                        <label for="calc-fire-capital">Patrimônio Acumulado (R$)</label>
+                        <input type="number" id="calc-fire-capital" value="500000" min="10000" step="50000" oninput="calculateFireRetirement()">
+                        <div class="calc-presets-row">
+                            <button type="button" class="calc-preset-btn" onclick="setFireCapitalPreset(100000)">R$ 100k</button>
+                            <button type="button" class="calc-preset-btn" onclick="setFireCapitalPreset(300000)">R$ 300k</button>
+                            <button type="button" class="calc-preset-btn active" onclick="setFireCapitalPreset(500000)">R$ 500k</button>
+                            <button type="button" class="calc-preset-btn" onclick="setFireCapitalPreset(1000000)">R$ 1 Milhão</button>
+                            <button type="button" class="calc-preset-btn" onclick="setFireCapitalPreset(2000000)">R$ 2 Milhões</button>
+                        </div>
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-fire-swr">Taxa Segura de Retirada Anual (SWR / Trinity Study)</label>
+                        <select id="calc-fire-swr" onchange="calculateFireRetirement()">
+                            <option value="0.035">3,5% a.a. — Ultra-Conservadora (Perpétua / Preserva Capital)</option>
+                            <option value="0.040" selected>4,0% a.a. — Regra dos 4% Clássica (Estudo Trinity 30+ Anos)</option>
+                            <option value="0.050">5,0% a.a. — Moderada (Brasil High Yield / FIIs)</option>
+                            <option value="0.060">6,0% a.a. — Regra de Décio Bazin (Foco Dividendos B3)</option>
+                        </select>
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-fire-strategy">Estratégia de Carteira de Renda</label>
+                        <select id="calc-fire-strategy" onchange="calculateFireRetirement()">
+                            <option value="mixed" selected>⚖️ Carteira Balanceada (40% FIIs + 30% Ações + 30% Tesouro IPCA+)</option>
+                            <option value="fiis">🏢 100% FIIs / FIAGROs (Fluxo Mensal Isento de IR)</option>
+                            <option value="tesouro">🪙 100% Tesouro RendA+ / IPCA+ com Juros Semestrais</option>
+                            <option value="stocks">📈 100% Ações Dividendos B3 (Bazin / Graham)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="calc-card">
+                    <h3 style="font-size: 0.95rem; font-weight: 700;">Capacidade de Renda Vitalícia</h3>
+                    <div class="calc-result-box">
+                        <div class="calc-stat-item">
+                            <span style="color: var(--text-secondary);">Saque Mensal Seguro no Bolso:</span>
+                            <span class="calc-stat-val" id="calc-fire-monthly" style="font-size: 1.3rem; color: var(--positive);">R$ 0,00 / mês</span>
+                        </div>
+                        <div class="calc-stat-item">
+                            <span style="color: var(--text-secondary);">Retirada Anual Permitida:</span>
+                            <span class="calc-stat-val" id="calc-fire-annual" style="font-weight: 800; color: var(--positive);">R$ 0,00 / ano</span>
+                        </div>
+                        <div class="calc-stat-item">
+                            <span style="color: var(--text-secondary);">Renda Média Diária:</span>
+                            <span class="calc-stat-val" id="calc-fire-daily">R$ 0,00 / dia</span>
+                        </div>
+                        <div class="calc-stat-item">
+                            <span style="color: var(--text-secondary);">Preservação Real do Capital:</span>
+                            <span class="calc-stat-val" id="calc-fire-status" style="color: var(--positive);">100% Perpétuo</span>
+                        </div>
+                    </div>
+
+                    <div class="calc-magic-badge">
+                        <div class="calc-magic-icon">🛡️</div>
+                        <div class="calc-magic-text">
+                            <strong id="calc-fire-insight-title">Proteção contra a Inflação</strong>
+                            <span id="calc-fire-insight-desc">Com a taxa de retirada segura de 4%, seu patrimônio gera renda vitalícia reajustada pela inflação sem esgotar o montante principal.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modo 5: Regras Práticas & Valuation de Renda Variável -->
+            <div class="calc-rules-grid hidden" id="calc-grid-rules">
+                <!-- Regra RV 1: Preço Justo de Benjamin Graham -->
+                <div class="calc-rule-card">
+                    <div class="calc-rule-header">
+                        <div class="calc-rule-title">📊 Preço Justo de Graham (Ações)</div>
+                        <span class="calc-rule-formula-badge">Preço Justo = √(22,5 × LPA × VPA)</span>
+                    </div>
+                    <p class="calc-rule-desc">Fórmula de valuation de Benjamin Graham (mentor de Warren Buffett) para encontrar o valor intrínseco baseado em lucros e patrimônio.</p>
+                    <div class="calc-rule-inputs-row">
+                        <div class="calc-input-group">
+                            <label for="rule-graham-lpa">LPA (Lucro p/ Ação)</label>
+                            <input type="number" id="rule-graham-lpa" value="3.50" min="0.01" step="any" oninput="calculateRuleGraham()">
+                        </div>
+                        <div class="calc-input-group">
+                            <label for="rule-graham-vpa">VPA (Valor Patr. p/ Ação)</label>
+                            <input type="number" id="rule-graham-vpa" value="25.00" min="0.01" step="any" oninput="calculateRuleGraham()">
+                        </div>
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="rule-graham-price">Cotação Atual de Mercado (R$)</label>
+                        <input type="number" id="rule-graham-price" value="32.00" min="0.01" step="any" oninput="calculateRuleGraham()">
+                    </div>
+                    <div class="calc-rule-result">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:0.8rem; color:var(--text-secondary);">Preço Justo Intrínseco:</span>
+                            <span id="rule-graham-result" style="font-size:1.15rem; font-weight:800; color:var(--positive);">R$ 44,37</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
+                            <span>Margem de Segurança:</span>
+                            <strong id="rule-graham-margin" style="color:var(--positive);">+38.7% de Desconto</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Regra RV 2: Preço Teto de Décio Bazin -->
+                <div class="calc-rule-card">
+                    <div class="calc-rule-header">
+                        <div class="calc-rule-title">📈 Preço Teto de Bazin (Dividendos)</div>
+                        <span class="calc-rule-formula-badge">Preço Teto = DPA ÷ 0,06</span>
+                    </div>
+                    <p class="calc-rule-desc">Método clássico brasileiro para nunca pagar caro por ações pagadoras de dividendos, garantindo <strong>DY mínimo de 6% ao ano</strong>.</p>
+                    <div class="calc-rule-inputs-row">
+                        <div class="calc-input-group">
+                            <label for="rule-bazin-dpa">Dividendo Anual (DPA)</label>
+                            <input type="number" id="rule-bazin-dpa" value="2.40" min="0.01" step="any" oninput="calculateRuleBazin()">
+                        </div>
+                        <div class="calc-input-group">
+                            <label for="rule-bazin-price">Cotação Atual (R$)</label>
+                            <input type="number" id="rule-bazin-price" value="30.00" min="0.01" step="any" oninput="calculateRuleBazin()">
+                        </div>
+                    </div>
+                    <div class="calc-rule-result">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:0.8rem; color:var(--text-secondary);">Preço Teto Máximo:</span>
+                            <span id="rule-bazin-result" style="font-size:1.15rem; font-weight:800; color:var(--positive);">R$ 40,00</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
+                            <span>Margem até o Teto:</span>
+                            <strong id="rule-bazin-margin" style="color:var(--positive);">+33.3% abaixo do Teto</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Regra RV 3: PEG Ratio de Peter Lynch -->
+                <div class="calc-rule-card">
+                    <div class="calc-rule-header">
+                        <div class="calc-rule-title">🎯 PEG Ratio de Peter Lynch</div>
+                        <span class="calc-rule-formula-badge">PEG = (P/L) ÷ Crescimento %</span>
+                    </div>
+                    <p class="calc-rule-desc">Avalia se o múltiplo Preço/Lucro está barato em relação ao crescimento dos lucros. <strong>PEG &lt; 1,0 indica ação subavaliada</strong>.</p>
+                    <div class="calc-rule-inputs-row">
+                        <div class="calc-input-group">
+                            <label for="rule-peg-pe">Múltiplo P/L Atual</label>
+                            <input type="number" id="rule-peg-pe" value="8.5" min="0.1" step="any" oninput="calculateRulePeg()">
+                        </div>
+                        <div class="calc-input-group">
+                            <label for="rule-peg-growth">Crescimento Anual (%)</label>
+                            <input type="number" id="rule-peg-growth" value="15.0" min="0.1" step="any" oninput="calculateRulePeg()">
+                        </div>
+                    </div>
+                    <div class="calc-rule-result">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:0.8rem; color:var(--text-secondary);">PEG Ratio:</span>
+                            <span id="rule-peg-result" style="font-size:1.15rem; font-weight:800; color:var(--positive);">0.57 (Excelente)</span>
+                        </div>
+                        <div id="rule-peg-desc" style="font-size:0.75rem; color:var(--text-muted);">Ação com alto crescimento negociando com valuation atrativo!</div>
+                    </div>
+                </div>
+
+                <!-- Regra RV 4: Preço Teto & P/VP de FIIs -->
+                <div class="calc-rule-card">
+                    <div class="calc-rule-header">
+                        <div class="calc-rule-title">🏢 Preço Teto & Yield para FIIs</div>
+                        <span class="calc-rule-formula-badge">Preço Teto = Provento ÷ 0,0075</span>
+                    </div>
+                    <p class="calc-rule-desc">Regra de ouro para Fundos Imobiliários: buscar <strong>Yield mínimo de 0,75% a.m. (9,0% a.a. isento)</strong> e <strong>P/VP ≤ 1,00</strong>.</p>
+                    <div class="calc-rule-inputs-row">
+                        <div class="calc-input-group">
+                            <label for="rule-fii-distrib">Provento Mensal (R$/cota)</label>
+                            <input type="number" id="rule-fii-distrib" value="0.90" min="0.01" step="any" oninput="calculateRuleFii()">
+                        </div>
+                        <div class="calc-input-group">
+                            <label for="rule-fii-price">Cotação Atual (R$)</label>
+                            <input type="number" id="rule-fii-price" value="105.00" min="0.1" step="any" oninput="calculateRuleFii()">
+                        </div>
+                    </div>
+                    <div class="calc-rule-result">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:0.8rem; color:var(--text-secondary);">Preço Teto (0,75% a.m.):</span>
+                            <span id="rule-fii-result" style="font-size:1.15rem; font-weight:800; color:var(--positive);">R$ 120,00</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
+                            <span>Yield Mensal Atual:</span>
+                            <strong id="rule-fii-yield" style="color:var(--positive);">0.86% a.m. (10.8% a.a.)</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Regra 5: 200x da Renda -->
+                <div class="calc-rule-card">
+                    <div class="calc-rule-header">
+                        <div class="calc-rule-title">🇧🇷 Regra dos 200x da Renda</div>
+                        <span class="calc-rule-formula-badge">Patrimônio = Renda × 200</span>
+                    </div>
+                    <p class="calc-rule-desc">Considera rentabilidade líquida real de <strong>0,5% ao mês (6,0% a.a.)</strong>, padrão clássico de dividendos de FIIs e Ações perenes no Brasil.</p>
+                    <div class="calc-input-group">
+                        <label for="rule-200-income">Renda Mensal Desejada (R$)</label>
+                        <input type="number" id="rule-200-income" value="5000" min="10" step="any" oninput="calculateRule200()">
+                    </div>
+                    <div class="calc-rule-result">
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">Patrimônio Alvo Necessário:</div>
+                        <div id="rule-200-result" style="font-size:1.15rem; font-weight:800; color:var(--positive);">R$ 1.000.000,00</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">Equivale a 200 meses da sua renda sem tocar no principal.</div>
+                    </div>
+                </div>
+
+                <!-- Regra 6: 300x da Renda (Regra dos 4%) -->
+                <div class="calc-rule-card">
+                    <div class="calc-rule-header">
+                        <div class="calc-rule-title">🌍 Regra dos 300x (Regra dos 4%)</div>
+                        <span class="calc-rule-formula-badge">Patrimônio = Custo Mensal × 300</span>
+                    </div>
+                    <p class="calc-rule-desc">Baseada no Estudo Trinity. Com taxa segura de saque de <strong>4,0% ao ano</strong> (25× custo anual), você tem renda perpétua reajustada pela inflação.</p>
+                    <div class="calc-input-group">
+                        <label for="rule-300-income">Custo de Vida Mensal (R$)</label>
+                        <input type="number" id="rule-300-income" value="5000" min="10" step="any" oninput="calculateRule300()">
+                    </div>
+                    <div class="calc-rule-result">
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">Patrimônio Necessário:</div>
+                        <div id="rule-300-result" style="font-size:1.15rem; font-weight:800; color:var(--positive);">R$ 1.500.000,00</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">Garante independência financeira global com proteção anticrise.</div>
+                    </div>
+                </div>
+
+                <!-- Regra 7: Regra do 72 -->
+                <div class="calc-rule-card">
+                    <div class="calc-rule-header">
+                        <div class="calc-rule-title">⚡ Regra do 72 (Dobra de Capital)</div>
+                        <span class="calc-rule-formula-badge">Tempo (anos) ≈ 72 ÷ Taxa %</span>
+                    </div>
+                    <p class="calc-rule-desc">Heurística matemática que calcula em quantos anos seu capital <strong>dobra de tamanho</strong> automaticamente apenas com o poder dos juros compostos.</p>
+                    <div class="calc-input-group">
+                        <label for="rule-72-rate">Rentabilidade Anual (% a.a.)</label>
+                        <input type="number" id="rule-72-rate" value="12.0" min="0.1" step="any" oninput="calculateRule72()">
+                    </div>
+                    <div class="calc-rule-result">
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">Tempo para Dobrar seu Dinheiro:</div>
+                        <div id="rule-72-result" style="font-size:1.15rem; font-weight:800; color:var(--gold);">6,0 anos</div>
+                        <div id="rule-72-desc" style="font-size:0.75rem; color:var(--text-muted);">R$ 100k viram R$ 200k em 6 anos; R$ 400k em 12 anos!</div>
+                    </div>
+                </div>
+
+                <!-- Regra 8: 50 / 30 / 20 -->
+                <div class="calc-rule-card">
+                    <div class="calc-rule-header">
+                        <div class="calc-rule-title">📊 Regra 50 / 30 / 20 de Orçamento</div>
+                        <span class="calc-rule-formula-badge">50% Essencial | 30% Lazer | 20% Futuro</span>
+                    </div>
+                    <p class="calc-rule-desc">Metodologia clássica de alocação de salário para acelerar a formação de patrimônio sem abrir mão da qualidade de vida.</p>
+                    <div class="calc-input-group">
+                        <label for="rule-503020-salary">Renda / Salário Líquido Mensal (R$)</label>
+                        <input type="number" id="rule-503020-salary" value="6000" min="100" step="any" oninput="calculateRule503020()">
+                    </div>
+                    <div class="calc-rule-result">
+                        <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
+                            <span>🏠 50% Essencial:</span>
+                            <strong id="rule-503020-res-needs">R$ 3.000,00</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
+                            <span>🎯 30% Estilo de Vida:</span>
+                            <strong id="rule-503020-res-wants">R$ 1.800,00</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.85rem; color:var(--positive); font-weight:700;">
+                            <span>💰 20% Aportes:</span>
+                            <strong id="rule-503020-res-savings">R$ 1.200,00 / mês</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Regra 9: 100 - Idade -->
+                <div class="calc-rule-card">
+                    <div class="calc-rule-header">
+                        <div class="calc-rule-title">🛡️ Regra da Idade (Alocação)</div>
+                        <span class="calc-rule-formula-badge">% Renda Variável = 100 - Idade</span>
+                    </div>
+                    <p class="calc-rule-desc">Heurística de gestão de risco: quanto mais jovem, maior a exposição a ações e FIIs; com o avanço da idade, migra-se para Renda Fixa.</p>
+                    <div class="calc-input-group">
+                        <label for="rule-age-val">Sua Idade Atual (Anos)</label>
+                        <input type="number" id="rule-age-val" value="35" min="1" max="120" step="1" oninput="calculateRuleAge()">
+                    </div>
+                    <div class="calc-rule-result">
+                        <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
+                            <span>📈 Renda Variável (Ações / FIIs):</span>
+                            <strong id="rule-age-stocks" style="color:var(--positive);">65%</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
+                            <span>🪙 Renda Fixa (Tesouro / CDB):</span>
+                            <strong id="rule-age-bonds" style="color:var(--gold);">35%</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Macro Forecaster & Scenario Simulator Panel -->
+        <section id="panel-macro" class="table-wrap hidden" aria-label="Previsor macroeconômico" style="max-width: 1140px; margin: 0 auto; background: transparent; box-shadow: none; border: none; padding: 0 0.5rem;">
+            <!-- Hero Card -->
+            <div class="calc-card" style="margin-bottom: 1.25rem;">
+                <div class="calc-header">
+                    <div>
+                        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <span>🔮 Previsor & Simulador de Sensibilidade Macroeconômica</span>
+                        </h2>
+                        <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">
+                            Simule oscilações na <strong>Taxa Selic</strong>, <strong>Inflação (IPCA)</strong>, <strong>Endividamento Público (Risco Fiscal)</strong> e <strong>Custo de Dívida Corporativa</strong> para prever o comportamento de ações, FIIs e títulos públicos.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Quick Preset Scenarios -->
+                <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--card-border);">
+                    <span style="font-size: 0.76rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.5rem;">⚡ Cenários Estratégicos Pré-Configurados:</span>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;" id="macro-preset-buttons">
+                        <button type="button" class="preset-scenario-btn" onclick="applyMacroScenario('rate_cut')">📉 Afrouxamento & Ajuste Fiscal (Bull Market)</button>
+                        <button type="button" class="preset-scenario-btn" onclick="applyMacroScenario('fiscal_crisis')">💥 Descontrole Fiscal & Dívida/PIB em Alta (Prêmio Elevado)</button>
+                        <button type="button" class="preset-scenario-btn" onclick="applyMacroScenario('fiscal_consolidation')">🏛️ Consolidação Fiscal & Credibilidade (Rali do Tesouro)</button>
+                        <button type="button" class="preset-scenario-btn" onclick="applyMacroScenario('rate_hike')">📈 Choque de Juros & Inflação Global (Aperto)</button>
+                        <button type="button" class="preset-scenario-btn" onclick="applyMacroScenario('debt_stress')">⚠️ Stress de Crédito & Alavancagem Corporativa</button>
+                        <button type="button" class="preset-scenario-btn" onclick="applyMacroScenario('flight_to_quality')">🛡️ Voo para Qualidade (Caixa & IPCA+)</button>
+                    </div>
+                </div>
+
+                <!-- Interactive Selectors Grid (4 Controles) -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-top: 1.25rem; background: var(--surface); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--card-border);">
+                    <!-- Control 1: Selic -->
+                    <div>
+                        <label for="macro-sim-selic" style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
+                            <span>Taxa Selic</span>
+                            <span id="macro-sim-selic-label" style="color: var(--primary-accent); font-weight: 800;">Estável</span>
+                        </label>
+                        <select id="macro-sim-selic" class="filter-select" style="width: 100%;" onchange="runMacroForecastSimulation()">
+                            <option value="-200">↘️ Queda Acentuada (-2,00% a.a.)</option>
+                            <option value="-100">↘️ Queda Moderada (-1,00% a.a.)</option>
+                            <option value="0" selected>➔ Cenário Neutro / Estável</option>
+                            <option value="100">↗️ Alta Moderada (+1,00% a.a.)</option>
+                            <option value="200">↗️ Alta Acentuada (+2,00% a.a.)</option>
+                        </select>
+                        <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">Custo do dinheiro e taxa de desconto no valuation.</span>
+                    </div>
+
+                    <!-- Control 2: Inflação (IPCA) -->
+                    <div>
+                        <label for="macro-sim-ipca" style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
+                            <span>Inflação (IPCA)</span>
+                            <span id="macro-sim-ipca-label" style="color: var(--gold); font-weight: 800;">Na Meta</span>
+                        </label>
+                        <select id="macro-sim-ipca" class="filter-select" style="width: 100%;" onchange="runMacroForecastSimulation()">
+                            <option value="low">↘️ Desinflação (&lt; 3.0%)</option>
+                            <option value="target" selected>➔ Controlada na Meta (~3.5%-4.5%)</option>
+                            <option value="high">↗️ Inflação Pressionada (&gt; 5.5%)</option>
+                        </select>
+                        <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">Poder de compra e correção de contratos.</span>
+                    </div>
+
+                    <!-- Control 3: Endividamento Público / Risco Fiscal -->
+                    <div>
+                        <label for="macro-sim-fiscal" style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
+                            <span>Endividamento Público</span>
+                            <span id="macro-sim-fiscal-label" style="color: var(--positive); font-weight: 800;">Controlado</span>
+                        </label>
+                        <select id="macro-sim-fiscal" class="filter-select" style="width: 100%;" onchange="runMacroForecastSimulation()">
+                            <option value="surplus">🟢 Ajuste Fiscal & Superávit (Dívida/PIB em Queda)</option>
+                            <option value="neutral" selected>🟡 Equilíbrio / Fiscal Neutro</option>
+                            <option value="deficit">🔴 Descontrole Fiscal & Expansão de Dívida</option>
+                        </select>
+                        <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">Define o prêmio de risco país e inclinação da ETTJ.</span>
+                    </div>
+
+                    <!-- Control 4: Custo de Dívida Corporativa -->
+                    <div>
+                        <label for="macro-sim-debt" style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
+                            <span>Crédito Corporativo</span>
+                            <span id="macro-sim-debt-label" style="color: var(--positive); font-weight: 800;">Equilibrado</span>
+                        </label>
+                        <select id="macro-sim-debt" class="filter-select" style="width: 100%;" onchange="runMacroForecastSimulation()">
+                            <option value="easy">🟢 Crédito Fácil & Spreads Baixos</option>
+                            <option value="neutral" selected>🟡 Spreads Neutros / Padrão</option>
+                            <option value="tight">🔴 Restrição de Crédito & Spreads Altos</option>
+                        </select>
+                        <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">Pressão de despesas financeiras em empresas com dívida.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagnostic Summary Banner -->
+            <div id="macro-forecast-banner" style="margin-bottom: 1.25rem; padding: 1.1rem 1.25rem; border-radius: var(--radius-md); background: var(--card); border-left: 4px solid var(--primary-accent); box-shadow: var(--shadow-sm);">
+                <!-- Preenchido dinamicamente via JS -->
+            </div>
+
+            <!-- Dedicated Section: Tesouro Direto & Marcação a Mercado -->
+            <div class="calc-card" style="margin-bottom: 1.5rem; border: 1px solid rgba(16, 185, 129, 0.3);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="font-size: 1.3rem;">🏛️</span>
+                        <div>
+                            <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary); margin: 0;">Raio-X do Tesouro Direto & Efeito Marcação a Mercado (MtM)</h3>
+                            <p style="font-size: 0.76rem; color: var(--text-muted); margin: 0;">Comportamento previsto para cada título público sob a dinâmica fiscal e de juros simulada</p>
+                        </div>
+                    </div>
+                    <span id="macro-tesouro-verdict-badge" class="macro-impact-badge macro-impact-high-pos">Curva Favorável</span>
+                </div>
+
+                <div class="table-wrap" style="box-shadow: none; background: transparent; border: 1px solid var(--card-border); margin-bottom: 0;">
+                    <div class="table-scroll">
+                        <table class="macro-tesouro-table">
+                            <thead>
+                                <tr>
+                                    <th style="min-width: 170px;">Família de Título</th>
+                                    <th style="min-width: 130px;">Indexador Base</th>
+                                    <th style="min-width: 130px;">Sensibilidade (Duration)</th>
+                                    <th style="min-width: 160px;">Impacto MtM</th>
+                                    <th style="min-width: 220px;">Recomendação Estratégica</th>
+                                </tr>
+                            </thead>
+                            <tbody id="macro-tesouro-table-tbody">
+                                <!-- Preenchido dinamicamente via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Asset Class Forecast Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;" id="macro-asset-classes-grid">
+                <!-- Cards de impacto detalhado por classe de ativo preenchidos dinamicamente -->
+            </div>
+
+            <!-- Top Winners & Vulnerable Assets Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
+                <!-- Winners -->
+                <div class="calc-card">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <span style="font-size: 1.2rem;">🚀</span>
+                        <h3 style="font-size: 1rem; font-weight: 700; color: var(--positive); margin: 0;">Top Ativos Mais Beneficiados no Cenário</h3>
+                    </div>
+                    <p style="font-size: 0.76rem; color: var(--text-muted); margin-bottom: 0.75rem;">Ativos com perfil fundamental ideal para capturar valor nesta conjuntura.</p>
+                    <div id="macro-winners-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <!-- Preenchido via JS -->
+                    </div>
+                </div>
+
+                <!-- Vulnerable / Attention -->
+                <div class="calc-card">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <span style="font-size: 1.2rem;">⚠️</span>
+                        <h3 style="font-size: 1rem; font-weight: 700; color: var(--negative); margin: 0;">Ativos que Exigem Maior Cautela</h3>
+                    </div>
+                    <p style="font-size: 0.76rem; color: var(--text-muted); margin-bottom: 0.75rem;">Empresas ou fundos mais sensíveis a custos de dívida ou compressão de margens.</p>
+                    <div id="macro-vulnerable-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <!-- Preenchido via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tactic Playbook Card -->
+            <div class="calc-card" style="border: 1px solid var(--primary-glow); margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <span style="font-size: 1.2rem;">🧭</span>
+                    <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0;">Playbook Estratégico de Alocação Fundamentalista</h3>
+                </div>
+                <div id="macro-playbook-content" style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.6;">
+                    <!-- Preenchido dinamicamente via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Sector & Index Analysis Panel -->
+        <div id="panel-sectors" class="sectors-panel-wrap hidden">
+            <div style="display:flex; justify-content:center; margin-bottom:1rem;">
+                <div class="calc-mode-selector" style="background:var(--card); border:1px solid var(--card-border); padding:0.25rem; border-radius:var(--radius-md);">
+                    <button type="button" class="calc-mode-btn active" id="btn-view-sectors" onclick="switchSectorIndexView('sectors')">🏢 Setores Econômicos</button>
+                    <button type="button" class="calc-mode-btn" id="btn-view-indices" onclick="switchSectorIndexView('indices')">🏛️ Índices B3 (IBOV, IDIV, SMLL, IFIX...)</button>
+                </div>
+            </div>
+
+            <!-- View 1: Setores Econômicos -->
+            <div id="view-sectors-container" class="table-wrap" style="max-width: 960px; margin: 0 auto;">
+                <div class="table-header-bar">
+                    <div>
+                        <span style="font-weight: 700; color: var(--text-primary);">🏢 Setores Econômicos da B3</span>
+                        <span style="font-size: 0.72rem; color: var(--text-muted); margin-left: 0.5rem;">(Clique em um setor para ver as empresas componentes)</span>
+                    </div>
+                    <span class="font-mono tabular" id="sectors-count">0 setores</span>
+                </div>
+                <div class="table-scroll">
+                <table class="sectors-compact-table">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable('sectors', 0)" style="width: 32%;">Setor</th>
+                            <th onclick="sortTable('sectors', 1)" style="width: 14%; text-align: center;">Qtd Empresas</th>
+                            <th onclick="sortTable('sectors', 2)" style="width: 18%; text-align: center;">
+                                <span class="hint" tabindex="0" data-tip="Média simples das notas dos ativos deste setor.">Score Médio</span>
+                            </th>
+                            <th onclick="sortTable('sectors', 3)" style="width: 18%; text-align: right;">
+                                <span class="hint" tabindex="0" data-tip="Média ponderada do dividend yield das empresas do setor nos últimos 12 meses.">DY Médio</span>
+                            </th>
+                            <th onclick="sortTable('sectors', 4)" style="width: 18%; text-align: right;">
+                                <span class="hint" tabindex="0" data-tip="Média simples do P/L das empresas lucrativas do setor. Empresas com prejuízo são excluídas da média.">P/L Médio</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="sectors-tbody">
+                        <!-- Carregado via JS -->
+                    </tbody>
+                </table>
+                </div>
+            </div>
+
+            <!-- View 2: Índices B3 (IBOV, IDIV, SMLL, IFIX...) -->
+            <div id="view-indices-container" class="table-wrap hidden" style="max-width: 960px; margin: 0 auto;">
+                <div class="table-header-bar">
+                    <div>
+                        <span style="font-weight: 700; color: var(--text-primary);">🏛️ Índices & Carteiras Teóricas B3</span>
+                        <span style="font-size: 0.72rem; color: var(--text-muted); margin-left: 0.5rem;">(Clique em um índice para ver as ações/fundos componentes)</span>
+                    </div>
+                    <span class="font-mono tabular" id="indices-count">0 índices</span>
+                </div>
+                <div class="table-scroll">
+                <table class="sectors-compact-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 32%;">Índice / Benchmark</th>
+                            <th style="width: 14%; text-align: center;">Qtd Ativos</th>
+                            <th style="width: 18%; text-align: center;">
+                                <span class="hint" tabindex="0" data-tip="Média das notas fundamentalistas dos componentes do índice.">Score Médio</span>
+                            </th>
+                            <th style="width: 18%; text-align: right;">
+                                <span class="hint" tabindex="0" data-tip="Dividend yield médio das empresas/fundos que compõem o índice.">DY Médio</span>
+                            </th>
+                            <th style="width: 18%; text-align: right;">
+                                <span class="hint" tabindex="0" data-tip="P/L ou P/VP médio dos ativos que compõem o índice.">Múltiplo Médio</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="indices-tbody">
+                        <!-- Carregado via JS -->
+                    </tbody>
+                </table>
+                </div>
             </div>
         </div>
 
         <!-- Renda Fixa Panel -->
         <div id="panel-rendafixa" class="table-wrap hidden">
             <div class="table-header-bar">
-                <span>Tesouro Direto — Scorecard 0-10</span>
+                <span>Tesouro Direto</span>
                 <span class="font-mono tabular" id="rendafixa-count">0 títulos</span>
             </div>
-            <p id="rendafixa-source" style="margin:0.5rem 0;color:var(--text-secondary);font-size:0.8rem;"></p>
 
-            <!-- ETTJ Curve Chart -->
-            <div class="ettj-section">
-                <h3>📈 Estrutura a Termo da Taxa de Juros (ETTJ)</h3>
-                <p>
-                    A ETTJ (ou curva de juros) mostra a relação entre o prazo do título e a taxa de retorno exigida
-                    pelo mercado. Uma curva <strong>inclinada para cima</strong> indica prêmio pelo prazo mais longo;
-                    uma curva <strong>invertida</strong> pode sinalizar expectativa de queda de juros.
-                </p>
-                <div style="position: relative; height: 250px; width: 100%;">
+            <!-- ETTJ Chart Card -->
+            <div class="td-ettj-card">
+                <div class="td-ettj-header">
+                    <div>
+                        <div class="td-ettj-title">Curva de Juros — Tesouro IPCA+ (ETTJ)</div>
+                        <div class="td-ettj-sub">Taxa indicativa anual por prazo de vencimento (dados de mercado)</div>
+                    </div>
+                    <div class="td-ettj-badge">Mercado Secundário</div>
+                </div>
+                <div class="td-ettj-chart-wrapper">
                     <canvas id="ettj-chart"></canvas>
                 </div>
             </div>
 
-            <!-- Macro Cards (Renda Fixa) -->
-            <div class="home-grid" style="margin: 1rem 0;">
-                <article class="macro-card selic" onclick="openFocusDetailModal('selic')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openFocusDetailModal('selic')"><span class="macro-label">Selic atual</span><strong id="rendafixa-macro-selic" class="macro-value">—</strong><span id="rendafixa-macro-selic-trend" class="macro-trend stable">→ Selic</span><span id="rendafixa-macro-selic-expect" class="macro-expect selic"></span><span id="rendafixa-macro-selic-focus" class="macro-sub"></span></article>
-                <article class="macro-card ipca" onclick="openFocusDetailModal('ipca')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openFocusDetailModal('ipca')"><span class="macro-label">IPCA (12 meses)</span><strong id="rendafixa-macro-ipca" class="macro-value">—</strong><span id="rendafixa-macro-ipca-trend" class="macro-trend stable">→ IPCA</span><span id="rendafixa-macro-ipca-expect" class="macro-expect ipca"></span><span id="rendafixa-macro-ipca-focus" class="macro-sub"></span></article>
-                <article class="macro-card cambio" onclick="openFocusDetailModal('cambio')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openFocusDetailModal('cambio')"><span class="macro-label">Câmbio</span><strong id="rendafixa-macro-cambio" class="macro-value">—</strong><span id="rendafixa-macro-cambio-expect" class="macro-expect cambio"></span><span id="rendafixa-macro-cambio-focus" class="macro-sub"></span></article>
-            </div>
-
-            <div class="table-scroll td-table">
+            <div class="table-scroll">
                 <table>
                     <thead>
                         <tr>
-                            <th data-td-sort-key="rank" aria-sort="ascending" onclick="sortRendaFixaTable('rank')"><span class="hint" tabindex="0" data-tip="Posição do título no ranking geral, ordenado pelo Score. Clique no cabeçalho para ordenar crescente ou decrescente.">Ranking geral</span></th>
-                            <th data-td-sort-key="title" aria-sort="none" onclick="sortRendaFixaTable('title')"><span class="hint" tabindex="0" data-tip="Nome oficial do título do Tesouro Direto. Clique no cabeçalho para ordenar alfabeticamente.">Título</span></th>
-                            <th data-td-sort-key="group" aria-sort="none" onclick="sortRendaFixaTable('group')"><span class="hint" tabindex="0" data-tip="Família do título e posição dentro dela. Títulos do mesmo grupo têm indexador e fluxo de pagamentos comparáveis.">Grupo</span></th>
-                            <th data-td-sort-key="yield" aria-sort="none" onclick="sortRendaFixaTable('yield')"><span class="hint" tabindex="0" data-tip="Taxa anual de compra informada pelo Tesouro Direto na cotação mais recente. Prefixados mostram a taxa nominal; IPCA+ soma inflação e taxa real.">Taxa (a.a.)</span></th>
-                            <th data-td-sort-key="percentile" aria-sort="none" onclick="sortRendaFixaTable('percentile')"><span class="hint" tabindex="0" data-tip="Posição da taxa atual no histórico do próprio título. P92 significa que a taxa atual está acima de 92% das observações históricas; não é garantia de retorno.">Percentil</span></th>
-                            <th data-td-sort-key="maturity" aria-sort="none" onclick="sortRendaFixaTable('maturity')"><span class="hint" tabindex="0" data-tip="Data em que o Tesouro liquida o valor de face do título. A venda antecipada ocorre a preço de mercado e pode variar antes dessa data.">Vencimento</span></th>
-                            <th data-td-sort-key="score" aria-sort="none" onclick="sortRendaFixaTable('score')"><span class="hint" tabindex="0" data-tip="Score de oportunidade de 0 a 10. É comparativo dentro do grupo econômico do título e não é recomendação de investimento.">Score</span></th>
-                            <th data-td-sort-key="badge" aria-sort="none" onclick="sortRendaFixaTable('badge')"><span class="hint" tabindex="0" data-tip="Faixa de oportunidade; não representa o risco do título. O perfil de risco aparece separadamente no grupo.">Badge</span></th>
+                            <th onclick="sortRendaFixaTable('rank')" data-td-sort-key="rank">Rank</th>
+                            <th onclick="sortRendaFixaTable('title')" data-td-sort-key="title">Título</th>
+                            <th onclick="sortRendaFixaTable('group')" data-td-sort-key="group">Tipo</th>
+                            <th onclick="sortRendaFixaTable('yield')" data-td-sort-key="yield">
+                                <span class="hint" tabindex="0" data-tip="Rentabilidade anual bruta contratada no momento da compra.">Taxa Compra</span>
+                            </th>
+                            <th onclick="sortRendaFixaTable('percentile')" data-td-sort-key="percentile">
+                                <span class="hint" tabindex="0" data-tip="Posição da taxa atual no histórico: percentil alto indica momento favorável de entrada.">Atratividade</span>
+                            </th>
+                            <th onclick="sortRendaFixaTable('maturity')" data-td-sort-key="maturity">Vencimento</th>
+                            <th onclick="sortRendaFixaTable('score')" data-td-sort-key="score">
+                                <span class="hint" tabindex="0" data-tip="Score quantitativo 0-10 para renda fixa pública.">Score</span>
+                            </th>
+                            <th onclick="sortRendaFixaTable('badge')" data-td-sort-key="badge">Classificação</th>
                         </tr>
                     </thead>
                     <tbody id="rendafixa-tbody">
@@ -351,38 +1334,39 @@
 
         <!-- Sector Detail Modal -->
         <div id="sector-detail-modal" class="modal hidden" onclick="closeSectorModalOnOutsideClick(event)">
-            <div class="modal-content" style="max-width: 900px;">
-                <button type="button" class="close-btn" aria-label="Fechar modal setorial" onclick="closeSectorDetailModal()">&times;</button>
+            <div class="modal-content" style="max-width: 960px;">
+                <button type="button" class="close-btn" aria-label="Fechar detalhes do setor" onclick="closeSectorDetailModal()">&times;</button>
                 <div class="modal-header">
-                    <h2 id="sector-modal-name">SETOR</h2>
-                    <p>Empresas classificadas neste setor (ordenadas por maior pontuação)</p>
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding-right:2.5rem; flex-wrap:wrap; gap:0.5rem;">
+                        <div>
+                            <h2 id="sector-modal-name" style="font-size:1.25rem; font-weight:700; color:var(--text-primary); margin-bottom:0.2rem;">SETOR</h2>
+                            <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Empresas classificadas neste setor (ordenadas por score fundamentalista)</p>
+                        </div>
+                        <div id="sector-modal-stats" style="font-size:0.8rem; color:var(--text-secondary); display:flex; gap:0.75rem;">
+                            <!-- Stats preenchidos dinamicamente -->
+                        </div>
+                    </div>
                 </div>
 
-                <div class="table-scroll" style="max-height: 400px; overflow-y: auto;">
+                <div class="table-wrap" style="box-shadow: none; margin-bottom: 0; background: transparent; border: 1px solid var(--card-border); max-height: 480px; overflow-y: auto;">
+                    <div class="table-scroll">
                     <table>
                         <thead>
                             <tr>
-                                <th>Ticker</th>
-                                <th>Nome</th>
-                                <th>Preço</th>
-                                <th>
-                                    <span class="hint" tabindex="0" data-tip="Preço sobre Lucro (P/E). Quanto o mercado paga por cada R$ 1,00 de lucro. Quanto menor, mais barata. Ideal: &lt; 15.">P/L</span>
-                                </th>
-                                <th>
-                                    <span class="hint" tabindex="0" data-tip="Preço sobre Valor Patrimonial (P/B). Compara o preço ao patrimônio líquido por ação. Abaixo de 1,00 = desconto.">P/VP</span>
-                                </th>
-                                <th>
-                                    <span class="hint" tabindex="0" data-tip="Dividend Yield. Retorno em dividendos nos últimos 12 meses dividido pelo preço atual.">DY</span>
-                                </th>
-                                <th>
-                                    <span class="hint" tabindex="0" data-tip="Nota de 0 a 5 baseada em critérios fundamentalistas. Quanto maior, mais saudável o ativo.">Score</span>
-                                </th>
+                                <th style="width: 15%;">Ticker</th>
+                                <th style="width: 30%;">Nome da Empresa</th>
+                                <th style="width: 12%;">Preço</th>
+                                <th style="width: 11%;">P/L</th>
+                                <th style="width: 11%;">P/VP</th>
+                                <th style="width: 11%;">DY</th>
+                                <th style="width: 10%; text-align:center;">Score</th>
                             </tr>
                         </thead>
                         <tbody id="sector-modal-tbody">
-                            <!-- Dynamically populated -->
+                            <!-- Preenchido dinamicamente com as empresas do setor -->
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -392,8 +1376,38 @@
             <div class="modal-content">
                 <button type="button" class="close-btn" aria-label="Fechar detalhes do ativo" onclick="closeDetailModal()">&times;</button>
                 <div class="modal-header">
-                    <h2 id="modal-ticker">TICKER</h2>
-                    <p id="modal-name">Nome da Empresa</p>
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; padding-right:2.5rem; gap: 0.75rem; flex-wrap: wrap;">
+                        <div>
+                            <h2 id="modal-ticker">TICKER</h2>
+                            <p id="modal-name" style="margin-bottom:0.25rem;">Nome da Empresa</p>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <button type="button" class="action-btn" id="modal-compare-btn" onclick="addCurrentAssetToCompare()" title="Adicionar ao Comparador" style="padding:0.35rem 0.65rem; font-size:0.75rem; border-color: var(--primary);">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v1"></path>
+                                    <path d="M18 8h4a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-4"></path>
+                                    <circle cx="8" cy="12" r="2"></circle>
+                                    <circle cx="20" cy="12" r="2"></circle>
+                                </svg>
+                                <span>⚖️ Comparar</span>
+                            </button>
+                            <div class="export-dropdown-container" style="position: relative;">
+                                <button type="button" class="btn-export-modal" onclick="toggleExportMenu(event, 'modal-export-menu')" aria-label="Exportar dados do ativo" title="Exportar dados deste ativo">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                        <polyline points="7 10 12 15 17 10"></polyline>
+                                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                                    </svg>
+                                    <span>Exportar</span>
+                                </button>
+                                <div id="modal-export-menu" class="export-menu hidden">
+                                    <button type="button" class="export-option" onclick="exportModalData('csv')">📊 Exportar CSV</button>
+                                    <button type="button" class="export-option" onclick="exportModalData('json')">📄 Exportar JSON</button>
+                                    <button type="button" class="export-option" onclick="exportModalData('copy')">📋 Copiar Resumo (Texto)</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="modal-body-grid">
@@ -446,8 +1460,27 @@
             <div class="modal-content" style="max-width: 650px;">
                 <button type="button" class="close-btn" aria-label="Fechar detalhes do Tesouro" onclick="closeTdDetailModal()">&times;</button>
                 <div class="modal-header">
-                    <h2 id="td-modal-name">Título</h2>
-                    <p id="td-modal-subtitle">Tesouro Direto</p>
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; padding-right:2.5rem;">
+                        <div>
+                            <h2 id="td-modal-name">Título</h2>
+                            <p id="td-modal-subtitle" style="margin-bottom:0.25rem;">Tesouro Direto</p>
+                        </div>
+                        <div class="export-dropdown-container" style="position: relative;">
+                            <button type="button" class="btn-export-modal" onclick="toggleExportMenu(event, 'td-modal-export-menu')" aria-label="Exportar dados do título" title="Exportar dados deste título">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                <span>Exportar</span>
+                            </button>
+                            <div id="td-modal-export-menu" class="export-menu hidden">
+                                <button type="button" class="export-option" onclick="exportTdData('csv')">📊 Exportar CSV</button>
+                                <button type="button" class="export-option" onclick="exportTdData('json')">📄 Exportar JSON</button>
+                                <button type="button" class="export-option" onclick="exportTdData('copy')">📋 Copiar Resumo (Texto)</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="td-modal-info">
@@ -505,7 +1538,7 @@
 
                 <div class="td-modal-chart-card" style="margin-bottom: 1rem;">
                     <h4 id="td-chart-title">📈 Taxa Histórica (12 meses)</h4>
-                    <div style="position: relative; height: 220px; width: 100%;">
+                    <div class="td-modal-chart-wrapper">
                         <canvas id="td-detail-chart"></canvas>
                     </div>
                 </div>
@@ -536,7 +1569,7 @@
                         valor patrimonial, estabelecendo limites conservadores para os múltiplos P/L e P/VP.
                     </p>
                     <div
-                        style="background: var(--surface); border: 1px solid var(--card-border); padding: 0.75rem; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 1rem; text-align: center; margin-bottom: 1rem; color: var(--text-primary);">
+                        style="background: var(--surface); border: 1px solid var(--card-border); padding: 0.75rem; border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 1rem; text-align: center; margin-bottom: 1rem; color: var(--text-primary);">
                         Valor Justo = √ ( 22.5 × LPA × VPA )
                     </div>
                     <ul
@@ -559,7 +1592,7 @@
                         bom pagamento de proventos, exigindo um rendimento mínimo anual de 6%.
                     </p>
                     <div
-                        style="background: var(--surface); border: 1px solid var(--card-border); padding: 0.75rem; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 1rem; text-align: center; margin-bottom: 1rem; color: var(--text-primary);">
+                        style="background: var(--surface); border: 1px solid var(--card-border); padding: 0.75rem; border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 1rem; text-align: center; margin-bottom: 1rem; color: var(--text-primary);">
                         Preço Teto = Dividendo Anual Médio / 0.06
                     </div>
                     <ul
@@ -573,40 +1606,48 @@
                 <div class="help-section"
                     style="border-top: 1px solid var(--card-border); padding-top: 1.5rem;">
                     <h3 style="color: var(--gold); font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem;">
-                        <span>📊</span> Score Fundamentalista (0 a 10)
+                        <span>📊</span> Score Fundamentalista Contínuo (0 a 10)
                     </h3>
                     <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary); margin-bottom: 1rem;">
-                        O <strong>Score Fundamentalista</strong> resume a saúde financeira da empresa ou fundo em uma
-                        nota de 0 a 10 pontos baseada exclusivamente em dados fundamentalistas observados. Expectativas do Focus aparecem no Radar Macro, mas não alteram esta nota.
+                        O <strong>Score Fundamentalista</strong> resume a qualidade, saúde financeira e atratividade do ativo em uma nota contínua de 0 a 10 pontos baseada em <strong>Distribuições Gaussianas (*Sweet Spots*)</strong> e <strong>Curvas Sigmoides Logísticas</strong> fundamentadas na literatura financeira:
                     </p>
                     <div
-                        style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; font-size: 0.8rem; color: var(--text-secondary);">
-                        <div>
-                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">Ações B3:</strong>
-                            Critérios de valuation, rentabilidade, dividendos e margem de segurança.
+                        style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; font-size: 0.82rem; color: var(--text-secondary);">
+                        <div style="background: var(--surface); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--card-border);">
+                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">🏛️ Ações B3 (5 Critérios × 2.0 pts):</strong>
+                            • <strong>P/VP (Pico 0.80):</strong> <em>Deep Value</em> (Barsi/Graham) com margem segura.<br>
+                            • <strong>P/L Médio 5Y (Pico 6.5x):</strong> Múltiplo histórico B3 (Póvoa).<br>
+                            • <strong>DY Médio 3Y (Pico 9.5%):</strong> Piso 6.0% (Bazin) e trava de risco.<br>
+                            • <strong>ROE (Inflexão 12%):</strong> Custo de capital (Damodaran). Top &gt; 20%.<br>
+                            • <strong>Margem Graham / PEG:</strong> Desconto sobre Preço Justo.
                         </div>
-                        <div>
-                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">FIIs:</strong>
-                            Critérios de preço patrimonial, renda e sustentabilidade dos proventos.
+                        <div style="background: var(--surface); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--card-border);">
+                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">🏢 FIIs (3 Critérios = 10 pts):</strong>
+                            • <strong>P/VP (3.5 pts — Pico 0.95):</strong> Blindagem patrimonial contra calote de CRIs e captura de desconto em tijolo.<br>
+                            • <strong>Dividend Yield (4.0 pts — Pico 11.5%):</strong> Renda imobiliária sustentável com trava anti-yield trap.<br>
+                            • <strong>Consistência (2.5 pts):</strong> Retenção semestral de proventos (&ge; 95%).
                         </div>
-                        <div>
-                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">FIAGROs:</strong>
-                            Critérios de preço patrimonial, renda e sustentabilidade dos proventos.
+                        <div style="background: var(--surface); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--card-border);">
+                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">🌾 FIAGROs (3 Critérios = 10 pts):</strong>
+                            • <strong>P/VP (3.5 pts — Pico 0.95):</strong> Proteção contra recuperação judicial de produtores.<br>
+                            • <strong>DY Agro (4.0 pts — Pico 13.5%):</strong> Incorpora o spread de crédito do agronegócio.<br>
+                            • <strong>Consistência (2.5 pts):</strong> Estabilidade na distribuição semestral.
                         </div>
                     </div>
                 </div>
 
                 <div class="help-section"
-                    style="border-top: 1px solid var(--card-border); padding-top: 1.5rem; margin-top: 2rem;">
+                    style="border-top: 1px solid var(--card-border); padding-top: 1.5rem; margin-top: 1.5rem;">
                     <h3 style="color: var(--positive); font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem;">
                         <span>📈</span> Scorecard de Renda Fixa (Tesouro Direto — 0 a 10)
                     </h3>
                     <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary); margin-bottom: 1rem;">
-                        O <strong>Score de Renda Fixa</strong> avalia os dados observados do título em escala de 0 a 10. O Radar Macro mostra cenários e expectativas separadamente; projeções do Focus não alteram o score.
+                        Avalia a atratividade da taxa de entrada e o timing na curva de juros em escala contínua de 0 a 10 pontos:
                     </p>
-                    <ul style="list-style-type: none; font-size: 0.85rem; color: var(--text-secondary); padding-left: 0.5rem; display: flex; flex-direction: column; gap: 0.6rem;">
-                        <li>📌 Taxa contratada, indexador, prazo, duration e preço do título são exibidos no detalhe.</li>
-                        <li>📌 Cenários de juros e inflação permanecem visíveis apenas como Radar Macro.</li>
+                    <ul style="list-style-type: none; font-size: 0.85rem; color: var(--text-secondary); padding-left: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                        <li>📌 <strong>Taxa Real de Entrada (5.0 pts / 6.0 Selic):</strong> Curva Sigmoide centrada em 5,5% a.a. real contratada (IPCA+) ou implícita descontando Focus (Prefixado).</li>
+                        <li>📌 <strong>Taxa vs. Histórico Próprio (3.0 pts):</strong> Percentil empírico (CDF) nos últimos 12 meses do Tesouro Transparente.</li>
+                        <li>📌 <strong>Potencial de MTM, Pares e Eficiência Fiscal (2.0 pts):</strong> Convexidade de duration com fechamento de curva, comparação entre pares homogêneos e alíquota regressiva de IR.</li>
                     </ul>
                 </div>
             </div>
@@ -619,9 +1660,28 @@
                 <div class="modal-header">
                     <h2 id="focus-modal-title">Expectativas do Mercado</h2>
                     <p id="focus-modal-subtitle">Boletim Focus (Mediana de Fechamento de Ano)</p>
+                    <div id="focus-modal-status-pill" class="hidden" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; padding: 8px 12px; margin-top: 10px; font-size: 0.85rem; color: var(--text-primary, #1e293b);">
+                    </div>
                 </div>
 
-                <div style="position: relative; height: 250px; width: 100%; margin: 1.5rem 0;">
+                <!-- Range Selector (3, 5 ou 10 anos) -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding: 0.4rem 0.65rem; background: var(--surface); border: 1px solid var(--card-border); border-radius: var(--radius-sm); flex-wrap: wrap; gap: 0.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        <span style="font-size: 0.76rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">📅 Janela Histórica:</span>
+                        <select id="focus-lookback-select" class="filter-select" style="font-size: 0.8rem; padding: 0.25rem 0.6rem;" onchange="setFocusLookback(parseInt(this.value, 10))">
+                            <option value="3">3 Anos Atrás</option>
+                            <option value="5" selected>5 Anos Atrás (Padrão)</option>
+                            <option value="10">10 Anos Atrás</option>
+                        </select>
+                    </div>
+                    <div class="range-selector" style="margin: 0;">
+                        <button type="button" class="range-btn" id="focus-range-btn-3" onclick="setFocusLookback(3)">3A</button>
+                        <button type="button" class="range-btn active" id="focus-range-btn-5" onclick="setFocusLookback(5)">5A</button>
+                        <button type="button" class="range-btn" id="focus-range-btn-10" onclick="setFocusLookback(10)">10A</button>
+                    </div>
+                </div>
+
+                <div style="position: relative; height: 250px; width: 100%; margin: 1.25rem 0;">
                     <canvas id="focus-detail-chart"></canvas>
                 </div>
 
