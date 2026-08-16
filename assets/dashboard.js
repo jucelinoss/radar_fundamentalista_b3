@@ -257,6 +257,9 @@ const tableSortState = {};
 
             filterTable();
             if (typeof syncUrlFromState === 'function') syncUrlFromState();
+            if (typeof initTableColumnResizers === 'function') {
+                setTimeout(initTableColumnResizers, 60);
+            }
         }
 
         function filterTable() {
@@ -2576,6 +2579,9 @@ const tableSortState = {};
                         '</tr>';
                     }).join('');
                     if (countEl) countEl.textContent = tdData.length + ' título' + (tdData.length !== 1 ? 's' : '');
+                }
+                if (typeof initTableColumnResizers === 'function') {
+                    setTimeout(initTableColumnResizers, 30);
                 }
             }
 
@@ -5821,4 +5827,150 @@ const tableSortState = {};
         }
 
         window.addEventListener('hashchange', syncStateFromUrl);
+
+        // ══════════════════════════════════════════════════════════════════════════════
+        // RECURSO DE REDIMENSIONAMENTO DE COLUNAS ESTILO EXCEL
+        // ══════════════════════════════════════════════════════════════════════════════
+        function initTableColumnResizers() {
+            const tables = document.querySelectorAll('.table-scroll > table, .table-wrap table, .compare-table, .macro-tesouro-table');
+            tables.forEach((table, tableIdx) => {
+                const thead = table.querySelector('thead');
+                if (!thead) return;
+                const headers = thead.querySelectorAll('th');
+                const tableId = table.id || table.closest('.table-wrap')?.id || `tbl_${tableIdx}`;
+
+                headers.forEach((th, colIdx) => {
+                    // Restaura largura salva se existir
+                    try {
+                        const savedWidth = localStorage.getItem(`radar_col_w_${tableId}_${colIdx}`);
+                        if (savedWidth && Number(savedWidth) >= 40) {
+                            th.style.width = savedWidth + 'px';
+                            th.style.minWidth = savedWidth + 'px';
+                        }
+                    } catch (e) {}
+
+                    // Evita duplicar resizers
+                    if (th.querySelector('.col-resizer')) return;
+
+                    const resizer = document.createElement('div');
+                    resizer.className = 'col-resizer';
+                    resizer.title = 'Arraste para redimensionar a coluna (duplo clique para auto-ajustar)';
+
+                    // Impede que clique no divisor ative a ordenação da tabela
+                    resizer.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                    });
+
+                    // Duplo clique: Auto-fit ao conteúdo (estilo Excel)
+                    resizer.addEventListener('dblclick', function(e) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        autoFitColumn(table, th, colIdx, tableId);
+                    });
+
+                    // Mousedown: Inicia o arrasto
+                    resizer.addEventListener('mousedown', function(e) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        startColumnResize(e.pageX, table, th, resizer, colIdx, tableId);
+                    });
+
+                    // Touch: Suporte para tablets / touchscreens
+                    resizer.addEventListener('touchstart', function(e) {
+                        if (e.touches && e.touches[0]) {
+                            e.stopPropagation();
+                            startColumnResize(e.touches[0].pageX, table, th, resizer, colIdx, tableId);
+                        }
+                    }, { passive: false });
+
+                    th.appendChild(resizer);
+                });
+            });
+        }
+
+        function startColumnResize(startX, table, th, resizer, colIdx, tableId) {
+            resizer.classList.add('resizing');
+            document.body.classList.add('is-col-resizing');
+
+            const startWidth = th.getBoundingClientRect().width;
+            const minWidth = 45; // Largura mínima em pixels
+
+            // Fixa larguras atuais dos outros cabeçalhos para evitar colapso de layout
+            const allHeaders = table.querySelectorAll('thead th');
+            allHeaders.forEach(h => {
+                if (!h.style.width) {
+                    const w = Math.round(h.getBoundingClientRect().width);
+                    h.style.width = w + 'px';
+                    h.style.minWidth = w + 'px';
+                }
+            });
+
+            function onMouseMove(e) {
+                const currentX = e.pageX !== undefined ? e.pageX : (e.touches ? e.touches[0].pageX : startX);
+                const delta = currentX - startX;
+                const newWidth = Math.max(minWidth, Math.round(startWidth + delta));
+                th.style.width = newWidth + 'px';
+                th.style.minWidth = newWidth + 'px';
+            }
+
+            function onMouseUp(e) {
+                resizer.classList.remove('resizing');
+                document.body.classList.remove('is-col-resizing');
+
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+                document.removeEventListener('touchmove', onMouseMove);
+                document.removeEventListener('touchend', onMouseUp);
+
+                // Salva a preferência de largura do usuário no localStorage
+                try {
+                    const finalW = Math.round(th.getBoundingClientRect().width);
+                    localStorage.setItem(`radar_col_w_${tableId}_${colIdx}`, finalW);
+                } catch (err) {}
+            }
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+            document.addEventListener('touchmove', onMouseMove, { passive: true });
+            document.addEventListener('touchend', onMouseUp);
+        }
+
+        function autoFitColumn(table, th, colIndex, tableId) {
+            const tempCanvas = document.createElement('canvas');
+            const context = tempCanvas.getContext('2d');
+            const computedStyle = window.getComputedStyle(th);
+            context.font = `${computedStyle.fontWeight} ${computedStyle.fontSize} ${computedStyle.fontFamily}`;
+
+            // Largura do texto do cabeçalho
+            let maxWidth = context.measureText(th.innerText || th.textContent).width + 36;
+
+            // Largura dos textos das linhas no corpo da tabela
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(tr => {
+                const td = tr.children[colIndex];
+                if (td) {
+                    const tdStyle = window.getComputedStyle(td);
+                    context.font = `${tdStyle.fontWeight} ${tdStyle.fontSize} ${tdStyle.fontFamily}`;
+                    const textWidth = context.measureText(td.innerText || td.textContent).width + 28;
+                    if (textWidth > maxWidth) maxWidth = textWidth;
+                }
+            });
+
+            const finalWidth = Math.min(650, Math.max(50, Math.ceil(maxWidth)));
+            th.style.width = finalWidth + 'px';
+            th.style.minWidth = finalWidth + 'px';
+
+            try {
+                localStorage.setItem(`radar_col_w_${tableId}_${colIndex}`, finalWidth);
+            } catch (err) {}
+        }
+
+        // Inicializa resizers após carga do DOM e nas trocas de aba
+        window.initTableColumnResizers = initTableColumnResizers;
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => setTimeout(initTableColumnResizers, 150));
+        } else {
+            setTimeout(initTableColumnResizers, 150);
+        }
+        window.addEventListener('load', () => setTimeout(initTableColumnResizers, 200));
 

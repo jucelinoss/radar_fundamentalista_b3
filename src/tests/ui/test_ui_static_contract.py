@@ -551,3 +551,19 @@ class TestClientSideFeatureEnhancements:
         assert 'syncStateFromUrl' in html, "Missing syncStateFromUrl in JS."
         assert 'hashchange' in html, "Missing hashchange event listener in JS."
 
+
+class TestTableColumnResizer:
+    """Valida o suporte a redimensionamento de colunas estilo Excel nas tabelas."""
+
+    def test_column_resizer_js_functions_exist(self, html):
+        assert 'initTableColumnResizers' in html, "Missing initTableColumnResizers in JS."
+        assert 'startColumnResize' in html, "Missing startColumnResize in JS."
+        assert 'autoFitColumn' in html, "Missing autoFitColumn in JS."
+
+    def test_column_resizer_css_classes_exist(self, html):
+        assert 'col-resizer' in html, "Missing .col-resizer in CSS/JS."
+        assert 'is-col-resizing' in html, "Missing .is-col-resizing in CSS/JS."
+
+    def test_column_resizer_event_listeners(self, html):
+        assert 'radar_col_w_' in html, "Missing localStorage column width persistence."
+
