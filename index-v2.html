@@ -816,31 +816,31 @@
                 <!-- Regra RV 1: Preço Justo de Benjamin Graham -->
                 <div class="calc-rule-card">
                     <div class="calc-rule-header">
-                        <div class="calc-rule-title">📊 Preço Justo de Benjamin Graham (Ações)</div>
+                        <div class="calc-rule-title">📊 Preço Justo de Graham (Ações)</div>
                         <span class="calc-rule-formula-badge">Preço Justo = √(22,5 × LPA × VPA)</span>
                     </div>
-                    <p class="calc-rule-desc">Fórmula lendária de valuation de Benjamin Graham (mentor de Warren Buffett) para encontrar o valor intrínseco de uma ação baseado em lucros e patrimônio.</p>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
+                    <p class="calc-rule-desc">Fórmula de valuation de Benjamin Graham (mentor de Warren Buffett) para encontrar o valor intrínseco baseado em lucros e patrimônio.</p>
+                    <div class="calc-rule-inputs-row">
                         <div class="calc-input-group">
-                            <label for="rule-graham-lpa">LPA (Lucro por Ação)</label>
-                            <input type="number" id="rule-graham-lpa" value="3.50" min="0.01" step="0.10" oninput="calculateRuleGraham()">
+                            <label for="rule-graham-lpa">LPA (Lucro p/ Ação)</label>
+                            <input type="number" id="rule-graham-lpa" value="3.50" min="0.01" step="any" oninput="calculateRuleGraham()">
                         </div>
                         <div class="calc-input-group">
-                            <label for="rule-graham-vpa">VPA (Valor Patr. p/ Cota)</label>
-                            <input type="number" id="rule-graham-vpa" value="25.00" min="0.01" step="0.50" oninput="calculateRuleGraham()">
+                            <label for="rule-graham-vpa">VPA (Valor Patr. p/ Ação)</label>
+                            <input type="number" id="rule-graham-vpa" value="25.00" min="0.01" step="any" oninput="calculateRuleGraham()">
                         </div>
                     </div>
                     <div class="calc-input-group">
                         <label for="rule-graham-price">Cotação Atual de Mercado (R$)</label>
-                        <input type="number" id="rule-graham-price" value="32.00" min="0.01" step="0.50" oninput="calculateRuleGraham()">
+                        <input type="number" id="rule-graham-price" value="32.00" min="0.01" step="any" oninput="calculateRuleGraham()">
                     </div>
                     <div class="calc-rule-result">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <span style="font-size:0.8rem; color:var(--text-secondary);">Preço Justo Intrínseco:</span>
-                            <span id="rule-graham-result" style="font-size:1.2rem; font-weight:800; color:var(--positive);">R$ 44,37</span>
+                            <span id="rule-graham-result" style="font-size:1.15rem; font-weight:800; color:var(--positive);">R$ 44,37</span>
                         </div>
-                        <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
-                            <span>Margem de Segurança / Desconto:</span>
+                        <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
+                            <span>Margem de Segurança:</span>
                             <strong id="rule-graham-margin" style="color:var(--positive);">+38.7% de Desconto</strong>
                         </div>
                     </div>
@@ -849,26 +849,26 @@
                 <!-- Regra RV 2: Preço Teto de Décio Bazin -->
                 <div class="calc-rule-card">
                     <div class="calc-rule-header">
-                        <div class="calc-rule-title">📈 Preço Teto de Décio Bazin (Dividendos)</div>
+                        <div class="calc-rule-title">📈 Preço Teto de Bazin (Dividendos)</div>
                         <span class="calc-rule-formula-badge">Preço Teto = DPA ÷ 0,06</span>
                     </div>
                     <p class="calc-rule-desc">Método clássico brasileiro para nunca pagar caro por ações pagadoras de dividendos, garantindo <strong>DY mínimo de 6% ao ano</strong>.</p>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
+                    <div class="calc-rule-inputs-row">
                         <div class="calc-input-group">
                             <label for="rule-bazin-dpa">Dividendo Anual (DPA)</label>
-                            <input type="number" id="rule-bazin-dpa" value="2.40" min="0.05" step="0.10" oninput="calculateRuleBazin()">
+                            <input type="number" id="rule-bazin-dpa" value="2.40" min="0.01" step="any" oninput="calculateRuleBazin()">
                         </div>
                         <div class="calc-input-group">
                             <label for="rule-bazin-price">Cotação Atual (R$)</label>
-                            <input type="number" id="rule-bazin-price" value="30.00" min="0.05" step="0.50" oninput="calculateRuleBazin()">
+                            <input type="number" id="rule-bazin-price" value="30.00" min="0.01" step="any" oninput="calculateRuleBazin()">
                         </div>
                     </div>
                     <div class="calc-rule-result">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <span style="font-size:0.8rem; color:var(--text-secondary);">Preço Teto Máximo:</span>
-                            <span id="rule-bazin-result" style="font-size:1.2rem; font-weight:800; color:var(--positive);">R$ 40,00</span>
+                            <span id="rule-bazin-result" style="font-size:1.15rem; font-weight:800; color:var(--positive);">R$ 40,00</span>
                         </div>
-                        <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
                             <span>Margem até o Teto:</span>
                             <strong id="rule-bazin-margin" style="color:var(--positive);">+33.3% abaixo do Teto</strong>
                         </div>
@@ -878,52 +878,52 @@
                 <!-- Regra RV 3: PEG Ratio de Peter Lynch -->
                 <div class="calc-rule-card">
                     <div class="calc-rule-header">
-                        <div class="calc-rule-title">🎯 PEG Ratio de Peter Lynch (Crescimento)</div>
+                        <div class="calc-rule-title">🎯 PEG Ratio de Peter Lynch</div>
                         <span class="calc-rule-formula-badge">PEG = (P/L) ÷ Crescimento %</span>
                     </div>
-                    <p class="calc-rule-desc">Avalia se o múltiplo Preço/Lucro está barato em relação à taxa de crescimento dos lucros. <strong>PEG &lt; 1,0 indica ação subavaliada</strong>.</p>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
+                    <p class="calc-rule-desc">Avalia se o múltiplo Preço/Lucro está barato em relação ao crescimento dos lucros. <strong>PEG &lt; 1,0 indica ação subavaliada</strong>.</p>
+                    <div class="calc-rule-inputs-row">
                         <div class="calc-input-group">
                             <label for="rule-peg-pe">Múltiplo P/L Atual</label>
-                            <input type="number" id="rule-peg-pe" value="8.5" min="0.5" step="0.5" oninput="calculateRulePeg()">
+                            <input type="number" id="rule-peg-pe" value="8.5" min="0.1" step="any" oninput="calculateRulePeg()">
                         </div>
                         <div class="calc-input-group">
                             <label for="rule-peg-growth">Crescimento Anual (%)</label>
-                            <input type="number" id="rule-peg-growth" value="15.0" min="0.5" step="1.0" oninput="calculateRulePeg()">
+                            <input type="number" id="rule-peg-growth" value="15.0" min="0.1" step="any" oninput="calculateRulePeg()">
                         </div>
                     </div>
                     <div class="calc-rule-result">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <span style="font-size:0.8rem; color:var(--text-secondary);">PEG Ratio:</span>
-                            <span id="rule-peg-result" style="font-size:1.2rem; font-weight:800; color:var(--positive);">0.57 (Excelente)</span>
+                            <span id="rule-peg-result" style="font-size:1.15rem; font-weight:800; color:var(--positive);">0.57 (Excelente)</span>
                         </div>
-                        <div id="rule-peg-desc" style="font-size:0.75rem; color:var(--text-muted);">Ação em fase de alto crescimento negociando com valuation atrativo!</div>
+                        <div id="rule-peg-desc" style="font-size:0.75rem; color:var(--text-muted);">Ação com alto crescimento negociando com valuation atrativo!</div>
                     </div>
                 </div>
 
                 <!-- Regra RV 4: Preço Teto & P/VP de FIIs -->
                 <div class="calc-rule-card">
                     <div class="calc-rule-header">
-                        <div class="calc-rule-title">🏢 Preço Teto & P/VP para FIIs</div>
+                        <div class="calc-rule-title">🏢 Preço Teto & Yield para FIIs</div>
                         <span class="calc-rule-formula-badge">Preço Teto = Provento ÷ 0,0075</span>
                     </div>
-                    <p class="calc-rule-desc">Regra de ouro para Fundos Imobiliários: buscar <strong>Yield mínimo de 0,75% ao mês (9,0% a.a. isento)</strong> e negociar com <strong>P/VP ≤ 1,00</strong>.</p>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
+                    <p class="calc-rule-desc">Regra de ouro para Fundos Imobiliários: buscar <strong>Yield mínimo de 0,75% a.m. (9,0% a.a. isento)</strong> e <strong>P/VP ≤ 1,00</strong>.</p>
+                    <div class="calc-rule-inputs-row">
                         <div class="calc-input-group">
                             <label for="rule-fii-distrib">Provento Mensal (R$/cota)</label>
-                            <input type="number" id="rule-fii-distrib" value="0.90" min="0.05" step="0.05" oninput="calculateRuleFii()">
+                            <input type="number" id="rule-fii-distrib" value="0.90" min="0.01" step="any" oninput="calculateRuleFii()">
                         </div>
                         <div class="calc-input-group">
                             <label for="rule-fii-price">Cotação Atual (R$)</label>
-                            <input type="number" id="rule-fii-price" value="105.00" min="1.0" step="1.0" oninput="calculateRuleFii()">
+                            <input type="number" id="rule-fii-price" value="105.00" min="0.1" step="any" oninput="calculateRuleFii()">
                         </div>
                     </div>
                     <div class="calc-rule-result">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span style="font-size:0.8rem; color:var(--text-secondary);">Preço Teto p/ 0,75% a.m.:</span>
-                            <span id="rule-fii-result" style="font-size:1.2rem; font-weight:800; color:var(--positive);">R$ 120,00</span>
+                            <span style="font-size:0.8rem; color:var(--text-secondary);">Preço Teto (0,75% a.m.):</span>
+                            <span id="rule-fii-result" style="font-size:1.15rem; font-weight:800; color:var(--positive);">R$ 120,00</span>
                         </div>
-                        <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
                             <span>Yield Mensal Atual:</span>
                             <strong id="rule-fii-yield" style="color:var(--positive);">0.86% a.m. (10.8% a.a.)</strong>
                         </div>
@@ -939,11 +939,11 @@
                     <p class="calc-rule-desc">Considera rentabilidade líquida real de <strong>0,5% ao mês (6,0% a.a.)</strong>, padrão clássico de dividendos de FIIs e Ações perenes no Brasil.</p>
                     <div class="calc-input-group">
                         <label for="rule-200-income">Renda Mensal Desejada (R$)</label>
-                        <input type="number" id="rule-200-income" value="5000" min="100" step="500" oninput="calculateRule200()">
+                        <input type="number" id="rule-200-income" value="5000" min="10" step="any" oninput="calculateRule200()">
                     </div>
                     <div class="calc-rule-result">
                         <div style="font-size:0.8rem; color:var(--text-secondary);">Patrimônio Alvo Necessário:</div>
-                        <div id="rule-200-result" style="font-size:1.25rem; font-weight:800; color:var(--positive);">R$ 1.000.000,00</div>
+                        <div id="rule-200-result" style="font-size:1.15rem; font-weight:800; color:var(--positive);">R$ 1.000.000,00</div>
                         <div style="font-size:0.75rem; color:var(--text-muted);">Equivale a 200 meses da sua renda sem tocar no principal.</div>
                     </div>
                 </div>
@@ -957,11 +957,11 @@
                     <p class="calc-rule-desc">Baseada no Estudo Trinity. Com taxa segura de saque de <strong>4,0% ao ano</strong> (25× custo anual), você tem renda perpétua reajustada pela inflação.</p>
                     <div class="calc-input-group">
                         <label for="rule-300-income">Custo de Vida Mensal (R$)</label>
-                        <input type="number" id="rule-300-income" value="5000" min="100" step="500" oninput="calculateRule300()">
+                        <input type="number" id="rule-300-income" value="5000" min="10" step="any" oninput="calculateRule300()">
                     </div>
                     <div class="calc-rule-result">
                         <div style="font-size:0.8rem; color:var(--text-secondary);">Patrimônio Necessário:</div>
-                        <div id="rule-300-result" style="font-size:1.25rem; font-weight:800; color:var(--positive);">R$ 1.500.000,00</div>
+                        <div id="rule-300-result" style="font-size:1.15rem; font-weight:800; color:var(--positive);">R$ 1.500.000,00</div>
                         <div style="font-size:0.75rem; color:var(--text-muted);">Garante independência financeira global com proteção anticrise.</div>
                     </div>
                 </div>
@@ -975,11 +975,11 @@
                     <p class="calc-rule-desc">Heurística matemática que calcula em quantos anos seu capital <strong>dobra de tamanho</strong> automaticamente apenas com o poder dos juros compostos.</p>
                     <div class="calc-input-group">
                         <label for="rule-72-rate">Rentabilidade Anual (% a.a.)</label>
-                        <input type="number" id="rule-72-rate" value="12.0" min="1" max="50" step="0.5" oninput="calculateRule72()">
+                        <input type="number" id="rule-72-rate" value="12.0" min="0.1" step="any" oninput="calculateRule72()">
                     </div>
                     <div class="calc-rule-result">
                         <div style="font-size:0.8rem; color:var(--text-secondary);">Tempo para Dobrar seu Dinheiro:</div>
-                        <div id="rule-72-result" style="font-size:1.25rem; font-weight:800; color:var(--gold);">6,0 anos</div>
+                        <div id="rule-72-result" style="font-size:1.15rem; font-weight:800; color:var(--gold);">6,0 anos</div>
                         <div id="rule-72-desc" style="font-size:0.75rem; color:var(--text-muted);">R$ 100k viram R$ 200k em 6 anos; R$ 400k em 12 anos!</div>
                     </div>
                 </div>
@@ -993,19 +993,19 @@
                     <p class="calc-rule-desc">Metodologia clássica de alocação de salário para acelerar a formação de patrimônio sem abrir mão da qualidade de vida.</p>
                     <div class="calc-input-group">
                         <label for="rule-503020-salary">Renda / Salário Líquido Mensal (R$)</label>
-                        <input type="number" id="rule-503020-salary" value="6000" min="500" step="500" oninput="calculateRule503020()">
+                        <input type="number" id="rule-503020-salary" value="6000" min="100" step="any" oninput="calculateRule503020()">
                     </div>
                     <div class="calc-rule-result">
-                        <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
                             <span>🏠 50% Essencial:</span>
                             <strong id="rule-503020-res-needs">R$ 3.000,00</strong>
                         </div>
-                        <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
                             <span>🎯 30% Estilo de Vida:</span>
                             <strong id="rule-503020-res-wants">R$ 1.800,00</strong>
                         </div>
-                        <div style="display:flex; justify-content:space-between; font-size:0.88rem; color:var(--positive); font-weight:700;">
-                            <span>💰 20% Aportes & Renda:</span>
+                        <div style="display:flex; justify-content:space-between; font-size:0.85rem; color:var(--positive); font-weight:700;">
+                            <span>💰 20% Aportes:</span>
                             <strong id="rule-503020-res-savings">R$ 1.200,00 / mês</strong>
                         </div>
                     </div>
@@ -1014,20 +1014,20 @@
                 <!-- Regra 9: 100 - Idade -->
                 <div class="calc-rule-card">
                     <div class="calc-rule-header">
-                        <div class="calc-rule-title">🛡️ Regra da Idade (Alocação Inteligente)</div>
+                        <div class="calc-rule-title">🛡️ Regra da Idade (Alocação)</div>
                         <span class="calc-rule-formula-badge">% Renda Variável = 100 - Idade</span>
                     </div>
                     <p class="calc-rule-desc">Heurística de gestão de risco: quanto mais jovem, maior a exposição a ações e FIIs; com o avanço da idade, migra-se para Renda Fixa.</p>
                     <div class="calc-input-group">
                         <label for="rule-age-val">Sua Idade Atual (Anos)</label>
-                        <input type="number" id="rule-age-val" value="35" min="18" max="95" step="1" oninput="calculateRuleAge()">
+                        <input type="number" id="rule-age-val" value="35" min="1" max="120" step="1" oninput="calculateRuleAge()">
                     </div>
                     <div class="calc-rule-result">
-                        <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
                             <span>📈 Renda Variável (Ações / FIIs):</span>
                             <strong id="rule-age-stocks" style="color:var(--positive);">65%</strong>
                         </div>
-                        <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
                             <span>🪙 Renda Fixa (Tesouro / CDB):</span>
                             <strong id="rule-age-bonds" style="color:var(--gold);">35%</strong>
                         </div>
