@@ -196,9 +196,20 @@ def _mtm_score(bond: dict[str, Any], macro_state: dict[str, Any] | None) -> floa
         return 0.0
     delta = _as_decimal(float(next_year)) - _as_decimal(float(current))
     if delta >= 0:
-        return 0.0
-    duration_factor = _clamp((float(bond.get("days_to_maturity") or 0) / 3650) * (0.65 if _is_coupon_bond(bond) else 1), 0, 1)
-    return round(1.0 * duration_factor * _clamp(abs(delta) / 0.03, 0, 1), SCORE_DECIMALS)
+        return 0.0  # Em estabilidade ou alta da Selic, não há ganho projetado de MTM
+
+    days = float(bond.get("days_to_maturity") or 0)
+    years = max(0.5, days / 365.0)
+    is_coupon = _is_coupon_bond(bond)
+    effective_duration = years * (0.65 if is_coupon else 1.0)
+    
+    # Sensibilidade de Preço = Duration Modificada × Queda da Taxa
+    # Ex: Título de 14 anos com corte de 1.02% tem sensibilidade de ~14.3% no PU
+    price_sensitivity = effective_duration * abs(delta)
+    
+    # Sigmoide contínua com saturação suave a partir de 8% de sensibilidade de PU
+    score = _sigmoid_score(price_sensitivity, midpoint=0.06, steepness=35.0, max_score=1.0)
+    return round(score, SCORE_DECIMALS)
 
 
 def score_bond(bond: dict[str, Any], universe: list[dict[str, Any]] | dict[str, Any] | None = None, macro_state: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -227,7 +238,20 @@ def score_bond(bond: dict[str, Any], universe: list[dict[str, Any]] | dict[str, 
         {"label": "Taxa vs. pares", "score": peer_score, "max": 0.5, "desc": f"Comparação em {peer_group}.", "tip": "Compara apenas títulos do mesmo indexador e fluxo; a faixa de prazo é preservada sempre que houver amostra suficiente."},
     ]
     if not is_selic:
-        breakdown.append({"label": "Potencial de marcação a mercado", "score": mtm_score, "max": 1.0, "desc": f"Prazo efetivo de {days} dias; cupom reduz a duration estimada.", "tip": "Indicador técnico condicionado à queda esperada da Selic; não é previsão nem promessa de ganho."})
+        has_coupon = _is_coupon_bond(bond)
+        try:
+            years_est = round(float(days) / 365.0, 1)
+        except (ValueError, TypeError):
+            years_est = "?"
+            
+        if has_coupon:
+            mtm_desc = f"Prazo de {years_est} anos ({days} dias). Cupons semestrais reduzem a duration e amortizam a oscilação."
+            mtm_tip = "Títulos com cupom pagam renda semestral, reduzindo a duration efetiva e amortecendo oscilações de preço na curva."
+        else:
+            mtm_desc = f"Duration integral de {years_est} anos ({days} dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic."
+            mtm_tip = "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
+
+        breakdown.append({"label": "Potencial de marcação a mercado", "score": mtm_score, "max": 1.0, "desc": mtm_desc, "tip": mtm_tip})
     breakdown.append({"label": "IR até o vencimento", "score": tax_score, "max": 0.5, "desc": f"{days} dias até o vencimento.", "tip": "Alíquota regressiva de IR no vencimento."})
     result = dict(bond)
     result.update({
