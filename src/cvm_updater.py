@@ -325,27 +325,30 @@ def _download_and_match_vpas(
             
             # --- Extract VPA (from highest Versao) ---
             best_vpa_row = all_matches.iloc[0]
-            vpa = float(best_vpa_row["Valor_Patrimonial_Cotas"])
-            if 0.0 < vpa < VPA_MAX_LIMIT:
-                vpa_map[ticker] = round(vpa, 4)
+            raw_vpa = float(best_vpa_row["Valor_Patrimonial_Cotas"])
+            
+            # Calcula VPA a partir de Patrimonio_Liquido / Cotas_Emitidas
+            computed_vpa = None
+            try:
+                pl = float(best_vpa_row.get("Patrimonio_Liquido", 0))
+                cotas = float(best_vpa_row.get("Cotas_Emitidas", 0))
+                if pl > 0 and cotas > 0:
+                    c_vpa = pl / cotas
+                    if 0.0 < c_vpa < VPA_MAX_LIMIT:
+                        computed_vpa = c_vpa
+            except (ValueError, TypeError):
+                pass
+
+            # Usa computed_vpa quando raw_vpa for anormal (>500 com computed razoável) ou inválido
+            if computed_vpa and (raw_vpa <= 0 or raw_vpa > 500.0 or (raw_vpa > 100.0 and computed_vpa < 150.0)):
+                vpa_map[ticker] = round(computed_vpa, 4)
+                logger.info(f"  Computed VPA for {ticker} from PL/Cotas: {computed_vpa:.4f} (raw VPA was {raw_vpa})")
+            elif 0.0 < raw_vpa < VPA_MAX_LIMIT:
+                vpa_map[ticker] = round(raw_vpa, 4)
+            elif computed_vpa:
+                vpa_map[ticker] = round(computed_vpa, 4)
             else:
-                # Fallback: compute VPA from Patrimonio_Liquido / Cotas_Emitidas
-                # Some funds (e.g. BRFT11) have total NAV in Valor_Patrimonial_Cotas
-                # instead of per-share value. Compute it if possible.
-                computed_vpa = None
-                try:
-                    pl = float(best_vpa_row.get("Patrimonio_Liquido", 0))
-                    cotas = float(best_vpa_row.get("Cotas_Emitidas", 0))
-                    if pl > 0 and cotas > 0:
-                        computed_vpa = pl / cotas
-                except (ValueError, TypeError):
-                    pass
-                
-                if computed_vpa and 0.0 < computed_vpa < VPA_MAX_LIMIT:
-                    vpa_map[ticker] = round(computed_vpa, 4)
-                    logger.info(f"  Computed VPA for {ticker} from PL/Cotas: {computed_vpa:.4f} (raw VPA was {vpa})")
-                else:
-                    logger.warning(f"Ignored abnormal VPA for {ticker}: {vpa} (limit: {VPA_MAX_LIMIT})")
+                logger.warning(f"Ignored abnormal VPA for {ticker}: {raw_vpa} (limit: {VPA_MAX_LIMIT})")
             
             # --- Extract DY (highest Versao with valid DY > 0) ---
             if dy_column and dy_column in df.columns:
