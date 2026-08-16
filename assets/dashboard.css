@@ -316,10 +316,25 @@ th:hover { color: var(--text-primary); }
 .sortable-header::after {
     content: '↕'; position: absolute; right: 0.3rem; top: 50%;
     transform: translateY(-50%); color: var(--text-muted); font-size: 0.65rem;
-}
 .sortable-header[aria-sort="ascending"]::after { content: '↑'; color: var(--primary-accent); }
 .sortable-header[aria-sort="descending"]::after { content: '↓'; color: var(--primary-accent); }
 .sortable-header:focus-visible { outline: 2px solid var(--primary-accent); outline-offset: -2px; }
+
+/* ── Tooltips das Colunas (.hint) ── */
+.hint {
+    position: relative;
+    cursor: help;
+    border-bottom: 1px dotted var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    transition: var(--transition);
+}
+.hint:hover,
+.hint:focus {
+    color: var(--primary-accent);
+    border-bottom-color: var(--primary-accent);
+}
+
 td {
     padding: 0.38rem 0.5rem;
     border-bottom: 1px solid var(--card-border-subtle);
