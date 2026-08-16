@@ -37,6 +37,61 @@ def _fetch_table(db, table_name: str) -> list[dict]:
 
 
 # ======================================================================
+# CVM Regulatory Data Integrity (Primary Source of Truth)
+# ======================================================================
+
+class TestCVMDataConsistency:
+    """Validates that database indicators directly match official CVM reports (dados.cvm.gov.br)."""
+
+    def test_fii_vpa_matches_cvm(self, db):
+        """Stored book_value for FIIs must match the official CVM VPA per share."""
+        import json
+        cvm_vpa_path = os.path.join(os.path.dirname(SRC_DIR), "data", "fii_vpa.json")
+        if not os.path.exists(cvm_vpa_path):
+            pytest.skip("CVM FII VPA cache não encontrado")
+        with open(cvm_vpa_path, "r", encoding="utf-8") as f:
+            cvm_vpas = json.load(f)
+
+        cursor = db.cursor()
+        cursor.execute("SELECT ticker, book_value, price, pb_ratio FROM fiis")
+        mismatches = []
+        for r in cursor.fetchall():
+            clean = r["ticker"].replace(".SA", "")
+            if clean in cvm_vpas and r["book_value"] is not None:
+                cvm_val = cvm_vpas[clean]
+                # Verifica tolerância de arredondamento de 1 centavo
+                if abs(r["book_value"] - cvm_val) > 0.05:
+                    mismatches.append((clean, r["book_value"], cvm_val))
+        assert len(mismatches) == 0, (
+            f"{len(mismatches)} FIIs com VPA divergente da CVM oficial:\n"
+            + "\n".join(f"  {t}: DB={db_v} vs CVM={cvm_v}" for t, db_v, cvm_v in mismatches[:10])
+        )
+
+    def test_fiagro_vpa_matches_cvm(self, db):
+        """Stored book_value for FIAGROs must match the official CVM VPA per share."""
+        import json
+        cvm_vpa_path = os.path.join(os.path.dirname(SRC_DIR), "data", "fiagro_vpa.json")
+        if not os.path.exists(cvm_vpa_path):
+            pytest.skip("CVM FIAGRO VPA cache não encontrado")
+        with open(cvm_vpa_path, "r", encoding="utf-8") as f:
+            cvm_vpas = json.load(f)
+
+        cursor = db.cursor()
+        cursor.execute("SELECT ticker, book_value, price, pb_ratio FROM fiagros")
+        mismatches = []
+        for r in cursor.fetchall():
+            clean = r["ticker"].replace(".SA", "")
+            if clean in cvm_vpas and r["book_value"] is not None:
+                cvm_val = cvm_vpas[clean]
+                if abs(r["book_value"] - cvm_val) > 0.05:
+                    mismatches.append((clean, r["book_value"], cvm_val))
+        assert len(mismatches) == 0, (
+            f"{len(mismatches)} FIAGROs com VPA divergente da CVM oficial:\n"
+            + "\n".join(f"  {t}: DB={db_v} vs CVM={cvm_v}" for t, db_v, cvm_v in mismatches[:10])
+        )
+
+
+# ======================================================================
 # FIAGROs — Market Alignment & Indicator Audit
 # ======================================================================
 

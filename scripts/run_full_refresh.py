@@ -64,12 +64,18 @@ for s in stocks:
     cursor.execute("UPDATE stocks SET score_v2 = ?, score_breakdown = ? WHERE ticker = ?", (score_v2, json.dumps(breakdown, ensure_ascii=False), s['ticker']))
 
 # 2. Update FIIs
-cursor.execute("SELECT ticker, price, pb_ratio, dividend_yield, dividend_rate, dividend_consistency FROM fiis")
+with open(os.path.join("data", "fii_vpa.json"), "r", encoding="utf-8") as f_vpa:
+    fii_vpa_cache = json.load(f_vpa)
+
+cursor.execute("SELECT ticker, price, pb_ratio, book_value, dividend_yield, dividend_rate, dividend_consistency FROM fiis")
 fiis = cursor.fetchall()
 print(f"[*] Processando {len(fiis)} FIIs...")
 for f in fiis:
+    ticker_clean = f['ticker'].replace(".SA", "")
     price = safe_float(f['price'])
-    pb = safe_float(f['pb_ratio'])
+    cvm_vpa = fii_vpa_cache.get(ticker_clean)
+    book_value = cvm_vpa if cvm_vpa else safe_float(f['book_value'])
+    pb = round(price / book_value, 4) if (price and book_value and book_value > 0) else safe_float(f['pb_ratio'])
     raw_dy = safe_float(f['dividend_yield'])
     raw_rate = safe_float(f['dividend_rate'])
     cons = safe_float(f['dividend_consistency'])
@@ -88,15 +94,21 @@ for f in fiis:
         {"label": "Consistência de Proventos", "score": s_cons, "max": 2.5, "desc": f"{(cons * 100):.2f}%" if cons is not None else "N/D (neutro 1.5)", "tip": "Curva Sigmoide Logística de retenção semestral. Inflexão em 85%; fundos estáveis (≥95%) atingem até 2,5 pts. Sem histórico: 1,5 pts neutro."}
     ]
     
-    cursor.execute("UPDATE fiis SET dividend_yield = ?, dividend_rate = ?, score_v2 = ?, score_breakdown = ? WHERE ticker = ?", (dy, rate, score_v2, json.dumps(breakdown, ensure_ascii=False), f['ticker']))
+    cursor.execute("UPDATE fiis SET book_value = ?, pb_ratio = ?, dividend_yield = ?, dividend_rate = ?, score_v2 = ?, score_breakdown = ? WHERE ticker = ?", (book_value, pb, dy, rate, score_v2, json.dumps(breakdown, ensure_ascii=False), f['ticker']))
 
 # 3. Update FIAGROs
-cursor.execute("SELECT ticker, price, pb_ratio, dividend_yield, dividend_rate, dividend_consistency FROM fiagros")
+with open(os.path.join("data", "fiagro_vpa.json"), "r", encoding="utf-8") as f_vpa:
+    fiagro_vpa_cache = json.load(f_vpa)
+
+cursor.execute("SELECT ticker, price, pb_ratio, book_value, dividend_yield, dividend_rate, dividend_consistency FROM fiagros")
 fiagros = cursor.fetchall()
 print(f"[*] Processando {len(fiagros)} FIAGROs...")
 for f in fiagros:
+    ticker_clean = f['ticker'].replace(".SA", "")
     price = safe_float(f['price'])
-    pb = safe_float(f['pb_ratio'])
+    cvm_vpa = fiagro_vpa_cache.get(ticker_clean)
+    book_value = cvm_vpa if cvm_vpa else safe_float(f['book_value'])
+    pb = round(price / book_value, 4) if (price and book_value and book_value > 0) else safe_float(f['pb_ratio'])
     raw_dy = safe_float(f['dividend_yield'])
     raw_rate = safe_float(f['dividend_rate'])
     cons = safe_float(f['dividend_consistency'])
@@ -115,7 +127,7 @@ for f in fiagros:
         {"label": "Consistência de Proventos", "score": s_cons, "max": 2.5, "desc": f"{(cons * 100):.2f}%" if cons is not None else "N/D (neutro 1.5)", "tip": "Curva Sigmoide Logística de retenção semestral. Inflexão em 85%; fundos estáveis (≥95%) atingem até 2,5 pts. Sem histórico: 1,5 pts neutro."}
     ]
     
-    cursor.execute("UPDATE fiagros SET dividend_yield = ?, dividend_rate = ?, score_v2 = ?, score_breakdown = ? WHERE ticker = ?", (dy, rate, score_v2, json.dumps(breakdown, ensure_ascii=False), f['ticker']))
+    cursor.execute("UPDATE fiagros SET book_value = ?, pb_ratio = ?, dividend_yield = ?, dividend_rate = ?, score_v2 = ?, score_breakdown = ? WHERE ticker = ?", (book_value, pb, dy, rate, score_v2, json.dumps(breakdown, ensure_ascii=False), f['ticker']))
 
 conn.commit()
 conn.close()

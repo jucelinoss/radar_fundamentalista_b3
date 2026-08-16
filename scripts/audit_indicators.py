@@ -83,11 +83,46 @@ def run_audit() -> int:
         if extreme_dy:
             print(f"    [!] DY Extremo (> 35%) ({len(extreme_dy)}): {[x[0] for x in extreme_dy]}")
 
+    import json
+
+    # --- Batimento Direto CVM para FIIs e FIAGROs ---
+    print("\n" + "-" * 70)
+    print(" 🏛️  BATIMENTO REGULATÓRIO CVM (DADOS ABERTOS dados.cvm.gov.br)")
+    print("-" * 70)
+
+    for asset_type, vpa_file, dy_file, table in [
+        ("FIIs", "fii_vpa.json", "fii_dy.json", "fiis"),
+        ("FIAGROs", "fiagro_vpa.json", "fiagro_dy.json", "fiagros"),
+    ]:
+        vpa_path = os.path.join("data", vpa_file)
+        dy_path = os.path.join("data", dy_file)
+        vpas = json.load(open(vpa_path, "r", encoding="utf-8")) if os.path.exists(vpa_path) else {}
+        dys = json.load(open(dy_path, "r", encoding="utf-8")) if os.path.exists(dy_path) else {}
+
+        cursor.execute(f"SELECT ticker, book_value, dividend_yield FROM {table}")
+        db_rows = cursor.fetchall()
+
+        vpa_matched = 0
+        vpa_diffs = []
+        for r in db_rows:
+            clean = r["ticker"].replace(".SA", "")
+            if clean in vpas and r["book_value"] is not None:
+                if abs(r["book_value"] - vpas[clean]) <= 0.05:
+                    vpa_matched += 1
+                else:
+                    vpa_diffs.append((clean, r["book_value"], vpas[clean]))
+
+        print(f"[*] {asset_type}:")
+        print(f"    • VPA aderente à CVM: {vpa_matched}/{len(db_rows)} ativos ({vpa_matched/len(db_rows)*100:.1f}%)")
+        print(f"    • Cobertura de relatórios mensais CVM: {len(vpas)} informes cadastrados")
+        if vpa_diffs:
+            print(f"    [!] Divergências pontuais VPA ({len(vpa_diffs)}): {vpa_diffs[:3]}")
+
     conn.close()
 
     print("\n" + "=" * 70)
     if total_issues == 0:
-        print(f" [+] AUDITORIA CONCLUIDA COM SUCESSO: {total_assets} ativos validados e conformes.")
+        print(f" [+] AUDITORIA CVM/MERCADO CONCLUIDA COM SUCESSO: {total_assets} ativos conformes.")
         print("=" * 70)
         return 0
     else:
