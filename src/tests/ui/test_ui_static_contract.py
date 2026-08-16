@@ -532,16 +532,23 @@ class TestClientSideFeatureEnhancements:
         assert 'modal-compare-btn' in html, "Missing compare button in asset modal."
 
     def test_calculator_panel_and_logic_exist(self, html):
-        """Painel da calculadora de investimentos e todos os seus 4 modos integrados devem existir."""
+        """Painel da calculadora de investimentos e todos os seus 5 modos integrados devem existir."""
         assert 'id="panel-calculator"' in html, "Missing #panel-calculator in HTML."
         assert 'calculateIncomeGoal' in html, "Missing calculateIncomeGoal in JS."
         assert 'calculateSnowball' in html, "Missing calculateSnowball in JS."
         assert 'calculateRfComparison' in html, "Missing calculateRfComparison in JS."
         assert 'calculateFireRetirement' in html, "Missing calculateFireRetirement in JS."
+        assert 'calculateRule200' in html, "Missing calculateRule200 in JS."
+        assert 'calculateRule300' in html, "Missing calculateRule300 in JS."
+        assert 'calculateRule72' in html, "Missing calculateRule72 in JS."
+        assert 'calculateRule503020' in html, "Missing calculateRule503020 in JS."
+        assert 'calculateRuleBazin' in html, "Missing calculateRuleBazin in JS."
+        assert 'calculateRuleAge' in html, "Missing calculateRuleAge in JS."
         assert 'switchCalcMode' in html, "Missing switchCalcMode in JS."
         assert 'calc-magic-number' in html, "Missing magic number element in HTML/CSS."
         assert 'btn-calc-mode-compare-rf' in html, "Missing compare_rf mode button in HTML."
         assert 'btn-calc-mode-fire' in html, "Missing fire mode button in HTML."
+        assert 'btn-calc-mode-rules' in html, "Missing rules mode button in HTML."
 
     def test_sparklines_svg_integration(self, html):
         """Sparklines ultraleves em SVG devem estar integradas nas tabelas."""

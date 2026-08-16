@@ -437,6 +437,7 @@
                     <button type="button" class="calc-mode-btn" id="btn-calc-mode-snowball" onclick="switchCalcMode('snowball')">❄️ Bola de Neve</button>
                     <button type="button" class="calc-mode-btn" id="btn-calc-mode-compare-rf" onclick="switchCalcMode('compare_rf')">⚖️ CDB vs LCI vs Tesouro</button>
                     <button type="button" class="calc-mode-btn" id="btn-calc-mode-fire" onclick="switchCalcMode('fire')">🛡️ Aposentadoria (FIRE)</button>
+                    <button type="button" class="calc-mode-btn" id="btn-calc-mode-rules" onclick="switchCalcMode('rules')">💡 Regras de Ouro (200x, 72, 50-30-20)</button>
                 </div>
             </div>
 
@@ -805,6 +806,131 @@
                         <div class="calc-magic-text">
                             <strong id="calc-fire-insight-title">Proteção contra a Inflação</strong>
                             <span id="calc-fire-insight-desc">Com a taxa de retirada segura de 4%, seu patrimônio gera renda vitalícia reajustada pela inflação sem esgotar o montante principal.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modo 5: Regras de Bolso & Heurísticas de Ouro -->
+            <div class="calc-rules-grid hidden" id="calc-grid-rules">
+                <!-- Regra 1: 200x da Renda -->
+                <div class="calc-rule-card">
+                    <div class="calc-rule-header">
+                        <div class="calc-rule-title">🇧🇷 Regra dos 200x da Renda</div>
+                        <span class="calc-rule-formula-badge">Patrimônio = Renda × 200</span>
+                    </div>
+                    <p class="calc-rule-desc">Considera rentabilidade líquida real de <strong>0,5% ao mês (6,0% a.a.)</strong>, padrão clássico de dividendos de FIIs e Ações perenes no Brasil.</p>
+                    <div class="calc-input-group">
+                        <label for="rule-200-income">Renda Mensal Desejada (R$)</label>
+                        <input type="number" id="rule-200-income" value="5000" min="100" step="500" oninput="calculateRule200()">
+                    </div>
+                    <div class="calc-rule-result">
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">Patrimônio Alvo Necessário:</div>
+                        <div id="rule-200-result" style="font-size:1.25rem; font-weight:800; color:var(--positive);">R$ 1.000.000,00</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">Equivale a 200 meses da sua renda sem tocar no principal.</div>
+                    </div>
+                </div>
+
+                <!-- Regra 2: 300x da Renda (Regra dos 4% / FIRE) -->
+                <div class="calc-rule-card">
+                    <div class="calc-rule-header">
+                        <div class="calc-rule-title">🌍 Regra dos 300x (Regra dos 4%)</div>
+                        <span class="calc-rule-formula-badge">Patrimônio = Custo Mensal × 300</span>
+                    </div>
+                    <p class="calc-rule-desc">Baseada no Estudo Trinity. Com taxa segura de saque de <strong>4,0% ao ano</strong> (25× custo anual), você tem renda perpétua reajustada pela inflação.</p>
+                    <div class="calc-input-group">
+                        <label for="rule-300-income">Custo de Vida Mensal (R$)</label>
+                        <input type="number" id="rule-300-income" value="5000" min="100" step="500" oninput="calculateRule300()">
+                    </div>
+                    <div class="calc-rule-result">
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">Patrimônio FIRE Necessário:</div>
+                        <div id="rule-300-result" style="font-size:1.25rem; font-weight:800; color:var(--positive);">R$ 1.500.000,00</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">Garante independência financeira global com proteção anticrise.</div>
+                    </div>
+                </div>
+
+                <!-- Regra 3: Regra do 72 -->
+                <div class="calc-rule-card">
+                    <div class="calc-rule-header">
+                        <div class="calc-rule-title">⚡ Regra do 72 (Dobra de Capital)</div>
+                        <span class="calc-rule-formula-badge">Tempo (anos) ≈ 72 ÷ Taxa %</span>
+                    </div>
+                    <p class="calc-rule-desc">Heurística matemática que calcula em quantos anos seu capital <strong>dobra de tamanho</strong> automaticamente apenas com o poder dos juros compostos.</p>
+                    <div class="calc-input-group">
+                        <label for="rule-72-rate">Rentabilidade Anual (% a.a.)</label>
+                        <input type="number" id="rule-72-rate" value="12.0" min="1" max="50" step="0.5" oninput="calculateRule72()">
+                    </div>
+                    <div class="calc-rule-result">
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">Tempo para Dobrar seu Dinheiro:</div>
+                        <div id="rule-72-result" style="font-size:1.25rem; font-weight:800; color:var(--gold);">6,0 anos</div>
+                        <div id="rule-72-desc" style="font-size:0.75rem; color:var(--text-muted);">R$ 100k viram R$ 200k em 6 anos; R$ 400k em 12 anos!</div>
+                    </div>
+                </div>
+
+                <!-- Regra 4: 50 / 30 / 20 -->
+                <div class="calc-rule-card">
+                    <div class="calc-rule-header">
+                        <div class="calc-rule-title">📊 Regra 50 / 30 / 20 de Orçamento</div>
+                        <span class="calc-rule-formula-badge">50% Essencial | 30% Lazer | 20% Futuro</span>
+                    </div>
+                    <p class="calc-rule-desc">Metodologia clássica de alocação de salário para acelerar a formação de patrimônio sem abrir mão da qualidade de vida.</p>
+                    <div class="calc-input-group">
+                        <label for="rule-503020-salary">Renda / Salário Líquido Mensal (R$)</label>
+                        <input type="number" id="rule-503020-salary" value="6000" min="500" step="500" oninput="calculateRule503020()">
+                    </div>
+                    <div class="calc-rule-result">
+                        <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                            <span>🏠 50% Essencial:</span>
+                            <strong id="rule-503020-res-needs">R$ 3.000,00</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                            <span>🎯 30% Estilo de Vida:</span>
+                            <strong id="rule-503020-res-wants">R$ 1.800,00</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.88rem; color:var(--positive); font-weight:700;">
+                            <span>💰 20% Aportes & Renda:</span>
+                            <strong id="rule-503020-res-savings">R$ 1.200,00 / mês</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Regra 5: Regra do Décio Bazin -->
+                <div class="calc-rule-card">
+                    <div class="calc-rule-header">
+                        <div class="calc-rule-title">📈 Regra de Décio Bazin (Preço Teto)</div>
+                        <span class="calc-rule-formula-badge">Preço Teto = DPA ÷ 0,06</span>
+                    </div>
+                    <p class="calc-rule-desc">Método consagrado de comprar ações apenas quando o Dividendo por Ação (DPA) garantir um <strong>Yield mínimo de 6% ao ano</strong>.</p>
+                    <div class="calc-input-group">
+                        <label for="rule-bazin-dpa">Dividendo Anual Pago por Ação (R$)</label>
+                        <input type="number" id="rule-bazin-dpa" value="2.40" min="0.05" step="0.10" oninput="calculateRuleBazin()">
+                    </div>
+                    <div class="calc-rule-result">
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">Preço Teto Máximo para Compra:</div>
+                        <div id="rule-bazin-result" style="font-size:1.25rem; font-weight:800; color:var(--positive);">R$ 40,00</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">Comprando abaixo de R$ 40,00, seu DY garantido é &gt; 6% a.a.</div>
+                    </div>
+                </div>
+
+                <!-- Regra 6: 100 - Idade -->
+                <div class="calc-rule-card">
+                    <div class="calc-rule-header">
+                        <div class="calc-rule-title">🛡️ Regra da Idade (Alocação)</div>
+                        <span class="calc-rule-formula-badge">% Renda Variável = 100 - Idade</span>
+                    </div>
+                    <p class="calc-rule-desc">Heurística de gestão de risco: quanto mais jovem, maior a exposição a ações e FIIs; com o avanço da idade, migra-se para Renda Fixa.</p>
+                    <div class="calc-input-group">
+                        <label for="rule-age-val">Sua Idade Atual (Anos)</label>
+                        <input type="number" id="rule-age-val" value="35" min="18" max="95" step="1" oninput="calculateRuleAge()">
+                    </div>
+                    <div class="calc-rule-result">
+                        <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                            <span>📈 Renda Variável (Ações / FIIs):</span>
+                            <strong id="rule-age-stocks" style="color:var(--positive);">65%</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                            <span>🪙 Renda Fixa (Tesouro / CDB):</span>
+                            <strong id="rule-age-bonds" style="color:var(--gold);">35%</strong>
                         </div>
                     </div>
                 </div>

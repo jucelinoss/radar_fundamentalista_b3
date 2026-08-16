@@ -4752,26 +4752,31 @@ const tableSortState = {};
             const btnSnow = document.getElementById('btn-calc-mode-snowball');
             const btnRf = document.getElementById('btn-calc-mode-compare-rf');
             const btnFire = document.getElementById('btn-calc-mode-fire');
+            const btnRules = document.getElementById('btn-calc-mode-rules');
 
             const gridGoal = document.getElementById('calc-grid-goal');
             const gridSnow = document.getElementById('calc-grid-snowball');
             const gridRf = document.getElementById('calc-grid-compare-rf');
             const gridFire = document.getElementById('calc-grid-fire');
+            const gridRules = document.getElementById('calc-grid-rules');
 
             if (btnGoal) btnGoal.classList.toggle('active', mode === 'goal');
             if (btnSnow) btnSnow.classList.toggle('active', mode === 'snowball');
             if (btnRf) btnRf.classList.toggle('active', mode === 'compare_rf');
             if (btnFire) btnFire.classList.toggle('active', mode === 'fire');
+            if (btnRules) btnRules.classList.toggle('active', mode === 'rules');
 
             if (gridGoal) gridGoal.classList.toggle('hidden', mode !== 'goal');
             if (gridSnow) gridSnow.classList.toggle('hidden', mode !== 'snowball');
             if (gridRf) gridRf.classList.toggle('hidden', mode !== 'compare_rf');
             if (gridFire) gridFire.classList.toggle('hidden', mode !== 'fire');
+            if (gridRules) gridRules.classList.toggle('hidden', mode !== 'rules');
 
             if (mode === 'goal') calculateIncomeGoal();
             else if (mode === 'snowball') calculateSnowball();
             else if (mode === 'compare_rf') calculateRfComparison();
             else if (mode === 'fire') calculateFireRetirement();
+            else if (mode === 'rules') calculateAllRules();
         }
 
         function setGoalPreset(val) {
@@ -5379,12 +5384,85 @@ const tableSortState = {};
             }
         }
 
+        function calculateRule200() {
+            const input = document.getElementById('rule-200-income');
+            const resEl = document.getElementById('rule-200-result');
+            const income = Math.max(10, parseFloat(input?.value) || 5000);
+            const target = income * 200;
+            if (resEl) resEl.textContent = `R$ ${target.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+
+        function calculateRule300() {
+            const input = document.getElementById('rule-300-income');
+            const resEl = document.getElementById('rule-300-result');
+            const expense = Math.max(10, parseFloat(input?.value) || 5000);
+            const target = expense * 300;
+            if (resEl) resEl.textContent = `R$ ${target.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+
+        function calculateRule72() {
+            const input = document.getElementById('rule-72-rate');
+            const resEl = document.getElementById('rule-72-result');
+            const descEl = document.getElementById('rule-72-desc');
+            const rate = Math.max(0.1, parseFloat(input?.value) || 12.0);
+            const years = 72.0 / rate;
+            if (resEl) resEl.textContent = `${years.toFixed(1)} anos`;
+            if (descEl) descEl.textContent = `A ${rate.toFixed(1)}% a.a., R$ 100k viram R$ 200k em ${years.toFixed(1)} anos e R$ 400k em ${(years * 2).toFixed(1)} anos!`;
+        }
+
+        function calculateRule503020() {
+            const input = document.getElementById('rule-503020-salary');
+            const needsEl = document.getElementById('rule-503020-res-needs');
+            const wantsEl = document.getElementById('rule-503020-res-wants');
+            const savingsEl = document.getElementById('rule-503020-res-savings');
+            const salary = Math.max(100, parseFloat(input?.value) || 6000);
+
+            const needs = salary * 0.50;
+            const wants = salary * 0.30;
+            const savings = salary * 0.20;
+
+            if (needsEl) needsEl.textContent = `R$ ${needs.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (wantsEl) wantsEl.textContent = `R$ ${wants.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (savingsEl) savingsEl.textContent = `R$ ${savings.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / mês`;
+        }
+
+        function calculateRuleBazin() {
+            const input = document.getElementById('rule-bazin-dpa');
+            const resEl = document.getElementById('rule-bazin-result');
+            const dpa = Math.max(0.01, parseFloat(input?.value) || 2.40);
+            const ceilingPrice = dpa / 0.06;
+            if (resEl) resEl.textContent = `R$ ${ceilingPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+
+        function calculateRuleAge() {
+            const input = document.getElementById('rule-age-val');
+            const stocksEl = document.getElementById('rule-age-stocks');
+            const bondsEl = document.getElementById('rule-age-bonds');
+            const age = Math.min(100, Math.max(0, parseInt(input?.value) || 35));
+
+            const stocksPct = Math.max(0, 100 - age);
+            const bondsPct = 100 - stocksPct;
+
+            if (stocksEl) stocksEl.textContent = `${stocksPct}%`;
+            if (bondsEl) bondsEl.textContent = `${bondsPct}%`;
+        }
+
+        function calculateAllRules() {
+            calculateRule200();
+            calculateRule300();
+            calculateRule72();
+            calculateRule503020();
+            calculateRuleBazin();
+            calculateRuleAge();
+        }
+
         function renderCalculatorPanel() {
             populateCalculatorSelects();
             if (currentCalcMode === 'goal') calculateIncomeGoal();
             else if (currentCalcMode === 'snowball') calculateSnowball();
             else if (currentCalcMode === 'compare_rf') calculateRfComparison();
             else if (currentCalcMode === 'fire') calculateFireRetirement();
+            else if (currentCalcMode === 'rules') calculateAllRules();
         }
 
         /* ── Macro Forecaster & Scenario Simulator ── */
