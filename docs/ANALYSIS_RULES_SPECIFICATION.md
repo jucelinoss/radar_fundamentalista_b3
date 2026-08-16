@@ -76,13 +76,37 @@ A partir da versão v2.6, o Radar Fundamentalista B3 adota uma modelagem contín
 * **Função Sigmoide Logística:**
   $$\text{Score}_{\text{sigm}}(x; x_0, k) = \frac{2,0}{1 + \exp\left(-k \cdot (x - x_0)\right)}$$
 
-| Critério | Função / Parâmetros | Racional e Comportamento |
+| Critério | Função / Parâmetros | Racional e Literatura de Apoio |
 |---|---|---|
-| **DY médio 3 anos** | Gaussiana Assimétrica<br>Centro $\mu = \max(9,5\%, \text{meta} + 1,5\%)$<br>$\sigma_{\text{esq}} = 3,5\%$, $\sigma_{\text{dir}} = 5,5\%$ | Sweet spot em 9,5%–12%. Sobe continuamente a partir de 4% e decai suavemente após 16% para conter o risco de *Dividend Traps* (distribuição atípica antes de crises). |
-| **P/L médio 5 anos** | Gaussiana Assimétrica<br>Centro $\mu = \min(7,5; \text{teto} \times 0,8)$<br>$\sigma_{\text{esq}} = 2,5$, $\sigma_{\text{dir}} = 4,5$ | Centro em 7,5x (múltiplo atrativo B3). Penaliza tanto múltiplos esticados (> 15x) quanto picos de lucros atípicos/não recorrentes de commodities (< 3,5x). |
-| **P/VP (Preço / V.P.)** | Gaussiana Assimétrica<br>Centro $\mu = 0,85$<br>$\sigma_{\text{esq}} = 0,28$, $\sigma_{\text{dir}} = 0,45$ | Centro em 0,85 (*Deep Value* seguro). Transição contínua sem cortes abruptos: 0,40 → 0,78 pts; 0,50 → 1,35 pts; 0,85 → 2,0 pts; 1,20 → 1,47 pts; 1,60 → 0,50 pts. |
-| **ROE** | Sigmoide Logística<br>Inflexão $x_0 = 12,0\%$, $k = 22,0$ | Ponto de inflexão em 12% (custo de oportunidade de capital). Não zera abaixo de 10% e satura assintoticamente até 2,0 pts para ROEs elevados (> 20%). |
-| **Margem de Segurança** | Sigmoide Logística<br>Margem $= (\text{Justo} - \text{Preço}) / \text{Preço}$<br>Inflexão $x_0 = 0,0$, $k = 4,0$ | No preço justo (margem 0%): 1,0 pt. Margens de desconto elevadas (+50% a +100%) convergem suavemente para 1,80–2,00 pts. Para Tech/Comunicação, aplica $x = 1 - \text{PEG}$. |
+| **DY médio 3 anos** | Gaussiana Assimétrica<br>Centro $\mu = \max(9,5\%, \text{meta} + 1,5\%)$<br>$\sigma_{\text{esq}} = 3,5\%$, $\sigma_{\text{dir}} = 5,5\%$ | **Décio Bazin / Luiz Barsi:** Piso a partir de 6,0% líquido. Sweet spot em 9,5%–12,0%. Decai suavemente após 16% para conter o risco de *Dividend Traps* (distribuição atípica ou queima de caixa). |
+| **P/L médio 5 anos** | Gaussiana Assimétrica<br>Centro $\mu = \min(6,5; \text{teto} \times 0,8)$<br>$\sigma_{\text{esq}} = 2,0$, $\sigma_{\text{dir}} = 4,0$ | **Alexandre Póvoa / Benjamin Graham:** Centro em 6,5x (múltiplo histórico de valor da B3). Penaliza tanto múltiplos esticados (> 15x) quanto picos de lucros atípicos/cíclicos (< 3,5x). |
+| **P/VP (Preço / V.P.)** | Gaussiana Assimétrica<br>Centro $\mu = 0,80$<br>$\sigma_{\text{esq}} = 0,25$, $\sigma_{\text{dir}} = 0,45$ | **Benjamin Graham / Luiz Barsi:** Centro em 0,80 (*Deep Value* com margem de segurança). Transição contínua sem cortes abruptos: 0,40 → 0,55 pts; 0,65–0,95 → 1,85–2,00 pts; 1,20 → 1,35 pts. |
+| **ROE** | Sigmoide Logística<br>Inflexão $x_0 = 12,0\%$, $k = 22,0$ | **Aswath Damodaran / José Roberto Securato:** Ponto de inflexão em 12% (custo de oportunidade de capital no Brasil). Satura assintoticamente até 2,0 pts para ROEs elevados (> 20%). |
+| **Margem de Segurança** | Sigmoide Logística<br>Margem $= (\text{Justo} - \text{Preço}) / \text{Preço}$<br>Inflexão $x_0 = 0,0$, $k = 4,0$ | **Benjamin Graham / Peter Lynch:** No preço justo de Graham: 1,0 pt. Margens amplas de desconto (+50%) convergem para 1,96 pts. Para Tech/Comunicação, aplica $1 - \text{PEG}$. |
+
+### 4.2.1 Fundamentação Teórica e Literatura de Referência
+
+O modelo quantitativo do Radar Fundamentalista B3 é construído sobre o cruzamento de referências internacionais e nacionais consagradas:
+
+1. **Benjamin Graham & David Dodd (*Security Analysis*, 1934 e *The Intelligent Investor*, 1949):**
+   * *Margem de Segurança:* Preço Justo de Graham $V = \sqrt{22,5 \times \text{LPA} \times \text{VPA}}$.
+   * Teto combinado de múltiplos: $\text{P/L} \times \text{P/VP} \le 22,5$.
+2. **Décio Bazin (*Faça Fortuna com Ações*, 1992):**
+   * Exigência de Yield mínimo de 6% ao ano em dinheiro e $\text{Preço Teto} = \text{Dividendo Médio} / 0,06$.
+   * Eliminação de empresas excessivamente endividadas e foco em dividendos semestrais consistentes.
+3. **Luiz Barsi Filho (*O Rei dos Dividendos*, 2022):**
+   * Filosofia BESST e acumulação em ações de valor com $\text{P/VP} \le 0,80$ e dividendos perenes.
+4. **Alexandre Póvoa (*Valuation: Como Avaliar Empresas e Escolher as Melhores Ações*):**
+   * Desconto estrutural da bolsa brasileira: P/L médio histórico entre 6,0x e 8,5x.
+   * ROE exigido acima do custo de capital próprio ($K_e > 14\%$) para criação real de valor.
+5. **Prof. Aswath Damodaran (*Investment Valuation*, NYU Stern):**
+   * Teoria de que $\text{P/VP} = (\text{ROE} - g) / (K_e - g)$. O desconto de P/VP só é atrativo se acompanhado de ROE saudável; caso contrário, é uma armadilha de valor (*Value Trap*).
+6. **Prof. Arthur Vieira de Moraes (*Fundos de Investimento Imobiliário*, B3 Educação):**
+   * Distinção fundamental entre FII de Tijolo (Cap Rate vs NTN-B, P/VP 0,85–0,95) e FII de Papel (marcação a mercado de CRIs, onde P/VP < 0,80 reflete risco de calote e não pechincha).
+7. **Joel Greenblatt (*The Little Book That Still Beats the Market*, 2005):**
+   * *Magic Formula:* Combinação balanceada de barganha (baixo múltiplo) e alta eficiência de capital (alto ROE/ROIC).
+8. **Howard Marks (*The Most Important Thing*, 2011):**
+   * Assimetria do risco de crédito: em títulos de dívida (CRIs/CRAs), o ganho é limitado ao cupom e a perda pode ser de 100%, justificando travas estritas de P/VP e DY em FIIs e FIAGROs.
 
 ### 4.3 Solvência e regra macro legada
 

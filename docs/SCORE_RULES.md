@@ -34,19 +34,19 @@ O sistema mantém os **5 critérios fundamentais**, pontuando de **0,00 a 2,00 p
 
 ### **2.1 Dividend Yield Médio (3 anos) — Gaussiana Assimétrica**
 - **Centro ($\mu$):** `max(9,5%, meta_selic + 1,5%)` | $\sigma_{\text{esq}} = 3,5\%$, $\sigma_{\text{dir}} = 5,5\%$.
-- **Comportamento:** Pontuação suave a partir de 4%, atingindo a nota máxima no *Sweet Spot* (9,5% a 12%) e decaindo suavemente acima de 16% para proteção contra *Dividend Traps*.
+- **Comportamento & Literatura:** Décio Bazin / Luiz Barsi. Pontuação a partir de 6,0%, pico no *Sweet Spot* (9,5% a 12,0%) e decaimento suave após 16% contra *Dividend Traps*.
 
 ### **2.2 P/L Médio (5 anos) — Gaussiana**
-- **Centro ($\mu$):** `min(7,5x, teto_selic * 0,8)` | $\sigma_{\text{esq}} = 2,5$, $\sigma_{\text{dir}} = 4,5$.
-- **Comportamento:** Centro de valor em 7,5x. Penaliza múltiplos esticados (> 15x) e picos de lucros não recorrentes (< 3,5x).
+- **Centro ($\mu$):** `min(6,5x, teto_selic * 0,8)` | $\sigma_{\text{esq}} = 2,0$, $\sigma_{\text{dir}} = 4,0$.
+- **Comportamento & Literatura:** Alexandre Póvoa / Benjamin Graham. Centro de valor em 6,5x (múltiplo histórico B3). Penaliza múltiplos caros (> 15x) e lucros cíclicos atípicos (< 3,5x).
 
-### **2.3 P/VP — Gaussiana Assimétrica (Fim do corte seco em 0,50)**
-- **Centro ($\mu$):** `0,85` | $\sigma_{\text{esq}} = 0,28$, $\sigma_{\text{dir}} = 0,45$.
-- **Comportamento:** P/VP de 0,40 a 0,50 pontua proporcionalmente como *deep value* de risco controlado (ex: 0,40 → 0,78 pts; 0,50 → 1,35 pts; 0,85 → 2,0 pts; 1,20 → 1,47 pts).
+### **2.3 P/VP — Gaussiana Assimétrica (Pico Deep Value Barsi/Graham)**
+- **Centro ($\mu$):** `0,80` | $\sigma_{\text{esq}} = 0,25$, $\sigma_{\text{dir}} = 0,45$.
+- **Comportamento & Literatura:** Benjamin Graham / Luiz Barsi. P/VP entre 0,65 e 0,95 pontua como zona de excelência (1,85 a 2,00 pts). P/VP = 0,80 atinge nota cheia (2,00 pts). Transição suave evita penalizar barganhas seguras.
 
 ### **2.4 ROE Corrente — Sigmoide Logística**
-- **Ponto de Inflexão ($x_0$):** `12,0%` (custo de oportunidade de capital) | $k = 22,0$.
-- **Comportamento:** Não zera bruscamente abaixo de 10% (ex: 8% ROE recebe ~0,58 pts) e atinge saturação suave até 2,0 pts para ROEs elevados (> 20%).
+- **Ponto de Inflexão ($x_0$):** `12,0%` (custo de capital no Brasil) | $k = 22,0$.
+- **Comportamento & Literatura:** Aswath Damodaran / José Roberto Securato. Recompensa criação de valor sobre o capital próprio ($K_e$), saturando em 2,0 pts para ROEs $\ge 20\%$.
 
 ### **2.5 Margem de Segurança Clássica (Graham / PEG) — Sigmoide**
 - **Inflexão ($x_0$):** `0,0` (preço justo = 1,0 pt) | $k = 4,0$.

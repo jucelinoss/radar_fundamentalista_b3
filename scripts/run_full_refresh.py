@@ -54,10 +54,10 @@ for s in stocks:
     s_graham = _score_graham_stock(price, graham, peg_ratio=None, sector=sector)
     
     breakdown = [
-        {"label": "DY Médio 3a (ou DY)", "score": s_dy, "max": 2.0, "desc": f"{(dy_3y or dy or 0)*100:.2f}%" if (dy_3y or dy) else "N/A", "tip": "Curva Gaussiana com centro em 9,5% (renda sustentável). Sobe suavemente e protege contra Dividend Traps (>15%)."},
-        {"label": "P/L Médio 5a (ou P/L)", "score": s_pe, "max": 2.0, "desc": f"{pe_5y or pe:.2f}x" if (pe_5y or pe) else "N/A", "tip": "Curva Gaussiana com centro em 7,5x. Evita picos cíclicos de commodities e transita suavemente para múltiplos altos."},
-        {"label": "P/VP (Valor Patrimonial)", "score": s_pb, "max": 2.0, "desc": f"{pb:.2f}" if pb is not None else "N/A", "tip": "Curva Gaussiana com centro em 0,85 (Sweet Spot: desconto saudável sem risco de ruína). Permite descontos profundos de forma contínua."},
-        {"label": "ROE (Rentabilidade)", "score": s_roe, "max": 2.0, "desc": f"{(roe*100):.2f}%" if roe is not None else "N/A", "tip": "Curva Sigmoide Logística. Inflexão em 12% (custo de capital); empresas rentáveis (ROE > 20%) aproximam-se suavemente de 2,0 pts."},
+        {"label": "DY Médio 3a (ou DY)", "score": s_dy, "max": 2.0, "desc": f"{(dy_3y or dy or 0)*100:.2f}%" if (dy_3y or dy) else "N/A", "tip": "Curva Gaussiana com centro em 9,5% (renda sustentável Bazin). Sobe suavemente e protege contra Dividend Traps (>15%)."},
+        {"label": "P/L Médio 5a (ou P/L)", "score": s_pe, "max": 2.0, "desc": f"{pe_5y or pe:.2f}x" if (pe_5y or pe) else "N/A", "tip": "Curva Gaussiana com centro em 6,5x (múltiplo histórico B3 Póvoa). Evita picos cíclicos de commodities e transita suavemente para múltiplos altos."},
+        {"label": "P/VP (Valor Patrimonial)", "score": s_pb, "max": 2.0, "desc": f"{pb:.2f}" if pb is not None else "N/A", "tip": "Curva Gaussiana com centro em 0,80 (Sweet Spot Deep Value Barsi/Graham). Permite descontos profundos de forma contínua com segurança."},
+        {"label": "ROE (Rentabilidade)", "score": s_roe, "max": 2.0, "desc": f"{(roe*100):.2f}%" if roe is not None else "N/A", "tip": "Curva Sigmoide Logística. Inflexão em 12% (custo de capital Damodaran); empresas rentáveis (ROE > 20%) aproximam-se suavemente de 2,0 pts."},
         {"label": "Margem Graham / PEG", "score": s_graham, "max": 2.0, "desc": f"R$ {graham:.2f}" if graham else "N/A", "tip": "Curva Sigmoide Logística da margem de segurança de Graham (Preço Justo vs Cotação)."}
     ]
     

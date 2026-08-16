@@ -309,20 +309,21 @@ def _score_dy_stock(dy_medio_3y: float | None, dy_target: float | None = None) -
 def _score_pe_stock(pe_medio_5y: float | None, pe_max: float | None = None) -> float:
     """
     Stock P/L criterion (0-2 pts) via Gaussian curve.
-    Center: ~7.5x. Penalizes non-recurring cyclical low peaks (<3.5) and high multiples (>15).
+    Center: ~6.5x (B3 historical multiple, Alexandre Póvoa / Benjamin Graham).
+    Penalizes non-recurring cyclical low peaks (<3.5) and high multiples (>15).
     """
     limit = pe_max if pe_max is not None else _get_pe_max_dynamic()
-    center = min(7.5, limit * 0.8)
-    return _gaussian_score(pe_medio_5y, center=center, sigma_left=2.5, sigma_right=4.5)
+    center = min(6.5, limit * 0.8)
+    return _gaussian_score(pe_medio_5y, center=center, sigma_left=2.0, sigma_right=4.0)
 
 
 def _score_pb_stock(pb_ratio: float | None) -> float:
     """
     Stock P/VP criterion (0-2 pts) via Asymmetric Gaussian.
-    Center: 0.85 (safe deep-value sweet spot).
-    Continuous transition: 0.40->0.78 pts, 0.50->1.35 pts, 0.85->2.0 pts, 1.20->1.47 pts.
+    Center: 0.80 (safe deep-value sweet spot, Luiz Barsi / Benjamin Graham).
+    Continuous transition: 0.40->0.55 pts, 0.50->0.98 pts, 0.80->2.0 pts, 1.00->1.81 pts, 1.20->1.35 pts.
     """
-    return _gaussian_score(pb_ratio, center=0.85, sigma_left=0.28, sigma_right=0.45)
+    return _gaussian_score(pb_ratio, center=0.80, sigma_left=0.25, sigma_right=0.45)
 
 
 def _score_roe_stock(roe: float | None) -> float:
@@ -865,40 +866,62 @@ def analyze_stock(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
             score_v2 = round(max(0.0, score_v2 - 1.0), SCORE_DECIMALS)
             macro_warnings.append(f"⚠️ Cobertura de Juros (ICJ): {icj:.2f}x (< 1,0) → -1,0 pts")
 
+    # Contexto descritivo para P/L e Graham caso N/A
+    if pe_medio_5y is not None:
+        pe_desc = f"P/L: {pe_medio_5y:.2f} (teto: {pe_max:.1f}x)"
+    elif eps is not None and eps <= 0:
+        pe_desc = f"N/A (Prejuízo no período / LPA R$ {eps:.2f})"
+    elif roe is not None and roe <= 0:
+        pe_desc = "N/A (Prejuízo contábil no período)"
+    else:
+        pe_desc = "N/A (Lucro líquido deficitário ou indisponível)"
+
+    if (raw_sector not in {'Technology', 'Communication Services'} or peg_ratio is None):
+        if price and graham_price:
+            graham_desc = f"Justo: R${graham_price:.2f} vs R${price:.2f}"
+        elif eps is not None and eps <= 0:
+            graham_desc = "N/A (Inaplicável: Graham exige LPA > 0)"
+        elif book_value is not None and book_value <= 0:
+            graham_desc = "N/A (Inaplicável: Patrimônio Líquido negativo)"
+        else:
+            graham_desc = "N/A (Graham requer lucros e patrimônio positivos)"
+    else:
+        graham_desc = f"PEG: {peg_ratio:.2f}" if peg_ratio is not None else "N/A (Crescimento de lucros indisponível)"
+
     score_breakdown = [
         {
             "label": "Dividend Yield Médio (3 Anos)",
             "score": s1,
             "max": 2.0,
-            "desc": f"DY: {(dy_medio_3y * 100):.2f}% (meta: {dy_target:.1%})" if dy_medio_3y is not None else "N/A",
+            "desc": f"DY: {(dy_medio_3y * 100):.2f}% (meta: {dy_target:.1%})" if dy_medio_3y is not None else "N/A (Sem proventos no período)",
             "tip": f"Curva Gaussiana com centro ideal em {max(0.095, dy_target + 0.015):.1%} (Sweet Spot). Pontuação suave com proteção contra Dividend Traps (>16%)."
         },
         {
             "label": "P/L Médio (5 Anos)",
             "score": s2,
             "max": 2.0,
-            "desc": f"P/L: {pe_medio_5y:.2f} (teto: {pe_max:.1f}x)" if pe_medio_5y is not None else "N/A",
-            "tip": f"Curva Gaussiana com centro em {min(7.5, pe_max * 0.8):.1f}x. Penaliza múltiplos esticados e picos de lucros não recorrentes (<3.5x)."
+            "desc": pe_desc,
+            "tip": f"Curva Gaussiana com centro em {min(6.5, pe_max * 0.8):.1f}x. Penaliza múltiplos esticados e picos de lucros não recorrentes (<3.5x)."
         },
         {
             "label": "P/VP (Preço / V.P.)",
             "score": s3,
             "max": 2.0,
-            "desc": f"P/VP: {pb_ratio:.2f}" if pb_ratio is not None else "N/A",
-            "tip": "Curva Gaussiana com centro em 0,85 (Deep Value seguro). Transição contínua sem cortes abruptos para deep discounts (0,35-0,60) e ágio moderado (1,0-1,60)."
+            "desc": f"P/VP: {pb_ratio:.2f}" if pb_ratio is not None else "N/A (Patrimônio Líquido negativo ou nulo)",
+            "tip": "Curva Gaussiana com centro em 0,80 (Deep Value seguro). Transição contínua sem cortes abruptos para deep discounts (0,35-0,60) e ágio moderado (1,0-1,60)."
         },
         {
             "label": "ROE (Retorno s/ Patr.)",
             "score": s4,
             "max": 2.0,
-            "desc": f"ROE: {(roe * 100):.2f}%" if roe is not None else "N/A",
+            "desc": f"ROE: {(roe * 100):.2f}%" if roe is not None else "N/A (Lucro ou patrimônio indisponível)",
             "tip": "Curva Sigmoide Logística com inflexão no custo de oportunidade de 12%. Rentabilidade elevada (>20%) atinge saturação suave até 2,0 pts."
         },
         {
             "label": "Margem de Graham",
             "score": s5,
             "max": 2.0,
-            "desc": (f"Justo: R${graham_price:.2f} vs R${price:.2f}" if price and graham_price else "N/A") if (raw_sector not in {'Technology', 'Communication Services'} or peg_ratio is None) else f"PEG: {peg_ratio:.2f}",
+            "desc": graham_desc,
             "tip": "Curva Sigmoide de margem de segurança. Quanto maior o desconto sobre o Preço Justo de Graham (ou PEG Ratio), maior a pontuação."
         }
     ]

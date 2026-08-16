@@ -828,19 +828,19 @@ class TestStockScoreContinuous:
 
 
     def test_pe_at_center(self):
-        """P/E = 7.5 → 2.0 pts (sweet spot)."""
-        s = _score_pe_stock(7.5, pe_max=15.0)
+        """P/E = 6.5 → 2.0 pts (sweet spot Póvoa/Graham)."""
+        s = _score_pe_stock(6.5, pe_max=15.0)
         assert s == 2.0, f"Expected 2.0, got {s}"
 
     def test_pe_mid(self):
-        """P/E = 5.0 → ~1.21 pts."""
+        """P/E = 5.0 → ~1.51 pts."""
         s = _score_pe_stock(5.0, pe_max=15.0)
-        assert abs(s - 1.21) <= 0.05, f"Expected ~1.21, got {s}"
+        assert abs(s - 1.51) <= 0.05, f"Expected ~1.51, got {s}"
 
     def test_pe_above_max(self):
-        """P/E = 20.0 → decaimento suave próximo a 0 (~0.04 pts)."""
+        """P/E = 20.0 → decaimento suave próximo a 0 (~0.01 pts)."""
         s = _score_pe_stock(20.0, pe_max=15.0)
-        assert s < 0.15, f"Expected <0.15, got {s}"
+        assert s < 0.10, f"Expected <0.10, got {s}"
 
     def test_pe_negative(self):
         """P/E <= 0 → 0.0 pts."""
@@ -856,27 +856,27 @@ class TestStockScoreContinuous:
 
 
     def test_pb_at_center(self):
-        """P/VP = 0.85 → 2.0 pts (sweet spot)."""
-        s = _score_pb_stock(0.85)
+        """P/VP = 0.80 → 2.0 pts (sweet spot Deep Value)."""
+        s = _score_pb_stock(0.80)
         assert s == 2.0, f"Expected 2.0, got {s}"
 
     def test_pb_at_deep_discount(self):
-        """P/VP = 0.50 → transição contínua sem corte abrupto (~0.91 pts)."""
+        """P/VP = 0.50 → transição contínua sem corte abrupto (~0.97 pts)."""
         s = _score_pb_stock(0.50)
-        assert abs(s - 0.91) <= 0.05, f"Expected ~0.91, got {s}"
+        assert abs(s - 0.97) <= 0.05, f"Expected ~0.97, got {s}"
 
     def test_pb_at_fair(self):
-        """P/VP = 1.00 → ~1.89 pts."""
+        """P/VP = 1.00 → ~1.81 pts."""
         s = _score_pb_stock(1.00)
-        assert abs(s - 1.89) <= 0.05, f"Expected ~1.89, got {s}"
+        assert abs(s - 1.81) <= 0.05, f"Expected ~1.81, got {s}"
 
     def test_pb_at_agio(self):
-        """P/VP = 1.50 → ~0.70 pts (ágio moderado permitido)."""
+        """P/VP = 1.50 → ~0.60 pts (ágio moderado)."""
         s = _score_pb_stock(1.50)
-        assert abs(s - 0.70) <= 0.05, f"Expected ~0.70, got {s}"
+        assert abs(s - 0.60) <= 0.05, f"Expected ~0.60, got {s}"
 
     def test_pb_extreme_distress(self):
-        """P/VP = 0.20 → decaimento suave (~0.13 pts)."""
+        """P/VP = 0.20 → decaimento suave (~0.11 pts)."""
         s = _score_pb_stock(0.20)
         assert s < 0.20, f"Expected <0.20, got {s}"
 
@@ -946,7 +946,7 @@ class TestStockScoreContinuous:
     def test_total_perfect_score(self):
         """All criteria near optimal → ~9.5+ pts."""
         score = calculate_stock_score_continuous(
-            dy_medio_3y=0.095, pe_medio_5y=7.5, pb_ratio=0.85,
+            dy_medio_3y=0.095, pe_medio_5y=6.5, pb_ratio=0.80,
             roe=0.30, price=50.0, graham_price=100.0
         )
         assert score >= 9.5, f"Expected >= 9.5, got {score}"
