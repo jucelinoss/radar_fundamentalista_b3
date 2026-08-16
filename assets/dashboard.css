@@ -1669,14 +1669,19 @@ body.is-col-resizing * {
         /* ── Macro Tesouro Table Responsivo ── */
         .macro-tesouro-table {
             width: 100%;
-            min-width: 760px;
+            min-width: 820px;
             border-collapse: collapse;
+            table-layout: auto;
         }
         .macro-tesouro-table th,
         .macro-tesouro-table td {
-            padding: 0.65rem 0.85rem;
+            padding: 0.75rem 0.85rem;
             border-bottom: 1px solid var(--card-border);
             vertical-align: middle;
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.4;
         }
         .macro-tesouro-table th {
             font-size: 0.76rem;
@@ -1686,13 +1691,55 @@ body.is-col-resizing * {
             color: var(--text-muted);
             background: var(--surface);
             white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        .macro-tesouro-table td:nth-child(1) {
+            min-width: 180px;
+            max-width: 220px;
+            font-weight: 600;
+        }
+        .macro-tesouro-table td:nth-child(2) {
+            min-width: 130px;
+            white-space: nowrap;
+        }
+        .macro-tesouro-table td:nth-child(3) {
+            min-width: 130px;
+        }
+        .macro-tesouro-table td:nth-child(4) {
+            min-width: 170px;
+            max-width: 220px;
+        }
+        .macro-tesouro-table td:nth-child(5) {
+            min-width: 230px;
         }
         .macro-tesouro-table tr:hover {
             background: var(--card-hover);
         }
 
+        /* ── Responsividade Geral & Word-Wrap para Tabelas de Simulador ── */
+        .calc-card .table-scroll table td,
+        .compare-table td {
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
         /* ── Responsividade Aprimorada Geral ── */
         @media (max-width: 768px) {
+            .macro-tesouro-table {
+                min-width: 680px;
+            }
+            .macro-tesouro-table th,
+            .macro-tesouro-table td {
+                padding: 0.5rem 0.6rem;
+                font-size: 0.76rem;
+            }
+            .macro-clickable-ticker {
+                font-size: 0.72rem;
+                padding: 0.15rem 0.4rem;
+            }
             .tabs-row {
                 overflow-x: auto;
                 white-space: nowrap;
