@@ -476,11 +476,11 @@ def _inject_cvm_data(ticker: str, info: dict[str, Any], asset_type: str) -> None
             if not info.get("priceToBook"):
                 info["priceToBook"] = round(price / vpa, 4)
     
-    # --- DY injection (fallback if yfinance didn't provide) ---
+    # --- DY injection (fallback if yfinance didn't provide or provided un-annualized monthly yield < 5%) ---
     dy_map = _CVM_DY_CACHE.get(cache_key, {})
     cvm_dy = dy_map.get(clean_ticker)
     existing_dy = info.get("dividendYield")
-    if cvm_dy is not None and cvm_dy > 0 and (not existing_dy or existing_dy == 0.0):
+    if cvm_dy is not None and cvm_dy > 0 and (not existing_dy or existing_dy < 0.05):
         info["dividendYield"] = cvm_dy
         # Recalculate dividendRate if we have price
         price = info.get("currentPrice") or info.get("regularMarketPrice")

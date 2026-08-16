@@ -1477,8 +1477,27 @@
             <div class="modal-content">
                 <span class="close-btn" onclick="closeDetailModal()">&times;</span>
                 <div class="modal-header">
-                    <h2 id="modal-ticker" class="font-outfit">TICKER</h2>
-                    <p id="modal-name">Nome da Empresa</p>
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; padding-right:2.5rem;">
+                        <div>
+                            <h2 id="modal-ticker" class="font-outfit">TICKER</h2>
+                            <p id="modal-name" style="margin-bottom:0.25rem;">Nome da Empresa</p>
+                        </div>
+                        <div class="export-dropdown-container" style="position: relative;">
+                            <button type="button" class="btn-export-modal" onclick="toggleExportMenu(event, 'modal-export-menu')" aria-label="Exportar dados do ativo" title="Exportar dados deste ativo">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                <span>Exportar</span>
+                            </button>
+                            <div id="modal-export-menu" class="export-menu hidden">
+                                <button type="button" class="export-option" onclick="exportModalData('csv')">📊 Exportar CSV</button>
+                                <button type="button" class="export-option" onclick="exportModalData('json')">📄 Exportar JSON</button>
+                                <button type="button" class="export-option" onclick="exportModalData('copy')">📋 Copiar Resumo (Texto)</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="modal-body-grid">
@@ -1597,38 +1616,32 @@
                     style="border-top: 1px solid var(--section-subtitle-border); padding-top: 1.5rem;">
                     <h3 class="font-outfit"
                         style="color: var(--accent-gold); font-size: 1.3rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <span>📊</span> Score Fundamentalista (0 a 5)
+                        <span>📊</span> Score Fundamentalista Contínuo (0 a 10)
                     </h3>
                     <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); margin-bottom: 1rem;">
-                        O <strong>Score Fundamentalista</strong> resume a saúde financeira da empresa ou fundo em uma
-                        nota de 0 a 5 pontos baseada em checklist rígido:
+                        O <strong>Score Fundamentalista</strong> resume a saúde e atratividade do ativo em uma nota contínua de 0 a 10 pontos baseada em <strong>Distribuições Gaussianas (*Sweet Spots*)</strong> e <strong>Curvas Sigmoides Logísticas</strong>:
                     </p>
                     <div
                         style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; font-size: 0.85rem; color: var(--text-secondary);">
-                        <div>
-                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">Ações
-                                B3:</strong>
-                            • <strong>P/L Saudável:</strong> P/L positivo e menor que 15 (+1)<br>
-                            • <strong>Endividamento:</strong> Dívida Líquida / Patrimônio < 1 (+1)<br>
-                                • <strong>Crescimento:</strong> Receita crescente nos últimos 5 anos (+1)<br>
-                                • <strong>Rentabilidade:</strong> ROE anual maior ou igual a 10% (+1)<br>
-                                • <strong>Proventos:</strong> Dividend Yield nos últimos 12 meses >= 6% (+1)
+                        <div style="background: rgba(255, 255, 255, 0.02); padding: 0.8rem; border-radius: 8px; border: 1px solid var(--card-border);">
+                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">🏛️ Ações B3 (5 Critérios × 2.0 pts):</strong>
+                            • <strong>P/VP (Pico 0.80):</strong> <em>Deep Value</em> (Barsi/Graham).<br>
+                            • <strong>P/L Médio 5Y (Pico 6.5x):</strong> Múltiplo histórico B3 (Póvoa).<br>
+                            • <strong>DY Médio 3Y (Pico 9.5%):</strong> Piso 6.0% (Bazin).<br>
+                            • <strong>ROE (Inflexão 12%):</strong> Custo de capital (Damodaran).<br>
+                            • <strong>Margem Graham / PEG:</strong> Desconto de valor justo.
                         </div>
-                        <div>
-                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">FIIs (0-5):</strong>
-                            • <strong>P/VP ≤ 1.15 (Base):</strong> Preço justo, não excessivamente caro (+1)<br>
-                            • <strong>P/VP 0.70-1.05 (Bônus):</strong> Faixa ideal de desconto (+1)<br>
-                            • <strong>DY ≥ 8% (Base):</strong> Dividend Yield mínimo (+1)<br>
-                            • <strong>DY ≥ 10% (Bônus):</strong> Dividend Yield excelente (+1)<br>
-                            • <strong>Distribuição:</strong> Rendimento anual positivo ou dividendos históricos 12m (+1)
+                        <div style="background: rgba(255, 255, 255, 0.02); padding: 0.8rem; border-radius: 8px; border: 1px solid var(--card-border);">
+                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">🏢 FIIs (3 Critérios = 10 pts):</strong>
+                            • <strong>P/VP (3.5 pts — Pico 0.95):</strong> Blindagem contra calote de CRIs.<br>
+                            • <strong>Dividend Yield (4.0 pts — Pico 11.5%):</strong> Renda imobiliária perene.<br>
+                            • <strong>Consistência (2.5 pts):</strong> Retenção semestral (&ge; 95%).
                         </div>
-                        <div>
-                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">FIAGROs (0-5):</strong>
-                            • <strong>P/VP ≤ 1.15 (Base):</strong> Preço justo, não excessivamente caro (+1)<br>
-                            • <strong>P/VP 0.70-1.05 (Bônus):</strong> Faixa ideal de desconto (+1)<br>
-                            • <strong>DY ≥ 10% (Base):</strong> Dividend Yield mínimo (+1)<br>
-                            • <strong>DY ≥ 12% (Bônus):</strong> Dividend Yield excelente (+1)<br>
-                            • <strong>Distribuição:</strong> Rendimento anual positivo ou dividendos históricos 12m (+1)
+                        <div style="background: rgba(255, 255, 255, 0.02); padding: 0.8rem; border-radius: 8px; border: 1px solid var(--card-border);">
+                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.4rem;">🌾 FIAGROs (3 Critérios = 10 pts):</strong>
+                            • <strong>P/VP (3.5 pts — Pico 0.95):</strong> Proteção contra inadimplência rural.<br>
+                            • <strong>DY Agro (4.0 pts — Pico 13.5%):</strong> Prêmio de risco do agronegócio.<br>
+                            • <strong>Consistência (2.5 pts):</strong> Estabilidade de proventos.
                         </div>
                     </div>
                 </div>

@@ -86,14 +86,14 @@ class TestRenderTopPicksUniqueness:
         """Top Picks pertencem exclusivamente à Home."""
         # Count calls (exclude the function definition itself)
         calls = re.findall(r'renderTopPicks\s*\(', html)
-        assert len(calls) == 5, (     # 1 definition + 4 calls
-            f"Expected 5 matches (1 def + 4 calls), found {len(calls)}. "
+        assert len(calls) == 6, (     # 1 definition + 5 calls (global + 4 nichos)
+            f"Expected 6 matches (1 def + 5 calls), found {len(calls)}. "
             "Top Picks must be rendered only in Home."
         )
 
     def test_home_containers_present(self, html):
-        """Home chama renderTopPicks para stocks, fiis, fiagros, tesouro."""
-        for cid in ["home-top-stocks", "home-top-fiis",
+        """Home chama renderTopPicks para global, stocks, fiis, fiagros, tesouro."""
+        for cid in ["home-top-global", "home-top-stocks", "home-top-fiis",
                      "home-top-fiagros", "home-top-tesouro"]:
             # calls use single quotes: getElementById('home-top-stocks')
             pattern = (
@@ -405,7 +405,12 @@ class TestModalIsolation:
         assert td_start > 0, "#td-detail-modal element not found."
 
         # Check for Tesouro-specific labels in the modal template
-        section = html[td_start:td_start + 2000]
+        td_end = html.find('<!-- Help Modal -->', td_start)
+        if td_end < 0:
+            td_end = html.find('<script', td_start)
+        if td_end < 0:
+            td_end = td_start + 5000
+        section = html[td_start:td_end]
         tesouro_labels = ["Taxa Atual", "Vencimento", "Preço Compra", "Preço Venda"]
         for label in tesouro_labels:
             assert label in section, (
@@ -509,3 +514,70 @@ class TestGeneratorFieldsInUI:
         assert 'item.sector' not in body, (
             "sector must NOT be in renderTopPicks. Detail is only DY and P/VP."
         )
+
+
+# ===================================================================
+# 9.  Novas Funcionalidades (Comparador, Simulador, Sparklines, Deep Linking)
+# ===================================================================
+
+class TestClientSideFeatureEnhancements:
+    """Valida a integridade estrutural das features 100% client-side sem login."""
+
+    def test_compare_panel_and_logic_exist(self, html):
+        """Painel de comparador head-to-head e funcoes devem existir."""
+        assert 'id="panel-compare"' in html, "Missing #panel-compare in HTML."
+        assert 'renderComparePanel' in html, "Missing renderComparePanel in JS."
+        assert 'addTickerToCompare' in html, "Missing addTickerToCompare in JS."
+        assert 'removeTickerFromCompare' in html, "Missing removeTickerFromCompare in JS."
+        assert 'modal-compare-btn' in html, "Missing compare button in asset modal."
+
+    def test_calculator_panel_and_logic_exist(self, html):
+        """Painel da calculadora de investimentos e todos os seus 5 modos integrados devem existir."""
+        assert 'id="panel-calculator"' in html, "Missing #panel-calculator in HTML."
+        assert 'calculateIncomeGoal' in html, "Missing calculateIncomeGoal in JS."
+        assert 'calculateSnowball' in html, "Missing calculateSnowball in JS."
+        assert 'calculateRfComparison' in html, "Missing calculateRfComparison in JS."
+        assert 'calculateFireRetirement' in html, "Missing calculateFireRetirement in JS."
+        assert 'calculateRuleGraham' in html, "Missing calculateRuleGraham in JS."
+        assert 'calculateRulePeg' in html, "Missing calculateRulePeg in JS."
+        assert 'calculateRuleFii' in html, "Missing calculateRuleFii in JS."
+        assert 'calculateRule200' in html, "Missing calculateRule200 in JS."
+        assert 'calculateRule300' in html, "Missing calculateRule300 in JS."
+        assert 'calculateRule72' in html, "Missing calculateRule72 in JS."
+        assert 'calculateRule503020' in html, "Missing calculateRule503020 in JS."
+        assert 'calculateRuleBazin' in html, "Missing calculateRuleBazin in JS."
+        assert 'calculateRuleAge' in html, "Missing calculateRuleAge in JS."
+        assert 'switchCalcMode' in html, "Missing switchCalcMode in JS."
+        assert 'calc-magic-number' in html, "Missing magic number element in HTML/CSS."
+        assert 'btn-calc-mode-compare-rf' in html, "Missing compare_rf mode button in HTML."
+        assert 'btn-calc-mode-fire' in html, "Missing fire mode button in HTML."
+        assert 'btn-calc-mode-rules' in html, "Missing rules mode button in HTML."
+
+    def test_sparklines_svg_integration(self, html):
+        """Sparklines ultraleves em SVG devem estar integradas nas tabelas."""
+        assert 'generateSparklineSvg' in html, "Missing generateSparklineSvg in JS."
+        assert 'sparkline-svg' in html, "Missing .sparkline-svg in CSS/JS."
+        assert 'sparkline-cell' in html, "Missing .sparkline-cell in CSS/JS."
+
+    def test_deep_linking_hash_sync(self, html):
+        """Sincronizacao de estado via hash de URL para navegacao e compartilhamento."""
+        assert 'syncUrlFromState' in html, "Missing syncUrlFromState in JS."
+        assert 'syncStateFromUrl' in html, "Missing syncStateFromUrl in JS."
+        assert 'hashchange' in html, "Missing hashchange event listener in JS."
+
+
+class TestTableColumnResizer:
+    """Valida o suporte a redimensionamento de colunas estilo Excel nas tabelas."""
+
+    def test_column_resizer_js_functions_exist(self, html):
+        assert 'initTableColumnResizers' in html, "Missing initTableColumnResizers in JS."
+        assert 'startColumnResize' in html, "Missing startColumnResize in JS."
+        assert 'autoFitColumn' in html, "Missing autoFitColumn in JS."
+
+    def test_column_resizer_css_classes_exist(self, html):
+        assert 'col-resizer' in html, "Missing .col-resizer in CSS/JS."
+        assert 'is-col-resizing' in html, "Missing .is-col-resizing in CSS/JS."
+
+    def test_column_resizer_event_listeners(self, html):
+        assert 'radar_col_w_' in html, "Missing localStorage column width persistence."
+

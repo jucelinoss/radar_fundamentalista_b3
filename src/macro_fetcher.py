@@ -43,6 +43,7 @@ TESOURO_HISTORY_RETENTION_DAYS = 365 * 5
 BCB_SGS_BASE = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.{series}/dados/ultimos/{n}?formato=json"
 BCB_SGS_PERIOD = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.{series}/dados?formato=json"
 BCB_FOCUS_BASE = "https://olinda.bcb.gov.br/olinda/servico/Expectativas/versao/v1/odata/ExpectativasMercadoAnuais"
+TESOURO_RENTABILIDADE_INVESTIR_URL = "https://www.tesourodireto.com.br/o/rentabilidade/investir"
 TESOURO_DIRETO_URLS = [
     # Endpoint clássico (protegido por Cloudflare — retorna 403 para bots)
     "https://www.tesourodireto.com.br/tesouro-direto/json/br/com/b3/tesourodireto/model/dto/TesouroDiretoDTO.json",
@@ -666,54 +667,62 @@ def fetch_tesouro_direto() -> list[dict[str, Any]]:
     Tenta múltiplos endpoints conhecidos em sequência.
     Retorna lista de dicionários com campos normalizados.
     """
+    purchase_reference = _load_tesouro_purchase_reference()
     csv_bonds = _fetch_tesouro_transparente_csv()
     if csv_bonds:
-        purchase_catalog = _load_tesouro_purchase_catalog()
-        if purchase_catalog is not None:
+        if purchase_reference["titles"] is not None:
             filtered_bonds = []
             matched_catalog_names: set[str] = set()
             for bond in csv_bonds:
-                offer_name = _catalog_title_for_history_bond(bond.get("name", ""))
-                offer_key = _canonical_tesouro_name(offer_name)
-                if offer_key not in purchase_catalog:
+                annotated = _annotate_tesouro_bond_purchase_availability(bond, purchase_reference)
+                if annotated is None:
                     continue
-                bond["name"] = offer_name
-                bond["purchase_availability_source"] = "configured_tesouro_catalog"
-                filtered_bonds.append(bond)
-                matched_catalog_names.add(offer_key)
+                filtered_bonds.append(annotated)
+                matched_catalog_names.add(_canonical_tesouro_name(annotated.get("name", "")))
 
             for manual_offer in _load_tesouro_manual_offers():
-                offer_key = _canonical_tesouro_name(manual_offer.get("name", ""))
-                if offer_key not in purchase_catalog or offer_key in matched_catalog_names:
+                offer_name = str(manual_offer.get("name", "")).strip()
+                offer_key = _canonical_tesouro_name(offer_name)
+                if offer_key not in purchase_reference["titles"] or offer_key in matched_catalog_names:
                     continue
                 try:
                     maturity = datetime.fromisoformat(manual_offer["maturity_date"]).date()
                 except (KeyError, TypeError, ValueError):
                     logger.warning("[macro_fetcher] Oferta manual inválida no catálogo: %s", manual_offer)
                     continue
-                filtered_bonds.append({
-                    **manual_offer,
-                    "days_to_maturity": (maturity - datetime.now().date()).days,
-                    "buy_yield": None,
-                    "sell_yield": None,
-                    "sell_price": None,
-                    "history": [],
-                    "market_date": datetime.now().date().isoformat(),
-                    "data_source": "configured_tesouro_catalog",
-                    "is_demo": False,
-                    "purchase_available": True,
-                    "purchase_availability_source": "configured_tesouro_catalog",
-                })
+                annotated = _annotate_tesouro_bond_purchase_availability(
+                    {
+                        **manual_offer,
+                        "days_to_maturity": (maturity - datetime.now().date()).days,
+                        "buy_yield": None,
+                        "sell_yield": None,
+                        "sell_price": None,
+                        "history": [],
+                        "market_date": datetime.now().date().isoformat(),
+                        "data_source": purchase_reference["source"],
+                        "is_demo": False,
+                    },
+                    purchase_reference,
+                    offer_name=offer_name,
+                )
+                if annotated is not None:
+                    filtered_bonds.append(annotated)
             if filtered_bonds:
-                for bond in filtered_bonds:
-                    bond["purchase_availability_source"] = "configured_tesouro_catalog"
                 csv_bonds = filtered_bonds
             else:
                 logger.warning(
-                    "[macro_fetcher] Catálogo de compra sem correspondência com o histórico; "
+                    "[macro_fetcher] Controle de compra sem correspondência com o histórico; "
                     "não exibindo títulos como disponíveis."
                 )
                 csv_bonds = []
+        else:
+            csv_bonds = [
+                annotated for annotated in (
+                    _annotate_tesouro_bond_purchase_availability(bond, purchase_reference)
+                    for bond in csv_bonds
+                )
+                if annotated is not None
+            ]
         logger.info(
             f"[macro_fetcher] Tesouro Transparente: {len(csv_bonds)} títulos "
             "com histórico oficial."
@@ -800,11 +809,17 @@ def fetch_tesouro_direto() -> list[dict[str, Any]]:
                 "min_investment": min_invest,
                 "data_source": source,
                 "is_demo": False,
-                "purchase_available": True,
             })
     except Exception as exc:
         logger.warning(f"[macro_fetcher] Erro ao parsear Tesouro Direto: {exc}")
 
+    bonds = [
+        annotated for annotated in (
+            _annotate_tesouro_bond_purchase_availability(bond, purchase_reference)
+            for bond in bonds
+        )
+        if annotated is not None
+    ]
     logger.info(f"[macro_fetcher] Tesouro Direto: {len(bonds)} títulos encontrados.")
     return bonds
 
@@ -826,6 +841,42 @@ def _fetch_tesouro_transparente_csv() -> list[dict[str, Any]]:
     return []
 
 
+def _fetch_tesouro_purchase_offers() -> dict[str, dict[str, Any]] | None:
+    """Busca a lista operacional de ofertas exibida na página de investir do Tesouro."""
+    data = _get(TESOURO_RENTABILIDADE_INVESTIR_URL)
+    if not isinstance(data, dict):
+        return None
+
+    offers: dict[str, dict[str, Any]] = {}
+    checked_at = datetime.now(timezone.utc).isoformat()
+    for channel_name in ("TesouroLegado", "Tesouro24x7"):
+        items = data.get(channel_name, [])
+        if not isinstance(items, list):
+            continue
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            name = str(item.get("treasuryBondName") or "").strip()
+            if not name:
+                continue
+            canonical_name = _canonical_tesouro_name(name)
+            offers[canonical_name] = {
+                "name": name,
+                "canonical_name": canonical_name,
+                "treasury_bond_code": item.get("treasuryBondCode"),
+                "isin_code": item.get("isinCode"),
+                "maturity_date": _parse_tesouro_datetime_value(item.get("maturityDate")),
+                "start_date": _parse_tesouro_datetime_value(item.get("startDate")),
+                "min_investment": _to_float(item.get("investmentBondMinimumValue")),
+                "unitary_investment_value": _to_float(item.get("unitaryInvestmentValue")),
+                "yield_label": item.get("investmentProfitabilityIndexerName"),
+                "availability_channel": channel_name,
+                "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
+                "availability_checked_at": checked_at,
+            }
+    return offers or None
+
+
 def _canonical_tesouro_name(value: str) -> str:
     """Normaliza nomes para comparar o catálogo de compra ao histórico oficial."""
     normalized = unicodedata.normalize("NFKD", value or "")
@@ -845,6 +896,87 @@ def _catalog_title_for_history_bond(name: str) -> str:
     if "educa+" in canonical:
         return f"{name[:-4]}{year - 4}"
     return name
+
+
+def _parse_tesouro_datetime_value(value: Any) -> str | None:
+    """Converte datas vindas do endpoint do Tesouro para YYYY-MM-DD."""
+    if value in (None, ""):
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    try:
+        return datetime.fromisoformat(text.replace("Z", "+00:00")).date().isoformat()
+    except ValueError:
+        return text.split("T")[0] if "T" in text else text
+
+
+def _load_tesouro_purchase_reference() -> dict[str, Any]:
+    """Resolve a fonte de disponibilidade de compra com endpoint primário e catálogo como fallback."""
+    endpoint_offers = _fetch_tesouro_purchase_offers()
+    if endpoint_offers:
+        sample_offer = next(iter(endpoint_offers.values()))
+        return {
+            "titles": set(endpoint_offers.keys()),
+            "offers": endpoint_offers,
+            "source": "tesouro_investir_endpoint",
+            "reason": sample_offer.get("availability_reason"),
+            "checked_at": sample_offer.get("availability_checked_at"),
+        }
+
+    purchase_catalog = _load_tesouro_purchase_catalog()
+    checked_at = datetime.now(timezone.utc).isoformat()
+    if purchase_catalog is not None:
+        return {
+            "titles": purchase_catalog,
+            "offers": {},
+            "source": "configured_tesouro_catalog",
+            "reason": "Título listado no catálogo manual de fallback.",
+            "checked_at": checked_at,
+        }
+
+    return {
+        "titles": None,
+        "offers": {},
+        "source": "tesouro_transparente_csv_inferred",
+        "reason": "Sem endpoint ou catálogo; disponibilidade inferida da cotação oficial.",
+        "checked_at": checked_at,
+    }
+
+
+def _annotate_tesouro_bond_purchase_availability(
+    bond: dict[str, Any],
+    purchase_reference: dict[str, Any],
+    *,
+    offer_name: str | None = None,
+) -> dict[str, Any] | None:
+    """Aplica o status de disponibilidade de compra a um título normalizado."""
+    resolved_name = offer_name or _catalog_title_for_history_bond(str(bond.get("name", "")).strip())
+    offer_key = _canonical_tesouro_name(resolved_name)
+    purchase_titles = purchase_reference.get("titles")
+    if purchase_titles is not None and offer_key not in purchase_titles:
+        return None
+
+    annotated = dict(bond)
+    annotated["name"] = resolved_name
+    annotated["purchase_available"] = True
+    annotated["availability_status"] = "available"
+    annotated["purchase_availability_source"] = purchase_reference.get("source")
+    annotated["availability_checked_at"] = purchase_reference.get("checked_at")
+    annotated["availability_reason"] = purchase_reference.get("reason")
+
+    matched_offer = purchase_reference.get("offers", {}).get(offer_key)
+    if matched_offer:
+        annotated["availability_channel"] = matched_offer.get("availability_channel")
+        annotated["availability_reason"] = matched_offer.get("availability_reason")
+        if annotated.get("min_investment") is None and matched_offer.get("min_investment") is not None:
+            annotated["min_investment"] = matched_offer["min_investment"]
+        if annotated.get("buy_price") is None and matched_offer.get("unitary_investment_value") is not None:
+            annotated["buy_price"] = matched_offer["unitary_investment_value"]
+        if not annotated.get("maturity_date") and matched_offer.get("maturity_date"):
+            annotated["maturity_date"] = matched_offer["maturity_date"]
+
+    return annotated
 
 
 def _load_tesouro_purchase_catalog() -> set[str] | None:
@@ -938,7 +1070,6 @@ def _parse_tesouro_csv(content: str) -> list[dict[str, Any]]:
             "market_date": latest_date.isoformat(),
             "data_source": "tesouro_transparente_csv",
             "is_demo": False,
-            "purchase_available": True,
         })
     return bonds
 

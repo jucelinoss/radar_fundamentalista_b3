@@ -2,6 +2,7 @@
 """Score de oportunidade do Tesouro Direto, comparável apenas por grupo."""
 from __future__ import annotations
 
+import math
 from typing import Any
 
 SCORE_DECIMALS = 2
@@ -12,6 +13,17 @@ _COUPON_MARKER = "Juros Semestrais"
 
 def _clamp(value: float, lo: float, hi: float) -> float:
     return max(lo, min(hi, value))
+
+
+def _sigmoid_score(value: float | None, midpoint: float, steepness: float = 18.0, max_score: float = 4.0) -> float:
+    """Logistic Sigmoid continuous score (0.0 to max_score)."""
+    if value is None:
+        return 0.0
+    try:
+        score = max_score / (1.0 + math.exp(-steepness * (value - midpoint)))
+        return round(_clamp(score, 0.0, max_score), SCORE_DECIMALS)
+    except OverflowError:
+        return max_score if value > midpoint else 0.0
 
 
 def _as_decimal(rate: float) -> float:
@@ -85,11 +97,11 @@ def calculate_real_rate(bond: dict[str, Any], expected_ipca: float | None = None
 
 
 def score_real_rate(bond: dict[str, Any], expected_ipca: float | None = None) -> float:
-    """Compatibilidade: nota de taxa real em escala legada de 0–2."""
+    """Compatibilidade: nota de taxa real em escala legada de 0–2 via Sigmoide."""
     real_rate = calculate_real_rate(bond, expected_ipca)
     if real_rate is None:
         return 0.0
-    return round(_clamp((real_rate - 0.04) / 0.04 * 2, 0.0, 2.0), SCORE_DECIMALS)
+    return _sigmoid_score(real_rate, midpoint=0.055, steepness=110.0, max_score=2.0)
 
 
 def score_mtm_capture(bond: dict[str, Any], focus_selic_next: float | None, current_selic: float | None) -> float:
@@ -140,23 +152,23 @@ def risk_profile(bond: dict[str, Any]) -> str:
 
 
 def _rate_score(bond: dict[str, Any], macro_state: dict[str, Any] | None) -> tuple[float, str, str, str]:
-    """Critério principal de entrada, específico para cada indexador."""
+    """Critério principal de entrada, específico para cada indexador via Sigmoide contínua."""
     rate = bond.get("buy_yield")
     if rate is None:
         return 0.0, "Taxa indisponível", "Sem cotação de compra.", "Aguarda uma cotação oficial."
     rate = _as_decimal(float(rate))
     title_type = bond.get("type")
     if title_type in {"Selic", "Reserva"}:
-        # LFT: a taxa é ágio/deságio em pontos percentuais sobre a Selic.
-        score = _clamp((rate + 0.0015) / 0.003 * 6.0, 0.0, 6.0)
+        # LFT: taxa é ágio/deságio em pontos percentuais sobre a Selic.
+        score = _sigmoid_score(rate, midpoint=0.0, steepness=1500.0, max_score=6.0)
         sign = "+" if rate >= 0 else ""
-        return round(score, SCORE_DECIMALS), "Ágio/deságio sobre a Selic", f"Selic {sign}{rate * 100:.4f}%.", "Deságio positivo aumenta o retorno sobre a Selic; ágio negativo o reduz."
+        return score, "Ágio/deságio sobre a Selic", f"Selic {sign}{rate * 100:.4f}%.", "Deságio positivo aumenta o retorno sobre a Selic; ágio negativo o reduz."
     real_rate = calculate_real_rate(bond, _expected_ipca(bond, macro_state))
     if real_rate is None:
         return 0.0, "Taxa real esperada", "Focus IPCA indisponível.", "Prefixados dependem do IPCA projetado para estimar a taxa real."
-    score = _clamp((real_rate - 0.04) / 0.04 * 4.0, 0.0, 4.0)
+    score = _sigmoid_score(real_rate, midpoint=0.055, steepness=110.0, max_score=5.0)
     label = "Taxa real contratada" if title_type in {"IPCA+", "Educa+", "RendA+"} else "Taxa real esperada"
-    return round(score, SCORE_DECIMALS), label, f"{real_rate * 100:.2f}% a.a.", "IPCA+ usa a taxa real contratada; Prefixado desconta a projeção Focus de inflação."
+    return score, label, f"{real_rate * 100:.2f}% a.a.", "Curva Sigmoide com inflexão em 5,5% a.a. (nível de equilíbrio real). Taxas elevadas (>6,5%) aproximam-se de 5,0 pts."
 
 
 def _peer_values(bond: dict[str, Any], universe: list[dict[str, Any]]) -> tuple[list[float], str]:
@@ -184,9 +196,20 @@ def _mtm_score(bond: dict[str, Any], macro_state: dict[str, Any] | None) -> floa
         return 0.0
     delta = _as_decimal(float(next_year)) - _as_decimal(float(current))
     if delta >= 0:
-        return 0.0
-    duration_factor = _clamp((float(bond.get("days_to_maturity") or 0) / 3650) * (0.65 if _is_coupon_bond(bond) else 1), 0, 1)
-    return round(2 * duration_factor * _clamp(abs(delta) / 0.03, 0, 1), SCORE_DECIMALS)
+        return 0.0  # Em estabilidade ou alta da Selic, não há ganho projetado de MTM
+
+    days = float(bond.get("days_to_maturity") or 0)
+    years = max(0.5, days / 365.0)
+    is_coupon = _is_coupon_bond(bond)
+    effective_duration = years * (0.65 if is_coupon else 1.0)
+    
+    # Sensibilidade de Preço = Duration Modificada × Queda da Taxa
+    # Ex: Título de 14 anos com corte de 1.02% tem sensibilidade de ~14.3% no PU
+    price_sensitivity = effective_duration * abs(delta)
+    
+    # Sigmoide contínua com saturação suave a partir de 8% de sensibilidade de PU
+    score = _sigmoid_score(price_sensitivity, midpoint=0.06, steepness=35.0, max_score=1.0)
+    return round(score, SCORE_DECIMALS)
 
 
 def score_bond(bond: dict[str, Any], universe: list[dict[str, Any]] | dict[str, Any] | None = None, macro_state: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -198,10 +221,10 @@ def score_bond(bond: dict[str, Any], universe: list[dict[str, Any]] | dict[str, 
     historical_rates = _yield_values(bond)
     historical_percentile = round(_percentile(bond.get("buy_yield"), historical_rates) * 100)
     rate_score, rate_label, rate_desc, rate_tip = _rate_score(bond, macro_state)
-    history_max = 2.5
+    history_max = 3.0
     history_score = round(_percentile(bond.get("buy_yield"), historical_rates) * history_max, SCORE_DECIMALS)
     peer_values, peer_group = _peer_values(bond, comparable_bonds)
-    peer_score = round(_percentile(bond.get("buy_yield"), peer_values) * 1.0, SCORE_DECIMALS)
+    peer_score = round(_percentile(bond.get("buy_yield"), peer_values) * 0.5, SCORE_DECIMALS)
     mtm_score = _mtm_score(bond, macro_state)
     tax_score = score_tax_efficiency(bond)
     is_selic = bond.get("type") in {"Selic", "Reserva"}
@@ -210,13 +233,26 @@ def score_bond(bond: dict[str, Any], universe: list[dict[str, Any]] | dict[str, 
     group = bond_group(bond)
     days = bond.get("days_to_maturity", "?")
     breakdown = [
-        {"label": rate_label, "score": rate_score, "max": 6.0 if is_selic else 4.0, "desc": rate_desc, "tip": rate_tip},
+        {"label": rate_label, "score": rate_score, "max": 6.0 if is_selic else 5.0, "desc": rate_desc, "tip": rate_tip},
         {"label": "Taxa vs. histórico", "score": history_score, "max": history_max, "desc": f"Percentil {historical_percentile} em {len(historical_rates)} observações.", "tip": "Taxas maiores que o histórico do mesmo título tornam a nova entrada relativamente mais atrativa."},
-        {"label": "Taxa vs. pares", "score": peer_score, "max": 1.0, "desc": f"Comparação em {peer_group}.", "tip": "Compara apenas títulos do mesmo indexador e fluxo; a faixa de prazo é preservada sempre que houver amostra suficiente."},
+        {"label": "Taxa vs. pares", "score": peer_score, "max": 0.5, "desc": f"Comparação em {peer_group}.", "tip": "Compara apenas títulos do mesmo indexador e fluxo; a faixa de prazo é preservada sempre que houver amostra suficiente."},
     ]
     if not is_selic:
-        breakdown.append({"label": "Potencial de marcação a mercado", "score": mtm_score, "max": 2.0, "desc": f"Prazo efetivo de {days} dias; cupom reduz a duration estimada.", "tip": "Indicador técnico condicionado à queda esperada da Selic; não é previsão nem promessa de ganho."})
-    breakdown.append({"label": "IR até o vencimento", "score": tax_score, "max": 0.5, "desc": f"{days} dias até o vencimento.", "tip": "Peso limitado: imposto é relevante, mas não deve dominar a atratividade do título."})
+        has_coupon = _is_coupon_bond(bond)
+        try:
+            years_est = round(float(days) / 365.0, 1)
+        except (ValueError, TypeError):
+            years_est = "?"
+            
+        if has_coupon:
+            mtm_desc = f"Prazo de {years_est} anos ({days} dias). Cupons semestrais reduzem a duration e amortizam a oscilação."
+            mtm_tip = "Títulos com cupom pagam renda semestral, reduzindo a duration efetiva e amortecendo oscilações de preço na curva."
+        else:
+            mtm_desc = f"Duration integral de {years_est} anos ({days} dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic."
+            mtm_tip = "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
+
+        breakdown.append({"label": "Potencial de marcação a mercado", "score": mtm_score, "max": 1.0, "desc": mtm_desc, "tip": mtm_tip})
+    breakdown.append({"label": "IR até o vencimento", "score": tax_score, "max": 0.5, "desc": f"{days} dias até o vencimento.", "tip": "Alíquota regressiva de IR no vencimento."})
     result = dict(bond)
     result.update({
         "group": group,

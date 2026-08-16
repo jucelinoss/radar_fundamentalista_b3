@@ -117,3 +117,31 @@ def test_planning_titles_do_not_enter_general_ranking(macro):
     planning = next(item for item in scored if item["type"] == "RendA+")
     assert planning["general_rank"] is None
     assert planning["planning_rank"] == 1
+
+
+def test_mtm_score_scales_with_duration_and_non_coupon(macro):
+    """Títulos longos sem cupom têm o maior potencial de marcação a mercado na queda de juros."""
+    long_plain = _bond("Tesouro IPCA+ 2040", "IPCA+", 5114, 0.074)
+    short_plain = _bond("Tesouro Prefixado 2029", "Prefixado", 870, 0.14)
+    long_coupon = _bond("Tesouro IPCA+ com Juros Semestrais 2040", "IPCA+", 5114, 0.074)
+
+    # Macro com corte moderado de 100 bps
+    moderate_macro = {"CURRENT_SELIC": 0.13, "FOCUS_SELIC_NEXT_YEAR": 0.12, "FOCUS_IPCA": [0.04]}
+
+    scored_long = score_bond(long_plain, [long_plain], moderate_macro)
+    scored_short = score_bond(short_plain, [short_plain], moderate_macro)
+    scored_coupon = score_bond(long_coupon, [long_coupon], moderate_macro)
+
+    mtm_long = next(item for item in scored_long["score_breakdown"] if "marcação a mercado" in item["label"])
+    mtm_short = next(item for item in scored_short["score_breakdown"] if "marcação a mercado" in item["label"])
+    mtm_coupon = next(item for item in scored_coupon["score_breakdown"] if "marcação a mercado" in item["label"])
+
+    assert mtm_long["score"] >= 0.90, f"IPCA+ 2040 MTM score muito baixo: {mtm_long['score']}"
+    assert mtm_short["score"] <= 0.40, f"Prefixado curto MTM score muito alto: {mtm_short['score']}"
+    assert mtm_long["score"] > mtm_short["score"], "Título longo deve ter maior MTM que título curto"
+    assert mtm_long["score"] > mtm_coupon["score"], "Título sem cupom deve ter maior MTM que título com cupom de mesmo prazo"
+
+    # Validação da descrição textual
+    assert "sem cupom" in mtm_long["desc"]
+    assert "cupom reduz a duration" not in mtm_long["desc"]
+    assert "Cupons semestrais reduzem a duration" in mtm_coupon["desc"]

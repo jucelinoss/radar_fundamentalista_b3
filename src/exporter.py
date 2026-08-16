@@ -23,7 +23,7 @@ import json
 import logging
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from typing import Any
 
 import database
@@ -140,7 +140,8 @@ def export_csv(output_dir: str | None = None) -> list[tuple[str, str, int]]:
     os.makedirs(output_dir, exist_ok=True)
 
     assets: dict[str, list[dict[str, Any]]] = load_all_assets()
-    timestamp: str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    br_tz = timezone(timedelta(hours=-3))
+    timestamp: str = datetime.now(br_tz).strftime("%Y-%m-%d %H:%M:%S")
 
     exported: list[tuple[str, str, int]] = [
         ("stocks", _write_stock_csv(output_dir, assets["stocks"], timestamp), len(assets["stocks"])),
