@@ -1435,11 +1435,13 @@ const tableSortState = {};
                     id: 'valueLabels',
                     afterDatasetsDraw(chart) {
                         const options = chart.options.plugins?.valueLabels;
-                        if (!options) return;
+                        if (!options || options === false || options.enabled === false) return;
+                        if (chart.config.type === 'bar') return;
+                        if (!options.indicator) return;
 
                         const indicator = options.indicator;
-                        const borderColor = options.borderColor;
-                        const isLight = options.isLight;
+                        const borderColor = options.borderColor || '#3b82f6';
+                        const isLight = (options.isLight !== undefined) ? options.isLight : !document.body.classList.contains('dark');
 
                         const c = chart.ctx;
 
@@ -3223,7 +3225,11 @@ const tableSortState = {};
                 id: 'keyValueLabels',
                 afterDatasetsDraw(chart) {
                     const options = chart.options.plugins?.keyValueLabels;
-                    if (!options) return;
+                    if (!options || options === false || options.enabled === false) return;
+                    if (chart.config.type === 'bar') return;
+                    if (!options.format) return;
+
+                    const isLight = (options.isLight !== undefined) ? options.isLight : !document.body.classList.contains('dark');
 
                     const labels = [];
                     const globalSeen = new Set();
@@ -5090,13 +5096,17 @@ const tableSortState = {};
                         {
                             label: 'Total Aportado',
                             data: points.map(p => p.invested),
-                            backgroundColor: 'rgba(59, 63, 84, 0.45)',
+                            backgroundColor: isLight ? 'rgba(100, 116, 139, 0.4)' : 'rgba(148, 163, 184, 0.4)',
+                            borderColor: isLight ? '#64748b' : '#94a3b8',
+                            borderWidth: 1,
                             borderRadius: 4
                         },
                         {
                             label: 'Patrimônio Total (c/ Dividendos)',
                             data: points.map(p => p.balance),
                             backgroundColor: '#10b981',
+                            borderColor: '#059669',
+                            borderWidth: 1,
                             borderRadius: 4
                         }
                     ]
@@ -5105,6 +5115,8 @@ const tableSortState = {};
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
+                        valueLabels: false,
+                        keyValueLabels: false,
                         legend: {
                             display: true,
                             labels: { color: tickColor, font: { size: 10, weight: '600', family: 'Inter, sans-serif' } }
@@ -5112,7 +5124,7 @@ const tableSortState = {};
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return ` ${context.dataset.label}: R$ ${context.parsed.y.toLocaleString('pt-BR')}`;
+                                    return ` ${context.dataset.label}: R$ ${context.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
                                 }
                             }
                         }
@@ -5126,6 +5138,7 @@ const tableSortState = {};
                             grid: { color: gridColor },
                             ticks: {
                                 color: tickColor,
+                                maxTicksLimit: 5,
                                 font: { size: 10, family: 'Inter, sans-serif' },
                                 callback: v => `R$ ${(v / 1000).toFixed(0)}k`
                             }
