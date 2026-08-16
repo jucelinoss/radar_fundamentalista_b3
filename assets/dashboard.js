@@ -168,7 +168,7 @@ const tableSortState = {};
                     fiis: 'FIIs',
                     fiagros: 'FIAGROs',
                     compare: 'Comparador',
-                    calculator: 'Simulador',
+                    calculator: 'Calculadora de Investimentos',
                     macro: 'Previsor Macro',
                     sectors: 'Setores',
                     rendafixa: 'Tesouro Direto'
@@ -4750,16 +4750,68 @@ const tableSortState = {};
             currentCalcMode = mode;
             const btnGoal = document.getElementById('btn-calc-mode-goal');
             const btnSnow = document.getElementById('btn-calc-mode-snowball');
+            const btnRf = document.getElementById('btn-calc-mode-compare-rf');
+            const btnFire = document.getElementById('btn-calc-mode-fire');
+
             const gridGoal = document.getElementById('calc-grid-goal');
             const gridSnow = document.getElementById('calc-grid-snowball');
+            const gridRf = document.getElementById('calc-grid-compare-rf');
+            const gridFire = document.getElementById('calc-grid-fire');
 
             if (btnGoal) btnGoal.classList.toggle('active', mode === 'goal');
             if (btnSnow) btnSnow.classList.toggle('active', mode === 'snowball');
+            if (btnRf) btnRf.classList.toggle('active', mode === 'compare_rf');
+            if (btnFire) btnFire.classList.toggle('active', mode === 'fire');
+
             if (gridGoal) gridGoal.classList.toggle('hidden', mode !== 'goal');
             if (gridSnow) gridSnow.classList.toggle('hidden', mode !== 'snowball');
+            if (gridRf) gridRf.classList.toggle('hidden', mode !== 'compare_rf');
+            if (gridFire) gridFire.classList.toggle('hidden', mode !== 'fire');
 
             if (mode === 'goal') calculateIncomeGoal();
-            else calculateSnowball();
+            else if (mode === 'snowball') calculateSnowball();
+            else if (mode === 'compare_rf') calculateRfComparison();
+            else if (mode === 'fire') calculateFireRetirement();
+        }
+
+        function setGoalPreset(val) {
+            const input = document.getElementById('calc-goal-target');
+            if (input) {
+                input.value = val;
+                const buttons = document.querySelectorAll('#calc-grid-goal .calc-preset-btn');
+                buttons.forEach(b => b.classList.toggle('active', b.textContent.includes(val.toLocaleString('pt-BR'))));
+                calculateIncomeGoal();
+            }
+        }
+
+        function setSnowMonthlyPreset(val) {
+            const input = document.getElementById('calc-snow-monthly');
+            if (input) {
+                input.value = val;
+                const buttons = document.querySelectorAll('#calc-grid-snowball .calc-preset-btn');
+                buttons.forEach(b => b.classList.toggle('active', b.textContent.includes(val.toLocaleString('pt-BR'))));
+                calculateSnowball();
+            }
+        }
+
+        function setRfAmountPreset(val) {
+            const input = document.getElementById('calc-rf-amount');
+            if (input) {
+                input.value = val;
+                const buttons = document.querySelectorAll('#calc-grid-compare-rf .calc-preset-btn');
+                buttons.forEach(b => b.classList.toggle('active', b.textContent.includes(val.toLocaleString('pt-BR'))));
+                calculateRfComparison();
+            }
+        }
+
+        function setFireCapitalPreset(val) {
+            const input = document.getElementById('calc-fire-capital');
+            if (input) {
+                input.value = val;
+                const buttons = document.querySelectorAll('#calc-grid-fire .calc-preset-btn');
+                buttons.forEach(b => b.classList.toggle('active', b.textContent.includes(val >= 1000000 ? `${val / 1000000} Milh` : `${val / 1000}k`)));
+                calculateFireRetirement();
+            }
         }
 
         function getCalculatorAssetCatalog() {
@@ -5113,6 +5165,19 @@ const tableSortState = {};
                 }
             }
 
+            // Atualiza barra de progresso visual
+            const pctInvested = balance > 0 ? Math.min(100, Math.max(0, Math.round((totalInvested / balance) * 100))) : 50;
+            const pctReturns = 100 - pctInvested;
+            const barInvested = document.getElementById('calc-snow-bar-invested');
+            const barReturns = document.getElementById('calc-snow-bar-returns');
+            const textInvested = document.getElementById('calc-snow-pct-invested');
+            const textReturns = document.getElementById('calc-snow-pct-returns');
+
+            if (barInvested) barInvested.style.width = `${pctInvested}%`;
+            if (barReturns) barReturns.style.width = `${pctReturns}%`;
+            if (textInvested) textInvested.textContent = `${pctInvested}% (R$ ${totalInvested.toLocaleString('pt-BR', { maximumFractionDigits: 0 })})`;
+            if (textReturns) textReturns.textContent = `${pctReturns}% (R$ ${finalDividendsNet.toLocaleString('pt-BR', { maximumFractionDigits: 0 })})`;
+
             renderSnowballChart(historyPoints);
         }
 
@@ -5190,10 +5255,136 @@ const tableSortState = {};
             });
         }
 
+        function calculateRfComparison() {
+            const amountInput = document.getElementById('calc-rf-amount');
+            const daysSelect = document.getElementById('calc-rf-days');
+            const cdiInput = document.getElementById('calc-rf-cdi');
+            const cdbPctInput = document.getElementById('calc-rf-cdb-pct');
+            const lciPctInput = document.getElementById('calc-rf-lci-pct');
+            const tdYieldInput = document.getElementById('calc-rf-td-yield');
+
+            const amount = Math.max(100, parseFloat(amountInput?.value) || 10000);
+            const days = parseInt(daysSelect?.value) || 720;
+            const years = days / 365.0;
+            const cdiRate = (parseFloat(cdiInput?.value) || 13.0) / 100.0;
+            const cdbPct = (parseFloat(cdbPctInput?.value) || 110.0) / 100.0;
+            const lciPct = (parseFloat(lciPctInput?.value) || 92.0) / 100.0;
+            const tdYield = (parseFloat(tdYieldInput?.value) || 14.5) / 100.0;
+
+            // Alíquota regressiva de IR Renda Fixa
+            let taxRate = 0.15;
+            if (days <= 180) taxRate = 0.225;
+            else if (days <= 360) taxRate = 0.20;
+            else if (days <= 720) taxRate = 0.175;
+            else taxRate = 0.15;
+
+            // 1. CDB (Tributado)
+            const cdbGrossAnnual = cdiRate * cdbPct;
+            const cdbTotalGross = amount * Math.pow(1 + cdbGrossAnnual, years);
+            const cdbProfitGross = cdbTotalGross - amount;
+            const cdbTax = cdbProfitGross * taxRate;
+            const cdbNet = cdbTotalGross - cdbTax;
+
+            // 2. LCI / LCA (Isento de IR)
+            const lciNetAnnual = cdiRate * lciPct;
+            const lciNet = amount * Math.pow(1 + lciNetAnnual, years);
+
+            // 3. Tesouro Direto (Tributado)
+            const tdTotalGross = amount * Math.pow(1 + tdYield, years);
+            const tdProfitGross = tdTotalGross - amount;
+            const tdTax = tdProfitGross * taxRate;
+            const tdNet = tdTotalGross - tdTax;
+
+            // Atualiza UI
+            const cdbGrossTaxEl = document.getElementById('calc-cdb-gross-tax');
+            const cdbNetValEl = document.getElementById('calc-cdb-net-val');
+            const lciNetValEl = document.getElementById('calc-lci-net-val');
+            const tdGrossTaxEl = document.getElementById('calc-td-gross-tax');
+            const tdNetValEl = document.getElementById('calc-td-net-val');
+
+            if (cdbGrossTaxEl) cdbGrossTaxEl.textContent = `${(cdbGrossAnnual * 100).toFixed(2)}% a.a. (IR ${(taxRate * 100).toFixed(1)}%)`;
+            if (cdbNetValEl) cdbNetValEl.textContent = `R$ ${cdbNet.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+            if (lciNetValEl) lciNetValEl.textContent = `R$ ${lciNet.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+            if (tdGrossTaxEl) tdGrossTaxEl.textContent = `${(tdYield * 100).toFixed(2)}% a.a. (IR ${(taxRate * 100).toFixed(1)}%)`;
+            if (tdNetValEl) tdNetValEl.textContent = `R$ ${tdNet.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+            // Identifica o Vencedor
+            const cardCdb = document.getElementById('calc-card-cdb');
+            const cardLci = document.getElementById('calc-card-lci');
+            const cardTd = document.getElementById('calc-card-td');
+            const badgeCdb = document.getElementById('badge-winner-cdb');
+            const badgeLci = document.getElementById('badge-winner-lci');
+            const badgeTd = document.getElementById('badge-winner-td');
+
+            const maxNet = Math.max(cdbNet, lciNet, tdNet);
+
+            if (cardCdb) cardCdb.classList.toggle('winner', Math.abs(cdbNet - maxNet) < 0.01);
+            if (badgeCdb) badgeCdb.classList.toggle('hidden', Math.abs(cdbNet - maxNet) >= 0.01);
+
+            if (cardLci) cardLci.classList.toggle('winner', Math.abs(lciNet - maxNet) < 0.01);
+            if (badgeLci) badgeLci.classList.toggle('hidden', Math.abs(lciNet - maxNet) >= 0.01);
+
+            if (cardTd) cardTd.classList.toggle('winner', Math.abs(tdNet - maxNet) < 0.01);
+            if (badgeTd) badgeTd.classList.toggle('hidden', Math.abs(tdNet - maxNet) >= 0.01);
+
+            // Ponto de Equilíbrio (Break-Even)
+            const cdbEquiv = (lciPct / (1 - taxRate)) * 100;
+            const equivDescEl = document.getElementById('calc-rf-equiv-desc');
+            if (equivDescEl) {
+                equivDescEl.textContent = `Para este prazo de ${days} dias (IR ${(taxRate * 100).toFixed(1)}%), uma LCI de ${(lciPct * 100).toFixed(0)}% do CDI equivale a um CDB de ${cdbEquiv.toFixed(1)}% do CDI. Qualquer CDB acima disso rende mais líquido!`;
+            }
+        }
+
+        function calculateFireRetirement() {
+            const capitalInput = document.getElementById('calc-fire-capital');
+            const swrSelect = document.getElementById('calc-fire-swr');
+            const strategySelect = document.getElementById('calc-fire-strategy');
+
+            const capital = Math.max(1000, parseFloat(capitalInput?.value) || 500000);
+            const swr = parseFloat(swrSelect?.value) || 0.04;
+            const strategy = strategySelect?.value || 'mixed';
+
+            const annualWithdrawal = capital * swr;
+            const monthlyWithdrawal = annualWithdrawal / 12.0;
+            const dailyWithdrawal = annualWithdrawal / 365.0;
+
+            const monthlyEl = document.getElementById('calc-fire-monthly');
+            const annualEl = document.getElementById('calc-fire-annual');
+            const dailyEl = document.getElementById('calc-fire-daily');
+            const statusEl = document.getElementById('calc-fire-status');
+            const insightDescEl = document.getElementById('calc-fire-insight-desc');
+
+            if (monthlyEl) monthlyEl.textContent = `R$ ${monthlyWithdrawal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / mês`;
+            if (annualEl) annualEl.textContent = `R$ ${annualWithdrawal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ano`;
+            if (dailyEl) dailyEl.textContent = `R$ ${dailyWithdrawal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / dia`;
+
+            if (statusEl) {
+                if (swr <= 0.04) {
+                    statusEl.textContent = '100% Perpétuo (Capital Intacto)';
+                    statusEl.style.color = 'var(--positive)';
+                } else if (swr <= 0.05) {
+                    statusEl.textContent = 'Muito Seguro (30+ Anos)';
+                    statusEl.style.color = 'var(--positive)';
+                } else {
+                    statusEl.textContent = 'Moderado (Requer Monitoramento)';
+                    statusEl.style.color = 'var(--gold)';
+                }
+            }
+
+            if (insightDescEl) {
+                const swrPct = (swr * 100).toFixed(1);
+                insightDescEl.textContent = `Com R$ ${capital.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} investidos e uma taxa de retirada de ${swrPct}% a.a., você saca R$ ${monthlyWithdrawal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} todo mês reajustado pela inflação sem esgotar o patrimônio principal.`;
+            }
+        }
+
         function renderCalculatorPanel() {
             populateCalculatorSelects();
             if (currentCalcMode === 'goal') calculateIncomeGoal();
-            else calculateSnowball();
+            else if (currentCalcMode === 'snowball') calculateSnowball();
+            else if (currentCalcMode === 'compare_rf') calculateRfComparison();
+            else if (currentCalcMode === 'fire') calculateFireRetirement();
         }
 
         /* ── Macro Forecaster & Scenario Simulator ── */

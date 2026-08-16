@@ -532,12 +532,16 @@ class TestClientSideFeatureEnhancements:
         assert 'modal-compare-btn' in html, "Missing compare button in asset modal."
 
     def test_calculator_panel_and_logic_exist(self, html):
-        """Painel do simulador de renda passiva / bola de neve e funcoes devem existir."""
+        """Painel da calculadora de investimentos e todos os seus 4 modos integrados devem existir."""
         assert 'id="panel-calculator"' in html, "Missing #panel-calculator in HTML."
         assert 'calculateIncomeGoal' in html, "Missing calculateIncomeGoal in JS."
         assert 'calculateSnowball' in html, "Missing calculateSnowball in JS."
+        assert 'calculateRfComparison' in html, "Missing calculateRfComparison in JS."
+        assert 'calculateFireRetirement' in html, "Missing calculateFireRetirement in JS."
         assert 'switchCalcMode' in html, "Missing switchCalcMode in JS."
         assert 'calc-magic-number' in html, "Missing magic number element in HTML/CSS."
+        assert 'btn-calc-mode-compare-rf' in html, "Missing compare_rf mode button in HTML."
+        assert 'btn-calc-mode-fire' in html, "Missing fire mode button in HTML."
 
     def test_sparklines_svg_integration(self, html):
         """Sparklines ultraleves em SVG devem estar integradas nas tabelas."""

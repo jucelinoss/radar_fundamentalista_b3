@@ -1655,15 +1655,87 @@ body.is-col-resizing * {
             border-radius: var(--radius);
             padding: 0.9rem 1.1rem;
         }
-        .calc-magic-icon { font-size: 1.8rem; }
-        .calc-magic-text strong {
-            color: var(--positive);
-            font-size: 1.1rem;
-            display: block;
+        .calc-presets-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            margin-top: 0.25rem;
         }
-        .calc-magic-text span {
-            font-size: 0.8rem;
+        .calc-preset-btn {
+            background: var(--surface);
+            border: 1px solid var(--card-border);
             color: var(--text-secondary);
+            border-radius: 9999px;
+            padding: 0.2rem 0.55rem;
+            font-size: 0.74rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .calc-preset-btn:hover {
+            background: var(--primary-glow, rgba(59, 130, 246, 0.15));
+            border-color: var(--primary-accent);
+            color: var(--text-primary);
+        }
+        .calc-preset-btn.active {
+            background: var(--primary-accent);
+            border-color: var(--primary-accent);
+            color: #fff;
+        }
+        .calc-progress-container {
+            margin-top: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+        .calc-progress-bar {
+            height: 12px;
+            width: 100%;
+            border-radius: 6px;
+            background: var(--surface);
+            display: flex;
+            overflow: hidden;
+            border: 1px solid var(--card-border);
+        }
+        .calc-progress-invested {
+            background: #3b82f6;
+            transition: width 0.3s ease;
+        }
+        .calc-progress-returns {
+            background: #10b981;
+            transition: width 0.3s ease;
+        }
+        .calc-progress-legend {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .calc-compare-card {
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 1rem;
+            background: var(--surface);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            transition: var(--transition);
+        }
+        .calc-compare-card.winner {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+        }
+        .calc-winner-badge {
+            background: #10b981;
+            color: #fff;
+            font-size: 0.70rem;
+            font-weight: 700;
+            padding: 0.15rem 0.5rem;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            align-self: flex-start;
         }
 
         /* ── Macro Tesouro Table Responsivo ── */

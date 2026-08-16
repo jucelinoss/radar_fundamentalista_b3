@@ -109,7 +109,7 @@
             <button class="tab-btn" onclick="switchTab('fiagros')">FIAGROs</button>
             <button class="tab-btn" onclick="switchTab('rendafixa')">Tesouro Direto</button>
             <button class="tab-btn" onclick="switchTab('compare')">Comparador</button>
-            <button class="tab-btn" onclick="switchTab('calculator')">Simulador</button>
+            <button class="tab-btn" onclick="switchTab('calculator')">🧮 Calculadora</button>
             <button class="tab-btn" onclick="switchTab('macro')">Previsor Macro</button>
         </nav>
 
@@ -425,16 +425,18 @@
             </div>
         </section>
 
-        <!-- Calculator Panel (Simulador de Renda & Bola de Neve) -->
-        <section id="panel-calculator" class="calc-container hidden" aria-label="Simulador de Renda Passiva">
+        <!-- Calculator Panel (Calculadora de Investimentos Inteligente) -->
+        <section id="panel-calculator" class="calc-container hidden" aria-label="Calculadora de Investimentos">
             <div class="compare-header-box" style="justify-content: space-between;">
                 <div>
-                    <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary);">💰 Simulador de Renda Passiva & Bola de Neve</h2>
-                    <p style="font-size: 0.8rem; color: var(--text-muted);">Simule metas de proventos, efeito bola de neve e rendimento líquido com impacto real de IR e JCP.</p>
+                    <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary);">🧮 Calculadora de Investimentos Inteligente</h2>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">Simulações financeiras com impacto tributário real (IR/JCP): metas de renda, juros compostos, comparador de renda fixa e retirada para aposentadoria.</p>
                 </div>
                 <div class="calc-mode-selector">
                     <button type="button" class="calc-mode-btn active" id="btn-calc-mode-goal" onclick="switchCalcMode('goal')">🎯 Meta de Renda</button>
-                    <button type="button" class="calc-mode-btn" id="btn-calc-mode-snowball" onclick="switchCalcMode('snowball')">❄️ Efeito Bola de Neve</button>
+                    <button type="button" class="calc-mode-btn" id="btn-calc-mode-snowball" onclick="switchCalcMode('snowball')">❄️ Bola de Neve</button>
+                    <button type="button" class="calc-mode-btn" id="btn-calc-mode-compare-rf" onclick="switchCalcMode('compare_rf')">⚖️ CDB vs LCI vs Tesouro</button>
+                    <button type="button" class="calc-mode-btn" id="btn-calc-mode-fire" onclick="switchCalcMode('fire')">🛡️ Aposentadoria (FIRE)</button>
                 </div>
             </div>
 
@@ -445,6 +447,13 @@
                     <div class="calc-input-group">
                         <label for="calc-goal-target">Renda Líquida Mensal Desejada (R$)</label>
                         <input type="number" id="calc-goal-target" value="1000" min="10" step="50" oninput="calculateIncomeGoal()">
+                        <div class="calc-presets-row">
+                            <button type="button" class="calc-preset-btn" onclick="setGoalPreset(500)">R$ 500</button>
+                            <button type="button" class="calc-preset-btn active" onclick="setGoalPreset(1000)">R$ 1.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="setGoalPreset(2500)">R$ 2.500</button>
+                            <button type="button" class="calc-preset-btn" onclick="setGoalPreset(5000)">R$ 5.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="setGoalPreset(10000)">R$ 10.000</button>
+                        </div>
                     </div>
                     <div class="calc-input-group">
                         <label for="calc-goal-category">Classe / Tipo de Ativo</label>
@@ -532,6 +541,13 @@
                     <div class="calc-input-group">
                         <label for="calc-snow-monthly">Aporte Mensal (R$)</label>
                         <input type="number" id="calc-snow-monthly" value="500" min="0" step="50" oninput="calculateSnowball()">
+                        <div class="calc-presets-row">
+                            <button type="button" class="calc-preset-btn" onclick="setSnowMonthlyPreset(200)">R$ 200</button>
+                            <button type="button" class="calc-preset-btn active" onclick="setSnowMonthlyPreset(500)">R$ 500</button>
+                            <button type="button" class="calc-preset-btn" onclick="setSnowMonthlyPreset(1000)">R$ 1.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="setSnowMonthlyPreset(2000)">R$ 2.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="setSnowMonthlyPreset(5000)">R$ 5.000</button>
+                        </div>
                     </div>
                     <div class="calc-input-group">
                         <label for="calc-snow-category">Classe / Tipo de Ativo</label>
@@ -599,7 +615,17 @@
                             <span id="calc-snow-result-dividends-label" style="color: var(--text-secondary);">Renda Gerada por Juros/Dividendos (Líquida):</span>
                             <span class="calc-stat-val" id="calc-snow-result-dividends" style="color: var(--gold);">R$ 0,00</span>
                         </div>
-                        <div class="calc-stat-item">
+                        <div class="calc-progress-container">
+                            <div class="calc-progress-bar">
+                                <div class="calc-progress-invested" id="calc-snow-bar-invested" style="width: 50%;"></div>
+                                <div class="calc-progress-returns" id="calc-snow-bar-returns" style="width: 50%;"></div>
+                            </div>
+                            <div class="calc-progress-legend">
+                                <span>🔵 Aportes: <strong id="calc-snow-pct-invested">50%</strong></span>
+                                <span>🟢 Juros / Proventos: <strong id="calc-snow-pct-returns">50%</strong></span>
+                            </div>
+                        </div>
+                        <div class="calc-stat-item" style="margin-top: 0.5rem;">
                             <span style="color: var(--text-secondary);">Imposto de Renda Acumulado (Estimado):</span>
                             <span class="calc-stat-val" id="calc-snow-result-tax" style="color: var(--text-muted);">R$ 0,00</span>
                         </div>
@@ -608,8 +634,178 @@
                             <span class="calc-stat-val" id="calc-snow-result-monthly-income" style="font-weight: 800; color: var(--positive);">R$ 0,00 / mês</span>
                         </div>
                     </div>
-                    <div style="position: relative; height: 240px; width: 100%; margin-top: 0.75rem;">
+                    <div style="position: relative; height: 220px; width: 100%; margin-top: 0.5rem;">
                         <canvas id="snowball-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modo 3: Comparador de Renda Fixa (CDB vs LCI vs Tesouro) -->
+            <div class="calc-grid hidden" id="calc-grid-compare-rf">
+                <div class="calc-card">
+                    <h3 style="font-size: 0.95rem; font-weight: 700;">Parâmetros de Comparação</h3>
+                    <div class="calc-input-group">
+                        <label for="calc-rf-amount">Valor a Investir (R$)</label>
+                        <input type="number" id="calc-rf-amount" value="10000" min="100" step="1000" oninput="calculateRfComparison()">
+                        <div class="calc-presets-row">
+                            <button type="button" class="calc-preset-btn" onclick="setRfAmountPreset(5000)">R$ 5.000</button>
+                            <button type="button" class="calc-preset-btn active" onclick="setRfAmountPreset(10000)">R$ 10.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="setRfAmountPreset(50000)">R$ 50.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="setRfAmountPreset(100000)">R$ 100.000</button>
+                        </div>
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-rf-days">Prazo de Aplicação</label>
+                        <select id="calc-rf-days" onchange="calculateRfComparison()">
+                            <option value="180">6 Meses (180 dias — IR 22,5%)</option>
+                            <option value="360">1 Ano (360 dias — IR 20,0%)</option>
+                            <option value="720" selected>2 Anos (720 dias — IR 17,5%)</option>
+                            <option value="1080">3 Anos (1.080 dias — IR 15,0%)</option>
+                            <option value="1800">5 Anos (1.800 dias — IR 15,0%)</option>
+                        </select>
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-rf-cdi">Taxa Selic / CDI de Referência (% a.a.)</label>
+                        <input type="number" id="calc-rf-cdi" value="13.00" min="1" max="30" step="0.25" oninput="calculateRfComparison()">
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-rf-cdb-pct">Opção A: CDB / LC / RDB (% do CDI — Tributado)</label>
+                        <input type="number" id="calc-rf-cdb-pct" value="110.0" min="50" max="200" step="1" oninput="calculateRfComparison()">
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-rf-lci-pct">Opção B: LCI / LCA / CRI / CRA (% do CDI — Isento de IR)</label>
+                        <input type="number" id="calc-rf-lci-pct" value="92.0" min="50" max="200" step="1" oninput="calculateRfComparison()">
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-rf-td-yield">Opção C: Tesouro Prefixado / IPCA+ (Taxa Bruta % a.a.)</label>
+                        <input type="number" id="calc-rf-td-yield" value="14.50" min="1" max="30" step="0.1" oninput="calculateRfComparison()">
+                    </div>
+                </div>
+
+                <div class="calc-card">
+                    <h3 style="font-size: 0.95rem; font-weight: 700;">Resultado Comparativo Líquido</h3>
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <!-- CDB Card -->
+                        <div class="calc-compare-card" id="calc-card-cdb">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <strong>🏦 CDB / LC Tributado</strong>
+                                <span class="calc-winner-badge hidden" id="badge-winner-cdb">🏆 Mais Vantajoso</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                                <span style="color:var(--text-secondary);">Taxa Bruta / IR:</span>
+                                <span id="calc-cdb-gross-tax">14.30% a.a. (IR 17.5%)</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.95rem; font-weight:700;">
+                                <span style="color:var(--text-secondary);">Resgate Líquido:</span>
+                                <span id="calc-cdb-net-val" style="color:var(--positive);">R$ 0,00</span>
+                            </div>
+                        </div>
+
+                        <!-- LCI Card -->
+                        <div class="calc-compare-card" id="calc-card-lci">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <strong>🌱 LCI / LCA Isenta</strong>
+                                <span class="calc-winner-badge hidden" id="badge-winner-lci">🏆 Mais Vantajoso</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                                <span style="color:var(--text-secondary);">Taxa Líquida / IR:</span>
+                                <span>11.96% a.a. (0.0% Isento)</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.95rem; font-weight:700;">
+                                <span style="color:var(--text-secondary);">Resgate Líquido:</span>
+                                <span id="calc-lci-net-val" style="color:var(--positive);">R$ 0,00</span>
+                            </div>
+                        </div>
+
+                        <!-- Tesouro Card -->
+                        <div class="calc-compare-card" id="calc-card-td">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <strong>🪙 Tesouro Direto</strong>
+                                <span class="calc-winner-badge hidden" id="badge-winner-td">🏆 Mais Vantajoso</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                                <span style="color:var(--text-secondary);">Taxa Bruta / IR:</span>
+                                <span id="calc-td-gross-tax">14.50% a.a. (IR 17.5%)</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.95rem; font-weight:700;">
+                                <span style="color:var(--text-secondary);">Resgate Líquido:</span>
+                                <span id="calc-td-net-val" style="color:var(--positive);">R$ 0,00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="calc-magic-badge" style="margin-top: 0.5rem;">
+                        <div class="calc-magic-icon">💡</div>
+                        <div class="calc-magic-text">
+                            <strong id="calc-rf-equiv-title">Ponto de Equilíbrio (Break-Even)</strong>
+                            <span id="calc-rf-equiv-desc">Calculando equivalência tributária...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modo 4: Aposentadoria & Retirada Segura (FIRE) -->
+            <div class="calc-grid hidden" id="calc-grid-fire">
+                <div class="calc-card">
+                    <h3 style="font-size: 0.95rem; font-weight: 700;">Parâmetros da Aposentadoria</h3>
+                    <div class="calc-input-group">
+                        <label for="calc-fire-capital">Patrimônio Acumulado (R$)</label>
+                        <input type="number" id="calc-fire-capital" value="500000" min="10000" step="50000" oninput="calculateFireRetirement()">
+                        <div class="calc-presets-row">
+                            <button type="button" class="calc-preset-btn" onclick="setFireCapitalPreset(100000)">R$ 100k</button>
+                            <button type="button" class="calc-preset-btn" onclick="setFireCapitalPreset(300000)">R$ 300k</button>
+                            <button type="button" class="calc-preset-btn active" onclick="setFireCapitalPreset(500000)">R$ 500k</button>
+                            <button type="button" class="calc-preset-btn" onclick="setFireCapitalPreset(1000000)">R$ 1 Milhão</button>
+                            <button type="button" class="calc-preset-btn" onclick="setFireCapitalPreset(2000000)">R$ 2 Milhões</button>
+                        </div>
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-fire-swr">Taxa Segura de Retirada Anual (SWR / Trinity Study)</label>
+                        <select id="calc-fire-swr" onchange="calculateFireRetirement()">
+                            <option value="0.035">3,5% a.a. — Ultra-Conservadora (Perpétua / Preserva Capital)</option>
+                            <option value="0.040" selected>4,0% a.a. — Regra dos 4% Clássica (Estudo Trinity 30+ Anos)</option>
+                            <option value="0.050">5,0% a.a. — Moderada (Brasil High Yield / FIIs)</option>
+                            <option value="0.060">6,0% a.a. — Regra de Décio Bazin (Foco Dividendos B3)</option>
+                        </select>
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-fire-strategy">Estratégia de Carteira de Renda</label>
+                        <select id="calc-fire-strategy" onchange="calculateFireRetirement()">
+                            <option value="mixed" selected>⚖️ Carteira Balanceada (40% FIIs + 30% Ações + 30% Tesouro IPCA+)</option>
+                            <option value="fiis">🏢 100% FIIs / FIAGROs (Fluxo Mensal Isento de IR)</option>
+                            <option value="tesouro">🪙 100% Tesouro RendA+ / IPCA+ com Juros Semestrais</option>
+                            <option value="stocks">📈 100% Ações Dividendos B3 (Bazin / Graham)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="calc-card">
+                    <h3 style="font-size: 0.95rem; font-weight: 700;">Capacidade de Renda Vitalícia</h3>
+                    <div class="calc-result-box">
+                        <div class="calc-stat-item">
+                            <span style="color: var(--text-secondary);">Saque Mensal Seguro no Bolso:</span>
+                            <span class="calc-stat-val" id="calc-fire-monthly" style="font-size: 1.3rem; color: var(--positive);">R$ 0,00 / mês</span>
+                        </div>
+                        <div class="calc-stat-item">
+                            <span style="color: var(--text-secondary);">Retirada Anual Permitida:</span>
+                            <span class="calc-stat-val" id="calc-fire-annual" style="font-weight: 800; color: var(--positive);">R$ 0,00 / ano</span>
+                        </div>
+                        <div class="calc-stat-item">
+                            <span style="color: var(--text-secondary);">Renda Média Diária:</span>
+                            <span class="calc-stat-val" id="calc-fire-daily">R$ 0,00 / dia</span>
+                        </div>
+                        <div class="calc-stat-item">
+                            <span style="color: var(--text-secondary);">Preservação Real do Capital:</span>
+                            <span class="calc-stat-val" id="calc-fire-status" style="color: var(--positive);">100% Perpétuo</span>
+                        </div>
+                    </div>
+
+                    <div class="calc-magic-badge">
+                        <div class="calc-magic-icon">🛡️</div>
+                        <div class="calc-magic-text">
+                            <strong id="calc-fire-insight-title">Proteção contra a Inflação</strong>
+                            <span id="calc-fire-insight-desc">Com a taxa de retirada segura de 4%, seu patrimônio gera renda vitalícia reajustada pela inflação sem esgotar o montante principal.</span>
+                        </div>
                     </div>
                 </div>
             </div>
