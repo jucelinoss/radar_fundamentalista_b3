@@ -206,12 +206,12 @@ def normalize_dividend_yield(dy: float | None) -> float:
 def get_true_yield(ticker_info: dict[str, Any], yf_ticker: Any | None = None, price: float | None = None) -> float:
     """
     Extrai o dividend yield real usando histórico de 365 dias como fonte primária,
-    com fallback para o campo estático dividendYield do Yahoo Finance.
+    com fallback para dividendRate/price e o campo estático dividendYield do Yahoo Finance.
     
     Fluxo:
       1. Se yf_ticker e price estão disponíveis, tenta usar ticker.actions
          para somar dividendos dos últimos 365 dias e dividir pelo preço.
-      2. Fallback: retorna normalize_dividend_yield(ticker_info.get('dividendYield')).
+      2. Fallback: reconcilia dividendRate, dividendYield e lastDividendValue via _derive_dividend_fields.
     """
     if yf_ticker is not None and price is not None and price > 0:
         try:
@@ -226,7 +226,13 @@ def get_true_yield(ticker_info: dict[str, Any], yf_ticker: Any | None = None, pr
                     return round(total_divs / price, DY_DECIMALS)
         except Exception:
             pass
-    return normalize_dividend_yield(ticker_info.get('dividendYield'))
+    dy, _ = _derive_dividend_fields(
+        ticker_info.get('dividendYield'),
+        ticker_info.get('dividendRate'),
+        price,
+        last_div=ticker_info.get('lastDividendValue')
+    )
+    return dy
 
 
 # ---------------------------------------------------------------------------
@@ -591,10 +597,10 @@ def _parse_price(info: dict[str, Any]) -> float | None:
 
 def _derive_dividend_fields(dividend_yield: Any, dividend_rate: Any, price: float | None, last_div: Any = None) -> tuple[float, float | None]:
     """
-    Derive dividend_yield and dividend_rate when one is missing.
+    Derive dividend_yield and dividend_rate when one is missing or un-annualized.
     
-    yfinance often provides one but not the other; this fills the gap.
-    For FIIs/FIAGROs, lastDividendValue may also be available.
+    yfinance/APIs often confuse dividendRate (R$ per share, e.g. 1.37) with dividendYield (0.0137),
+    or return a single monthly distribution instead of trailing 12 months.
     Returns (normalized_yield, rate).
     """
     dy = normalize_dividend_yield(dividend_yield)
@@ -609,10 +615,26 @@ def _derive_dividend_fields(dividend_yield: Any, dividend_rate: Any, price: floa
             if dy != rate / price:
                 rate = round(dy * price, 4)
     
-    if (not dy or dy == 0.0) and rate and price:
+    # If rate is available and consistent with price, compute true annual DY
+    if rate and price and price > 0:
+        # Detect if rate is a single monthly distribution (e.g. rate/price < 0.045, i.e. < 4.5%/month)
+        # In Brazilian FIIs/FIAGROs, distributions occur monthly; un-annualized monthly rates must be annualized by 12x
+        if (rate / price) < 0.045:
+            annual_rate = rate * 12.0
+            calculated_dy = round(annual_rate / price, DY_DECIMALS)
+            rate = round(annual_rate, 4)
+        else:
+            calculated_dy = round(rate / price, DY_DECIMALS)
+
+        # If the provided dy is ~100x smaller or near zero (< 0.05) while calculated_dy is healthy (>= 0.05)
+        if dy and dy < 0.05 and calculated_dy >= 0.05:
+            dy = calculated_dy
+        elif not dy or dy == 0.0:
+            dy = calculated_dy
+    elif (not dy or dy == 0.0) and rate and price:
         dy = normalize_dividend_yield(rate / price)
-    if not rate and dy and price:
-        rate = dy * price
+    elif not rate and dy and price:
+        rate = round(dy * price, 4)
         
     # Re-align rate if it is 100x larger than dy * price (cents vs. BRL mismatch)
     if dy and rate and price:

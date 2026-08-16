@@ -725,6 +725,23 @@ class TestAnalyzeFiagro:
         assert result["price"] == 80.00
         assert result["score"] == 0
 
+    def test_fiagro_dividend_rate_and_unannualized_recovery(self):
+        """Recupera DY anualizado quando dividendRate de 1.37 BRL é fornecido em cota de 8.16 BRL."""
+        info = {
+            "currentPrice": 8.16,
+            "priceToBook": 0.79,
+            "dividendYield": 0.0137,  # R$ 1.37 erroneamente como 0.0137 (1.37%)
+            "dividendRate": 1.37,     # R$ 1.37 / cota nos últimos 12 meses
+            "longName": "Itau Asset Rural Fiagro",
+        }
+        result = analyze_fiagro("RURA11.SA", info)
+        # Deve calcular DY = 1.37 / 8.16 ~ 0.16788 (16.79%), e não 1.37%
+        assert result["dividend_yield"] > 0.15
+        assert round(result["dividend_yield"] * 100, 1) == 16.8
+        # O score de DY não deve ser 0.0, mas sim > 2.5 (muito positivo na Gaussiana)
+        dy_breakdown = next(item for item in result["score_breakdown"] if "Yield" in item["label"])
+        assert dy_breakdown["score"] >= 2.5
+
 
 # ======================================================================
 # Stock PEG Ratio Tests (new criterion 5 alternative)

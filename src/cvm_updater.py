@@ -365,22 +365,14 @@ def _download_and_match_vpas(
                 
                 if dy_row is not None:
                     raw_dy = float(dy_row[dy_column])
-                    
-                    if dy_is_percentage:
-                        # FIAGRO: column stores percentage (1.18 = 1.18%/mo)
-                        # Convert to monthly decimal
+                    # Detecta se a CVM reportou em formato percentual (ex: 1.37 = 1.37%/mês)
+                    # ou decimal (ex: 0.0137 = 1.37%/mês). Valores > 0.20 (20%/mês) são percentuais.
+                    if raw_dy > 0.20:
                         monthly_decimal = raw_dy / 100.0
                     else:
-                        # FII: column stores decimal (0.010086 = 1.0086%/mo)
-                        # But CVM is inconsistent: some values are in percentage format
-                        # (0.935 = 0.935%/mo). Detect by magnitude:
-                        # raw_dy > 0.20 would mean >20%/mo which is unrealistic.
-                        if raw_dy > 0.20:
-                            monthly_decimal = raw_dy / 100.0
-                        else:
-                            monthly_decimal = raw_dy
+                        monthly_decimal = raw_dy
                     
-                    # Annualize: monthly decimal × 12
+                    # Anualização padrão: taxa mensal × 12 meses
                     dy_decimal = round(monthly_decimal * 12.0, 6)
                     dy_map[ticker] = dy_decimal
 

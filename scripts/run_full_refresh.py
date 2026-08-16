@@ -64,13 +64,18 @@ for s in stocks:
     cursor.execute("UPDATE stocks SET score_v2 = ?, score_breakdown = ? WHERE ticker = ?", (score_v2, json.dumps(breakdown, ensure_ascii=False), s['ticker']))
 
 # 2. Update FIIs
-cursor.execute("SELECT ticker, pb_ratio, dividend_yield, dividend_consistency FROM fiis")
+cursor.execute("SELECT ticker, price, pb_ratio, dividend_yield, dividend_rate, dividend_consistency FROM fiis")
 fiis = cursor.fetchall()
 print(f"[*] Processando {len(fiis)} FIIs...")
 for f in fiis:
+    price = safe_float(f['price'])
     pb = safe_float(f['pb_ratio'])
-    dy = normalize_dividend_yield(f['dividend_yield'])
+    raw_dy = safe_float(f['dividend_yield'])
+    raw_rate = safe_float(f['dividend_rate'])
     cons = safe_float(f['dividend_consistency'])
+    
+    from analyzer import _derive_dividend_fields
+    dy, rate = _derive_dividend_fields(raw_dy, raw_rate, price)
     
     score_v2 = calculate_fii_score_continuous(pb, dy, cons)
     s_pb = _score_pb_fii_unified(pb)
@@ -83,16 +88,21 @@ for f in fiis:
         {"label": "Consistência de Proventos", "score": s_cons, "max": 2.5, "desc": f"{(cons * 100):.2f}%" if cons is not None else "N/D (neutro 1.5)", "tip": "Curva Sigmoide Logística de retenção semestral. Inflexão em 85%; fundos estáveis (≥95%) atingem até 2,5 pts. Sem histórico: 1,5 pts neutro."}
     ]
     
-    cursor.execute("UPDATE fiis SET score_v2 = ?, score_breakdown = ? WHERE ticker = ?", (score_v2, json.dumps(breakdown, ensure_ascii=False), f['ticker']))
+    cursor.execute("UPDATE fiis SET dividend_yield = ?, dividend_rate = ?, score_v2 = ?, score_breakdown = ? WHERE ticker = ?", (dy, rate, score_v2, json.dumps(breakdown, ensure_ascii=False), f['ticker']))
 
 # 3. Update FIAGROs
-cursor.execute("SELECT ticker, pb_ratio, dividend_yield, dividend_consistency FROM fiagros")
+cursor.execute("SELECT ticker, price, pb_ratio, dividend_yield, dividend_rate, dividend_consistency FROM fiagros")
 fiagros = cursor.fetchall()
 print(f"[*] Processando {len(fiagros)} FIAGROs...")
 for f in fiagros:
+    price = safe_float(f['price'])
     pb = safe_float(f['pb_ratio'])
-    dy = normalize_dividend_yield(f['dividend_yield'])
+    raw_dy = safe_float(f['dividend_yield'])
+    raw_rate = safe_float(f['dividend_rate'])
     cons = safe_float(f['dividend_consistency'])
+    
+    from analyzer import _derive_dividend_fields
+    dy, rate = _derive_dividend_fields(raw_dy, raw_rate, price)
     
     score_v2 = calculate_fiagro_score_continuous(pb, dy, cons)
     s_pb = _score_pb_fii_unified(pb)
@@ -105,7 +115,7 @@ for f in fiagros:
         {"label": "Consistência de Proventos", "score": s_cons, "max": 2.5, "desc": f"{(cons * 100):.2f}%" if cons is not None else "N/D (neutro 1.5)", "tip": "Curva Sigmoide Logística de retenção semestral. Inflexão em 85%; fundos estáveis (≥95%) atingem até 2,5 pts. Sem histórico: 1,5 pts neutro."}
     ]
     
-    cursor.execute("UPDATE fiagros SET score_v2 = ?, score_breakdown = ? WHERE ticker = ?", (score_v2, json.dumps(breakdown, ensure_ascii=False), f['ticker']))
+    cursor.execute("UPDATE fiagros SET dividend_yield = ?, dividend_rate = ?, score_v2 = ?, score_breakdown = ? WHERE ticker = ?", (dy, rate, score_v2, json.dumps(breakdown, ensure_ascii=False), f['ticker']))
 
 conn.commit()
 conn.close()
