@@ -5426,12 +5426,102 @@ const tableSortState = {};
             if (savingsEl) savingsEl.textContent = `R$ ${savings.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / mês`;
         }
 
+        function calculateRuleGraham() {
+            const lpaInput = document.getElementById('rule-graham-lpa');
+            const vpaInput = document.getElementById('rule-graham-vpa');
+            const priceInput = document.getElementById('rule-graham-price');
+            const resEl = document.getElementById('rule-graham-result');
+            const marginEl = document.getElementById('rule-graham-margin');
+
+            const lpa = Math.max(0.01, parseFloat(lpaInput?.value) || 3.50);
+            const vpa = Math.max(0.01, parseFloat(vpaInput?.value) || 25.00);
+            const price = Math.max(0.01, parseFloat(priceInput?.value) || 32.00);
+
+            const grahamVal = Math.sqrt(22.5 * lpa * vpa);
+            const marginPct = ((grahamVal - price) / price) * 100;
+
+            if (resEl) resEl.textContent = `R$ ${grahamVal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (marginEl) {
+                if (marginPct >= 0) {
+                    marginEl.textContent = `+${marginPct.toFixed(1)}% de Margem (Desconto)`;
+                    marginEl.style.color = 'var(--positive)';
+                } else {
+                    marginEl.textContent = `${marginPct.toFixed(1)}% (Negociando com Ágio)`;
+                    marginEl.style.color = 'var(--negative)';
+                }
+            }
+        }
+
         function calculateRuleBazin() {
             const input = document.getElementById('rule-bazin-dpa');
+            const priceInput = document.getElementById('rule-bazin-price');
             const resEl = document.getElementById('rule-bazin-result');
+            const marginEl = document.getElementById('rule-bazin-margin');
+
             const dpa = Math.max(0.01, parseFloat(input?.value) || 2.40);
+            const price = Math.max(0.01, parseFloat(priceInput?.value) || 30.00);
             const ceilingPrice = dpa / 0.06;
+            const marginPct = ((ceilingPrice - price) / price) * 100;
+
             if (resEl) resEl.textContent = `R$ ${ceilingPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (marginEl) {
+                if (marginPct >= 0) {
+                    marginEl.textContent = `+${marginPct.toFixed(1)}% abaixo do Teto`;
+                    marginEl.style.color = 'var(--positive)';
+                } else {
+                    marginEl.textContent = `${marginPct.toFixed(1)}% acima do Teto (Caro p/ 6% DY)`;
+                    marginEl.style.color = 'var(--negative)';
+                }
+            }
+        }
+
+        function calculateRulePeg() {
+            const peInput = document.getElementById('rule-peg-pe');
+            const growthInput = document.getElementById('rule-peg-growth');
+            const resEl = document.getElementById('rule-peg-result');
+            const descEl = document.getElementById('rule-peg-desc');
+
+            const pe = Math.max(0.1, parseFloat(peInput?.value) || 8.5);
+            const growth = Math.max(0.1, parseFloat(growthInput?.value) || 15.0);
+            const peg = pe / growth;
+
+            if (resEl) {
+                if (peg < 1.0) {
+                    resEl.textContent = `${peg.toFixed(2)} (Excelente Oportunidade)`;
+                    resEl.style.color = 'var(--positive)';
+                } else if (peg <= 1.5) {
+                    resEl.textContent = `${peg.toFixed(2)} (Valuation Justo)`;
+                    resEl.style.color = 'var(--gold)';
+                } else {
+                    resEl.textContent = `${peg.toFixed(2)} (P/L Esticado)`;
+                    resEl.style.color = 'var(--negative)';
+                }
+            }
+            if (descEl) {
+                if (peg < 1.0) descEl.textContent = 'Ação em fase de alto crescimento negociando com valuation muito atrativo!';
+                else if (peg <= 1.5) descEl.textContent = 'Preço alinhado ao ritmo de expansão dos lucros da empresa.';
+                else descEl.textContent = 'Múltiplo P/L elevado exige aceleração substancial de lucros futuros.';
+            }
+        }
+
+        function calculateRuleFii() {
+            const distribInput = document.getElementById('rule-fii-distrib');
+            const priceInput = document.getElementById('rule-fii-price');
+            const resEl = document.getElementById('rule-fii-result');
+            const yieldEl = document.getElementById('rule-fii-yield');
+
+            const distrib = Math.max(0.01, parseFloat(distribInput?.value) || 0.90);
+            const price = Math.max(0.1, parseFloat(priceInput?.value) || 105.00);
+
+            const ceilingPrice = distrib / 0.0075;
+            const monthlyYield = (distrib / price) * 100;
+            const annualYield = monthlyYield * 12;
+
+            if (resEl) resEl.textContent = `R$ ${ceilingPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (yieldEl) {
+                yieldEl.textContent = `${monthlyYield.toFixed(2)}% a.m. (${annualYield.toFixed(1)}% a.a. isento)`;
+                yieldEl.style.color = monthlyYield >= 0.75 ? 'var(--positive)' : 'var(--gold)';
+            }
         }
 
         function calculateRuleAge() {
@@ -5448,11 +5538,14 @@ const tableSortState = {};
         }
 
         function calculateAllRules() {
+            calculateRuleGraham();
+            calculateRuleBazin();
+            calculateRulePeg();
+            calculateRuleFii();
             calculateRule200();
             calculateRule300();
             calculateRule72();
             calculateRule503020();
-            calculateRuleBazin();
             calculateRuleAge();
         }
 
