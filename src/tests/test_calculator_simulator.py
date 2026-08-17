@@ -260,7 +260,7 @@ class TestCalculatorDOMContract:
     def test_nav_tabs_order_and_compare_responsive_structure(self, html_content, js_content, css_content):
         """Valida que as abas seguem o fluxo logico e as tabelas possuem suporte responsivo completo."""
         tab_matches = re.findall(r"switchTab\('([a-z]+)'\)", html_content)
-        expected_order = ['home', 'global', 'stocks', 'sectors', 'fiis', 'fiagros', 'rendafixa', 'compare', 'calculator', 'macro']
+        expected_order = ['home', 'global', 'stocks', 'sectors', 'fiis', 'fiagros', 'rendafixa', 'compare', 'calculator', 'macro', 'glossary']
         assert tab_matches == expected_order, f"Ordem das abas incorreta: {tab_matches}"
 
         # Validacao de classes e estilizacao responsiva
@@ -304,3 +304,25 @@ class TestCalculatorDOMContract:
         assert 'hasCoupon' in js_content
         assert 'isNonCouponTreasury' in js_content
         assert 'Título sem Cupom (Capitalização no PU)' in js_content
+
+    def test_glossary_panel_and_concepts_exist(self, html_content, js_content, css_content):
+        """Valida que o Glossario e Base de Conhecimento possuem estrutura completa no padrao MS Learn."""
+        assert 'id="panel-glossary"' in html_content
+        assert 'id="learn-search"' in html_content
+        assert 'filterGlossary' in html_content
+        assert 'setGlossaryCategory' in html_content
+        assert 'function filterGlossary(' in js_content
+        assert 'function setGlossaryCategory(' in js_content
+        assert '.learn-container' in css_content
+        assert '.learn-card' in css_content
+        # Conceitos fundamentais
+        assert 'PGBL' in html_content
+        assert 'VGBL' in html_content
+        assert 'Taxa Selic' in html_content
+        assert 'IPCA' in html_content
+        assert 'IGP-M' in html_content
+        assert 'Câmbio & Dólar' in html_content
+        assert 'FIIs' in html_content
+        assert 'FIAGROs' in html_content
+        assert 'Tesouro Direto' in html_content
+
