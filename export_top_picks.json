@@ -1,25 +1,11 @@
 {
   "meta": {
-    "exported_at": "2026-08-17T20:54:01.591555",
+    "exported_at": "2026-08-17T20:58:49.331204",
     "source": "Radar Fundamentalista B3 - Top Picks",
     "description": "Melhores ativos por score fundamentalista. Pronto para alimentar IA com sua carteira.",
     "suggested_prompt": "Analise minha carteira de investimentos comparando com estes top picks. Para cada ativo da minha carteira, sugira se devo manter, aumentar, reduzir ou vender, considerando os scores fundamentalistas, DY, P/L, P/VP, ROE e margem de seguranca de Graham."
   },
   "top_stocks": [
-    {
-      "ticker": "AXIA3",
-      "name": "AXIA Energia SA",
-      "sector": "Utilidade Pública",
-      "price": 50.18,
-      "pe_ratio": 9.59,
-      "pb_ratio": 1.18,
-      "dividend_yield_pct": 7.27,
-      "roe_pct": 10.01,
-      "graham_price": 70.83,
-      "bazin_price": 60.83,
-      "score": 5.0,
-      "upside_graham_pct": 41.2
-    },
     {
       "ticker": "ABCB4",
       "name": "Banco ABC Brasil S.A.",
@@ -33,6 +19,20 @@
       "bazin_price": 39.0,
       "score": 5.0,
       "upside_graham_pct": 162.8
+    },
+    {
+      "ticker": "AXIA3",
+      "name": "AXIA Energia SA",
+      "sector": "Utilidade Pública",
+      "price": 50.18,
+      "pe_ratio": 9.59,
+      "pb_ratio": 1.18,
+      "dividend_yield_pct": 7.27,
+      "roe_pct": 10.01,
+      "graham_price": 70.83,
+      "bazin_price": 60.83,
+      "score": 5.0,
+      "upside_graham_pct": 41.2
     },
     {
       "ticker": "BBDC3",
@@ -49,20 +49,6 @@
       "upside_graham_pct": 103.7
     },
     {
-      "ticker": "CEAB3",
-      "name": "C&A Modas S.A.",
-      "sector": "Consumo Cíclico",
-      "price": 7.84,
-      "pe_ratio": 4.22,
-      "pb_ratio": 0.62,
-      "dividend_yield_pct": 6.65,
-      "roe_pct": 15.49,
-      "graham_price": 23.03,
-      "bazin_price": 15.0,
-      "score": 5.0,
-      "upside_graham_pct": 193.8
-    },
-    {
       "ticker": "BBDC4",
       "name": "Banco Bradesco S.A.",
       "sector": "Serviços Financeiros",
@@ -75,6 +61,20 @@
       "bazin_price": 3.83,
       "score": 5.0,
       "upside_graham_pct": 79.2
+    },
+    {
+      "ticker": "CEAB3",
+      "name": "C&A Modas S.A.",
+      "sector": "Consumo Cíclico",
+      "price": 7.84,
+      "pe_ratio": 4.22,
+      "pb_ratio": 0.62,
+      "dividend_yield_pct": 6.65,
+      "roe_pct": 15.49,
+      "graham_price": 23.03,
+      "bazin_price": 15.0,
+      "score": 5.0,
+      "upside_graham_pct": 193.8
     },
     {
       "ticker": "BRSR6",
@@ -91,20 +91,6 @@
       "upside_graham_pct": 286.1
     },
     {
-      "ticker": "CMIG4",
-      "name": "Companhia Energética de Minas Gerais - CEMIG",
-      "sector": "Utilidade Pública",
-      "price": 10.21,
-      "pe_ratio": 5.97,
-      "pb_ratio": 1.0,
-      "dividend_yield_pct": 12.54,
-      "roe_pct": 15.94,
-      "graham_price": 19.8,
-      "bazin_price": 21.33,
-      "score": 5.0,
-      "upside_graham_pct": 93.9
-    },
-    {
       "ticker": "CMIG3",
       "name": "Companhia Energética de Minas Gerais - CEMIG",
       "sector": "Utilidade Pública",
@@ -117,6 +103,20 @@
       "bazin_price": 23.33,
       "score": 5.0,
       "upside_graham_pct": 32.4
+    },
+    {
+      "ticker": "CMIG4",
+      "name": "Companhia Energética de Minas Gerais - CEMIG",
+      "sector": "Utilidade Pública",
+      "price": 10.21,
+      "pe_ratio": 5.97,
+      "pb_ratio": 1.0,
+      "dividend_yield_pct": 12.54,
+      "roe_pct": 15.94,
+      "graham_price": 19.8,
+      "bazin_price": 21.33,
+      "score": 5.0,
+      "upside_graham_pct": 93.9
     },
     {
       "ticker": "CYRE3",
