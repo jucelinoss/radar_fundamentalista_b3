@@ -14,9 +14,7 @@ echo 2/2 Iniciando servidor em http://localhost:8000
 echo Pressione CTRL+C para parar
 echo.
 
-start /B "" python src/server.py
-
-timeout /t 3 >nul
-start http://localhost:8000/index-v2.html
+timeout /t 2 >nul
+start http://localhost:8000/
 
 python src/server.py

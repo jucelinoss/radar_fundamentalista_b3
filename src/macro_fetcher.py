@@ -83,7 +83,7 @@ TESOURO_CSV_RETRY_BACKOFF_SECONDS = 1
 # O CSV do Tesouro Transparente é uma série histórica e ainda contém IGP-M+,
 # linha descontinuada que não integra mais o catálogo de compra do Tesouro Direto.
 DISCONTINUED_TESOURO_TYPES = {"IGP-M+"}
-MACRO_STATE_SCHEMA_VERSION = 12
+MACRO_STATE_SCHEMA_VERSION = 13
 TESOURO_QUOTE_METHOD = "tesouro-rate-v2"
 _REQUIRED_HISTORY_KEYS = ("SELIC_HISTORY", "IPCA_HISTORY", "CAMBIO_HISTORY")
 
@@ -325,9 +325,9 @@ def fetch_selic_meta() -> float | None:
 
 
 # ---------------------------------------------------------------------------
-# 1a-ter. Histórico Selic Meta (5 anos) — BCB SGS Série 432
+# 1a-ter. Histórico Selic Meta (10 anos) — BCB SGS Série 432
 # ---------------------------------------------------------------------------
-def fetch_selic_meta_history(years: int = 5) -> list[dict[str, Any]]:
+def fetch_selic_meta_history(years: int = 10) -> list[dict[str, Any]]:
     """
     Busca histórico da Selic META (COPOM) dos últimos N anos.
 
@@ -380,7 +380,7 @@ def _fetch_sgs_period(series: int, years: int) -> list[dict[str, Any]]:
         return []
 
 
-def fetch_selic_history(years: int = 5) -> list[dict[str, Any]]:
+def fetch_selic_history(years: int = 10) -> list[dict[str, Any]]:
     """
     Busca histórico diário da Selic Over dos últimos N anos.
     Retorna lista de {date, value} com a taxa anualizada (decimal).
@@ -482,9 +482,9 @@ def fetch_ipca_history(years: int = 5) -> list[dict[str, Any]]:
 
 
 # ---------------------------------------------------------------------------
-# 1d. Histórico Câmbio (5 anos) — BCB SGS Série 1
+# 1d. Histórico Câmbio (10 anos) — BCB SGS Série 1
 # ---------------------------------------------------------------------------
-def fetch_cambio_history(years: int = 5) -> list[dict[str, Any]]:
+def fetch_cambio_history(years: int = 10) -> list[dict[str, Any]]:
     """
     Busca histórico diário da taxa de câmbio PTAX venda (R$/US$).
     Série SGS 1 = Taxa de câmbio - livre - Dólar americano (venda) - diária.
@@ -1383,13 +1383,13 @@ def fetch_macro_state(force: bool = False) -> dict[str, Any]:
     if ettj.get("1y") is None or ettj["1y"] < 0.01:
         ettj = fetch_ettj(current_selic, focus_selic_next)
 
-    # ── Histórico 5 anos (Selic Meta, IPCA, Câmbio PTAX) ──
-    selic_history = fetch_selic_meta_history(5)
+    # ── Histórico 10 anos (Selic Meta, IPCA, Câmbio PTAX) ──
+    selic_history = fetch_selic_meta_history(10)
     # IPCA: duas visões via SIDRA (IBGE) — acum. 12 meses + acum. no ano
-    ipca_sidra = fetch_ipca_sidra_history()
+    ipca_sidra = fetch_ipca_sidra_history(10)
     ipca_history = ipca_sidra.get("IPCA_HISTORY", [])
     ipca_ytd_history = ipca_sidra.get("IPCA_YTD_HISTORY", [])
-    cambio_history = fetch_cambio_history(5)
+    cambio_history = fetch_cambio_history(10)
     logger.info(
         f"[macro_fetcher] Histórico: Selic Meta {len(selic_history)} pts (SGS 432), "
         f"IPCA 12m {len(ipca_history)} pts / YTD {len(ipca_ytd_history)} pts (SIDRA), "
