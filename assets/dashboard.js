@@ -171,7 +171,8 @@ const tableSortState = {};
                     calculator: 'Calculadora de Investimentos',
                     macro: 'Previsor Macro',
                     sectors: 'Setores',
-                    rendafixa: 'Tesouro Direto'
+                    rendafixa: 'Tesouro Direto',
+                    glossary: 'Glossário & Educação'
                 };
                 pdfLabel.textContent = names[tab] || tab;
             }
@@ -186,6 +187,7 @@ const tableSortState = {};
             const panelMacro = document.getElementById('panel-macro');
             const panelSectors = document.getElementById('panel-sectors');
             const panelRendaFixa = document.getElementById('panel-rendafixa');
+            const panelGlossary = document.getElementById('panel-glossary');
             const filtersRow = document.querySelector('.filters-row');
 
             allBtns.forEach(b => {
@@ -193,7 +195,7 @@ const tableSortState = {};
                 b.classList.toggle('active', onclick.includes(`'${tab}'`));
             });
 
-            [panelHome, panelGlobal, panelStocks, panelFiis, panelFiagros, panelCompare, panelCalculator, panelMacro, panelSectors, panelRendaFixa].forEach(p => {
+            [panelHome, panelGlobal, panelStocks, panelFiis, panelFiagros, panelCompare, panelCalculator, panelMacro, panelSectors, panelRendaFixa, panelGlossary].forEach(p => {
                 if (p) p.classList.add('hidden');
             });
             if (filtersRow) filtersRow.classList.toggle('hidden', !['stocks', 'fiis', 'fiagros'].includes(tab));
@@ -231,6 +233,8 @@ const tableSortState = {};
                         renderRendaFixaPanel(window.dashboardData);
                     });
                 }
+            } else if (tab === 'glossary') {
+                if (panelGlossary) panelGlossary.classList.remove('hidden');
             }
 
             const indexFilter = document.getElementById('index-filter');
@@ -4151,6 +4155,7 @@ const tableSortState = {};
                 if (!text) return;
                 tip.textContent = text;
                 tip.style.display = 'block';
+                tip.classList.add('visible');
 
                 var rect = target.getBoundingClientRect();
                 var tipW = tip.offsetWidth;
@@ -4169,6 +4174,12 @@ const tableSortState = {};
                 tip.style.top = top + 'px';
             }
 
+            function hideTooltip() {
+                tip.classList.remove('visible');
+                tip.style.display = 'none';
+                activeEl = null;
+            }
+
             function onMouseEnter(e) {
                 var target = e.target.closest('.hint');
                 if (!target) return;
@@ -4181,20 +4192,35 @@ const tableSortState = {};
                 var target = e.target.closest('.hint');
                 if (!target) return;
                 hideTimeout = setTimeout(function() {
-                    tip.style.display = 'none';
-                    activeEl = null;
+                    hideTooltip();
                 }, 80);
             }
 
             function onFocus(e) {
-                if (e.target.classList && e.target.classList.contains('hint')) {
-                    positionTooltip(e.target);
+                var target = e.target.closest ? e.target.closest('.hint') : null;
+                if (target) {
+                    positionTooltip(target);
                 }
             }
 
             function onBlur(e) {
-                if (e.target.classList && e.target.classList.contains('hint')) {
-                    tip.style.display = 'none';
+                var target = e.target.closest ? e.target.closest('.hint') : null;
+                if (target) {
+                    hideTooltip();
+                }
+            }
+
+            function onClick(e) {
+                var target = e.target.closest('.hint');
+                if (target) {
+                    if (activeEl === target && tip.classList.contains('visible')) {
+                        hideTooltip();
+                    } else {
+                        activeEl = target;
+                        positionTooltip(target);
+                    }
+                } else if (!e.target.closest('#hint-tooltip-el')) {
+                    hideTooltip();
                 }
             }
 
@@ -4202,6 +4228,7 @@ const tableSortState = {};
             document.addEventListener('mouseout', onMouseLeave);
             document.addEventListener('focusin', onFocus);
             document.addEventListener('focusout', onBlur);
+            document.addEventListener('click', onClick);
 
             window.initHints = function(container) {
                 // Delegation handles new elements automatically
@@ -4508,6 +4535,143 @@ const tableSortState = {};
             // Check if mixed asset classes are being compared
             const hasMultipleClasses = new Set(assets.map(a => a._class)).size > 1;
 
+            // Filtros de aplicabilidade de metricas
+            const hasAnyPvP = assets.some(a => (a._class === 'stock' || a._class === 'fii' || a._class === 'fiagro') && a.pb_ratio !== null && a.pb_ratio !== undefined);
+            const hasAnyPe = assets.some(a => a._class === 'stock' && a.pe_ratio !== null && a.pe_ratio !== undefined);
+            const hasAnyRoe = assets.some(a => a._class === 'stock' && a.roe !== null && a.roe !== undefined);
+            const hasAnyVpa = assets.some(a => a.book_value !== null && a.book_value !== undefined);
+            const hasAnyBazin = assets.some(a => a.bazin_price !== null && a.bazin_price !== undefined);
+            const hasAnyGraham = assets.some(a => a._class === 'stock' && a.graham_price !== null && a.graham_price !== undefined);
+            const hasValuationSection = hasAnyPvP || hasAnyPe || hasAnyRoe || hasAnyVpa || hasAnyBazin || hasAnyGraham;
+
+            const hasAnyTesouro = assets.some(a => a._class === 'tesouro');
+            const hasAnyMaturity = assets.some(a => a._class === 'tesouro' || a.maturity);
+            const hasFixedIncomeSection = hasAnyTesouro || hasAnyMaturity || hasMultipleClasses;
+
+            let tbodyHtml = `
+                <tr>
+                    <th colspan="${assets.length + 1}" style="background:var(--surface-2); text-align:left; font-size:0.76rem; text-transform:uppercase; letter-spacing:0.05em; padding:0.45rem 1rem; color:var(--text-secondary);">📊 Métricas Universais de Retorno & Risco</th>
+                </tr>
+                <tr>
+                    <td><strong>Preço / Cotação / PU</strong></td>
+                    ${assets.map((a, i) => renderCell(prices[i], i, -1, v => v ? `R$ ${Number(v).toFixed(2)}` : '—')).join('')}
+                </tr>
+                <tr>
+                    <td><strong>Score Radar (0 a 10)</strong></td>
+                    ${assets.map((a, i) => renderCell(scores[i], i, winScore, v => `<span class="score-pill ${getScoreRangeClass(v)}" style="display:inline-block;padding:0.2rem 0.6rem;font-size:0.85rem;">${formatScore(v)}</span>`)).join('')}
+                </tr>
+                <tr>
+                    <td><strong>Rendimento Anual (DY / Taxa)</strong></td>
+                    ${assets.map((a, i) => renderCell(dys[i], i, winDy, v => v ? `${(v * 100).toFixed(2)}% a.a.` : '—')).join('')}
+                </tr>
+                <tr>
+                    <td><strong>Liquidez & Negociação</strong></td>
+                    ${assets.map(a => `<td>${a._class === 'tesouro' ? '<span style="font-size:0.8rem;color:var(--positive);">D+0 / D+1 (Tesouro Nacional)</span>' : '<span style="font-size:0.8rem;color:var(--text-secondary);">D+2 (Mercado B3)</span>'}</td>`).join('')}
+                </tr>
+            `;
+
+            if (hasValuationSection) {
+                tbodyHtml += `
+                    <tr>
+                        <th colspan="${assets.length + 1}" style="background:var(--surface-2); text-align:left; font-size:0.76rem; text-transform:uppercase; letter-spacing:0.05em; padding:0.45rem 1rem; color:var(--text-secondary);">📈 Valuation & Renda Variável (Ações & FIIs)</th>
+                    </tr>
+                `;
+                if (hasAnyPvP) {
+                    tbodyHtml += `
+                        <tr>
+                            <td><strong>P/VP (Preço / Valor Patr.)</strong></td>
+                            ${assets.map((a, i) => {
+                                if (a._class === 'tesouro') return `<td style="color:var(--text-muted);font-size:0.76rem;">—</td>`;
+                                return renderCell(pbs[i], i, winPb, v => v !== null ? Number(v).toFixed(2) : '—');
+                            }).join('')}
+                        </tr>
+                    `;
+                }
+                if (hasAnyPe) {
+                    tbodyHtml += `
+                        <tr>
+                            <td><strong>P/L (Preço / Lucro)</strong></td>
+                            ${assets.map((a, i) => {
+                                if (a._class !== 'stock') return `<td style="color:var(--text-muted);font-size:0.76rem;">—</td>`;
+                                return renderCell(pes[i], i, winPe, v => v !== null && v > 0 ? Number(v).toFixed(2) : (v !== null ? 'Negativo' : '—'));
+                            }).join('')}
+                        </tr>
+                    `;
+                }
+                if (hasAnyRoe) {
+                    tbodyHtml += `
+                        <tr>
+                            <td><strong>ROE (Rentabilidade PL)</strong></td>
+                            ${assets.map((a, i) => {
+                                if (a._class !== 'stock') return `<td style="color:var(--text-muted);font-size:0.76rem;">—</td>`;
+                                return renderCell(roes[i], i, winRoe, v => v !== null ? `${(v * 100).toFixed(2)}%` : '—');
+                            }).join('')}
+                        </tr>
+                    `;
+                }
+                if (hasAnyVpa) {
+                    tbodyHtml += `
+                        <tr>
+                            <td><strong>VPA (Valor Patr. / Cota)</strong></td>
+                            ${assets.map((a, i) => {
+                                if (a._class === 'tesouro') return `<td style="color:var(--text-muted);font-size:0.76rem;">—</td>`;
+                                return renderCell(vpas[i], i, -1, v => v ? `R$ ${Number(v).toFixed(2)}` : '—');
+                            }).join('')}
+                        </tr>
+                    `;
+                }
+                if (hasAnyBazin) {
+                    tbodyHtml += `
+                        <tr>
+                            <td><strong>Preço Teto (Bazin)</strong></td>
+                            ${assets.map((a, i) => {
+                                if (a._class === 'tesouro') return `<td style="color:var(--text-muted);font-size:0.76rem;">—</td>`;
+                                return renderCell(a.bazin_price, i, -1, v => v ? `R$ ${Number(v).toFixed(2)}` : '—');
+                            }).join('')}
+                        </tr>
+                    `;
+                }
+                if (hasAnyGraham) {
+                    tbodyHtml += `
+                        <tr>
+                            <td><strong>Preço Justo (Graham)</strong></td>
+                            ${assets.map((a, i) => {
+                                if (a._class !== 'stock') return `<td style="color:var(--text-muted);font-size:0.76rem;">—</td>`;
+                                return renderCell(a.graham_price, i, -1, v => v ? `R$ ${Number(v).toFixed(2)}` : '—');
+                            }).join('')}
+                        </tr>
+                    `;
+                }
+            }
+
+            if (hasFixedIncomeSection) {
+                tbodyHtml += `
+                    <tr>
+                        <th colspan="${assets.length + 1}" style="background:var(--surface-2); text-align:left; font-size:0.76rem; text-transform:uppercase; letter-spacing:0.05em; padding:0.45rem 1rem; color:var(--text-secondary);">🏛️ Renda Fixa & Títulos Públicos</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Indexador / Motor de Retorno</strong></td>
+                        ${assets.map(a => {
+                            if (a._class === 'tesouro') return `<td style="font-weight:600;color:var(--gold);font-size:0.82rem;">${a.type || 'Público Federal'}</td>`;
+                            if (a._class === 'fii') return `<td style="font-size:0.8rem;color:var(--text-secondary);">Aluguéis / CRI</td>`;
+                            if (a._class === 'fiagro') return `<td style="font-size:0.8rem;color:var(--text-secondary);">Crédito Agro (CRA)</td>`;
+                            return `<td style="font-size:0.8rem;color:var(--text-secondary);">Lucros & Dividendos</td>`;
+                        }).join('')}
+                    </tr>
+                `;
+                if (hasAnyMaturity) {
+                    tbodyHtml += `
+                        <tr>
+                            <td><strong>Vencimento / Prazo</strong></td>
+                            ${assets.map(a => {
+                                if (a._class === 'tesouro') return `<td style="font-weight:600;color:var(--text-primary);font-size:0.82rem;">${a.maturity || 'Data Contratual'}</td>`;
+                                return `<td style="font-size:0.8rem;color:var(--text-secondary);">Perpétua (Sem Vencimento)</td>`;
+                            }).join('')}
+                        </tr>
+                    `;
+                }
+            }
+
             contentContainer.innerHTML = `
                 ${presetButtonsHtml}
 
@@ -4535,92 +4699,7 @@ const tableSortState = {};
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <th colspan="${assets.length + 1}" style="background:var(--surface-2); text-align:left; font-size:0.76rem; text-transform:uppercase; letter-spacing:0.05em; padding:0.45rem 1rem; color:var(--text-secondary);">📊 Métricas Universais de Retorno & Risco</th>
-                                </tr>
-                                <tr>
-                                    <td><strong>Preço / Cotação / PU</strong></td>
-                                    ${assets.map((a, i) => renderCell(prices[i], i, -1, v => v ? `R$ ${Number(v).toFixed(2)}` : '—')).join('')}
-                                </tr>
-                                <tr>
-                                    <td><strong>Score Radar (0 a 10)</strong></td>
-                                    ${assets.map((a, i) => renderCell(scores[i], i, winScore, v => `<span class="score-pill ${getScoreRangeClass(v)}" style="display:inline-block;padding:0.2rem 0.6rem;font-size:0.85rem;">${formatScore(v)}</span>`)).join('')}
-                                </tr>
-                                <tr>
-                                    <td><strong>Rendimento Anual (DY / Taxa)</strong></td>
-                                    ${assets.map((a, i) => renderCell(dys[i], i, winDy, v => v ? `${(v * 100).toFixed(2)}% a.a.` : '—')).join('')}
-                                </tr>
-                                <tr>
-                                    <td><strong>Liquidez & Negociação</strong></td>
-                                    ${assets.map(a => `<td>${a._class === 'tesouro' ? '<span style="font-size:0.8rem;color:var(--positive);">D+0 / D+1 (Tesouro Nacional)</span>' : '<span style="font-size:0.8rem;color:var(--text-secondary);">D+2 (Mercado B3)</span>'}</td>`).join('')}
-                                </tr>
-
-                                <tr>
-                                    <th colspan="${assets.length + 1}" style="background:var(--surface-2); text-align:left; font-size:0.76rem; text-transform:uppercase; letter-spacing:0.05em; padding:0.45rem 1rem; color:var(--text-secondary);">📈 Valuation & Renda Variável (Ações & FIIs)</th>
-                                </tr>
-                                <tr>
-                                    <td><strong>P/VP (Preço / Valor Patr.)</strong></td>
-                                    ${assets.map((a, i) => {
-                                        if (a._class === 'tesouro') return `<td style="color:var(--text-muted);font-size:0.76rem;">— (Renda Fixa)</td>`;
-                                        return renderCell(pbs[i], i, winPb, v => v !== null ? Number(v).toFixed(2) : '—');
-                                    }).join('')}
-                                </tr>
-                                <tr>
-                                    <td><strong>P/L (Preço / Lucro)</strong></td>
-                                    ${assets.map((a, i) => {
-                                        if (a._class === 'tesouro') return `<td style="color:var(--text-muted);font-size:0.76rem;">— (Renda Fixa)</td>`;
-                                        if (a._class === 'fii' || a._class === 'fiagro') return `<td style="color:var(--text-muted);font-size:0.76rem;">— (Fundo Imob.)</td>`;
-                                        return renderCell(pes[i], i, winPe, v => v !== null && v > 0 ? Number(v).toFixed(2) : (v !== null ? 'Negativo' : '—'));
-                                    }).join('')}
-                                </tr>
-                                <tr>
-                                    <td><strong>ROE (Rentabilidade PL)</strong></td>
-                                    ${assets.map((a, i) => {
-                                        if (a._class !== 'stock') return `<td style="color:var(--text-muted);font-size:0.76rem;">— (Inaplicável)</td>`;
-                                        return renderCell(roes[i], i, winRoe, v => v !== null ? `${(v * 100).toFixed(2)}%` : '—');
-                                    }).join('')}
-                                </tr>
-                                <tr>
-                                    <td><strong>VPA (Valor Patr. / Cota)</strong></td>
-                                    ${assets.map((a, i) => {
-                                        if (a._class === 'tesouro') return `<td style="color:var(--text-muted);font-size:0.76rem;">— (VNA / PU)</td>`;
-                                        return renderCell(vpas[i], i, -1, v => v ? `R$ ${Number(v).toFixed(2)}` : '—');
-                                    }).join('')}
-                                </tr>
-                                <tr>
-                                    <td><strong>Preço Teto (Bazin)</strong></td>
-                                    ${assets.map((a, i) => {
-                                        if (a._class === 'tesouro') return `<td style="color:var(--text-muted);font-size:0.76rem;">— (Juro Contratado)</td>`;
-                                        return renderCell(a.bazin_price, i, -1, v => v ? `R$ ${Number(v).toFixed(2)}` : '—');
-                                    }).join('')}
-                                </tr>
-                                <tr>
-                                    <td><strong>Preço Justo (Graham)</strong></td>
-                                    ${assets.map((a, i) => {
-                                        if (a._class !== 'stock') return `<td style="color:var(--text-muted);font-size:0.76rem;">— (Exclusivo Ações)</td>`;
-                                        return renderCell(a.graham_price, i, -1, v => v ? `R$ ${Number(v).toFixed(2)}` : '—');
-                                    }).join('')}
-                                </tr>
-
-                                <tr>
-                                    <th colspan="${assets.length + 1}" style="background:var(--surface-2); text-align:left; font-size:0.76rem; text-transform:uppercase; letter-spacing:0.05em; padding:0.45rem 1rem; color:var(--text-secondary);">🏛️ Renda Fixa & Títulos Públicos</th>
-                                </tr>
-                                <tr>
-                                    <td><strong>Indexador / Motor de Retorno</strong></td>
-                                    ${assets.map(a => {
-                                        if (a._class === 'tesouro') return `<td style="font-weight:600;color:var(--gold);font-size:0.82rem;">${a.type || 'Público Federal'}</td>`;
-                                        if (a._class === 'fii') return `<td style="font-size:0.8rem;color:var(--text-secondary);">Aluguéis / CRI</td>`;
-                                        if (a._class === 'fiagro') return `<td style="font-size:0.8rem;color:var(--text-secondary);">Crédito Agro (CRA)</td>`;
-                                        return `<td style="font-size:0.8rem;color:var(--text-secondary);">Lucros & Dividendos</td>`;
-                                    }).join('')}
-                                </tr>
-                                <tr>
-                                    <td><strong>Vencimento / Prazo</strong></td>
-                                    ${assets.map(a => {
-                                        if (a._class === 'tesouro') return `<td style="font-weight:600;color:var(--text-primary);font-size:0.82rem;">${a.maturity || 'Data Contratual'}</td>`;
-                                        return `<td style="font-size:0.8rem;color:var(--text-secondary);">Perpétua (Sem Vencimento)</td>`;
-                                    }).join('')}
-                                </tr>
+                                ${tbodyHtml}
                             </tbody>
                         </table>
                     </div>
@@ -4744,6 +4823,7 @@ const tableSortState = {};
 
         /* ── Calculadora / Simulador de Renda Passiva & Bola de Neve ── */
         let snowballChartInstance = null;
+        let previdenciaChartInstance = null;
         let currentCalcMode = 'goal';
 
         function switchCalcMode(mode) {
@@ -4751,30 +4831,38 @@ const tableSortState = {};
             const btnGoal = document.getElementById('btn-calc-mode-goal');
             const btnSnow = document.getElementById('btn-calc-mode-snowball');
             const btnRf = document.getElementById('btn-calc-mode-compare-rf');
+            const btnPrev = document.getElementById('btn-calc-mode-previdencia');
             const btnFire = document.getElementById('btn-calc-mode-fire');
             const btnRules = document.getElementById('btn-calc-mode-rules');
 
             const gridGoal = document.getElementById('calc-grid-goal');
             const gridSnow = document.getElementById('calc-grid-snowball');
             const gridRf = document.getElementById('calc-grid-compare-rf');
+            const gridPrev = document.getElementById('calc-grid-previdencia');
             const gridFire = document.getElementById('calc-grid-fire');
             const gridRules = document.getElementById('calc-grid-rules');
 
             if (btnGoal) btnGoal.classList.toggle('active', mode === 'goal');
             if (btnSnow) btnSnow.classList.toggle('active', mode === 'snowball');
             if (btnRf) btnRf.classList.toggle('active', mode === 'compare_rf');
+            if (btnPrev) btnPrev.classList.toggle('active', mode === 'previdencia');
             if (btnFire) btnFire.classList.toggle('active', mode === 'fire');
             if (btnRules) btnRules.classList.toggle('active', mode === 'rules');
 
             if (gridGoal) gridGoal.classList.toggle('hidden', mode !== 'goal');
             if (gridSnow) gridSnow.classList.toggle('hidden', mode !== 'snowball');
             if (gridRf) gridRf.classList.toggle('hidden', mode !== 'compare_rf');
+            if (gridPrev) gridPrev.classList.toggle('hidden', mode !== 'previdencia');
             if (gridFire) gridFire.classList.toggle('hidden', mode !== 'fire');
             if (gridRules) gridRules.classList.toggle('hidden', mode !== 'rules');
 
             if (mode === 'goal') calculateIncomeGoal();
             else if (mode === 'snowball') calculateSnowball();
             else if (mode === 'compare_rf') calculateRfComparison();
+            else if (mode === 'previdencia') {
+                updatePrevidenciaDiagnostic();
+                calculatePrevidencia();
+            }
             else if (mode === 'fire') calculateFireRetirement();
             else if (mode === 'rules') calculateAllRules();
         }
@@ -4807,6 +4895,24 @@ const tableSortState = {};
                 buttons.forEach(b => b.classList.toggle('active', b.textContent.includes(val.toLocaleString('pt-BR'))));
                 calculateRfComparison();
             }
+        }
+
+        function setPrevIncomePreset(val) {
+            const input = document.getElementById('calc-prev-income');
+            if (input) {
+                input.value = val;
+                const buttons = document.querySelectorAll('#calc-grid-previdencia .calc-preset-btn');
+                buttons.forEach(b => b.classList.toggle('active', b.textContent.includes(`${val / 1000}k`)));
+                calculatePrevidencia();
+            }
+        }
+
+        function onPrevPctChange(val) {
+            const badge = document.getElementById('calc-prev-pct-badge');
+            if (badge) {
+                badge.textContent = `${val}% ${val == 12 ? '(Teto Legal PGBL)' : ''}`;
+            }
+            calculatePrevidencia();
         }
 
         function setFireCapitalPreset(val) {
@@ -5143,15 +5249,15 @@ const tableSortState = {};
                 if (magicIconEl) magicIconEl.textContent = '🏛️';
                 if (magicTitleEl) magicTitleEl.textContent = 'Título sem Cupom (Capitalização no PU)';
                 if (magicDescEl) {
-                    magicDescEl.textContent = `Este título reinveste 100% dos juros e da correção monetária no próprio Preço Unitário (PU). Não distribui proventos periódicos em conta: o ganho total acumulado (R$ ${finalDividendsNet.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}) é resgatado no vencimento.`;
+                    magicDescEl.textContent = `Este título capitaliza juros e correção diretamente no Preço Unitário (PU). Não há distribuição periódica em conta corrente: o rendimento total apurado (R$ ${finalDividendsNet.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}) é creditado no resgate ou vencimento.`;
                 }
                 if (divLabelEl) divLabelEl.textContent = 'Rentabilidade Acumulada em Juros/Correção (Líquida):';
                 if (monthlyIncomeLabelEl) monthlyIncomeLabelEl.textContent = 'Rendimento Médio Mensal Equivalente (no Vencimento):';
                 if (monthlyIncomeEl) monthlyIncomeEl.textContent = `R$ ${finalMonthlyNetIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / mês (acumulado)`;
             } else {
-                if (magicCardTitleEl) magicCardTitleEl.textContent = 'O Efeito Bola de Neve (Magic Number)';
-                if (magicIconEl) magicIconEl.textContent = '❄️';
-                if (divLabelEl) divLabelEl.textContent = 'Renda Gerada por Juros/Dividendos (Líquida):';
+                if (magicCardTitleEl) magicCardTitleEl.textContent = 'Projeção de Acúmulo & Reinvestimento Autossustentável';
+                if (magicIconEl) magicIconEl.textContent = '';
+                if (divLabelEl) divLabelEl.textContent = 'Rendimento Gerado por Juros/Dividendos (Líquido):';
                 if (monthlyIncomeLabelEl) monthlyIncomeLabelEl.textContent = 'Renda Mensal Líquida no Final do Período:';
                 if (monthlyIncomeEl) monthlyIncomeEl.textContent = `R$ ${finalMonthlyNetIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / mês líquido`;
 
@@ -5161,12 +5267,12 @@ const tableSortState = {};
                 if (price > 0 && monthlyNetRate > 0) {
                     const magicNumber = Math.ceil(1 / monthlyNetRate);
                     const magicCapital = magicNumber * price;
-                    if (magicTitleEl) magicTitleEl.textContent = `Magic Number: ${magicNumber.toLocaleString('pt-BR')} ${unitName}`;
-                    if (magicDescEl) magicDescEl.textContent = `Com R$ ${magicCapital.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} investidos, seus proventos líquidos compram 1 ${singleUnitName} todos os meses automaticamente!`;
+                    if (magicTitleEl) magicTitleEl.textContent = `Ponto de Reinvestimento Automático: ${magicNumber.toLocaleString('pt-BR')} ${unitName}`;
+                    if (magicDescEl) magicDescEl.textContent = `Com patrimônio de R$ ${magicCapital.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} alocado, os proventos mensais líquidos financiam a compra de 1 ${singleUnitName}/mês de forma autossuficiente.`;
                 } else if (monthlyNetRate > 0) {
                     const magicNumber = Math.ceil(1 / monthlyNetRate);
-                    if (magicTitleEl) magicTitleEl.textContent = `Ponto de Virada: ~${magicNumber}x de Yield`;
-                    if (magicDescEl) magicDescEl.textContent = `A uma taxa líquida de ${(netAnnualDy * 100).toFixed(2)}% a.a., cada R$ ${(1 / monthlyNetRate * 100).toFixed(0)} investidos geram R$ 100 de novos aportes automáticos todo mês.`;
+                    if (magicTitleEl) magicTitleEl.textContent = `Fator de Autossuficiência: ~${magicNumber}x`;
+                    if (magicDescEl) magicDescEl.textContent = `À taxa líquida de ${(netAnnualDy * 100).toFixed(2)}% a.a., cada R$ ${(1 / monthlyNetRate * 100).toFixed(0)} alocados geram R$ 100 de fluxo mensal para novos aportes.`;
                 }
             }
 
@@ -5272,9 +5378,9 @@ const tableSortState = {};
             const days = parseInt(daysSelect?.value) || 720;
             const years = days / 365.0;
             const cdiRate = (parseFloat(cdiInput?.value) || 13.0) / 100.0;
-            const cdbPct = (parseFloat(cdbPctInput?.value) || 110.0) / 100.0;
-            const lciPct = (parseFloat(lciPctInput?.value) || 92.0) / 100.0;
-            const tdYield = (parseFloat(tdYieldInput?.value) || 14.5) / 100.0;
+            const cdbPct = (parseFloat(cdbPctInput?.value) || 100.0) / 100.0;
+            const lciPct = (parseFloat(lciPctInput?.value) || 90.0) / 100.0;
+            const tdYield = (parseFloat(tdYieldInput?.value) || 13.25) / 100.0;
 
             // Alíquota regressiva de IR Renda Fixa
             let taxRate = 0.15;
@@ -5282,6 +5388,15 @@ const tableSortState = {};
             else if (days <= 360) taxRate = 0.20;
             else if (days <= 720) taxRate = 0.175;
             else taxRate = 0.15;
+
+            // 0. Poupança (Isenta de IR: 70% Selic se <= 8.5% ou 0.5% a.m. + TR se > 8.5%)
+            let poupancaAnnualRate = 0.0617;
+            if (cdiRate > 0.085) {
+                poupancaAnnualRate = 0.0617 + 0.005; // 0.5% a.m. (~6.17% a.a.) + ~0.5% TR
+            } else {
+                poupancaAnnualRate = cdiRate * 0.70;
+            }
+            const poupancaNet = amount * Math.pow(1 + poupancaAnnualRate, years);
 
             // 1. CDB (Tributado)
             const cdbGrossAnnual = cdiRate * cdbPct;
@@ -5301,15 +5416,22 @@ const tableSortState = {};
             const tdNet = tdTotalGross - tdTax;
 
             // Atualiza UI
+            const poupancaRateInfoEl = document.getElementById('calc-poupanca-rate-info');
+            const poupancaNetValEl = document.getElementById('calc-poupanca-net-val');
             const cdbGrossTaxEl = document.getElementById('calc-cdb-gross-tax');
             const cdbNetValEl = document.getElementById('calc-cdb-net-val');
+            const lciGrossTaxEl = document.getElementById('calc-lci-gross-tax');
             const lciNetValEl = document.getElementById('calc-lci-net-val');
             const tdGrossTaxEl = document.getElementById('calc-td-gross-tax');
             const tdNetValEl = document.getElementById('calc-td-net-val');
 
+            if (poupancaRateInfoEl) poupancaRateInfoEl.textContent = `${(poupancaAnnualRate * 100).toFixed(2)}% a.a. (0.0% Isento)`;
+            if (poupancaNetValEl) poupancaNetValEl.textContent = `R$ ${poupancaNet.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
             if (cdbGrossTaxEl) cdbGrossTaxEl.textContent = `${(cdbGrossAnnual * 100).toFixed(2)}% a.a. (IR ${(taxRate * 100).toFixed(1)}%)`;
             if (cdbNetValEl) cdbNetValEl.textContent = `R$ ${cdbNet.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
+            if (lciGrossTaxEl) lciGrossTaxEl.textContent = `${(lciNetAnnual * 100).toFixed(2)}% a.a. (0.0% Isento)`;
             if (lciNetValEl) lciNetValEl.textContent = `R$ ${lciNet.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
             if (tdGrossTaxEl) tdGrossTaxEl.textContent = `${(tdYield * 100).toFixed(2)}% a.a. (IR ${(taxRate * 100).toFixed(1)}%)`;
@@ -5334,12 +5456,309 @@ const tableSortState = {};
             if (cardTd) cardTd.classList.toggle('winner', Math.abs(tdNet - maxNet) < 0.01);
             if (badgeTd) badgeTd.classList.toggle('hidden', Math.abs(tdNet - maxNet) >= 0.01);
 
+            // Alerta Custo de Oportunidade da Poupança
+            const lossVsBest = Math.max(0, maxNet - poupancaNet);
+            const lossDescEl = document.getElementById('calc-poupanca-loss-desc');
+            if (lossDescEl) {
+                lossDescEl.textContent = `A alocação na Poupança resulta em uma renúncia de rendimento líquido estimada em R$ ${lossVsBest.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} no período em comparação à alternativa mais rentável de Renda Fixa.`;
+            }
+
             // Ponto de Equilíbrio (Break-Even)
             const cdbEquiv = (lciPct / (1 - taxRate)) * 100;
             const equivDescEl = document.getElementById('calc-rf-equiv-desc');
             if (equivDescEl) {
-                equivDescEl.textContent = `Para este prazo de ${days} dias (IR ${(taxRate * 100).toFixed(1)}%), uma LCI de ${(lciPct * 100).toFixed(0)}% do CDI equivale a um CDB de ${cdbEquiv.toFixed(1)}% do CDI. Qualquer CDB acima disso rende mais líquido!`;
+                equivDescEl.textContent = `Para o prazo de ${days} dias (alíquota regressiva de IR: ${(taxRate * 100).toFixed(1)}%), um título isento a ${(lciPct * 100).toFixed(0)}% do CDI equivale a um ativo tributado a ${cdbEquiv.toFixed(1)}% do CDI.`;
             }
+        }
+
+        /* ── Módulo de Previdência Privada: PGBL x VGBL ── */
+
+        function updatePrevidenciaDiagnostic() {
+            const declSelect = document.getElementById('calc-prev-diag-decl');
+            const inssSelect = document.getElementById('calc-prev-diag-inss');
+            const horizonSelect = document.getElementById('calc-prev-diag-horizon');
+
+            const isCompleta = declSelect?.value === 'completa';
+            const hasInss = inssSelect?.value === 'sim';
+            const isLongo = horizonSelect?.value === 'longo';
+
+            const bannerEl = document.getElementById('calc-prev-diag-banner');
+            const titleEl = document.getElementById('calc-prev-diag-title');
+            const planBadgeEl = document.getElementById('calc-prev-diag-plan-badge');
+            const regimeBadgeEl = document.getElementById('calc-prev-diag-regime-badge');
+            const descEl = document.getElementById('calc-prev-diag-desc');
+
+            let recommendedPlan = 'PGBL';
+            let recommendedRegime = isLongo ? 'Regressivo' : 'Progressivo';
+            let rationale = '';
+
+            if (isCompleta && hasInss) {
+                recommendedPlan = 'PGBL';
+                if (isLongo) {
+                    recommendedRegime = 'Tabela Regressiva (10% IR Mínimo)';
+                    rationale = 'Perfil ideal para <strong>PGBL com Regime Regressivo</strong>: você abate até 12% da renda bruta hoje (reinvestindo a restituição) e usufrui da alíquota definitiva de 10% no resgate de longo prazo.';
+                } else {
+                    recommendedRegime = 'Tabela Progressiva (Compensável no IRPF)';
+                    rationale = 'Como o prazo é curto (≤ 5 anos), a tabela regressiva cobraria entre 25% e 35% de IR. A <strong>Tabela Progressiva</strong> pode ser mais vantajosa caso sua renda no momento do resgate seja baixa ou isenta.';
+                }
+            } else {
+                recommendedPlan = 'VGBL';
+                const motive = !isCompleta ? 'utiliza Declaração Simplificada' : 'não contribui para a previdência oficial (INSS/RPPS)';
+                if (isLongo) {
+                    recommendedRegime = 'Tabela Regressiva (10% s/ Lucro)';
+                    rationale = `Como você ${motive}, o <strong>PGBL não traz dedução no IRPF</strong> e cobraria IR sobre o principal. O <strong>VGBL é a melhor escolha</strong> porque tributa apenas os rendimentos (lucro). Para longo prazo, a Tabela Regressiva garante a alíquota mínima de 10%.`;
+                } else {
+                    recommendedRegime = 'Tabela Progressiva (Compensável)';
+                    rationale = `Como você ${motive}, o plano correto é o <strong>VGBL</strong> (tributação restrita ao lucro). Para curto prazo, avalie a Tabela Progressiva para evitar as alíquotas iniciais de 35% a 25% da Regressiva.`;
+                }
+            }
+
+            if (bannerEl) {
+                bannerEl.classList.toggle('pgbl-rec', recommendedPlan === 'PGBL');
+                bannerEl.classList.toggle('vgbl-rec', recommendedPlan === 'VGBL');
+            }
+            if (titleEl) titleEl.textContent = `Recomendação: ${recommendedPlan} + ${recommendedRegime}`;
+            if (planBadgeEl) {
+                planBadgeEl.textContent = `Plano Ideal: ${recommendedPlan}`;
+                planBadgeEl.className = recommendedPlan === 'PGBL' ? 'badge badge-green' : 'badge badge-blue';
+            }
+            if (regimeBadgeEl) {
+                regimeBadgeEl.textContent = `Regime: ${recommendedRegime.split(' ')[0]}`;
+                regimeBadgeEl.className = 'badge';
+            }
+            if (descEl) descEl.innerHTML = rationale;
+        }
+
+        function applyDiagnosticToSimulation() {
+            const declSelect = document.getElementById('calc-prev-diag-decl');
+            const inssSelect = document.getElementById('calc-prev-diag-inss');
+            const horizonSelect = document.getElementById('calc-prev-diag-horizon');
+
+            const isCompleta = declSelect?.value === 'completa';
+            const hasInss = inssSelect?.value === 'sim';
+            const isLongo = horizonSelect?.value === 'longo';
+
+            const regimeSelect = document.getElementById('calc-prev-regime');
+            const yearsSelect = document.getElementById('calc-prev-years');
+
+            if (regimeSelect) {
+                regimeSelect.value = isLongo ? 'regressive' : 'progressive';
+                onPrevRegimeChange();
+            }
+            if (yearsSelect) {
+                yearsSelect.value = isLongo ? '30' : '5';
+            }
+            calculatePrevidencia();
+        }
+
+        function onPrevRegimeChange() {
+            const regimeSelect = document.getElementById('calc-prev-regime');
+            const progTaxGroup = document.getElementById('calc-prev-prog-tax-group');
+            const isProgressive = regimeSelect?.value === 'progressive';
+            if (progTaxGroup) {
+                progTaxGroup.classList.toggle('hidden', !isProgressive);
+            }
+            calculatePrevidencia();
+        }
+
+        function calculatePrevidencia() {
+            const incomeInput = document.getElementById('calc-prev-income');
+            const pctInput = document.getElementById('calc-prev-pct');
+            const yearsSelect = document.getElementById('calc-prev-years');
+            const regimeSelect = document.getElementById('calc-prev-regime');
+            const progTaxSelect = document.getElementById('calc-prev-prog-tax');
+            const returnInput = document.getElementById('calc-prev-return');
+            const reinvestTaxSelect = document.getElementById('calc-prev-reinvest-tax');
+
+            const annualIncome = Math.max(1000, parseFloat(incomeInput?.value) || 120000);
+            const investPct = Math.min(12, Math.max(1, parseFloat(pctInput?.value) || 12)) / 100.0;
+            const years = parseInt(yearsSelect?.value) || 30;
+            const regime = regimeSelect?.value || 'regressive';
+            const progTaxRate = parseFloat(progTaxSelect?.value) || 0.15;
+            const annualReturn = (parseFloat(returnInput?.value) || 10.0) / 100.0;
+            const reinvestTaxRate = parseFloat(reinvestTaxSelect?.value) || 0.15;
+
+            // 1. Benefício Fiscal Anual (IRPF Completo)
+            const annualInvest = annualIncome * investPct;
+            const monthlyInvest = annualInvest / 12.0;
+            const newTaxBase = Math.max(0, annualIncome - annualInvest);
+
+            function calcIrpfTax(income) {
+                if (income <= 22847.76) return { rate: 0.0, deduction: 0, tax: 0 };
+                if (income <= 33919.80) return { rate: 0.075, deduction: 1713.58, tax: Math.max(0, income * 0.075 - 1713.58) };
+                if (income <= 45012.60) return { rate: 0.15, deduction: 4257.57, tax: Math.max(0, income * 0.15 - 4257.57) };
+                if (income <= 55976.16) return { rate: 0.225, deduction: 7633.51, tax: Math.max(0, income * 0.225 - 7633.51) };
+                return { rate: 0.275, deduction: 10432.32, tax: Math.max(0, income * 0.275 - 10432.32) };
+            }
+
+            const taxWithoutPgbl = calcIrpfTax(annualIncome).tax;
+            const taxWithPgbl = calcIrpfTax(newTaxBase).tax;
+            const annualTaxSavings = Math.max(0, taxWithoutPgbl - taxWithPgbl);
+            const totalTaxSavingsNoInterest = annualTaxSavings * years;
+            const monthlyReinvestAmount = annualTaxSavings / 12.0;
+
+            // 2. Projeção de Acúmulo no Longo Prazo
+            const monthlyRate = Math.pow(1.0 + annualReturn, 1.0 / 12.0) - 1.0;
+            const months = years * 12;
+
+            function calcFutureValue(pmt, mRate, mCount) {
+                if (mRate <= 0) return pmt * mCount;
+                return pmt * (Math.pow(1.0 + mRate, mCount) - 1.0) / mRate;
+            }
+
+            // Plano Principal (VGBL / PGBL)
+            const mainTotalGross = calcFutureValue(monthlyInvest, monthlyRate, months);
+            const mainTotalInvested = monthlyInvest * months;
+            const mainTotalEarnings = Math.max(0, mainTotalGross - mainTotalInvested);
+
+            // Alíquota de IR no Resgate
+            let effectiveRedemptionTax = 0.10;
+            if (regime === 'progressive') {
+                effectiveRedemptionTax = progTaxRate;
+            } else {
+                if (years <= 2) effectiveRedemptionTax = 0.35;
+                else if (years <= 4) effectiveRedemptionTax = 0.30;
+                else if (years <= 6) effectiveRedemptionTax = 0.25;
+                else if (years <= 8) effectiveRedemptionTax = 0.20;
+                else if (years <= 10) effectiveRedemptionTax = 0.15;
+                else effectiveRedemptionTax = 0.10;
+            }
+
+            // Cenário 1: VGBL (IR incide apenas sobre o Lucro)
+            const vgblTax = mainTotalEarnings * effectiveRedemptionTax;
+            const vgblNet = mainTotalGross - vgblTax;
+
+            // Cenário 2: PGBL Simples (IR incide sobre o Total, mas soma a economia não reinvestida)
+            const pgblPlanTax = mainTotalGross * effectiveRedemptionTax;
+            const pgblPlanNet = mainTotalGross - pgblPlanTax;
+            const pgblSimpleTotalNet = pgblPlanNet + totalTaxSavingsNoInterest;
+            const pgblSimpleAdvantage = pgblSimpleTotalNet - vgblNet;
+
+            // Cenário 3: PGBL Otimizado (Reinvestindo a Economia de IR mês a mês)
+            const reinvestTotalGross = calcFutureValue(monthlyReinvestAmount, monthlyRate, months);
+            const reinvestTotalInvested = monthlyReinvestAmount * months;
+            const reinvestTotalEarnings = Math.max(0, reinvestTotalGross - reinvestTotalInvested);
+            const reinvestTax = reinvestTotalEarnings * reinvestTaxRate;
+            const reinvestNet = reinvestTotalGross - reinvestTax;
+            const pgblOptTotalNet = pgblPlanNet + reinvestNet;
+            const pgblOptAdvantage = pgblOptTotalNet - vgblNet;
+            const pgblOptPctAdvantage = vgblNet > 0 ? (pgblOptAdvantage / vgblNet) * 100 : 0;
+
+            // Atualiza UI
+            const annualInvestEl = document.getElementById('calc-prev-annual-invest');
+            const newTaxBaseEl = document.getElementById('calc-prev-new-tax-base');
+            const taxDiffEl = document.getElementById('calc-prev-tax-diff');
+            const taxSavingsAnnualEl = document.getElementById('calc-prev-tax-savings-annual');
+            const taxSavingsTotalEl = document.getElementById('calc-prev-tax-savings-total');
+
+            if (annualInvestEl) annualInvestEl.textContent = `R$ ${annualInvest.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (R$ ${monthlyInvest.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mês)`;
+            if (newTaxBaseEl) newTaxBaseEl.textContent = `R$ ${newTaxBase.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (taxDiffEl) taxDiffEl.textContent = `R$ ${taxWithoutPgbl.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} → R$ ${taxWithPgbl.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (taxSavingsAnnualEl) taxSavingsAnnualEl.textContent = `+ R$ ${annualTaxSavings.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ano`;
+            if (taxSavingsTotalEl) taxSavingsTotalEl.textContent = `R$ ${totalTaxSavingsNoInterest.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+            // VGBL Elements
+            const vgblGrossEl = document.getElementById('calc-prev-vgbl-gross');
+            const vgblTaxEl = document.getElementById('calc-prev-vgbl-tax');
+            const vgblNetEl = document.getElementById('calc-prev-vgbl-net');
+            if (vgblGrossEl) vgblGrossEl.textContent = `R$ ${mainTotalGross.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (vgblTaxEl) vgblTaxEl.textContent = `R$ ${vgblTax.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${(effectiveRedemptionTax * 100).toFixed(1)}%)`;
+            if (vgblNetEl) vgblNetEl.textContent = `R$ ${vgblNet.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+            // PGBL Simples Elements
+            const pgblPlanNetEl = document.getElementById('calc-prev-pgbl-plan-net');
+            const pgblSimpleSavingsEl = document.getElementById('calc-prev-pgbl-simple-savings');
+            const pgblSimpleNetEl = document.getElementById('calc-prev-pgbl-simple-net');
+            if (pgblPlanNetEl) pgblPlanNetEl.textContent = `R$ ${pgblPlanNet.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (pgblSimpleSavingsEl) pgblSimpleSavingsEl.textContent = `R$ ${totalTaxSavingsNoInterest.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (pgblSimpleNetEl) {
+                const diffSign = pgblSimpleAdvantage >= 0 ? '+' : '';
+                pgblSimpleNetEl.textContent = `R$ ${pgblSimpleTotalNet.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${diffSign}R$ ${(pgblSimpleAdvantage / 1000).toFixed(1)}k)`;
+            }
+
+            // PGBL Otimizado Elements
+            const optPlanEl = document.getElementById('calc-prev-opt-plan');
+            const optReinvestEl = document.getElementById('calc-prev-opt-reinvest');
+            const optTotalNetEl = document.getElementById('calc-prev-opt-total-net');
+            if (optPlanEl) optPlanEl.textContent = `R$ ${pgblPlanNet.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (optReinvestEl) optReinvestEl.textContent = `R$ ${reinvestNet.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (optTotalNetEl) optTotalNetEl.textContent = `R$ ${pgblOptTotalNet.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+            // Veredito
+            const verdictDescEl = document.getElementById('calc-prev-verdict-desc');
+            if (verdictDescEl) {
+                verdictDescEl.textContent = `O reinvestimento contínuo da restituição fiscal anual (R$ ${annualTaxSavings.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/ano) no PGBL acumula um saldo líquido R$ ${pgblOptAdvantage.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} superior (+${pgblOptPctAdvantage.toFixed(1)}%) ao VGBL ao final do período para o mesmo desembolso financeiro total.`;
+            }
+
+            renderPrevidenciaChart(vgblNet, pgblSimpleTotalNet, pgblOptTotalNet);
+        }
+
+        function renderPrevidenciaChart(vgblVal, pgblSimpleVal, pgblOptVal) {
+            const ctx = document.getElementById('previdencia-chart')?.getContext('2d');
+            if (!ctx || typeof Chart === 'undefined') return;
+
+            if (previdenciaChartInstance) {
+                previdenciaChartInstance.destroy();
+                previdenciaChartInstance = null;
+            }
+
+            const isLight = document.body.classList.contains('light-theme');
+            const tickColor = isLight ? '#6b7084' : '#8b8fa3';
+            const gridColor = isLight ? '#e2e4ea' : '#282c38';
+
+            previdenciaChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['VGBL', 'PGBL Simples', 'PGBL c/ Reinvestimento'],
+                    datasets: [{
+                        label: 'Patrimônio Líquido Final',
+                        data: [vgblVal, pgblSimpleVal, pgblOptVal],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.7)',
+                            'rgba(245, 158, 11, 0.7)',
+                            'rgba(16, 185, 129, 0.85)'
+                        ],
+                        borderColor: [
+                            '#3b82f6',
+                            '#f59e0b',
+                            '#10b981'
+                        ],
+                        borderWidth: 1.5,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        valueLabels: false,
+                        keyValueLabels: false,
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` Líquido: R$ ${context.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: tickColor, font: { size: 10, weight: '600', family: 'Inter, sans-serif' } }
+                        },
+                        y: {
+                            grid: { color: gridColor },
+                            ticks: {
+                                color: tickColor,
+                                maxTicksLimit: 4,
+                                font: { size: 10, family: 'Inter, sans-serif' },
+                                callback: v => `R$ ${(v / 1000000).toFixed(1)}M`
+                            }
+                        }
+                    }
+                }
+            });
         }
 
         function calculateFireRetirement() {
@@ -5405,9 +5824,9 @@ const tableSortState = {};
             const resEl = document.getElementById('rule-72-result');
             const descEl = document.getElementById('rule-72-desc');
             const rate = Math.max(0.1, parseFloat(input?.value) || 12.0);
-            const years = 72.0 / rate;
-            if (resEl) resEl.textContent = `${years.toFixed(1)} anos`;
-            if (descEl) descEl.textContent = `A ${rate.toFixed(1)}% a.a., R$ 100k viram R$ 200k em ${years.toFixed(1)} anos e R$ 400k em ${(years * 2).toFixed(1)} anos!`;
+            const yearsToDouble = 72.0 / rate;
+            if (resEl) resEl.textContent = `${yearsToDouble.toFixed(1).replace('.', ',')} anos`;
+            if (descEl) descEl.textContent = `Seu capital dobra a cada ${yearsToDouble.toFixed(1)} anos a uma taxa composta de ${rate.toFixed(1)}% ao ano.`;
         }
 
         function calculateRule503020() {
@@ -5554,6 +5973,7 @@ const tableSortState = {};
             if (currentCalcMode === 'goal') calculateIncomeGoal();
             else if (currentCalcMode === 'snowball') calculateSnowball();
             else if (currentCalcMode === 'compare_rf') calculateRfComparison();
+            else if (currentCalcMode === 'previdencia') calculatePrevidencia();
             else if (currentCalcMode === 'fire') calculateFireRetirement();
             else if (currentCalcMode === 'rules') calculateAllRules();
         }
@@ -6335,4 +6755,38 @@ const tableSortState = {};
             setTimeout(initTableColumnResizers, 150);
         }
         window.addEventListener('load', () => setTimeout(initTableColumnResizers, 200));
+
+        // ── Funções da Base de Conhecimento & Glossário Educativo ──
+        let currentGlossaryCategory = 'all';
+
+        function setGlossaryCategory(category, btn) {
+            currentGlossaryCategory = category;
+            const pills = document.querySelectorAll('.learn-filter-pill');
+            pills.forEach(p => p.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            filterGlossary();
+        }
+
+        function filterGlossary() {
+            const searchInput = document.getElementById('learn-search');
+            const term = (searchInput ? searchInput.value : '').toLowerCase().trim();
+            const cards = document.querySelectorAll('.learn-card');
+
+            cards.forEach(card => {
+                const category = card.getAttribute('data-category') || '';
+                const keywords = (card.getAttribute('data-keywords') || '').toLowerCase();
+                const text = (card.textContent || '').toLowerCase();
+
+                const matchesCat = (currentGlossaryCategory === 'all' || category === currentGlossaryCategory);
+                const matchesSearch = (!term || keywords.includes(term) || text.includes(term));
+
+                if (matchesCat && matchesSearch) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+        window.setGlossaryCategory = setGlossaryCategory;
+        window.filterGlossary = filterGlossary;
 
