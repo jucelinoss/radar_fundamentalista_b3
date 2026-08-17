@@ -1,6 +1,6 @@
 {
   "meta": {
-    "exported_at": "2026-08-17T20:49:07.014688",
+    "exported_at": "2026-08-17T20:54:01.591555",
     "source": "Radar Fundamentalista B3 - Top Picks",
     "description": "Melhores ativos por score fundamentalista. Pronto para alimentar IA com sua carteira.",
     "suggested_prompt": "Analise minha carteira de investimentos comparando com estes top picks. Para cada ativo da minha carteira, sugira se devo manter, aumentar, reduzir ou vender, considerando os scores fundamentalistas, DY, P/L, P/VP, ROE e margem de seguranca de Graham."
@@ -49,6 +49,20 @@
       "upside_graham_pct": 103.7
     },
     {
+      "ticker": "CEAB3",
+      "name": "C&A Modas S.A.",
+      "sector": "Consumo Cíclico",
+      "price": 7.84,
+      "pe_ratio": 4.22,
+      "pb_ratio": 0.62,
+      "dividend_yield_pct": 6.65,
+      "roe_pct": 15.49,
+      "graham_price": 23.03,
+      "bazin_price": 15.0,
+      "score": 5.0,
+      "upside_graham_pct": 193.8
+    },
+    {
       "ticker": "BBDC4",
       "name": "Banco Bradesco S.A.",
       "sector": "Serviços Financeiros",
@@ -77,20 +91,6 @@
       "upside_graham_pct": 286.1
     },
     {
-      "ticker": "CMIG3",
-      "name": "Companhia Energética de Minas Gerais - CEMIG",
-      "sector": "Utilidade Pública",
-      "price": 14.95,
-      "pe_ratio": 8.74,
-      "pb_ratio": 1.47,
-      "dividend_yield_pct": 9.34,
-      "roe_pct": 15.94,
-      "graham_price": 19.8,
-      "bazin_price": 23.33,
-      "score": 5.0,
-      "upside_graham_pct": 32.4
-    },
-    {
       "ticker": "CMIG4",
       "name": "Companhia Energética de Minas Gerais - CEMIG",
       "sector": "Utilidade Pública",
@@ -105,18 +105,18 @@
       "upside_graham_pct": 93.9
     },
     {
-      "ticker": "CEAB3",
-      "name": "C&A Modas S.A.",
-      "sector": "Consumo Cíclico",
-      "price": 7.84,
-      "pe_ratio": 4.22,
-      "pb_ratio": 0.62,
-      "dividend_yield_pct": 6.65,
-      "roe_pct": 15.49,
-      "graham_price": 23.03,
-      "bazin_price": 15.0,
+      "ticker": "CMIG3",
+      "name": "Companhia Energética de Minas Gerais - CEMIG",
+      "sector": "Utilidade Pública",
+      "price": 14.95,
+      "pe_ratio": 8.74,
+      "pb_ratio": 1.47,
+      "dividend_yield_pct": 9.34,
+      "roe_pct": 15.94,
+      "graham_price": 19.8,
+      "bazin_price": 23.33,
       "score": 5.0,
-      "upside_graham_pct": 193.8
+      "upside_graham_pct": 32.4
     },
     {
       "ticker": "CYRE3",
