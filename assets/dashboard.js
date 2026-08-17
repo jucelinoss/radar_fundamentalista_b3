@@ -1928,8 +1928,13 @@ const tableSortState = {};
 
                     renderIndicesSummaryTable(data);
 
-                    // Initialize view and tab filters
-                    initCompareModule();
+                    // Initialize optional modules without blocking the rest of the UI.
+                    // The compare module is not present in every generated artifact;
+                    // a missing optional initializer must not prevent URL deep links
+                    // (for example #tab=glossary) from being applied.
+                    if (typeof initCompareModule === 'function') {
+                        initCompareModule();
+                    }
                     populateCalculatorSelects();
                     renderGlobalPanel(data);
                     if (typeof checkRefreshStatus === 'function') checkRefreshStatus();
