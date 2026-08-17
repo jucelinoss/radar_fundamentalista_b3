@@ -109,8 +109,9 @@
             <button class="tab-btn" onclick="switchTab('fiagros')">FIAGROs</button>
             <button class="tab-btn" onclick="switchTab('rendafixa')">Tesouro Direto</button>
             <button class="tab-btn" onclick="switchTab('compare')">Comparador</button>
-            <button class="tab-btn" onclick="switchTab('calculator')">🧮 Calculadora</button>
+            <button class="tab-btn" onclick="switchTab('calculator')">Calculadora</button>
             <button class="tab-btn" onclick="switchTab('macro')">Previsor Macro</button>
+            <button class="tab-btn" onclick="switchTab('glossary')">Glossário & Educação</button>
         </nav>
 
         <!-- Filters -->
@@ -429,15 +430,16 @@
         <section id="panel-calculator" class="calc-container hidden" aria-label="Calculadora de Investimentos">
             <div class="compare-header-box" style="justify-content: space-between;">
                 <div>
-                    <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary);">🧮 Calculadora de Investimentos Inteligente</h2>
-                    <p style="font-size: 0.8rem; color: var(--text-muted);">Simulações financeiras com impacto tributário real (IR/JCP): metas de renda, juros compostos, comparador de renda fixa e retirada para aposentadoria.</p>
+                    <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary);">Calculadora Financeira & Planejamento Tributário</h2>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">Simulações quantitativas com incidência tributária real: projeção de renda passiva, juros compostos, comparativo de renda fixa e planejamento de previdência (PGBL e VGBL).</p>
                 </div>
                 <div class="calc-mode-selector">
-                    <button type="button" class="calc-mode-btn active" id="btn-calc-mode-goal" onclick="switchCalcMode('goal')">🎯 Meta de Renda Mensal</button>
-                    <button type="button" class="calc-mode-btn" id="btn-calc-mode-snowball" onclick="switchCalcMode('snowball')">📈 Acumulação & Reinvestimento</button>
-                    <button type="button" class="calc-mode-btn" id="btn-calc-mode-compare-rf" onclick="switchCalcMode('compare_rf')">⚖️ Comparador Renda Fixa</button>
-                    <button type="button" class="calc-mode-btn" id="btn-calc-mode-fire" onclick="switchCalcMode('fire')">🛡️ Viver de Renda (Saque Vitalício)</button>
-                    <button type="button" class="calc-mode-btn" id="btn-calc-mode-rules" onclick="switchCalcMode('rules')">💡 Regras Práticas & Valuation</button>
+                    <button type="button" class="calc-mode-btn active" id="btn-calc-mode-goal" onclick="switchCalcMode('goal')">Meta de Renda</button>
+                    <button type="button" class="calc-mode-btn" id="btn-calc-mode-snowball" onclick="switchCalcMode('snowball')">Acumulação & Juros Compostos</button>
+                    <button type="button" class="calc-mode-btn" id="btn-calc-mode-compare-rf" onclick="switchCalcMode('compare_rf')">Comparativo de Renda Fixa</button>
+                    <button type="button" class="calc-mode-btn" id="btn-calc-mode-previdencia" onclick="switchCalcMode('previdencia')">Previdência Privada (PGBL x VGBL) <span class="info-tooltip" data-tooltip="PGBL deduz até 12% da renda bruta no IRPF completo; VGBL tributa apenas os lucros no resgate.">ⓘ</span></button>
+                    <button type="button" class="calc-mode-btn" id="btn-calc-mode-fire" onclick="switchCalcMode('fire')">Retirada Sustentável (FIRE) <span class="info-tooltip" data-tooltip="FIRE (Financial Independence, Retire Early): Cálculo da taxa segura anual de saques para viver de renda perpétua.">ⓘ</span></button>
+                    <button type="button" class="calc-mode-btn" id="btn-calc-mode-rules" onclick="switchCalcMode('rules')">Modelos de Valuation & Alocação</button>
                 </div>
             </div>
 
@@ -459,12 +461,12 @@
                     <div class="calc-input-group">
                         <label for="calc-goal-category">Classe / Tipo de Ativo</label>
                         <select id="calc-goal-category" onchange="onGoalCategoryChange()">
-                            <option value="all">🌐 Todas as Classes & Estratégias</option>
-                            <option value="strategies">👑 Estratégias & Carteiras Recomendadas</option>
-                            <option value="stocks">📈 Ações B3 (Dividendos / Graham)</option>
-                            <option value="fiis">🏢 FIIs (Fundos Imobiliários)</option>
-                            <option value="fiagros">🌱 FIAGROs (Agronegócio)</option>
-                            <option value="tesouro">🪙 Tesouro Direto (Renda Fixa Pública)</option>
+                            <option value="all">Todas as Classes & Estratégias</option>
+                            <option value="strategies">Estratégias & Carteiras Recomendadas</option>
+                            <option value="stocks">Ações B3 (Dividendos / Valor)</option>
+                            <option value="fiis">FIIs (Fundos Imobiliários)</option>
+                            <option value="fiagros">FIAGROs (Cadeia Agroindustrial)</option>
+                            <option value="tesouro">Tesouro Direto (Títulos Públicos)</option>
                         </select>
                     </div>
                     <div class="calc-input-group">
@@ -480,11 +482,11 @@
                     <div class="calc-input-group">
                         <label for="calc-goal-tax">Tributação & Regime Fiscal (IR / JCP)</label>
                         <select id="calc-goal-tax" onchange="calculateIncomeGoal()">
-                            <option value="auto">⚡ Automático (Conforme ativo selecionado)</option>
-                            <option value="exempt">🟢 100% Isento de IR (FIIs / Dividendos Puros)</option>
-                            <option value="stock_jcp">🟡 Ações c/ JCP (~25% JCP a 15% IR = ~3,75% efetivo)</option>
-                            <option value="fixed_15">🔴 Renda Fixa / Tesouro > 2 anos (15,0% IR retido)</option>
-                            <option value="fixed_22_5">🔴 Renda Fixa Curto Prazo < 180d (22,5% IR)</option>
+                            <option value="auto">Automático (Conforme ativo selecionado)</option>
+                            <option value="exempt">Isento de IR (FIIs / Dividendos)</option>
+                            <option value="stock_jcp">Ações com JCP (~25% JCP a 15% IR = ~3,75% efetivo)</option>
+                            <option value="fixed_15">Renda Fixa / Tesouro > 2 anos (15,0% IR)</option>
+                            <option value="fixed_22_5">Renda Fixa Curto Prazo &lt; 180d (22,5% IR)</option>
                         </select>
                     </div>
                 </div>
@@ -497,7 +499,7 @@
                             <span class="calc-stat-val" id="calc-goal-result-total" style="font-size: 1.3rem; color: var(--positive);">R$ 0,00</span>
                         </div>
                         <div class="calc-stat-item">
-                            <span style="color: var(--text-secondary);">Renda Líquida no Bolso:</span>
+                            <span style="color: var(--text-secondary);">Renda Líquida Mensal:</span>
                             <span class="calc-stat-val" id="calc-goal-result-net" style="color: var(--positive); font-weight: 800;">R$ 0,00 / mês</span>
                         </div>
                         <div class="calc-stat-item">
@@ -522,16 +524,16 @@
                         </div>
                     </div>
                     <div class="calc-magic-badge" id="calc-goal-magic-box">
-                        <div class="calc-magic-icon">💡</div>
+                        <div class="calc-magic-icon">ℹ️</div>
                         <div class="calc-magic-text">
-                            <strong id="calc-goal-magic-title">Visão Tributária & Diversificação</strong>
-                            <span id="calc-goal-magic-desc">FIIs e FIAGROs são isentos de IR na distribuição mensal. Títulos do Tesouro sofrem retenção de 15% após 2 anos.</span>
+                            <strong id="calc-goal-magic-title">Enquadramento Tributário</strong>
+                            <span id="calc-goal-magic-desc">FIIs e FIAGROs contam com isenção de IR na distribuição periódica para pessoa física. Títulos públicos contam com alíquota regressiva de 15% após 2 anos.</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Modo 2: Efeito Bola de Neve -->
+            <!-- Modo 2: Acumulação e Juros Compostos -->
             <div class="calc-grid hidden" id="calc-grid-snowball">
                 <div class="calc-card">
                     <h3 style="font-size: 0.95rem; font-weight: 700;">Parâmetros de Acumulação</h3>
@@ -553,12 +555,12 @@
                     <div class="calc-input-group">
                         <label for="calc-snow-category">Classe / Tipo de Ativo</label>
                         <select id="calc-snow-category" onchange="onSnowCategoryChange()">
-                            <option value="all">🌐 Todas as Classes & Estratégias</option>
-                            <option value="strategies">👑 Estratégias & Carteiras Recomendadas</option>
-                            <option value="stocks">📈 Ações B3 (Dividendos / Graham)</option>
-                            <option value="fiis">🏢 FIIs (Fundos Imobiliários)</option>
-                            <option value="fiagros">🌱 FIAGROs (Agronegócio)</option>
-                            <option value="tesouro">🪙 Tesouro Direto (Renda Fixa Pública)</option>
+                            <option value="all">Todas as Classes & Estratégias</option>
+                            <option value="strategies">Estratégias & Carteiras Recomendadas</option>
+                            <option value="stocks">Ações B3 (Dividendos / Valor)</option>
+                            <option value="fiis">FIIs (Fundos Imobiliários)</option>
+                            <option value="fiagros">FIAGROs (Cadeia Agroindustrial)</option>
+                            <option value="tesouro">Tesouro Direto (Títulos Públicos)</option>
                         </select>
                     </div>
                     <div class="calc-input-group">
@@ -574,11 +576,11 @@
                     <div class="calc-input-group">
                         <label for="calc-snow-tax">Tributação & Regime Fiscal (IR / JCP)</label>
                         <select id="calc-snow-tax" onchange="calculateSnowball()">
-                            <option value="auto">⚡ Automático (Conforme ativo selecionado)</option>
-                            <option value="exempt">🟢 100% Isento de IR (FIIs / Dividendos Puros)</option>
-                            <option value="stock_jcp">🟡 Ações c/ JCP (~25% JCP a 15% IR = ~3,75% efetivo)</option>
-                            <option value="fixed_15">🔴 Renda Fixa / Tesouro > 2 anos (15,0% IR retido)</option>
-                            <option value="fixed_22_5">🔴 Renda Fixa Curto Prazo < 180d (22,5% IR)</option>
+                            <option value="auto">Automático (Conforme ativo selecionado)</option>
+                            <option value="exempt">Isento de IR (FIIs / Dividendos)</option>
+                            <option value="stock_jcp">Ações com JCP (~25% JCP a 15% IR = ~3,75% efetivo)</option>
+                            <option value="fixed_15">Renda Fixa / Tesouro > 2 anos (15,0% IR)</option>
+                            <option value="fixed_22_5">Renda Fixa Curto Prazo &lt; 180d (22,5% IR)</option>
                         </select>
                     </div>
                     <div class="calc-input-group">
@@ -589,18 +591,18 @@
                             <option value="10">10 Anos</option>
                             <option value="15">15 Anos</option>
                             <option value="20">20 Anos</option>
-                            <option value="30">30 Anos (Aposentadoria)</option>
+                            <option value="30">30 Anos (Longo Prazo)</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="calc-card">
-                    <h3 id="calc-snow-card-title" style="font-size: 0.95rem; font-weight: 700;">Acumulação com Reinvestimento Automático (Magic Number)</h3>
+                    <h3 id="calc-snow-card-title" style="font-size: 0.95rem; font-weight: 700;">Projeção de Acúmulo & Reinvestimento Autossustentável</h3>
                     <div class="calc-magic-badge" id="calc-snow-magic-badge">
-                        <div class="calc-magic-icon" id="calc-snow-magic-icon">📈</div>
+                        <div class="calc-magic-icon" id="calc-snow-magic-icon"></div>
                         <div class="calc-magic-text">
-                            <strong id="calc-magic-number-title">Magic Number: Calculando...</strong>
-                            <span id="calc-magic-number-desc">O número de cotas ou títulos para reinvestir 1 nova cota todo mês 100% com proventos líquidos.</span>
+                            <strong id="calc-magic-number-title">Ponto de Reinvestimento Automático: Calculando...</strong>
+                            <span id="calc-magic-number-desc">Quantidade de cotas necessária para que os proventos mensais financiem novas cotas de forma autossustentável.</span>
                         </div>
                     </div>
                     <div class="calc-result-box">
@@ -609,11 +611,11 @@
                             <span class="calc-stat-val" id="calc-snow-result-total" style="font-size: 1.2rem; color: var(--positive);">R$ 0,00</span>
                         </div>
                         <div class="calc-stat-item">
-                            <span style="color: var(--text-secondary);">Total Aportado do Bolso:</span>
+                            <span style="color: var(--text-secondary);">Total Aportado:</span>
                             <span class="calc-stat-val" id="calc-snow-result-invested">R$ 0,00</span>
                         </div>
                         <div class="calc-stat-item">
-                            <span id="calc-snow-result-dividends-label" style="color: var(--text-secondary);">Renda Gerada por Juros/Dividendos (Líquida):</span>
+                            <span id="calc-snow-result-dividends-label" style="color: var(--text-secondary);">Rendimento Gerado por Juros/Dividendos (Líquido):</span>
                             <span class="calc-stat-val" id="calc-snow-result-dividends" style="color: var(--gold);">R$ 0,00</span>
                         </div>
                         <div class="calc-progress-container">
@@ -622,8 +624,8 @@
                                 <div class="calc-progress-returns" id="calc-snow-bar-returns" style="width: 50%;"></div>
                             </div>
                             <div class="calc-progress-legend">
-                                <span>🔵 Aportes: <strong id="calc-snow-pct-invested">50%</strong></span>
-                                <span>🟢 Juros / Proventos: <strong id="calc-snow-pct-returns">50%</strong></span>
+                                <span>Aportes: <strong id="calc-snow-pct-invested">50%</strong></span>
+                                <span>Juros / Proventos: <strong id="calc-snow-pct-returns">50%</strong></span>
                             </div>
                         </div>
                         <div class="calc-stat-item" style="margin-top: 0.5rem;">
@@ -641,14 +643,15 @@
                 </div>
             </div>
 
-            <!-- Modo 3: Comparador de Renda Fixa (CDB vs LCI vs Tesouro) -->
+            <!-- Modo 3: Comparador de Renda Fixa -->
             <div class="calc-grid hidden" id="calc-grid-compare-rf">
                 <div class="calc-card">
-                    <h3 style="font-size: 0.95rem; font-weight: 700;">Parâmetros de Comparação</h3>
+                    <h3 style="font-size: 0.95rem; font-weight: 700;">Parâmetros de Simulação</h3>
                     <div class="calc-input-group">
                         <label for="calc-rf-amount">Valor a Investir (R$)</label>
                         <input type="number" id="calc-rf-amount" value="10000" min="100" step="1000" oninput="calculateRfComparison()">
                         <div class="calc-presets-row">
+                            <button type="button" class="calc-preset-btn" onclick="setRfAmountPreset(1000)">R$ 1.000</button>
                             <button type="button" class="calc-preset-btn" onclick="setRfAmountPreset(5000)">R$ 5.000</button>
                             <button type="button" class="calc-preset-btn active" onclick="setRfAmountPreset(10000)">R$ 10.000</button>
                             <button type="button" class="calc-preset-btn" onclick="setRfAmountPreset(50000)">R$ 50.000</button>
@@ -670,31 +673,47 @@
                         <input type="number" id="calc-rf-cdi" value="13.00" min="1" max="30" step="0.25" oninput="calculateRfComparison()">
                     </div>
                     <div class="calc-input-group">
-                        <label for="calc-rf-cdb-pct">Opção A: CDB / LC / RDB (% do CDI — Tributado)</label>
-                        <input type="number" id="calc-rf-cdb-pct" value="110.0" min="50" max="200" step="1" oninput="calculateRfComparison()">
+                        <label for="calc-rf-cdb-pct">Opção A: CDB / RDB (% do CDI — Tributado)</label>
+                        <input type="number" id="calc-rf-cdb-pct" value="100.0" min="50" max="200" step="1" oninput="calculateRfComparison()">
                     </div>
                     <div class="calc-input-group">
-                        <label for="calc-rf-lci-pct">Opção B: LCI / LCA / CRI / CRA (% do CDI — Isento de IR)</label>
-                        <input type="number" id="calc-rf-lci-pct" value="92.0" min="50" max="200" step="1" oninput="calculateRfComparison()">
+                        <label for="calc-rf-lci-pct">Opção B: LCI / LCA (% do CDI — Isento de IR)</label>
+                        <input type="number" id="calc-rf-lci-pct" value="90.0" min="50" max="200" step="1" oninput="calculateRfComparison()">
                     </div>
                     <div class="calc-input-group">
-                        <label for="calc-rf-td-yield">Opção C: Tesouro Prefixado / IPCA+ (Taxa Bruta % a.a.)</label>
-                        <input type="number" id="calc-rf-td-yield" value="14.50" min="1" max="30" step="0.1" oninput="calculateRfComparison()">
+                        <label for="calc-rf-td-yield">Opção C: Tesouro Direto (Taxa Bruta % a.a.)</label>
+                        <input type="number" id="calc-rf-td-yield" value="13.25" min="1" max="30" step="0.1" oninput="calculateRfComparison()">
                     </div>
                 </div>
 
                 <div class="calc-card">
                     <h3 style="font-size: 0.95rem; font-weight: 700;">Resultado Comparativo Líquido</h3>
-                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+                        <!-- Poupança Card -->
+                        <div class="calc-compare-card" id="calc-card-poupanca" style="border-left: 3px solid #6b7280;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <strong>Poupança</strong>
+                                <span class="badge" style="background: rgba(107, 114, 128, 0.2); color: #9ca3af;">Isento de IR</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
+                                <span style="color:var(--text-secondary);">Rentabilidade Líquida:</span>
+                                <span id="calc-poupanca-rate-info">~6.17% a.a. + TR</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.95rem; font-weight:700;">
+                                <span style="color:var(--text-secondary);">Resgate Líquido:</span>
+                                <span id="calc-poupanca-net-val" style="color:var(--text-primary);">R$ 0,00</span>
+                            </div>
+                        </div>
+
                         <!-- CDB Card -->
                         <div class="calc-compare-card" id="calc-card-cdb">
                             <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <strong>🏦 CDB / LC Tributado</strong>
-                                <span class="calc-winner-badge hidden" id="badge-winner-cdb">🏆 Mais Vantajoso</span>
+                                <strong>CDB Pós-fixado (% CDI)</strong>
+                                <span class="calc-winner-badge hidden" id="badge-winner-cdb">Maior Retorno Líquido</span>
                             </div>
-                            <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                            <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
                                 <span style="color:var(--text-secondary);">Taxa Bruta / IR:</span>
-                                <span id="calc-cdb-gross-tax">14.30% a.a. (IR 17.5%)</span>
+                                <span id="calc-cdb-gross-tax">13.00% a.a. (IR 17.5%)</span>
                             </div>
                             <div style="display:flex; justify-content:space-between; font-size:0.95rem; font-weight:700;">
                                 <span style="color:var(--text-secondary);">Resgate Líquido:</span>
@@ -705,12 +724,12 @@
                         <!-- LCI Card -->
                         <div class="calc-compare-card" id="calc-card-lci">
                             <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <strong>🌱 LCI / LCA Isenta</strong>
-                                <span class="calc-winner-badge hidden" id="badge-winner-lci">🏆 Mais Vantajoso</span>
+                                <strong>LCI / LCA (Isento de IR)</strong>
+                                <span class="calc-winner-badge hidden" id="badge-winner-lci">Maior Retorno Líquido</span>
                             </div>
-                            <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                            <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
                                 <span style="color:var(--text-secondary);">Taxa Líquida / IR:</span>
-                                <span>11.96% a.a. (0.0% Isento)</span>
+                                <span id="calc-lci-gross-tax">11.70% a.a. (0.0% Isento)</span>
                             </div>
                             <div style="display:flex; justify-content:space-between; font-size:0.95rem; font-weight:700;">
                                 <span style="color:var(--text-secondary);">Resgate Líquido:</span>
@@ -721,12 +740,12 @@
                         <!-- Tesouro Card -->
                         <div class="calc-compare-card" id="calc-card-td">
                             <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <strong>🪙 Tesouro Direto</strong>
-                                <span class="calc-winner-badge hidden" id="badge-winner-td">🏆 Mais Vantajoso</span>
+                                <strong>Tesouro Direto</strong>
+                                <span class="calc-winner-badge hidden" id="badge-winner-td">Maior Retorno Líquido</span>
                             </div>
-                            <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                            <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
                                 <span style="color:var(--text-secondary);">Taxa Bruta / IR:</span>
-                                <span id="calc-td-gross-tax">14.50% a.a. (IR 17.5%)</span>
+                                <span id="calc-td-gross-tax">13.25% a.a. (IR 17.5%)</span>
                             </div>
                             <div style="display:flex; justify-content:space-between; font-size:0.95rem; font-weight:700;">
                                 <span style="color:var(--text-secondary);">Resgate Líquido:</span>
@@ -735,11 +754,247 @@
                         </div>
                     </div>
 
-                    <div class="calc-magic-badge" style="margin-top: 0.5rem;">
-                        <div class="calc-magic-icon">💡</div>
+                    <!-- Alerta Custo de Oportunidade da Poupança -->
+                    <div class="calc-magic-badge" style="margin-top: 0.5rem; border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.08);">
+                        <div class="calc-magic-icon">⚠️</div>
                         <div class="calc-magic-text">
-                            <strong id="calc-rf-equiv-title">Ponto de Equilíbrio (Break-Even)</strong>
+                            <strong style="color: #ef4444;" id="calc-poupanca-loss-title">Diferencial de Rendimento vs Poupança</strong>
+                            <span id="calc-poupanca-loss-desc">Calculando comparativo de rendimento...</span>
+                        </div>
+                    </div>
+
+                    <div class="calc-magic-badge" style="margin-top: 0.5rem;">
+                        <div class="calc-magic-icon">ℹ️</div>
+                        <div class="calc-magic-text">
+                            <strong id="calc-rf-equiv-title">Equivalência Tributária (Break-Even)</strong>
                             <span id="calc-rf-equiv-desc">Calculando equivalência tributária...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modo Previdência: PGBL x VGBL -->
+            <div class="calc-grid hidden" id="calc-grid-previdencia">
+                <!-- Assistente de Diagnóstico Fiscal & Escolha do Plano -->
+                <div class="calc-prev-diag-box">
+                    <div class="calc-prev-diag-header">
+                        <div>
+                            <h3>Filtros de Perfil Fiscal & Escolha Automática de Plano</h3>
+                            <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.2rem;">Responda às 3 perguntas para identificar instantaneamente se o PGBL ou VGBL é a escolha correta para sua situação fiscal.</p>
+                        </div>
+                    </div>
+                    <div class="calc-prev-diag-filters">
+                        <div class="calc-input-group">
+                            <label for="calc-prev-diag-decl">1. Modelo de Declaração do IRPF</label>
+                            <select id="calc-prev-diag-decl" onchange="updatePrevidenciaDiagnostic()">
+                                <option value="completa" selected>Declaração Completa (Deduções Legais)</option>
+                                <option value="simplificada">Declaração Simplificada ou Isento</option>
+                            </select>
+                        </div>
+                        <div class="calc-input-group">
+                            <label for="calc-prev-diag-inss">2. Previdência Oficial (INSS / RPPS)</label>
+                            <select id="calc-prev-diag-inss" onchange="updatePrevidenciaDiagnostic()">
+                                <option value="sim" selected>Sim, contribuo regularmente</option>
+                                <option value="nao">Não contribuo</option>
+                            </select>
+                        </div>
+                        <div class="calc-input-group">
+                            <label for="calc-prev-diag-horizon">3. Prazo Previsto da Aplicação</label>
+                            <select id="calc-prev-diag-horizon" onchange="updatePrevidenciaDiagnostic()">
+                                <option value="longo" selected>Longo Prazo (> 6 a 10 anos)</option>
+                                <option value="curto">Curto / Médio Prazo (≤ 5 anos)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="calc-prev-diag-banner pgbl-rec" id="calc-prev-diag-banner">
+                        <div style="display:flex; flex-direction:column; gap:0.35rem; flex:1 1 300px;">
+                            <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                                <strong id="calc-prev-diag-title" style="font-size:0.95rem; color:var(--text-primary);">Recomendação: PGBL + Tabela Regressiva</strong>
+                                <span id="calc-prev-diag-plan-badge" class="badge badge-green">Plano Ideal: PGBL</span>
+                                <span id="calc-prev-diag-regime-badge" class="badge">Regime: Regressivo</span>
+                            </div>
+                            <div id="calc-prev-diag-desc" style="font-size:0.80rem; color:var(--text-secondary); line-height:1.45;">
+                                Perfil ideal para <strong>PGBL com Regime Regressivo</strong>: você abate até 12% da renda bruta hoje (reinvestindo a restituição) e usufrui da alíquota definitiva de 10% no resgate de longo prazo.
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-secondary" onclick="applyDiagnosticToSimulation()" style="font-size:0.80rem; padding:0.45rem 0.85rem; white-space:nowrap;">
+                            ⚡ Aplicar à Simulação
+                        </button>
+                    </div>
+                </div>
+
+                <div class="calc-card">
+                    <h3 style="font-size: 0.95rem; font-weight: 700;">Parâmetros Fiscais & Aporte</h3>
+                    <div class="calc-input-group">
+                        <label for="calc-prev-income">Renda Bruta Anual Tributável (R$)</label>
+                        <input type="number" id="calc-prev-income" value="120000" min="10000" step="5000" oninput="calculatePrevidencia()">
+                        <div class="calc-presets-row">
+                            <button type="button" class="calc-preset-btn" onclick="setPrevIncomePreset(60000)">R$ 60k/ano</button>
+                            <button type="button" class="calc-preset-btn active" onclick="setPrevIncomePreset(120000)">R$ 120k/ano</button>
+                            <button type="button" class="calc-preset-btn" onclick="setPrevIncomePreset(180000)">R$ 180k/ano</button>
+                            <button type="button" class="calc-preset-btn" onclick="setPrevIncomePreset(240000)">R$ 240k/ano</button>
+                            <button type="button" class="calc-preset-btn" onclick="setPrevIncomePreset(360000)">R$ 360k/ano</button>
+                        </div>
+                    </div>
+                    <div class="calc-input-group">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <label for="calc-prev-pct">Percentual Aplicado (% da Renda)</label>
+                            <span id="calc-prev-pct-badge" class="badge badge-gold" style="font-size:0.75rem;">12% (Teto Legal PGBL)</span>
+                        </div>
+                        <input type="range" id="calc-prev-pct" min="1" max="12" value="12" step="1" oninput="onPrevPctChange(this.value)">
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-prev-years">Período da Aplicação (Anos)</label>
+                        <select id="calc-prev-years" onchange="calculatePrevidencia()">
+                            <option value="5">5 Anos</option>
+                            <option value="10">10 Anos</option>
+                            <option value="15">15 Anos</option>
+                            <option value="20">20 Anos</option>
+                            <option value="30" selected>30 Anos (Longo Prazo)</option>
+                        </select>
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-prev-regime">Regime Tributário no Resgate</label>
+                        <select id="calc-prev-regime" onchange="onPrevRegimeChange()">
+                            <option value="regressive" selected>Tabela Regressiva Definitiva (35% a 10% pelo prazo)</option>
+                            <option value="progressive">Tabela Progressiva (Compensável no IRPF)</option>
+                        </select>
+                    </div>
+                    <div class="calc-input-group hidden" id="calc-prev-prog-tax-group">
+                        <label for="calc-prev-prog-tax">Alíquota Efetiva de IRPF Estimada no Resgate</label>
+                        <select id="calc-prev-prog-tax" onchange="calculatePrevidencia()">
+                            <option value="0.00">0,0% — Isento (Renda até R$ 2.259/mês)</option>
+                            <option value="0.075">7,5% — Faixa 1 IRPF</option>
+                            <option value="0.150" selected>15,0% — Faixa 2 / Retenção Padrão</option>
+                            <option value="0.225">22,5% — Faixa 3 IRPF</option>
+                            <option value="0.275">27,5% — Teto Máximo IRPF</option>
+                        </select>
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-prev-return">Taxa de Retorno Esperada (% a.a.)</label>
+                        <input type="number" id="calc-prev-return" value="10.0" min="1.0" max="30.0" step="0.5" oninput="calculatePrevidencia()">
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-prev-reinvest-tax">Tributação do Reinvestimento da Dedução</label>
+                        <select id="calc-prev-reinvest-tax" onchange="calculatePrevidencia()">
+                            <option value="0.15" selected>15% IR (Tesouro / CDB Longo Prazo / Fundo RF)</option>
+                            <option value="0.00">0% IR (LCI / LCA / FIIs Isentos)</option>
+                            <option value="0.20">20% IR (Renda Variável / Swing Trade)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="calc-card">
+                    <h3 style="font-size: 0.95rem; font-weight: 700;">Benefício Fiscal Anual (IRPF Completo)</h3>
+                    <div class="calc-result-box" style="margin-bottom:0.75rem;">
+                        <div class="calc-stat-item">
+                            <span style="color: var(--text-secondary);">Aporte Anual no Plano:</span>
+                            <span class="calc-stat-val" id="calc-prev-annual-invest" style="font-weight:700; color:var(--text-primary);">R$ 14.400,00 (R$ 1.200/mês)</span>
+                        </div>
+                        <div class="calc-stat-item">
+                            <span style="color: var(--text-secondary);">Nova Base de Cálculo do IRPF:</span>
+                            <span class="calc-stat-val" id="calc-prev-new-tax-base">R$ 105.600,00</span>
+                        </div>
+                        <div class="calc-stat-item">
+                            <span style="color: var(--text-secondary);">IR Devido Sem PGBL vs Com PGBL:</span>
+                            <span class="calc-stat-val" id="calc-prev-tax-diff">R$ 22.567,68 → R$ 18.607,68</span>
+                        </div>
+                        <div class="calc-stat-item" style="border-top:1px dashed var(--card-border); padding-top:0.4rem; margin-top:0.3rem;">
+                            <span style="color: var(--accent-green); font-weight:700;">Dedução Efetiva de IR:</span>
+                            <span class="calc-stat-val" id="calc-prev-tax-savings-annual" style="font-size:1.15rem; font-weight:800; color:var(--accent-green);">+ R$ 3.960,00 / ano</span>
+                        </div>
+                        <div class="calc-stat-item">
+                            <span style="color: var(--text-secondary);">Dedução Total Acumulada (Sem Juros):</span>
+                            <span class="calc-stat-val" id="calc-prev-tax-savings-total" style="color:var(--gold);">R$ 118.800,00</span>
+                        </div>
+                    </div>
+
+                    <h3 style="font-size: 0.95rem; font-weight: 700; margin-top:0.5rem;">Simulação de Resgate Líquido</h3>
+                    <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                        <!-- 1. VGBL -->
+                        <div class="calc-compare-card" id="calc-prev-card-vgbl">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <strong>1. VGBL (Tributação sobre Rendimentos)</strong>
+                                <span class="badge" style="background:rgba(59, 130, 246, 0.15); color:var(--primary);">IR s/ Rendimentos</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-secondary);">
+                                <span>Bruto: <strong id="calc-prev-vgbl-gross">R$ 2.475.411,98</strong> · IR: <strong id="calc-prev-vgbl-tax">R$ 204.341,20</strong></span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.92rem; font-weight:700;">
+                                <span style="color:var(--text-secondary);">Saldo Líquido Final:</span>
+                                <span id="calc-prev-vgbl-net" style="color:var(--text-primary);">R$ 2.271.070,78</span>
+                            </div>
+                        </div>
+
+                        <!-- 2. PGBL Simples -->
+                        <div class="calc-compare-card" id="calc-prev-card-pgbl-simple">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <strong>2. PGBL (Sem Reinvestimento da Dedução)</strong>
+                                <span class="badge" style="background:rgba(245, 158, 11, 0.15); color:var(--accent-gold);">IR s/ Total + Dedução</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-secondary);">
+                                <span>Líquido Plano: <strong id="calc-prev-pgbl-plan-net">R$ 2.227.870,78</strong> + Dedução: <strong id="calc-prev-pgbl-simple-savings">R$ 118.800,00</strong></span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.92rem; font-weight:700;">
+                                <span style="color:var(--text-secondary);">Saldo Total:</span>
+                                <span id="calc-prev-pgbl-simple-net" style="color:var(--accent-gold);">R$ 2.346.670,78 (+ R$ 75,6k)</span>
+                            </div>
+                        </div>
+
+                        <!-- 3. PGBL Otimizado (Reinvestindo IR) -->
+                        <div class="calc-compare-card winner" id="calc-prev-card-pgbl-reinvest" style="border-color:var(--accent-green);">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <strong>3. PGBL com Reinvestimento da Dedução Fiscal</strong>
+                                <span class="calc-winner-badge" id="badge-winner-prev">Maior Eficiência Tributária</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-secondary);">
+                                <span>Plano PGBL: <strong id="calc-prev-opt-plan">R$ 2.227.870,78</strong> + Fundo Reinvestido: <strong id="calc-prev-opt-reinvest">R$ 596.447,55</strong></span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:1rem; font-weight:800;">
+                                <span style="color:var(--text-secondary);">Patrimônio Líquido Total:</span>
+                                <span id="calc-prev-opt-total-net" style="color:var(--accent-green);">R$ 2.824.318,33</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Veredito Técnico -->
+                    <div class="calc-magic-badge" style="margin-top: 0.6rem; border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.08);">
+                        <div class="calc-magic-icon">ℹ️</div>
+                        <div class="calc-magic-text">
+                            <strong style="color: var(--accent-green);" id="calc-prev-verdict-title">Eficiência do Planejamento Tributário</strong>
+                            <span id="calc-prev-verdict-desc">O reinvestimento contínuo da restituição fiscal anual (R$ 3.960,00/ano) no PGBL acumula um saldo líquido R$ 553.247,55 superior (+24,3%) ao VGBL ao final do período para o mesmo desembolso financeiro total.</span>
+                        </div>
+                    </div>
+
+                    <div style="position: relative; height: 180px; width: 100%; margin-top: 0.6rem;">
+                        <canvas id="previdencia-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Guia de Tomada de Decisão: PGBL vs VGBL & Regimes Tributários -->
+                <div class="calc-card" style="grid-column: 1 / -1; margin-top: 0.5rem;">
+                    <h3 style="font-size: 1rem; font-weight: 700;">Guia de Planejamento: PGBL vs VGBL e Escolha do Regime Tributário</h3>
+                    <div class="calc-prev-guide-container">
+                        <!-- Card 1: PGBL vs VGBL -->
+                        <div class="calc-prev-guide-card">
+                            <h4>Quando escolher PGBL vs VGBL</h4>
+                            <ul class="calc-prev-guide-list">
+                                <li><strong>Escolha o PGBL se:</strong> Faz a declaração completa do IRPF, contribui para o INSS/RPPS e quer abater até 12% da sua renda bruta anual tributável hoje para reinvestir a restituição.</li>
+                                <li><strong>Escolha o VGBL se:</strong> Faz a declaração simplificada, é isento, é MEI/PJ com renda via dividendos isentos, ou já atingiu o teto de 12% em PGBL e deseja alocar valores adicionais.</li>
+                                <li><strong>Base de Cálculo no Resgate:</strong> No PGBL, o IR incide sobre o total resgatado (capital + juros). No VGBL, o IR incide exclusivamente sobre o rendimento (lucro).</li>
+                                <li><strong>Planejamento Sucessório:</strong> Ambos os planos não entram no inventário tradicional e possuem repasse ágil aos beneficiários indicados.</li>
+                            </ul>
+                        </div>
+
+                        <!-- Card 2: Regressivo vs Progressivo -->
+                        <div class="calc-prev-guide-card">
+                            <h4>Tabela Regressiva vs Tabela Progressiva</h4>
+                            <ul class="calc-prev-guide-list">
+                                <li><strong>Tabela Regressiva (Definitiva):</strong> Alíquota decresce com o tempo (35% até 2 anos até atingir 10% após 10 anos). Ideal para foco de longo prazo e aposentadoria, garantindo a menor alíquota de IR do país.</li>
+                                <li><strong>Tabela Progressiva (Compensável):</strong> Retenção de 15% na fonte no resgate e ajuste na declaração anual do IRPF. Ideal se o resgate for de curto prazo ou se a renda tributável total na aposentadoria for baixa (podendo ser isenta ou 7,5%).</li>
+                                <li><strong>Lei nº 14.803/2024 (Regra Vigente):</strong> O investidor não precisa mais definir o regime no momento da contratação. A opção por tributação regressiva ou progressiva pode ser feita no momento do primeiro resgate ou concessão do benefício.</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -761,30 +1016,30 @@
                         </div>
                     </div>
                     <div class="calc-input-group">
-                        <label for="calc-fire-swr">Taxa Segura de Retirada Anual (SWR / Trinity Study)</label>
+                        <label for="calc-fire-swr">Taxa Anual de Retirada Sustentável (SWR / Estudo Trinity) <span class="info-tooltip" data-tooltip="SWR (Safe Withdrawal Rate): Percentual anual que pode ser sacado da carteira corrigido pela inflação sem esgotar o capital ao longo da vida.">ⓘ</span></label>
                         <select id="calc-fire-swr" onchange="calculateFireRetirement()">
-                            <option value="0.035">3,5% a.a. — Ultra-Conservadora (Perpétua / Preserva Capital)</option>
-                            <option value="0.040" selected>4,0% a.a. — Regra dos 4% Clássica (Estudo Trinity 30+ Anos)</option>
-                            <option value="0.050">5,0% a.a. — Moderada (Brasil High Yield / FIIs)</option>
-                            <option value="0.060">6,0% a.a. — Regra de Décio Bazin (Foco Dividendos B3)</option>
+                            <option value="0.035">3,5% a.a. — Conservadora (Preservação Integral do Principal)</option>
+                            <option value="0.040" selected>4,0% a.a. — Regra dos 4% (Referência Trinity Study)</option>
+                            <option value="0.050">5,0% a.a. — Moderada (Carteiras com Alto Yield)</option>
+                            <option value="0.060">6,0% a.a. — Critério Bazin (Foco em Dividend Yield)</option>
                         </select>
                     </div>
                     <div class="calc-input-group">
-                        <label for="calc-fire-strategy">Estratégia de Carteira de Renda</label>
+                        <label for="calc-fire-strategy">Composição da Carteira de Renda</label>
                         <select id="calc-fire-strategy" onchange="calculateFireRetirement()">
-                            <option value="mixed" selected>⚖️ Carteira Balanceada (40% FIIs + 30% Ações + 30% Tesouro IPCA+)</option>
-                            <option value="fiis">🏢 100% FIIs / FIAGROs (Fluxo Mensal Isento de IR)</option>
-                            <option value="tesouro">🪙 100% Tesouro RendA+ / IPCA+ com Juros Semestrais</option>
-                            <option value="stocks">📈 100% Ações Dividendos B3 (Bazin / Graham)</option>
+                            <option value="mixed" selected>Carteira Balanceada (40% FIIs + 30% Ações + 30% Tesouro IPCA+)</option>
+                            <option value="fiis">FIIs / FIAGROs (Fluxo Mensal Isento de IR)</option>
+                            <option value="tesouro">Tesouro RendA+ / IPCA+ com Juros Semestrais</option>
+                            <option value="stocks">Ações Dividendos B3 (Bazin / Graham)</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="calc-card">
-                    <h3 style="font-size: 0.95rem; font-weight: 700;">Capacidade de Renda Vitalícia</h3>
+                    <h3 style="font-size: 0.95rem; font-weight: 700;">Capacidade de Renda Sustentável</h3>
                     <div class="calc-result-box">
                         <div class="calc-stat-item">
-                            <span style="color: var(--text-secondary);">Saque Mensal Seguro no Bolso:</span>
+                            <span style="color: var(--text-secondary);">Retirada Mensal Sustentável:</span>
                             <span class="calc-stat-val" id="calc-fire-monthly" style="font-size: 1.3rem; color: var(--positive);">R$ 0,00 / mês</span>
                         </div>
                         <div class="calc-stat-item">
@@ -796,8 +1051,8 @@
                             <span class="calc-stat-val" id="calc-fire-daily">R$ 0,00 / dia</span>
                         </div>
                         <div class="calc-stat-item">
-                            <span style="color: var(--text-secondary);">Preservação Real do Capital:</span>
-                            <span class="calc-stat-val" id="calc-fire-status" style="color: var(--positive);">100% Perpétuo</span>
+                            <span style="color: var(--text-secondary);">Probabilidade de Preservação do Capital:</span>
+                            <span class="calc-stat-val" id="calc-fire-status" style="color: var(--positive);">Alta (Perpétuo)</span>
                         </div>
                     </div>
 
@@ -805,28 +1060,28 @@
                         <div class="calc-magic-icon">🛡️</div>
                         <div class="calc-magic-text">
                             <strong id="calc-fire-insight-title">Proteção contra a Inflação</strong>
-                            <span id="calc-fire-insight-desc">Com a taxa de retirada segura de 4%, seu patrimônio gera renda vitalícia reajustada pela inflação sem esgotar o montante principal.</span>
+                            <span id="calc-fire-insight-desc">Com a taxa de retirada de 4%, o patrimônio financia o fluxo de caixa com correção inflacionária sem exaustão do capital principal.</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Modo 5: Regras Práticas & Valuation de Renda Variável -->
+            <!-- Modo 5: Modelos de Valuation & Alocação -->
             <div class="calc-rules-grid hidden" id="calc-grid-rules">
                 <!-- Regra RV 1: Preço Justo de Benjamin Graham -->
                 <div class="calc-rule-card">
                     <div class="calc-rule-header">
-                        <div class="calc-rule-title">📊 Preço Justo de Graham (Ações)</div>
+                        <div class="calc-rule-title">Preço Justo de Graham (Ações) <span class="info-tooltip" data-tooltip="Fórmula clássica de Benjamin Graham: VI = √(22,5 × LPA × VPA) para apurar o valor intrínseco de uma ação.">ⓘ</span></div>
                         <span class="calc-rule-formula-badge">Preço Justo = √(22,5 × LPA × VPA)</span>
                     </div>
-                    <p class="calc-rule-desc">Fórmula de valuation de Benjamin Graham (mentor de Warren Buffett) para encontrar o valor intrínseco baseado em lucros e patrimônio.</p>
+                    <p class="calc-rule-desc">Modelo clássico de Benjamin Graham para apuração do valor intrínseco fundamentalista baseado na rentabilidade e no patrimônio líquido por ação.</p>
                     <div class="calc-rule-inputs-row">
                         <div class="calc-input-group">
-                            <label for="rule-graham-lpa">LPA (Lucro p/ Ação)</label>
+                            <label for="rule-graham-lpa">LPA (Lucro por Ação)</label>
                             <input type="number" id="rule-graham-lpa" value="3.50" min="0.01" step="any" oninput="calculateRuleGraham()">
                         </div>
                         <div class="calc-input-group">
-                            <label for="rule-graham-vpa">VPA (Valor Patr. p/ Ação)</label>
+                            <label for="rule-graham-vpa">VPA (Valor Patr. por Ação)</label>
                             <input type="number" id="rule-graham-vpa" value="25.00" min="0.01" step="any" oninput="calculateRuleGraham()">
                         </div>
                     </div>
@@ -849,13 +1104,13 @@
                 <!-- Regra RV 2: Preço Teto de Décio Bazin -->
                 <div class="calc-rule-card">
                     <div class="calc-rule-header">
-                        <div class="calc-rule-title">📈 Preço Teto de Bazin (Dividendos)</div>
+                        <div class="calc-rule-title">Preço Teto de Bazin (Dividendos) <span class="info-tooltip" data-tooltip="Critério de Décio Bazin: Preço Teto = DPA ÷ 0,06 para assegurar Dividend Yield mínimo de 6% ao ano.">ⓘ</span></div>
                         <span class="calc-rule-formula-badge">Preço Teto = DPA ÷ 0,06</span>
                     </div>
-                    <p class="calc-rule-desc">Método clássico brasileiro para nunca pagar caro por ações pagadoras de dividendos, garantindo <strong>DY mínimo de 6% ao ano</strong>.</p>
+                    <p class="calc-rule-desc">Critério clássico de Décio Bazin para estabelecer o teto de compra em ações de dividendos, garantindo <strong>Dividend Yield mínimo de 6,0% a.a.</strong></p>
                     <div class="calc-rule-inputs-row">
                         <div class="calc-input-group">
-                            <label for="rule-bazin-dpa">Dividendo Anual (DPA)</label>
+                            <label for="rule-bazin-dpa">Dividendo Anual Médio (DPA)</label>
                             <input type="number" id="rule-bazin-dpa" value="2.40" min="0.01" step="any" oninput="calculateRuleBazin()">
                         </div>
                         <div class="calc-input-group">
@@ -878,10 +1133,10 @@
                 <!-- Regra RV 3: PEG Ratio de Peter Lynch -->
                 <div class="calc-rule-card">
                     <div class="calc-rule-header">
-                        <div class="calc-rule-title">🎯 PEG Ratio de Peter Lynch</div>
+                        <div class="calc-rule-title">PEG Ratio de Peter Lynch <span class="info-tooltip" data-tooltip="PEG = (P/L) ÷ Crescimento %. Métrica que pondera o valuation pelo crescimento; abaixo de 1,0 indica subavaliação.">ⓘ</span></div>
                         <span class="calc-rule-formula-badge">PEG = (P/L) ÷ Crescimento %</span>
                     </div>
-                    <p class="calc-rule-desc">Avalia se o múltiplo Preço/Lucro está barato em relação ao crescimento dos lucros. <strong>PEG &lt; 1,0 indica ação subavaliada</strong>.</p>
+                    <p class="calc-rule-desc">Métrica de Peter Lynch para ponderar o múltiplo Preço/Lucro pelo crescimento projetado dos lucros. <strong>PEG &lt; 1,0 indica subavaliação</strong>.</p>
                     <div class="calc-rule-inputs-row">
                         <div class="calc-input-group">
                             <label for="rule-peg-pe">Múltiplo P/L Atual</label>
@@ -904,10 +1159,10 @@
                 <!-- Regra RV 4: Preço Teto & P/VP de FIIs -->
                 <div class="calc-rule-card">
                     <div class="calc-rule-header">
-                        <div class="calc-rule-title">🏢 Preço Teto & Yield para FIIs</div>
+                        <div class="calc-rule-title">Preço Teto & Yield para FIIs <span class="info-tooltip" data-tooltip="Preço Teto = Provento ÷ 0,0075 para garantir Yield mínimo de 0,75% ao mês (9% a.a. isento de IR).">ⓘ</span></div>
                         <span class="calc-rule-formula-badge">Preço Teto = Provento ÷ 0,0075</span>
                     </div>
-                    <p class="calc-rule-desc">Regra de ouro para Fundos Imobiliários: buscar <strong>Yield mínimo de 0,75% a.m. (9,0% a.a. isento)</strong> e <strong>P/VP ≤ 1,00</strong>.</p>
+                    <p class="calc-rule-desc">Métrica de referência para Fundos Imobiliários: busca de <strong>Dividend Yield mínimo de 0,75% a.m. (9,0% a.a. isento)</strong> e <strong>P/VP ≤ 1,00</strong>.</p>
                     <div class="calc-rule-inputs-row">
                         <div class="calc-input-group">
                             <label for="rule-fii-distrib">Provento Mensal (R$/cota)</label>
@@ -933,28 +1188,28 @@
                 <!-- Regra 5: 200x da Renda -->
                 <div class="calc-rule-card">
                     <div class="calc-rule-header">
-                        <div class="calc-rule-title">🇧🇷 Regra dos 200x da Renda</div>
+                        <div class="calc-rule-title">Múltiplo 200x da Renda Mensal <span class="info-tooltip" data-tooltip="Calcula o patrimônio necessário assumindo um retorno líquido real de 0,5% ao mês (6% a.a.) sem consumir o principal.">ⓘ</span></div>
                         <span class="calc-rule-formula-badge">Patrimônio = Renda × 200</span>
                     </div>
-                    <p class="calc-rule-desc">Considera rentabilidade líquida real de <strong>0,5% ao mês (6,0% a.a.)</strong>, padrão clássico de dividendos de FIIs e Ações perenes no Brasil.</p>
+                    <p class="calc-rule-desc">Considera taxa de retorno líquida real de <strong>0,5% ao mês (6,0% a.a.)</strong>, padrão histórico de ativos geradores de renda no mercado brasileiro.</p>
                     <div class="calc-input-group">
                         <label for="rule-200-income">Renda Mensal Desejada (R$)</label>
                         <input type="number" id="rule-200-income" value="5000" min="10" step="any" oninput="calculateRule200()">
                     </div>
                     <div class="calc-rule-result">
-                        <div style="font-size:0.8rem; color:var(--text-secondary);">Patrimônio Alvo Necessário:</div>
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">Patrimônio Alvo:</div>
                         <div id="rule-200-result" style="font-size:1.15rem; font-weight:800; color:var(--positive);">R$ 1.000.000,00</div>
-                        <div style="font-size:0.75rem; color:var(--text-muted);">Equivale a 200 meses da sua renda sem tocar no principal.</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">Equivale a 200 meses da sua renda sem consumo do principal.</div>
                     </div>
                 </div>
 
                 <!-- Regra 6: 300x da Renda (Regra dos 4%) -->
                 <div class="calc-rule-card">
                     <div class="calc-rule-header">
-                        <div class="calc-rule-title">🌍 Regra dos 300x (Regra dos 4%)</div>
+                        <div class="calc-rule-title">Múltiplo 300x (Regra dos 4%) <span class="info-tooltip" data-tooltip="Regra clássica do Trinity Study: 300 vezes o custo mensal equivale a 25 anos do custo anual (taxa de saque de 4% a.a.).">ⓘ</span></div>
                         <span class="calc-rule-formula-badge">Patrimônio = Custo Mensal × 300</span>
                     </div>
-                    <p class="calc-rule-desc">Baseada no Estudo Trinity. Com taxa segura de saque de <strong>4,0% ao ano</strong> (25× custo anual), você tem renda perpétua reajustada pela inflação.</p>
+                    <p class="calc-rule-desc">Derivada do Trinity Study: taxa anual de saque seguro de <strong>4,0% a.a.</strong> (25× despesa anual) para preservação de capital indexada à inflação.</p>
                     <div class="calc-input-group">
                         <label for="rule-300-income">Custo de Vida Mensal (R$)</label>
                         <input type="number" id="rule-300-income" value="5000" min="10" step="any" oninput="calculateRule300()">
@@ -962,50 +1217,50 @@
                     <div class="calc-rule-result">
                         <div style="font-size:0.8rem; color:var(--text-secondary);">Patrimônio Necessário:</div>
                         <div id="rule-300-result" style="font-size:1.15rem; font-weight:800; color:var(--positive);">R$ 1.500.000,00</div>
-                        <div style="font-size:0.75rem; color:var(--text-muted);">Garante independência financeira global com proteção anticrise.</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">Permite saques anuais contínuos com reajuste pelo IPCA.</div>
                     </div>
                 </div>
 
                 <!-- Regra 7: Regra do 72 -->
                 <div class="calc-rule-card">
                     <div class="calc-rule-header">
-                        <div class="calc-rule-title">⚡ Regra do 72 (Dobra de Capital)</div>
+                        <div class="calc-rule-title">Regra do 72 (Duplicação de Capital) <span class="info-tooltip" data-tooltip="Atalho matemático que calcula em quantos anos o capital dobra: 72 dividido pela taxa de juros anual.">ⓘ</span></div>
                         <span class="calc-rule-formula-badge">Tempo (anos) ≈ 72 ÷ Taxa %</span>
                     </div>
-                    <p class="calc-rule-desc">Heurística matemática que calcula em quantos anos seu capital <strong>dobra de tamanho</strong> automaticamente apenas com o poder dos juros compostos.</p>
+                    <p class="calc-rule-desc">Aproximação matemática para estimar o período necessário para duplicar o patrimônio a uma taxa de juros compostos constante.</p>
                     <div class="calc-input-group">
-                        <label for="rule-72-rate">Rentabilidade Anual (% a.a.)</label>
+                        <label for="rule-72-rate">Taxa de Juros Composta (% a.a.)</label>
                         <input type="number" id="rule-72-rate" value="12.0" min="0.1" step="any" oninput="calculateRule72()">
                     </div>
                     <div class="calc-rule-result">
-                        <div style="font-size:0.8rem; color:var(--text-secondary);">Tempo para Dobrar seu Dinheiro:</div>
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">Tempo Estimado para Duplicar o Capital:</div>
                         <div id="rule-72-result" style="font-size:1.15rem; font-weight:800; color:var(--gold);">6,0 anos</div>
-                        <div id="rule-72-desc" style="font-size:0.75rem; color:var(--text-muted);">R$ 100k viram R$ 200k em 6 anos; R$ 400k em 12 anos!</div>
+                        <div id="rule-72-desc" style="font-size:0.75rem; color:var(--text-muted);">Seu capital dobra a cada 6,0 anos a uma taxa de 12,0% ao ano.</div>
                     </div>
                 </div>
 
                 <!-- Regra 8: 50 / 30 / 20 -->
                 <div class="calc-rule-card">
                     <div class="calc-rule-header">
-                        <div class="calc-rule-title">📊 Regra 50 / 30 / 20 de Orçamento</div>
-                        <span class="calc-rule-formula-badge">50% Essencial | 30% Lazer | 20% Futuro</span>
+                        <div class="calc-rule-title">Modelo Orçamentário 50 / 30 / 20 <span class="info-tooltip" data-tooltip="Distribuição da renda líquida: 50% necessidades básicas, 30% estilo de vida/lazer e 20% aportes em investimentos.">ⓘ</span></div>
+                        <span class="calc-rule-formula-badge">50% Essencial | 30% Flexível | 20% Aportes</span>
                     </div>
-                    <p class="calc-rule-desc">Metodologia clássica de alocação de salário para acelerar a formação de patrimônio sem abrir mão da qualidade de vida.</p>
+                    <p class="calc-rule-desc">Estrutura clássica de planejamento orçamentário para alocação sistemática de recursos financeiros.</p>
                     <div class="calc-input-group">
-                        <label for="rule-503020-salary">Renda / Salário Líquido Mensal (R$)</label>
+                        <label for="rule-503020-salary">Renda Líquida Mensal (R$)</label>
                         <input type="number" id="rule-503020-salary" value="6000" min="100" step="any" oninput="calculateRule503020()">
                     </div>
                     <div class="calc-rule-result">
                         <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
-                            <span>🏠 50% Essencial:</span>
+                            <span>50% Gastos Essenciais:</span>
                             <strong id="rule-503020-res-needs">R$ 3.000,00</strong>
                         </div>
                         <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
-                            <span>🎯 30% Estilo de Vida:</span>
+                            <span>30% Despesas Flexíveis:</span>
                             <strong id="rule-503020-res-wants">R$ 1.800,00</strong>
                         </div>
                         <div style="display:flex; justify-content:space-between; font-size:0.85rem; color:var(--positive); font-weight:700;">
-                            <span>💰 20% Aportes:</span>
+                            <span>20% Investimentos:</span>
                             <strong id="rule-503020-res-savings">R$ 1.200,00 / mês</strong>
                         </div>
                     </div>
@@ -1014,7 +1269,7 @@
                 <!-- Regra 9: 100 - Idade -->
                 <div class="calc-rule-card">
                     <div class="calc-rule-header">
-                        <div class="calc-rule-title">🛡️ Regra da Idade (Alocação)</div>
+                        <div class="calc-rule-title">Modelo de Alocação por Idade <span class="info-tooltip" data-tooltip="Percentual sugerido em ações e FIIs = 100 - Idade. O percentual restante deve ser alocado em Renda Fixa.">ⓘ</span></div>
                         <span class="calc-rule-formula-badge">% Renda Variável = 100 - Idade</span>
                     </div>
                     <p class="calc-rule-desc">Heurística de gestão de risco: quanto mais jovem, maior a exposição a ações e FIIs; com o avanço da idade, migra-se para Renda Fixa.</p>
@@ -1024,11 +1279,11 @@
                     </div>
                     <div class="calc-rule-result">
                         <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
-                            <span>📈 Renda Variável (Ações / FIIs):</span>
+                            <span>Renda Variável (Ações / FIIs):</span>
                             <strong id="rule-age-stocks" style="color:var(--positive);">65%</strong>
                         </div>
                         <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
-                            <span>🪙 Renda Fixa (Tesouro / CDB):</span>
+                            <span>Renda Fixa (Tesouro / CDB):</span>
                             <strong id="rule-age-bonds" style="color:var(--gold);">35%</strong>
                         </div>
                     </div>
@@ -1219,10 +1474,13 @@
 
             <!-- View 1: Setores Econômicos -->
             <div id="view-sectors-container" class="table-wrap" style="max-width: 960px; margin: 0 auto;">
+                <div style="margin-bottom: 0.85rem; padding: 0.6rem 0.9rem; background: var(--surface-2); border-left: 3px solid var(--primary-accent); border-radius: var(--radius-sm); font-size: 0.80rem; color: var(--text-secondary); line-height: 1.4; border: 1px solid var(--card-border);">
+                    ℹ️ <strong>Nota:</strong> Agrupa as empresas dos principais índices da B3 (IBOV, IDIV, SMLL, IEE e IFNC) com cobertura ativa no Radar.
+                </div>
                 <div class="table-header-bar">
                     <div>
-                        <span style="font-weight: 700; color: var(--text-primary);">🏢 Setores Econômicos da B3</span>
-                        <span style="font-size: 0.72rem; color: var(--text-muted); margin-left: 0.5rem;">(Clique em um setor para ver as empresas componentes)</span>
+                        <span style="font-weight: 700; color: var(--text-primary);">🏢 Setores Econômicos — Empresas dos Principais Índices B3</span>
+                        <span style="font-size: 0.72rem; color: var(--text-muted); margin-left: 0.5rem;">(Clique em um setor para ver as empresas com cobertura ativa)</span>
                     </div>
                     <span class="font-mono tabular" id="sectors-count">0 setores</span>
                 </div>
@@ -1231,11 +1489,13 @@
                     <thead>
                         <tr>
                             <th onclick="sortTable('sectors', 0)" style="width: 32%;">Setor</th>
-                            <th onclick="sortTable('sectors', 1)" style="width: 14%; text-align: center;">Qtd Empresas</th>
-                            <th onclick="sortTable('sectors', 2)" style="width: 18%; text-align: center;">
+                            <th onclick="sortTable('sectors', 1)" style="width: 16%; text-align: center;">
+                                <span class="hint" tabindex="0" data-tip="Total de empresas com análise fundamentalista ativa no Radar para este macrosetor.">Empresas Cobertas ⓘ</span>
+                            </th>
+                            <th onclick="sortTable('sectors', 2)" style="width: 17%; text-align: center;">
                                 <span class="hint" tabindex="0" data-tip="Média simples das notas dos ativos deste setor.">Score Médio</span>
                             </th>
-                            <th onclick="sortTable('sectors', 3)" style="width: 18%; text-align: right;">
+                            <th onclick="sortTable('sectors', 3)" style="width: 17%; text-align: right;">
                                 <span class="hint" tabindex="0" data-tip="Média ponderada do dividend yield das empresas do setor nos últimos 12 meses.">DY Médio</span>
                             </th>
                             <th onclick="sortTable('sectors', 4)" style="width: 18%; text-align: right;">
@@ -1330,7 +1590,534 @@
                     </tbody>
                 </table>
             </div>
+            </div>
         </div>
+
+        <!-- Base de Conhecimento & Glossário Educativo (Estilo MS Learn) -->
+        <section id="panel-glossary" class="learn-container hidden" aria-label="Base de Conhecimento e Glossário do Investidor">
+            <div class="learn-header-box">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem;">
+                    <div>
+                        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.25rem;">📚 Base de Conhecimento & Glossário do Investidor</h2>
+                        <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">Guia didático e prático sobre classes de ativos, tributação, indicadores macroeconômicos e métodos de valuation.</p>
+                    </div>
+                    <span class="learn-card-badge learn-badge-tax">Portal Educacional B3</span>
+                </div>
+
+                <div class="learn-search-wrapper">
+                    <input type="text" id="learn-search" class="learn-search-input" placeholder="🔍 Buscar por termo (ex: Selic, PGBL, FII, Graham, IPCA, IR...)" oninput="filterGlossary()">
+                    <div class="learn-filter-pills">
+                        <button type="button" class="learn-filter-pill active" onclick="setGlossaryCategory('all', this)">Todos</button>
+                        <button type="button" class="learn-filter-pill" onclick="setGlossaryCategory('ativo', this)">🏢 Classes de Ativos</button>
+                        <button type="button" class="learn-filter-pill" onclick="setGlossaryCategory('macro', this)">📈 Macroeconomia & Índices</button>
+                        <button type="button" class="learn-filter-pill" onclick="setGlossaryCategory('tax', this)">⚖️ Previdência & IRPF</button>
+                        <button type="button" class="learn-filter-pill" onclick="setGlossaryCategory('metric', this)">📐 Métricas & Valuation</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid de Conceitos e Módulos -->
+            <div class="learn-modules-grid" id="learn-grid">
+
+                <!-- 1. AÇÕES -->
+                <div class="learn-card" data-category="ativo" data-keywords="acoes acao dividendos jcp on pn bolsa b3 empresa equity acionistas">
+                    <div class="learn-card-header">
+                        <div class="learn-card-title"><span>🏢</span> Ações (Renda Variável)</div>
+                        <span class="learn-card-badge learn-badge-ativo">Classe de Ativo</span>
+                    </div>
+                    <div class="learn-card-body">
+                        <p>Uma <strong>ação</strong> representa a menor fração do capital social de uma empresa de capital aberto listada na B3. Ao comprar uma ação, você se torna sócio da companhia, participando dos seus lucros e do seu crescimento de longo prazo.</p>
+                        <div class="learn-concept-highlight">
+                            <strong>Tipos Principais:</strong>
+                            <br>• <strong>ON (Ordinárias - final 3):</strong> Garantem direito a voto nas assembleias e <em>Tag Along</em> legal.
+                            <br>• <strong>PN (Preferenciais - final 4):</strong> Prioridade no recebimento de dividendos em dinheiro.
+                        </div>
+                        <p><strong>Formas de Ganho:</strong> Valorização da cotação no mercado + Proventos em dinheiro (Dividendos isentos de IR e Juros sobre Capital Próprio - JCP tributados em 15% na fonte).</p>
+                        <div class="learn-pro-tip">
+                            <span>💡</span>
+                            <div><strong>Dica do Especialista:</strong> Invista com foco em empresas perenes, com lucros consistentes, vantagens competitivas (moats) e endividamento sob controle.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. FIIS -->
+                <div class="learn-card" data-category="ativo" data-keywords="fiis fii fundos imobiliarios tijolo papel cri alugueis lajes shoppings galpoes isencao">
+                    <div class="learn-card-header">
+                        <div class="learn-card-title"><span>🏛️</span> FIIs (Fundos Imobiliários)</div>
+                        <span class="learn-card-badge learn-badge-ativo">Classe de Ativo</span>
+                    </div>
+                    <div class="learn-card-body">
+                        <p>Os <strong>Fundos de Investimento Imobiliário</strong> reúnem investidores para aplicar recursos em empreendimentos do setor imobiliário. Mais de 95% do lucro líquido apurado em regime de caixa deve ser distribuído semestralmente aos cotistas (geralmente pago todo mês).</p>
+                        <div class="learn-concept-highlight">
+                            <strong>Segmentos Principais:</strong>
+                            <br>• <strong>Tijolo:</strong> Galpões logísticos, lajes corporativas, shoppings e hospitais físicos.
+                            <br>• <strong>Papel (CRI):</strong> Títulos de crédito imobiliário atrelados a IPCA+ ou CDI.
+                            <br>• <strong>FoF (Fundos de Fundos):</strong> Carteiras que compram cotas de outros FIIs.
+                        </div>
+                        <p><strong>Benefício Tributário:</strong> Os rendimentos mensais distribuídos para pessoas físicas são <strong>100% isentos de Imposto de Renda</strong> (Lei nº 11.033/2004).</p>
+                        <div class="learn-pro-tip">
+                            <span>💡</span>
+                            <div><strong>Dica do Especialista:</strong> Para FIIs de Tijolo, observe a localização dos imóveis, vacância física e financeira; para CRIs, avalie a qualidade das garantias (LTV).</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. FIAGROS -->
+                <div class="learn-card" data-category="ativo" data-keywords="fiagros fiagro agro agronegocio cra fazendas terras arrendamento safra suno">
+                    <div class="learn-card-header">
+                        <div class="learn-card-title"><span>🌾</span> FIAGROs (Fundos do Agronegócio)</div>
+                        <span class="learn-card-badge learn-badge-ativo">Classe de Ativo</span>
+                    </div>
+                    <div class="learn-card-body">
+                        <p>Os <strong>Fundos de Investimento nas Cadeias Agroindustriais</strong> permitem que qualquer investidor participe do agronegócio — o setor que responde por quase 30% do PIB brasileiro —, financiando produtores, usinas, cooperativas e infraestrutura logística rural.</p>
+                        <div class="learn-concept-highlight">
+                            <strong>Modalidades:</strong>
+                            <br>• <strong>FIAGRO-CPR/CRA (Crédito):</strong> Financiamento de dívida agro com yields atrelados ao CDI+.
+                            <br>• <strong>FIAGRO-FII (Terras):</strong> Aquisição de fazendas e propriedades rurais para arrendamento.
+                        </div>
+                        <p><strong>Vantagem:</strong> Distribuição de proventos mensais com isenção total de Imposto de Renda para pessoa física, oferecendo taxas atrativas de carrego.</p>
+                        <div class="learn-pro-tip">
+                            <span>💡</span>
+                            <div><strong>Dica do Especialista:</strong> Priorize fundos com devedores corporativos de grande porte (High Grade) para mitigar riscos de quebra de safra ou inadimplência rural.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. TESOURO DIRETO -->
+                <div class="learn-card" data-category="ativo" data-keywords="tesouro direto titulos publicos governo risco soberano lft ltn ntnb selic ipca prefixado">
+                    <div class="learn-card-header">
+                        <div class="learn-card-title"><span>🏛️</span> Tesouro Direto (Títulos Públicos)</div>
+                        <span class="learn-card-badge learn-badge-ativo">Classe de Ativo</span>
+                    </div>
+                    <div class="learn-card-body">
+                        <p>Programa do <strong>Tesouro Nacional</strong> que permite a compra direta de títulos da dívida pública federal por pessoas físicas. É considerado o investimento de <strong>menor risco de crédito da economia brasileira</strong> (Risco Soberano).</p>
+                        <div class="learn-concept-highlight">
+                            <strong>Principais Títulos:</strong>
+                            <br>• <strong>Tesouro Selic:</strong> Pós-fixado, sem oscilação negativa. Ideal para Reserva de Emergência.
+                            <br>• <strong>Tesouro IPCA+:</strong> Proteção real (IPCA + taxa fixa). Ideal para aposentadoria.
+                            <br>• <strong>Tesouro Prefixado:</strong> Taxa anual fixa até o vencimento.
+                            <br>• <strong>Tesouro RendA+ e Educa+:</strong> Foco em renda mensal programada.
+                        </div>
+                        <div class="learn-pro-tip">
+                            <span>💡</span>
+                            <div><strong>Marcação a Mercado:</strong> Se você vender antes do vencimento, o preço do título oscila com os juros futuros; se mantiver até o vencimento, recebe exatamente a taxa contratada.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. CDB VS RDB -->
+                <div class="learn-card" data-category="ativo" data-keywords="cdb rdb certificado deposito bancario recibo bancos fgc liquidez diaria nubank caixinhas">
+                    <div class="learn-card-header">
+                        <div class="learn-card-title"><span>🏦</span> CDB & RDB (Renda Fixa Bancária)</div>
+                        <span class="learn-card-badge learn-badge-ativo">Renda Fixa Bancária</span>
+                    </div>
+                    <div class="learn-card-body">
+                        <p>Títulos emitidos por instituições financeiras para captar recursos e financiar suas operações de crédito:</p>
+                        <div class="learn-concept-highlight">
+                            <strong>Diferenças Essenciais:</strong>
+                            <br>• <strong>CDB (Certificado de Depósito Bancário):</strong> Emitido por bancos comerciais e múltiplos. Pode ter liquidez diária ou prazo fechado. É transferível e negociável no mercado secundário.
+                            <br>• <strong>RDB (Recibo de Depósito Bancário):</strong> Emitido por financeiras, cooperativas e fintechs (ex: Caixinhas do Nubank). É <em>intransferível e inegociável</em> (não pode ser vendido antes do prazo a terceiros).
+                        </div>
+                        <p><strong>Garantia & Tributação:</strong> Ambos contam com a <strong>garantia do FGC</strong> (até R$ 250 mil por CPF/instituição) e seguem a <strong>tabela regressiva de IR</strong> (22,5% a 15%).</p>
+                    </div>
+                </div>
+
+                <!-- 6. LCI VS LCA -->
+                <div class="learn-card" data-category="ativo" data-keywords="lci lca letra credito imobiliario agronegocio isencao fgc cmn prazo">
+                    <div class="learn-card-header">
+                        <div class="learn-card-title"><span>🏡</span> LCI & LCA (Crédito Isento de IR)</div>
+                        <span class="learn-card-badge learn-badge-tax">Isenção de IR</span>
+                    </div>
+                    <div class="learn-card-body">
+                        <p>Títulos emitidos por bancos com lastro obrigatório em empréstimos aos setores imobiliário e agropecuário:</p>
+                        <div class="learn-concept-highlight">
+                            <strong>• LCI (Letra de Crédito Imobiliário):</strong> Lastreada em financiamentos habitacionais e empreendimentos imobiliários.
+                            <br><strong>• LCA (Letra de Crédito do Agronegócio):</strong> Lastreada em crédito para produtores e cooperativas rurais.
+                        </div>
+                        <p><strong>Grandes Vantagens:</strong> São <strong>100% ISENTAS de Imposto de Renda</strong> para pessoas físicas e possuem <strong>cobertura do FGC</strong> até R$ 250 mil.</p>
+                        <div class="learn-pro-tip">
+                            <span>💡</span>
+                            <div><strong>Equivalência com CDB:</strong> Uma LCI/LCA a 90% do CDI rende o mesmo líquido que um CDB de ~106% do CDI em prazos acima de 2 anos (e ~116% do CDI em até 6 meses).</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7. CRI VS CRA -->
+                <div class="learn-card" data-category="ativo" data-keywords="cri cra certificado recebiveis imobiliarios agronegocio securitizacao sem fgc credito privado spread">
+                    <div class="learn-card-header">
+                        <div class="learn-card-title"><span>📜</span> CRI & CRA (Securitização & Crédito Privado)</div>
+                        <span class="learn-card-badge learn-badge-ativo">Crédito Privado</span>
+                    </div>
+                    <div class="learn-card-body">
+                        <p>Títulos emitidos exclusivamente por <strong>Companhias Securitizadoras</strong> que transformam dívidas futuras de empresas em títulos negociáveis no mercado de capitais:</p>
+                        <div class="learn-concept-highlight">
+                            <strong>• CRI (Recebíveis Imobiliários):</strong> Lastreado em fluxos de aluguéis, parcelas de incorporações e shopping centers.
+                            <br><strong>• CRA (Recebíveis do Agronegócio):</strong> Lastreado em financiamento de insumos, maquinário, cooperativas e tradings agrícolas.
+                        </div>
+                        <p><strong>Atenção ao Risco:</strong> São <strong>isentos de IR</strong>, mas <strong>NÃO POSSUEM garantia do FGC</strong>. O risco é direto da empresa emissora/devedora.</p>
+                        <div class="learn-pro-tip">
+                            <span>💡</span>
+                            <div><strong>Dica do Especialista:</strong> Por não terem FGC, CRIs e CRAs pagam taxas superiores (ex: IPCA + 7% a 9% ou CDI + 2% a 4%). Avalie sempre os ratings (AAA, AA) e as garantias reais da operação.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 8. DEBÊNTURES -->
+                <div class="learn-card" data-category="ativo" data-keywords="debentures debenture incentivada infraestrutura lei 12431 credito privado s/a corporativo">
+                    <div class="learn-card-header">
+                        <div class="learn-card-title"><span>🏗️</span> Debêntures (Dívida Corporativa)</div>
+                        <span class="learn-card-badge learn-badge-ativo">Crédito Privado</span>
+                    </div>
+                    <div class="learn-card-body">
+                        <p>Títulos de dívida de médio e longo prazo emitidos por Sociedades Anônimas (empresas não-financeiras) para financiar projetos, expansão de fábricas e investimentos de capital:</p>
+                        <div class="learn-concept-highlight">
+                            <strong>Tipos de Debêntures:</strong>
+                            <br>• <strong>Debêntures Comuns:</strong> Tributadas pela tabela regressiva de IR (15% a 22,5%).
+                            <br>• <strong>Debêntures Incentivadas (Lei nº 12.431):</strong> Emitidas para financiar projetos essenciais de <strong>Infraestrutura</strong> (energia, saneamento, telecom, rodovias). São <strong>100% ISENTAS de IR</strong> para pessoa física.
+                        </div>
+                        <div class="learn-pro-tip">
+                            <span>💡</span>
+                            <div><strong>Risco:</strong> Debêntures não contam com garantia do FGC e estão subordinadas à saúde financeira da empresa emissora.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 9. FGC -->
+                <div class="learn-card" data-category="tax" data-keywords="fgc fundo garantidor creditos 250 mil limite protecao quebra banco intervencao">
+                    <div class="learn-card-header">
+                        <div class="learn-card-title"><span>🛡️</span> FGC (Fundo Garantidor de Créditos)</div>
+                        <span class="learn-card-badge learn-badge-tax">Segurança & Garantias</span>
+                    </div>
+                    <div class="learn-card-body">
+                        <p>Associação civil sem fins lucrativos mantida pelas próprias instituições financeiras para proteger correntistas e investidores em caso de falência, intervenção ou liquidação de bancos:</p>
+                        <div class="learn-concept-highlight">
+                            <strong>Limites de Cobertura:</strong>
+                            <br>• <strong>R$ 250.000,00</strong> por CPF/CNPJ por instituição financeira (ou conglomerado).
+                            <br>• <strong>R$ 1.000.000,00</strong> de teto global a cada período de 4 anos consecutivos.
+                            <br><br>
+                            <strong>• Têm FGC:</strong> Poupança, CDB, RDB, LCI, LCA e Letras de Câmbio (LC).
+                            <br><strong>• NÃO têm FGC:</strong> Ações, FIIs, FIAGROs, CRI, CRA, Debêntures e Tesouro Direto (que tem o Risco Soberano do Governo Federal).
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 10. ETFS -->
+                <div class="learn-card" data-category="ativo" data-keywords="etf etfs exchange traded fund fundos de indice bova11 ivvb11 smal11 gestao passiva">
+                    <div class="learn-card-header">
+                        <div class="learn-card-title"><span>📦</span> ETFs (Fundos de Índice Listados)</div>
+                        <span class="learn-card-badge learn-badge-ativo">Gestão Passiva</span>
+                    </div>
+                    <div class="learn-card-body">
+                        <p>Os <strong>Exchange Traded Funds (ETFs)</strong> são fundos negociados na bolsa exatamente como se fossem ações (comprados e vendidos pelo home broker) que têm como objetivo replicar o desempenho de um índice de mercado.</p>
+                        <div class="learn-concept-highlight">
+                            <strong>Exemplos Populares na B3:</strong>
+                            <br>• <strong>BOVA11:</strong> Replica o Índice Bovespa (as maiores empresas do Brasil).
+                            <br>• <strong>IVVB11 / SPXI11:</strong> Replica o S&P 500 (as 500 maiores empresas dos EUA em reais).
+                            <br>• <strong>SMAL11:</strong> Replica o índice de empresas de menor capitalização (Small Caps).
+                        </div>
+                        <p><strong>Tributação:</strong> Alíquota padrão de <strong>15% sobre o ganho de capital</strong> na venda de cotas (não há isenção de R$ 20k/mês).</p>
+                    </div>
+                </div>
+
+                <!-- 11. FUNDOS DE INVESTIMENTO -->
+                <div class="learn-card" data-category="ativo" data-keywords="fundos investimento fia multimercado renda fixa come cotas taxa administracao performance">
+                    <div class="learn-card-header">
+                        <div class="learn-card-title"><span>👥</span> Fundos de Investimento (Abertos)</div>
+                        <span class="learn-card-badge learn-badge-ativo">Gestão Profissional</span>
+                    </div>
+                    <div class="learn-card-body">
+                        <p>Condomínios geridos por profissionais do mercado financeiro que aplicam o capital conjunto dos cotistas seguindo uma política de investimento pré-estabelecida (CVM):</p>
+                        <div class="learn-concept-highlight">
+                            <strong>Principais Tipos:</strong>
+                            <br>• <strong>FIA (Fundos de Ações):</strong> Mínimo de 67% alocado em ações.
+                            <br>• <strong>Multimercado:</strong> Liberdade para operar ações, juros, moedas e commodities.
+                            <br>• <strong>Renda Fixa:</strong> Alocação em títulos públicos e privados.
+                        </div>
+                        <p><strong>Custos & Come-Cotas:</strong> Cobram Taxa de Administração e de Performance. Sofrem incidência do <strong>Come-Cotas</strong> (antecipação semestral de IR nos meses de maio e novembro em fundos de renda fixa e multimercados).</p>
+                    </div>
+                </div>
+
+                <!-- 12. COE (FORA DO ESCOPO) -->
+                <div class="learn-card" data-category="ativo" data-keywords="coe certificado operacoes estruturadas capital protegido derivativos barreira fora do radar">
+                    <div class="learn-card-header">
+                        <div class="learn-card-title"><span>⚠️</span> COE (Operações Estruturadas)</div>
+                        <span class="learn-card-badge" style="background:rgba(239, 68, 68, 0.1); color:#ef4444; border-color:rgba(239, 68, 68, 0.3);">Fora do Radar</span>
+                    </div>
+                    <div class="learn-card-body">
+                        <p>O <strong>Certificado de Operações Estruturadas</strong> é um instrumento emitido por bancos que combina renda fixa com estratégias de derivativos atrelados a índices internacionais, ações ou moedas.</p>
+                        <div class="learn-concept-highlight">
+                            <strong>Estrutura Comum:</strong>
+                            <br>• <em>Capital Protegido:</em> Promete devolver 100% do valor nominal investido caso o ativo de referência caia.
+                            <br>• <em>Custo de Oportunidade:</em> Se a tese não se concretizar após 3 a 5 anos, você recebe de volta exatamente o valor nominal (sem correção da inflação e sem juros do CDI).
+                        </div>
+                        <div class="learn-pro-tip" style="background:rgba(239, 68, 68, 0.06); border-color:rgba(239, 68, 68, 0.25);">
+                            <span>ℹ️</span>
+                            <div><strong>Observação do Radar:</strong> COEs <strong>NÃO são cobertos pelo Radar Fundamentalista B3</strong> devido à baixa transparência de custos ocultos e ausência de múltiplos fundamentalistas padronizados.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 13. OPÇÕES E DERIVATIVOS (FORA DO ESCOPO) -->
+                <div class="learn-card" data-category="ativo" data-keywords="opcoes derivativos call put strike lancamento coberto hedge especulacao alavancagem fora do radar">
+                    <div class="learn-card-header">
+                        <div class="learn-card-title"><span>⚡</span> Opções & Derivativos</div>
+                        <span class="learn-card-badge" style="background:rgba(239, 68, 68, 0.1); color:#ef4444; border-color:rgba(239, 68, 68, 0.3);">Fora do Radar</span>
+                    </div>
+                    <div class="learn-card-body">
+                        <p>Contratos negociados em bolsa cujo valor deriva do preço de um ativo-objeto (como PETR4 ou VALE3). Conferem o direito de compra ou venda a um preço fixado (<strong>Strike</strong>) até uma data de vencimento:</p>
+                        <div class="learn-concept-highlight">
+                            <strong>Conceitos Básicos:</strong>
+                            <br>• <strong>CALL (Opção de Compra):</strong> Direito de comprar a ação pelo preço do strike.
+                            <br>• <strong>PUT (Opção de Venda):</strong> Direito de vender a ação pelo preço do strike (usada como seguro de carteira / Hedge).
+                            <br>• <strong>Decaimento Temporal (Theta):</strong> A opção perde valor com o passar dos dias até a data de expiração.
+                        </div>
+                        <div class="learn-pro-tip" style="background:rgba(239, 68, 68, 0.06); border-color:rgba(239, 68, 68, 0.25);">
+                            <span>ℹ️</span>
+                            <div><strong>Observação do Radar:</strong> Opções <strong>NÃO são cobertas pelo Radar Fundamentalista B3</strong>, cuja filosofia exclusiva é o Value Investing de longo prazo (acumulação patrimonial e dividendos reais).</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. TAXA SELIC -->
+                <div class="learn-card" data-category="macro" data-keywords="selic taxa basica copom banco central juros politica monetaria cdi inflacao">
+                    <div class="learn-card-header">
+                        <div class="learn-card-title"><span>📊</span> Taxa Selic (Taxa Básica de Juros)</div>
+                        <span class="learn-card-badge learn-badge-macro">Macroeconomia</span>
+                    </div>
+                    <div class="learn-card-body">
+                        <p>A <strong>Taxa Selic</strong> é a taxa básica de juros da economia brasileira, fixada pelo Comitê de Política Monetária (<strong>COPOM</strong>) do Banco Central a cada 45 dias. É a ferramenta primária do governo para controlar a inflação.</p>
+                        <div class="learn-concept-highlight">
+                            <strong>Como afeta seus investimentos:</strong>
+                            <br>• <strong>Selic Alta:</strong> Renda fixa paga mais; o crédito fica caro; o consumo desaquece; bolsas e FIIs de tijolo tendem a negociar com desconto.
+                            <br>• <strong>Selic em Queda:</strong> Renda fixa rende menos; empresas tomam crédito mais barato; impulsiona lucros corporativos, ações e consumo.
+                        </div>
+                        <div class="learn-pro-tip">
+                            <span>💡</span>
+                            <div><strong>Dica do Especialista:</strong> O melhor momento para comprar ações e títulos IPCA+ de longo prazo costuma ser quando a Selic está no topo do ciclo e o mercado antecipa o início dos cortes.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. IPCA -->
+                <div class="learn-card" data-category="macro" data-keywords="ipca inflacao ibge poder de compra custo de vida precos cesta de consumo">
+                    <div class="learn-card-header">
+                        <div class="learn-card-title"><span>🛒</span> IPCA (Inflação Oficial)</div>
+                        <span class="learn-card-badge learn-badge-macro">Macroeconomia</span>
+                    </div>
+                    <div class="learn-card-body">
+                        <p>O <strong>Índice Nacional de Preços ao Consumidor Amplo (IPCA)</strong> é a medida oficial da inflação no Brasil, apurado mensalmente pelo <strong>IBGE</strong>. Reflete a variação do custo de vida de famílias com rendimentos de 1 a 40 salários mínimos.</p>
+                        <div class="learn-concept-highlight">
+                            <strong>Retorno Nominal vs Retorno Real:</strong>
+                            <br>• <em>Retorno Nominal:</em> O percentual bruto que você ganhou.
+                            <br>• <em>Retorno Real:</em> Quanto você ganhou <strong>acima da inflação</strong> (aumento real do seu poder de compra).
+                        </div>
+                        <div class="learn-pro-tip">
+                            <span>💡</span>
+                            <div><strong>Dica do Especialista:</strong> Nunca avalie um investimento apenas pela rentabilidade nominal; o que realmente constrói riqueza no longo prazo é o ganho real líquido do IPCA.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7. IGP-M -->
+                <div class="learn-card" data-category="macro" data-keywords="igpm fgv aluguel atacado contratos energia concessoes inflacao">
+                    <div class="learn-card-header">
+                        <div class="learn-card-title"><span>🏭</span> IGP-M (Índice Geral de Preços)</div>
+                        <span class="learn-card-badge learn-badge-macro">Macroeconomia</span>
+                    </div>
+                    <div class="learn-card-body">
+                        <p>Calculado pela Fundação Getulio Vargas (<strong>FGV</strong>), o <strong>IGP-M</strong> é composto por: 60% de preços no atacado (IPA), 30% de preços ao consumidor (IPC) e 10% do custo da construção (INCC).</p>
+                        <div class="learn-concept-highlight">
+                            <strong>Principais Aplicações:</strong>
+                            <br>• É conhecido historicamente como o <em>"índice do aluguel"</em> em imóveis comerciais e contratos atípicos de FIIs.
+                            <br>• É o indexador de reajuste de tarifas em concessões de transmissão de energia e rodovias (ex: TAEE11, ECOR3).
+                        </div>
+                        <div class="learn-pro-tip">
+                            <span>💡</span>
+                            <div><strong>Atenção:</strong> Por ter 60% de peso no atacado, o IGP-M sofre forte impacto do câmbio e de commodities agrícolas e minerais, oscilando com mais intensidade que o IPCA.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 8. CÂMBIO & DÓLAR -->
+                <div class="learn-card" data-category="macro" data-keywords="cambio dolar usd brl exportacao importacao moeda americana reserva">
+                    <div class="learn-card-header">
+                        <div class="learn-card-title"><span>💵</span> Câmbio & Dólar (USD / BRL)</div>
+                        <span class="learn-card-badge learn-badge-macro">Macroeconomia</span>
+                    </div>
+                    <div class="learn-card-body">
+                        <p>O <strong>Câmbio</strong> representa a relação de troca entre duas moedas. No Brasil, o par mais acompanhado é o Dólar Americano contra o Real (USD/BRL), influenciado pelo diferencial de juros, balança comercial e risco-país.</p>
+                        <div class="learn-concept-highlight">
+                            <strong>Impacto Setorial na B3:</strong>
+                            <br>• <strong>Dólar Alto:</strong> Beneficia exportadoras que faturam em dólar com custos em reais (ex: Vale, Petrobras, Suzano, frigoríficos).
+                            <br>• <strong>Dólar Baixo:</strong> Favorece companhias aéreas e varejistas que importam insumos com receitas em moeda local.
+                        </div>
+                        <div class="learn-pro-tip">
+                            <span>💡</span>
+                            <div><strong>Dica do Especialista:</strong> Manter uma parcela da carteira atrelada a ativos globais ou exportadoras confere uma proteção cambial natural ao seu patrimônio.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 9. PGBL -->
+                <div class="learn-card" data-category="tax" data-keywords="pgbl previdencia privada diferimento deducao 12 irpf declaracao completa inss">
+                    <div class="learn-card-header">
+                        <div class="learn-card-title"><span>🛡️</span> PGBL (Previdência Privada)</div>
+                        <span class="learn-card-badge learn-badge-tax">Previdência & IRPF</span>
+                    </div>
+                    <div class="learn-card-body">
+                        <p>O <strong>Plano Gerador de Benefício Livre (PGBL)</strong> é uma modalidade de previdência complementar com benefício fiscal de dedução na declaração anual de Imposto de Renda.</p>
+                        <div class="learn-concept-highlight">
+                            <strong>Regras de Ouro:</strong>
+                            <br>• <strong>Quem deve fazer:</strong> Quem entrega a <strong>Declaração Completa do IRPF</strong> e contribui para o INSS ou Regime Próprio (RPPS).
+                            <br>• <strong>Limite Legal:</strong> Abate até <strong>12% da renda bruta anual</strong> da base de cálculo do IR.
+                            <br>• <strong>Tributação no Resgate:</strong> O imposto incide sobre o <strong>montante total resgatado</strong> (capital + rendimento).
+                        </div>
+                        <div class="learn-pro-tip">
+                            <span>💡</span>
+                            <div><strong>O Segredo do PGBL:</strong> O lucro extraordinário do PGBL decorre do <em>reinvestimento sistemático da restituição do IR</em> ao longo dos anos, gerando juros sobre o imposto postergado!</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 10. VGBL -->
+                <div class="learn-card" data-category="tax" data-keywords="vgbl previdencia privada declaracao simplificada isento seguro lucro">
+                    <div class="learn-card-header">
+                        <div class="learn-card-title"><span>🛡️</span> VGBL (Previdência Privada)</div>
+                        <span class="learn-card-badge learn-badge-tax">Previdência & IRPF</span>
+                    </div>
+                    <div class="learn-card-body">
+                        <p>O <strong>Vida Gerador de Benefício Livre (VGBL)</strong> é classificado juridicamente como um seguro de pessoas com cobertura por sobrevivência, indicado para quem busca sucessão patrimonial e eficiência fiscal.</p>
+                        <div class="learn-concept-highlight">
+                            <strong>Regras de Ouro:</strong>
+                            <br>• <strong>Quem deve fazer:</strong> Quem usa a <strong>Declaração Simplificada</strong>, é isento de IR ou já esgotou o limite de 12% do PGBL.
+                            <br>• <strong>Aportes:</strong> Não são dedutíveis da base de cálculo do IRPF anual.
+                            <br>• <strong>Tributação no Resgate:</strong> O Imposto de Renda incide <strong>apenas sobre os rendimentos auferidos</strong> (o capital inicial entra livre de imposto).
+                        </div>
+                        <div class="learn-pro-tip">
+                            <span>💡</span>
+                            <div><strong>Vantagem Sucessória:</strong> Tanto o VGBL quanto o PGBL não passam por inventário em caso de falecimento, sendo transmitidos rapidamente aos beneficiários indicados.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 11. TABELA REGRESSIVA VS PROGRESSIVA -->
+                <div class="learn-card" data-category="tax" data-keywords="tabela regressiva progressiva aliquota 10 anos resgate lei 14803">
+                    <div class="learn-card-header">
+                        <div class="learn-card-title"><span>⚖️</span> Regimes Tributários de Previdência</div>
+                        <span class="learn-card-badge learn-badge-tax">Previdência & IRPF</span>
+                    </div>
+                    <div class="learn-card-body">
+                        <p>Ao contratar um plano de previdência (PGBL ou VGBL), você escolhe a forma como o imposto será recolhido no momento dos resgates futuros:</p>
+                        <div class="learn-concept-highlight">
+                            <strong>1. Tabela Regressiva (Tempo de Aplicação):</strong>
+                            <br>• Até 2 anos: 35% | 2 a 4 anos: 30% | 4 a 6 anos: 25%
+                            <br>• 6 a 8 anos: 20% | 8 a 10 anos: 15% | <strong>Acima de 10 anos: 10%</strong>
+                            <br><br>
+                            <strong>2. Tabela Progressiva (Faixa de Renda):</strong>
+                            <br>• Retenção de 15% na fonte no resgate, com ajuste final na Declaração Anual conforme sua renda total (isento até 27,5%).
+                        </div>
+                        <div class="learn-pro-tip">
+                            <span>💡</span>
+                            <div><strong>Lei nº 14.803/2024:</strong> Agora você não precisa escolher o regime na contratação; a opção pode ser feita no ato do <strong>primeiro resgate</strong>!</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 12. IMPOSTO DE RENDA (IR) GERAL -->
+                <div class="learn-card" data-category="tax" data-keywords="ir imposto de renda tributacao retencao darf isencao 20k swing day trade">
+                    <div class="learn-card-header">
+                        <div class="learn-card-title"><span>📋</span> Imposto de Renda em Investimentos</div>
+                        <span class="learn-card-badge learn-badge-tax">Previdência & IRPF</span>
+                    </div>
+                    <div class="learn-card-body">
+                        <p>Guia rápido com as alíquotas oficiais da Receita Federal para os principais instrumentos de investimento da B3:</p>
+                        <div class="learn-concept-highlight">
+                            <strong>Resumo de Alíquotas:</strong>
+                            <br>• <strong>Ações (Swing Trade):</strong> 15% sobre o lucro. Vendas totais de até <strong>R$ 20.000/mês são 100% isentas</strong> de IR sobre o ganho.
+                            <br>• <strong>Ações (Day Trade):</strong> 20% sobre o lucro (sem isenção de R$ 20k).
+                            <br>• <strong>FIIs e FIAGROs:</strong> Proventos isentos; ganho de capital na venda de cotas tributado em <strong>20% via DARF</strong>.
+                            <br>• <strong>Renda Fixa Tradicional (CDB/Tesouro):</strong> Tabela regressiva de 22,5% (até 6 meses) até 15% (acima de 2 anos).
+                            <br>• <strong>LCI, LCA, CRI e CRA:</strong> 100% isentos de IR para pessoa física.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 13. P/L E P/VP -->
+                <div class="learn-card" data-category="metric" data-keywords="pl pvp multiplos valuation preco lucro preco valor patrimonial preco justo">
+                    <div class="learn-card-header">
+                        <div class="learn-card-title"><span>📐</span> P/L e P/VP (Múltiplos de Valuation)</div>
+                        <span class="learn-card-badge learn-badge-metric">Métricas de Valuation</span>
+                    </div>
+                    <div class="learn-card-body">
+                        <p>Os múltiplos de preço são os indicadores mais tradicionais do Value Investing para saber se um ativo está caro ou barato:</p>
+                        <div class="learn-concept-highlight">
+                            <strong>• P/L (Preço sobre Lucro):</strong> Cotação dividida pelo Lucro por Ação (LPA). Indica em quantos anos o lucro da empresa pagaria o investimento.
+                            <br><strong>• P/VP (Preço sobre Valor Patrimonial):</strong> Cotação dividida pelo Valor Patrimonial por Ação (VPA). Um P/VP menor que 1,0 indica que o ativo está cotado com desconto em relação ao patrimônio líquido contábil.
+                        </div>
+                        <div class="learn-pro-tip">
+                            <span>💡</span>
+                            <div><strong>Dica do Especialista:</strong> Compare múltiplos entre empresas do <em>mesmo setor econômico</em>, pois setores intensivos em capital têm padrões contábeis distintos de setores de tecnologia ou serviços.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 14. ROE E DIVIDEND YIELD -->
+                <div class="learn-card" data-category="metric" data-keywords="roe dividend yield dy rentabilidade proventos retorno payout">
+                    <div class="learn-card-header">
+                        <div class="learn-card-title"><span>💰</span> ROE & Dividend Yield (DY)</div>
+                        <span class="learn-card-badge learn-badge-metric">Métricas de Valuation</span>
+                    </div>
+                    <div class="learn-card-body">
+                        <p>Métricas fundamentais para avaliar a capacidade de geração de valor e a remuneração aos acionistas:</p>
+                        <div class="learn-concept-highlight">
+                            <strong>• ROE (Return on Equity):</strong> Lucro Líquido ÷ Patrimônio Líquido. Mede a rentabilidade gerada pela empresa para cada R$ 1,00 de capital próprio investido pelos sócios (empresas excelentes costumam ter ROE > 15%).
+                            <br><strong>• Dividend Yield (DY):</strong> Total de proventos pagos nos últimos 12 meses ÷ Cotação atual. Mede a taxa de retorno em fluxo de caixa recebido em dinheiro.
+                        </div>
+                        <div class="learn-pro-tip">
+                            <span>💡</span>
+                            <div><strong>Cuidado com Dividend Trap:</strong> Um DY excessivamente alto pode decorrer de uma queda brusca no preço da ação ou de um evento não-recorrente (ex: venda pontual de uma fábrica).</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 15. GRAHAM E BAZIN -->
+                <div class="learn-card" data-category="metric" data-keywords="graham bazin preco teto preco justo formula margem de seguranca value investing">
+                    <div class="learn-card-header">
+                        <div class="learn-card-title"><span>📖</span> Preço Justo de Graham & Bazin</div>
+                        <span class="learn-card-badge learn-badge-metric">Métricas de Valuation</span>
+                    </div>
+                    <div class="learn-card-body">
+                        <p>Duas metodologias clássicas consagradas mundialmente para calcular o teto de preço com margem de segurança:</p>
+                        <div class="learn-concept-highlight">
+                            <strong>• Benjamin Graham:</strong>
+                            <br><code>Preço Justo = √(22,5 × LPA × VPA)</code>
+                            <br>Assume que uma empresa não deveria negociar simultaneamente acima de 15x Lucro e 1,5x Patrimônio (15 × 1,5 = 22,5).
+                            <br><br>
+                            <strong>• Décio Bazin:</strong>
+                            <br><code>Preço Teto = DPA Médio ÷ 0,06</code>
+                            <br>Garante que o investidor só pague um preço que assegure pelo menos <strong>6,0% a.a. de Dividend Yield</strong>.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 16. METODOLOGIA FIRE E REGRA DOS 4% -->
+                <div class="learn-card" data-category="metric" data-keywords="fire trinity study swr retirada segura aposentadoria precoce independencia financeira">
+                    <div class="learn-card-header">
+                        <div class="learn-card-title"><span>🔥</span> Movimento FIRE & Regra dos 4%</div>
+                        <span class="learn-card-badge learn-badge-metric">Métricas de Valuation</span>
+                    </div>
+                    <div class="learn-card-body">
+                        <p><strong>F.I.R.E.</strong> é a sigla para <em>Financial Independence, Retire Early</em> (Independência Financeira, Aposentadoria Antecipada). O movimento se apoia no consagrado estudo acadêmico <strong>Trinity Study</strong>.</p>
+                        <div class="learn-concept-highlight">
+                            <strong>A Regra dos 4% (SWR):</strong>
+                            <br>• Define que um investidor pode sacar até <strong>4,0% ao ano</strong> do seu patrimônio total investido em uma carteira diversificada, corrigindo esse saque anualmente pela inflação, sem que o capital principal se esgote.
+                            <br>• <strong>Meta Patrimonial:</strong> Multiplique seu custo de vida anual por 25 (ou seu custo mensal por 300) para saber o patrimônio necessário para a liberdade financeira.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
 
         <!-- Sector Detail Modal -->
         <div id="sector-detail-modal" class="modal hidden" onclick="closeSectorModalOnOutsideClick(event)">
@@ -1340,7 +2127,7 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; padding-right:2.5rem; flex-wrap:wrap; gap:0.5rem;">
                         <div>
                             <h2 id="sector-modal-name" style="font-size:1.25rem; font-weight:700; color:var(--text-primary); margin-bottom:0.2rem;">SETOR</h2>
-                            <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Empresas classificadas neste setor (ordenadas por score fundamentalista)</p>
+                            <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Empresas acompanhadas dos principais índices B3 (ordenadas por Score Radar)</p>
                         </div>
                         <div id="sector-modal-stats" style="font-size:0.8rem; color:var(--text-secondary); display:flex; gap:0.75rem;">
                             <!-- Stats preenchidos dinamicamente -->

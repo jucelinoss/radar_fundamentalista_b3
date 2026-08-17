@@ -18,11 +18,11 @@ echo "1/2 Atualizando data.json com dados locais (VPA, ...) sem API..."
 echo ""
 
 echo "2/2 Iniciando o servidor local na porta 8000..."
-echo "Acesse: http://127.0.0.1:8000/index-v2.html"
+echo "Acesse: http://127.0.0.1:8000/"
 echo ""
 
 # Open browser after a short delay
-(sleep 2 && (xdg-open http://127.0.0.1:8000/index-v2.html || open http://127.0.0.1:8000/index-v2.html || termux-open http://127.0.0.1:8000/index-v2.html) 2>/dev/null) &
+(sleep 2 && (xdg-open http://127.0.0.1:8000/ || open http://127.0.0.1:8000/ || termux-open http://127.0.0.1:8000/) 2>/dev/null) &
 
 # Run the server using python in .venv
 ./.venv/bin/python src/server.py

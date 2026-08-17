@@ -182,10 +182,9 @@ jobs:
             --exclude 'data/' \
             ./ _site/
 
-          # A versão v2 é a página principal; a clássica fica disponível
-          # para comparação em ambos os ambientes.
-          cp index.html _site/index-classic.html
-          cp index-v2.html _site/index.html
+          # A versão moderna unificada é a página principal padrão
+          cp index.html _site/index.html
+          cp index.html _site/index-v2.html
           mkdir -p _site/data
           cp data/tesouro_history.json _site/data/tesouro_history.json
           cp data/export_*.csv data/export_*.json _site/
