@@ -1297,8 +1297,8 @@
             <div class="calc-card" style="margin-bottom: 1.25rem;">
                 <div class="calc-header">
                     <div>
-                        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
-                            <span>🔮 Previsor & Simulador de Sensibilidade Macroeconômica</span>
+                        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.25rem;">
+                            Previsor & Simulador de Sensibilidade Macroeconômica
                         </h2>
                         <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">
                             Simule oscilações na <strong>Taxa Selic</strong>, <strong>Inflação (IPCA)</strong>, <strong>Endividamento Público (Risco Fiscal)</strong> e <strong>Custo de Dívida Corporativa</strong> para prever o comportamento de ações, FIIs e títulos públicos.
@@ -1308,73 +1308,69 @@
 
                 <!-- Quick Preset Scenarios -->
                 <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--card-border);">
-                    <span style="font-size: 0.76rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.5rem;">⚡ Cenários Estratégicos Pré-Configurados:</span>
+                    <span style="font-size: 0.76rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.5rem;">Cenários Estratégicos Pré-Configurados:</span>
                     <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;" id="macro-preset-buttons">
-                        <button type="button" class="preset-scenario-btn" onclick="applyMacroScenario('rate_cut')">📉 Afrouxamento & Ajuste Fiscal (Bull Market)</button>
-                        <button type="button" class="preset-scenario-btn" onclick="applyMacroScenario('fiscal_crisis')">💥 Descontrole Fiscal & Dívida/PIB em Alta (Prêmio Elevado)</button>
-                        <button type="button" class="preset-scenario-btn" onclick="applyMacroScenario('fiscal_consolidation')">🏛️ Consolidação Fiscal & Credibilidade (Rali do Tesouro)</button>
-                        <button type="button" class="preset-scenario-btn" onclick="applyMacroScenario('rate_hike')">📈 Choque de Juros & Inflação Global (Aperto)</button>
-                        <button type="button" class="preset-scenario-btn" onclick="applyMacroScenario('debt_stress')">⚠️ Stress de Crédito & Alavancagem Corporativa</button>
-                        <button type="button" class="preset-scenario-btn" onclick="applyMacroScenario('flight_to_quality')">🛡️ Voo para Qualidade (Caixa & IPCA+)</button>
+                        <button type="button" class="preset-scenario-btn" onclick="applyMacroScenario('rate_cut')">Afrouxamento & Ajuste Fiscal (Bull Market)</button>
+                        <button type="button" class="preset-scenario-btn" onclick="applyMacroScenario('fiscal_crisis')">Descontrole Fiscal & Dívida Alta</button>
+                        <button type="button" class="preset-scenario-btn" onclick="applyMacroScenario('fiscal_consolidation')">Consolidação Fiscal & Credibilidade</button>
+                        <button type="button" class="preset-scenario-btn" onclick="applyMacroScenario('rate_hike')">Choque de Juros & Inflação Global</button>
+                        <button type="button" class="preset-scenario-btn" onclick="applyMacroScenario('debt_stress')">Stress de Crédito Corporativo</button>
+                        <button type="button" class="preset-scenario-btn" onclick="applyMacroScenario('flight_to_quality')">Voo para Qualidade (Caixa & IPCA+)</button>
                     </div>
                 </div>
 
-                <!-- Interactive Selectors Grid (4 Controles) -->
+                <!-- Interactive Selectors Grid (4 Controles Limpos) -->
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-top: 1.25rem; background: var(--surface); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--card-border);">
                     <!-- Control 1: Selic -->
                     <div>
-                        <label for="macro-sim-selic" style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
-                            <span>Taxa Selic</span>
-                            <span id="macro-sim-selic-label" style="color: var(--primary-accent); font-weight: 800;">Estável</span>
+                        <label for="macro-sim-selic" style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.35rem; display: block;">
+                            Taxa Selic
                         </label>
                         <select id="macro-sim-selic" class="filter-select" style="width: 100%;" onchange="runMacroForecastSimulation()">
-                            <option value="-200">↘️ Queda Acentuada (-2,00% a.a.)</option>
-                            <option value="-100">↘️ Queda Moderada (-1,00% a.a.)</option>
-                            <option value="0" selected>➔ Cenário Neutro / Estável</option>
-                            <option value="100">↗️ Alta Moderada (+1,00% a.a.)</option>
-                            <option value="200">↗️ Alta Acentuada (+2,00% a.a.)</option>
+                            <option value="-200">Queda Acentuada (-2,00% a.a.)</option>
+                            <option value="-100">Queda Moderada (-1,00% a.a.)</option>
+                            <option value="0" selected>Cenário Neutro / Estável</option>
+                            <option value="100">Alta Moderada (+1,00% a.a.)</option>
+                            <option value="200">Alta Acentuada (+2,00% a.a.)</option>
                         </select>
                         <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">Custo do dinheiro e taxa de desconto no valuation.</span>
                     </div>
 
                     <!-- Control 2: Inflação (IPCA) -->
                     <div>
-                        <label for="macro-sim-ipca" style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
-                            <span>Inflação (IPCA)</span>
-                            <span id="macro-sim-ipca-label" style="color: var(--gold); font-weight: 800;">Na Meta</span>
+                        <label for="macro-sim-ipca" style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.35rem; display: block;">
+                            Inflação (IPCA)
                         </label>
                         <select id="macro-sim-ipca" class="filter-select" style="width: 100%;" onchange="runMacroForecastSimulation()">
-                            <option value="low">↘️ Desinflação (&lt; 3.0%)</option>
-                            <option value="target" selected>➔ Controlada na Meta (~3.5%-4.5%)</option>
-                            <option value="high">↗️ Inflação Pressionada (&gt; 5.5%)</option>
+                            <option value="low">Desinflação (&lt; 3.0%)</option>
+                            <option value="target" selected>Controlada na Meta (~3.5%-4.5%)</option>
+                            <option value="high">Inflação Pressionada (&gt; 5.5%)</option>
                         </select>
                         <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">Poder de compra e correção de contratos.</span>
                     </div>
 
                     <!-- Control 3: Endividamento Público / Risco Fiscal -->
                     <div>
-                        <label for="macro-sim-fiscal" style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
-                            <span>Endividamento Público</span>
-                            <span id="macro-sim-fiscal-label" style="color: var(--positive); font-weight: 800;">Controlado</span>
+                        <label for="macro-sim-fiscal" style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.35rem; display: block;">
+                            Endividamento Público
                         </label>
                         <select id="macro-sim-fiscal" class="filter-select" style="width: 100%;" onchange="runMacroForecastSimulation()">
-                            <option value="surplus">🟢 Ajuste Fiscal & Superávit (Dívida/PIB em Queda)</option>
-                            <option value="neutral" selected>🟡 Equilíbrio / Fiscal Neutro</option>
-                            <option value="deficit">🔴 Descontrole Fiscal & Expansão de Dívida</option>
+                            <option value="surplus">Ajuste Fiscal & Superávit (Dívida/PIB em Queda)</option>
+                            <option value="neutral" selected>Equilíbrio / Fiscal Neutro</option>
+                            <option value="deficit">Descontrole Fiscal & Expansão de Dívida</option>
                         </select>
-                        <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">Define o prêmio de risco país e inclinação da ETTJ.</span>
+                        <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">Define o prêmio de risco país e inclinação da curva de juros.</span>
                     </div>
 
                     <!-- Control 4: Custo de Dívida Corporativa -->
                     <div>
-                        <label for="macro-sim-debt" style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
-                            <span>Crédito Corporativo</span>
-                            <span id="macro-sim-debt-label" style="color: var(--positive); font-weight: 800;">Equilibrado</span>
+                        <label for="macro-sim-debt" style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.35rem; display: block;">
+                            Crédito Corporativo
                         </label>
                         <select id="macro-sim-debt" class="filter-select" style="width: 100%;" onchange="runMacroForecastSimulation()">
-                            <option value="easy">🟢 Crédito Fácil & Spreads Baixos</option>
-                            <option value="neutral" selected>🟡 Spreads Neutros / Padrão</option>
-                            <option value="tight">🔴 Restrição de Crédito & Spreads Altos</option>
+                            <option value="easy">Crédito Amplo & Spreads Baixos</option>
+                            <option value="neutral" selected>Spreads Neutros / Padrão</option>
+                            <option value="tight">Restrição de Crédito & Spreads Altos</option>
                         </select>
                         <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">Pressão de despesas financeiras em empresas com dívida.</span>
                     </div>
@@ -1389,12 +1385,9 @@
             <!-- Dedicated Section: Tesouro Direto & Marcação a Mercado -->
             <div class="calc-card" style="margin-bottom: 1.5rem; border: 1px solid rgba(16, 185, 129, 0.3);">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <span style="font-size: 1.3rem;">🏛️</span>
-                        <div>
-                            <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary); margin: 0;">Raio-X do Tesouro Direto & Efeito Marcação a Mercado (MtM)</h3>
-                            <p style="font-size: 0.76rem; color: var(--text-muted); margin: 0;">Comportamento previsto para cada título público sob a dinâmica fiscal e de juros simulada</p>
-                        </div>
+                    <div>
+                        <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary); margin: 0;">Raio-X do Tesouro Direto & Efeito Marcação a Mercado (MtM)</h3>
+                        <p style="font-size: 0.76rem; color: var(--text-muted); margin: 0;">Comportamento previsto para cada título público sob a dinâmica fiscal e de juros simulada</p>
                     </div>
                     <span id="macro-tesouro-verdict-badge" class="macro-impact-badge macro-impact-high-pos">Curva Favorável</span>
                 </div>
@@ -1428,10 +1421,7 @@
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
                 <!-- Winners -->
                 <div class="calc-card">
-                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                        <span style="font-size: 1.2rem;">🚀</span>
-                        <h3 style="font-size: 1rem; font-weight: 700; color: var(--positive); margin: 0;">Top Ativos Mais Beneficiados no Cenário</h3>
-                    </div>
+                    <h3 style="font-size: 1rem; font-weight: 700; color: var(--positive); margin: 0 0 0.4rem 0;">Ativos Mais Beneficiados no Cenário</h3>
                     <p style="font-size: 0.76rem; color: var(--text-muted); margin-bottom: 0.75rem;">Ativos com perfil fundamental ideal para capturar valor nesta conjuntura.</p>
                     <div id="macro-winners-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
                         <!-- Preenchido via JS -->
@@ -1440,10 +1430,7 @@
 
                 <!-- Vulnerable / Attention -->
                 <div class="calc-card">
-                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                        <span style="font-size: 1.2rem;">⚠️</span>
-                        <h3 style="font-size: 1rem; font-weight: 700; color: var(--negative); margin: 0;">Ativos que Exigem Maior Cautela</h3>
-                    </div>
+                    <h3 style="font-size: 1rem; font-weight: 700; color: var(--negative); margin: 0 0 0.4rem 0;">Ativos que Exigem Maior Cautela</h3>
                     <p style="font-size: 0.76rem; color: var(--text-muted); margin-bottom: 0.75rem;">Empresas ou fundos mais sensíveis a custos de dívida ou compressão de margens.</p>
                     <div id="macro-vulnerable-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
                         <!-- Preenchido via JS -->
@@ -1453,10 +1440,7 @@
 
             <!-- Tactic Playbook Card -->
             <div class="calc-card" style="border: 1px solid var(--primary-glow); margin-bottom: 1.5rem;">
-                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                    <span style="font-size: 1.2rem;">🧭</span>
-                    <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0;">Playbook Estratégico de Alocação Fundamentalista</h3>
-                </div>
+                <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0 0 0.5rem 0;">Playbook Estratégico de Alocação Fundamentalista</h3>
                 <div id="macro-playbook-content" style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.6;">
                     <!-- Preenchido dinamicamente via JS -->
                 </div>

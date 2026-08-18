@@ -1,6 +1,6 @@
 {
   "meta": {
-    "exported_at": "2026-08-17T20:58:49.331204",
+    "exported_at": "2026-08-18T02:29:21.038285",
     "source": "Radar Fundamentalista B3 - Top Picks",
     "description": "Melhores ativos por score fundamentalista. Pronto para alimentar IA com sua carteira.",
     "suggested_prompt": "Analise minha carteira de investimentos comparando com estes top picks. Para cada ativo da minha carteira, sugira se devo manter, aumentar, reduzir ou vender, considerando os scores fundamentalistas, DY, P/L, P/VP, ROE e margem de seguranca de Graham."
@@ -49,20 +49,6 @@
       "upside_graham_pct": 103.7
     },
     {
-      "ticker": "BBDC4",
-      "name": "Banco Bradesco S.A.",
-      "sector": "Serviços Financeiros",
-      "price": 16.22,
-      "pe_ratio": 7.41,
-      "pb_ratio": 0.95,
-      "dividend_yield_pct": 9.57,
-      "roe_pct": 13.76,
-      "graham_price": 29.07,
-      "bazin_price": 3.83,
-      "score": 5.0,
-      "upside_graham_pct": 79.2
-    },
-    {
       "ticker": "CEAB3",
       "name": "C&A Modas S.A.",
       "sector": "Consumo Cíclico",
@@ -84,11 +70,25 @@
       "pe_ratio": 3.3,
       "pb_ratio": 0.46,
       "dividend_yield_pct": 11.98,
-      "roe_pct": 15.59,
+      "roe_pct": 14.48,
       "graham_price": 51.12,
       "bazin_price": 14.67,
       "score": 5.0,
       "upside_graham_pct": 286.1
+    },
+    {
+      "ticker": "BBDC4",
+      "name": "Banco Bradesco S.A.",
+      "sector": "Serviços Financeiros",
+      "price": 16.22,
+      "pe_ratio": 7.41,
+      "pb_ratio": 0.95,
+      "dividend_yield_pct": 9.57,
+      "roe_pct": 13.76,
+      "graham_price": 29.07,
+      "bazin_price": 3.83,
+      "score": 5.0,
+      "upside_graham_pct": 79.2
     },
     {
       "ticker": "CMIG3",
