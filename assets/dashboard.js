@@ -6043,64 +6043,6 @@ const tableSortState = {};
             const fiscalLevel = fiscalEl ? fiscalEl.value : 'neutral';
             const debtLevel = debtEl ? debtEl.value : 'neutral';
 
-            // Update Label Badges
-            const selicLabel = document.getElementById('macro-sim-selic-label');
-            const ipcaLabel = document.getElementById('macro-sim-ipca-label');
-            const fiscalLabel = document.getElementById('macro-sim-fiscal-label');
-            const debtLabel = document.getElementById('macro-sim-debt-label');
-
-            if (selicLabel) {
-                if (selicDelta < 0) {
-                    selicLabel.textContent = `Queda (${(selicDelta / 100).toFixed(2)}%)`;
-                    selicLabel.style.color = 'var(--positive)';
-                } else if (selicDelta > 0) {
-                    selicLabel.textContent = `Alta (+${(selicDelta / 100).toFixed(2)}%)`;
-                    selicLabel.style.color = 'var(--negative)';
-                } else {
-                    selicLabel.textContent = 'Estável / Neutro';
-                    selicLabel.style.color = 'var(--primary-accent)';
-                }
-            }
-
-            if (ipcaLabel) {
-                if (ipcaLevel === 'low') {
-                    ipcaLabel.textContent = 'Desinflação (< 3%)';
-                    ipcaLabel.style.color = 'var(--positive)';
-                } else if (ipcaLevel === 'high') {
-                    ipcaLabel.textContent = 'Acelerado (> 5.5%)';
-                    ipcaLabel.style.color = 'var(--negative)';
-                } else {
-                    ipcaLabel.textContent = 'Na Meta (~4%)';
-                    ipcaLabel.style.color = 'var(--gold)';
-                }
-            }
-
-            if (fiscalLabel) {
-                if (fiscalLevel === 'surplus') {
-                    fiscalLabel.textContent = 'Ajuste / Dívida em Queda';
-                    fiscalLabel.style.color = 'var(--positive)';
-                } else if (fiscalLevel === 'deficit') {
-                    fiscalLabel.textContent = 'Descontrole / Risco Alto';
-                    fiscalLabel.style.color = 'var(--negative)';
-                } else {
-                    fiscalLabel.textContent = 'Equilibrado';
-                    fiscalLabel.style.color = 'var(--primary-accent)';
-                }
-            }
-
-            if (debtLabel) {
-                if (debtLevel === 'easy') {
-                    debtLabel.textContent = 'Crédito Barato';
-                    debtLabel.style.color = 'var(--positive)';
-                } else if (debtLevel === 'tight') {
-                    debtLabel.textContent = 'Crédito Caro & Escasso';
-                    debtLabel.style.color = 'var(--negative)';
-                } else {
-                    debtLabel.textContent = 'Equilibrado';
-                    debtLabel.style.color = 'var(--primary-accent)';
-                }
-            }
-
             // 1. Diagnostic Summary Banner
             const bannerEl = document.getElementById('macro-forecast-banner');
             if (bannerEl) {
@@ -6109,20 +6051,20 @@ const tableSortState = {};
                 let borderColor = 'var(--primary-accent)';
 
                 if (fiscalLevel === 'deficit') {
-                    summaryTitle = '💥 Descontrole Fiscal, Dívida Pública em Alta & Abertura da Curva Longa';
-                    summaryText = 'A expansão desordenada dos gastos públicos eleva a relação Dívida/PIB e o prêmio de risco país (CDS Brasil). O mercado exige taxas reais históricas nos títulos longos (IPCA+ 6.8% a 7.5%). Isso gera forte volatilidade temporária na marcação a mercado dos papéis longos, mas abre janelas raras de aporte para quem carrega até o vencimento.';
+                    summaryTitle = 'Descontrole Fiscal, Dívida Pública em Alta & Abertura da Curva Longa';
+                    summaryText = 'A expansão dos gastos públicos eleva a relação Dívida/PIB e o prêmio de risco soberano. O mercado passa a exigir taxas reais elevadas nos títulos longos (IPCA+ 6.8% a 7.5%). Isso gera volatilidade temporária de marcação a mercado nos papéis longos, mas abre janelas estratégicas de aporte para carregamento até o vencimento.';
                     borderColor = 'var(--negative)';
                 } else if (fiscalLevel === 'surplus' && selicDelta <= 0) {
-                    summaryTitle = '🏛️ Consolidação Fiscal, Queda de Juros & Rali Generalizado (Bull Market)';
-                    summaryText = 'Contas públicas com superávit primário reduzem o prêmio de risco sovereign, ancoram a inflação e permitem cortes sustentáveis na Selic. A Curva de Juros (ETTJ) fecha com força, gerando lucros massivos de Marcação a Mercado no Tesouro IPCA+ e explosão de múltiplos em Ações e FIIs de Tijolo.';
+                    summaryTitle = 'Consolidação Fiscal, Queda de Juros & Rali de Ativos (Bull Market)';
+                    summaryText = 'Contas públicas com superávit reduzem o prêmio de risco, ancoram as expectativas de inflação e possibilitam cortes estruturais na Selic. A Curva de Juros (ETTJ) fecha com consistência, destravando valorização no Tesouro IPCA+ e expansão de múltiplos em Ações e FIIs de Tijolo.';
                     borderColor = 'var(--positive)';
                 } else if (selicDelta > 0 || ipcaLevel === 'high') {
-                    summaryTitle = '🛡️ Aperto Monetário, Custo de Dívida Alto & Blindagem em CDI / IPCA+';
-                    summaryText = 'Com juros e inflação elevados, ativos de duration longa sofrem reprecificação. O fluxo institucional busca refúgio no Tesouro Selic (LFT), em FIIs de papel (CRI) com yields inflacionários e em ações com caixa líquido e dividendos imediatos.';
+                    summaryTitle = 'Aperto Monetário, Custo de Dívida Elevado & Foco em Renda';
+                    summaryText = 'Com juros e inflação elevados, ativos de duration longa sofrem reprecificação. O fluxo institucional prioriza a liquidez do Tesouro Selic (LFT), FIIs de papel (CRI) com yields indexados e ações com baixo endividamento e dividendos imediatos.';
                     borderColor = 'var(--gold)';
                 } else {
-                    summaryTitle = '⚖️ Cenário Macroeconômico de Equilíbrio';
-                    summaryText = 'Condições normais de mercado. Alocação balanceada entre a proteção inflacionária do Tesouro IPCA+, a rentabilidade de caixa do Tesouro Selic e o valuation descontado em ações de valor.';
+                    summaryTitle = 'Cenário Macroeconômico de Equilíbrio';
+                    summaryText = 'Condições de estabilidade. Alocação balanceada entre a proteção inflacionária do Tesouro IPCA+, a rentabilidade de caixa do Tesouro Selic e o valuation atrativo em ações de valor.';
                     borderColor = 'var(--primary-accent)';
                 }
 
@@ -6139,16 +6081,16 @@ const tableSortState = {};
 
             if (tesouroVerdictBadge) {
                 if (fiscalLevel === 'surplus' && selicDelta < 0) {
-                    tesouroVerdictBadge.textContent = '🚀 Rali de Marcação a Mercado (+20% a +45%)';
+                    tesouroVerdictBadge.textContent = 'Rali de Marcação a Mercado (+20% a +45%)';
                     tesouroVerdictBadge.className = 'macro-impact-badge macro-impact-high-pos';
                 } else if (fiscalLevel === 'deficit') {
-                    tesouroVerdictBadge.textContent = '⚠️ Prêmio de Risco Alto (Oportunidade para Vencimento)';
+                    tesouroVerdictBadge.textContent = 'Prêmio de Risco Elevado (Oportunidade para Vencimento)';
                     tesouroVerdictBadge.className = 'macro-impact-badge macro-impact-mod-neg';
                 } else if (selicDelta > 0) {
-                    tesouroVerdictBadge.textContent = '🛡️ Refúgio no Tesouro Selic';
+                    tesouroVerdictBadge.textContent = 'Proteção no Tesouro Selic';
                     tesouroVerdictBadge.className = 'macro-impact-badge macro-impact-mod-pos';
                 } else {
-                    tesouroVerdictBadge.textContent = '⚖️ Curva Equilibrada';
+                    tesouroVerdictBadge.textContent = 'Curva Equilibrada';
                     tesouroVerdictBadge.className = 'macro-impact-badge macro-impact-neutral';
                 }
             }
@@ -6187,7 +6129,7 @@ const tableSortState = {};
                         </td>
                         <td><span style="font-weight:600;">100% Selic + Ágio</span></td>
                         <td><span class="macro-impact-badge macro-impact-high-pos" style="font-size:0.7rem;">Duration Zero (1 Dia)</span></td>
-                        <td><span class="positive" style="font-weight:700;">✓ Volatilidade Nula (Imune a MtM)</span></td>
+                        <td><span class="positive" style="font-weight:700;">Volatilidade Nula (Imune a MtM)</span></td>
                         <td style="font-size:0.78rem; color:var(--text-secondary);">
                             ${selicDelta >= 0 || fiscalLevel === 'deficit'
                                 ? '<strong>Reserva de Oportunidade:</strong> Máxima segurança para aguardar os picos de juros sem risco de oscilação negativa.'
@@ -6259,9 +6201,8 @@ const tableSortState = {};
                     {
                         title: 'Ações Cíclicas & Consumo',
                         sub: 'Varejo, Construção Civil, Shopping Centers',
-                        icon: '🛒',
                         impact: isBullMarket ? 'high-pos' : isFiscalStress ? 'high-neg' : (selicDelta > 0 ? 'mod-neg' : 'neutral'),
-                        badgeText: isBullMarket ? '🔥 Forte Rali (+20% a +40%)' : isFiscalStress ? '❄️ Risco de Compressão Severa' : '➔ Desempenho Regular',
+                        badgeText: isBullMarket ? 'Forte Valorização (+20% a +40%)' : isFiscalStress ? 'Risco de Compressão Severa' : 'Desempenho Regular',
                         mechanism: isBullMarket
                             ? 'A queda dos juros combinada à solvência fiscal destrava o crédito imobiliário, reduz drasticamente as despesas financeiras das empresas e expande os lucros.'
                             : isFiscalStress
@@ -6277,9 +6218,8 @@ const tableSortState = {};
                     {
                         title: 'Utilidade Pública & Elétricas',
                         sub: 'Transmissão, Geração e Saneamento',
-                        icon: '⚡',
                         impact: isBullMarket ? 'high-pos' : (ipcaLevel === 'high' || isFiscalStress ? 'mod-pos' : 'neutral'),
-                        badgeText: isBullMarket ? '📈 Expansão de Múltiplos' : (ipcaLevel === 'high' || isFiscalStress ? '🛡️ Blindagem Inflacionária' : '➔ Fluxo de Caixa Perene'),
+                        badgeText: isBullMarket ? 'Expansão de Múltiplos' : (ipcaLevel === 'high' || isFiscalStress ? 'Blindagem Inflacionária' : 'Fluxo de Caixa Perene'),
                         mechanism: 'Contratos de concessão reajustados por IPCA/IGP-M e monopólios naturais garantem receita corrigida. No descontrole fiscal, funcionam como refúgio seguro.',
                         examples: [
                             { ticker: 'EGIE3', type: 'stock' },
@@ -6291,9 +6231,8 @@ const tableSortState = {};
                     {
                         title: 'Setor Financeiro & Bancos',
                         sub: 'Grandes Bancos e Seguradoras',
-                        icon: '🏦',
                         impact: selicDelta > 0 || isFiscalStress ? 'mod-pos' : 'mod-pos',
-                        badgeText: selicDelta > 0 || isFiscalStress ? '💰 Margens com Juros Elevadas' : '📈 Expansão da Carteira de Crédito',
+                        badgeText: selicDelta > 0 || isFiscalStress ? 'Margens com Juros Elevadas' : 'Expansão da Carteira de Crédito',
                         mechanism: 'Bancos conseguem repassar juros e manter ROE elevado; seguradoras lucram alto com a aplicação do floating em CDI.',
                         examples: [
                             { ticker: 'ITUB4', type: 'stock' },
@@ -6305,10 +6244,9 @@ const tableSortState = {};
                     {
                         title: 'Exportadoras & Commodities',
                         sub: 'Minério de Ferro, Petróleo, Papel & Celulose',
-                        icon: '🚢',
                         impact: isFiscalStress || ipcaLevel === 'high' ? 'high-pos' : 'neutral',
-                        badgeText: isFiscalStress ? '🛡️ Hedge Cambial / Dólar Forte' : '🌐 Demanda Global',
-                        mechanism: 'Receitas 100% em moeda forte (USD) descorrelacionadas do risco Brasil. Atuam como escudo patrimonial direto se a dívida pública desvalorizar o Real.',
+                        badgeText: isFiscalStress ? 'Hedge Cambial / Dólar Forte' : 'Demanda Global',
+                        mechanism: 'Receitas em moeda forte (USD) descorrelacionadas do risco Brasil. Atuam como escudo patrimonial direto se a dívida pública desvalorizar o Real.',
                         examples: [
                             { ticker: 'VALE3', type: 'stock' },
                             { ticker: 'PETR4', type: 'stock' },
@@ -6318,9 +6256,8 @@ const tableSortState = {};
                     {
                         title: 'FIIs de Tijolo (Imóveis Físicos)',
                         sub: 'Galpões Logísticos, Shoppings e Lajes Corporativas',
-                        icon: '🏢',
                         impact: isBullMarket ? 'high-pos' : isFiscalStress ? 'mod-neg' : 'neutral',
-                        badgeText: isBullMarket ? '🚀 Rali de Cotas (Fechamento da ETTJ)' : isFiscalStress ? '📉 Cotas com Desconto (P/VP < 0.90)' : '➔ Rendimento Regular',
+                        badgeText: isBullMarket ? 'Rali de Cotas (Fechamento da ETTJ)' : isFiscalStress ? 'Cotas com Desconto (P/VP < 0.90)' : 'Rendimento Regular',
                         mechanism: isBullMarket
                             ? 'O fechamento da taxa de desconto no mercado secundário valoriza as cotas e reaquece a demanda por locação física.'
                             : 'Juros altos forçam as cotas a negociar com desconto sobre o valor patrimonial.',
@@ -6333,9 +6270,8 @@ const tableSortState = {};
                     {
                         title: 'FIIs de Papel & FIAGROs',
                         sub: 'Crédito Imobiliário e Agropecuário (CRI/CRA)',
-                        icon: '📄',
                         impact: (ipcaLevel === 'high' || selicDelta > 0 || isFiscalStress) && debtLevel !== 'tight' ? 'high-pos' : 'neutral',
-                        badgeText: (ipcaLevel === 'high' || isFiscalStress) ? '💵 Dividendos Mensais Turbinados' : '➔ Renda Recorrente',
+                        badgeText: (ipcaLevel === 'high' || isFiscalStress) ? 'Dividendos Mensais Elevados' : 'Renda Recorrente',
                         mechanism: 'Repasse integral e mensal do IPCA e do CDI aos cotistas com isenção de Imposto de Renda.',
                         examples: [
                             { ticker: 'KNCR11', type: 'fii' },
@@ -6355,9 +6291,8 @@ const tableSortState = {};
                     <div class="macro-forecast-card">
                         <div>
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem;">
-                                <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem;">
-                                    <span>${c.icon}</span>
-                                    <span>${c.title}</span>
+                                <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary);">
+                                    ${c.title}
                                 </div>
                             </div>
                             <div style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 0.6rem;">${c.sub}</div>
@@ -6365,7 +6300,7 @@ const tableSortState = {};
                             <div style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.45;">${c.mechanism}</div>
                         </div>
                         <div style="margin-top: 0.85rem; padding-top: 0.6rem; border-top: 1px dashed var(--card-border); font-size: 0.74rem; color: var(--text-muted); display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem;">
-                            <span style="font-weight: 600;">🔍 Detalhar Ativos:</span>
+                            <span style="font-weight: 600;">Ativos Relacionados:</span>
                             ${examplesHtml}
                         </div>
                     </div>`;
