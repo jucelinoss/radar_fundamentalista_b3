@@ -1,25 +1,11 @@
 {
   "meta": {
-    "exported_at": "2026-08-17T20:30:47.549279",
+    "exported_at": "2026-08-18T02:26:43.984190",
     "source": "Radar Fundamentalista B3 - Top Picks",
     "description": "Melhores ativos por score fundamentalista. Pronto para alimentar IA com sua carteira.",
     "suggested_prompt": "Analise minha carteira de investimentos comparando com estes top picks. Para cada ativo da minha carteira, sugira se devo manter, aumentar, reduzir ou vender, considerando os scores fundamentalistas, DY, P/L, P/VP, ROE e margem de seguranca de Graham."
   },
   "top_stocks": [
-    {
-      "ticker": "ABCB4",
-      "name": "Banco ABC Brasil S.A.",
-      "sector": "Serviços Financeiros",
-      "price": 22.6,
-      "pe_ratio": 4.06,
-      "pb_ratio": 0.8,
-      "dividend_yield_pct": 11.95,
-      "roe_pct": 14.9,
-      "graham_price": 59.39,
-      "bazin_price": 39.0,
-      "score": 5.0,
-      "upside_graham_pct": 162.8
-    },
     {
       "ticker": "AXIA3",
       "name": "AXIA Energia SA",
@@ -33,6 +19,20 @@
       "bazin_price": 60.83,
       "score": 5.0,
       "upside_graham_pct": 41.2
+    },
+    {
+      "ticker": "ABCB4",
+      "name": "Banco ABC Brasil S.A.",
+      "sector": "Serviços Financeiros",
+      "price": 22.6,
+      "pe_ratio": 4.06,
+      "pb_ratio": 0.8,
+      "dividend_yield_pct": 11.95,
+      "roe_pct": 14.9,
+      "graham_price": 59.39,
+      "bazin_price": 39.0,
+      "score": 5.0,
+      "upside_graham_pct": 162.8
     },
     {
       "ticker": "BBDC4",
@@ -63,20 +63,6 @@
       "upside_graham_pct": 193.8
     },
     {
-      "ticker": "BBDC3",
-      "name": "Banco Bradesco S.A.",
-      "sector": "Serviços Financeiros",
-      "price": 14.27,
-      "pe_ratio": 6.52,
-      "pb_ratio": 0.83,
-      "dividend_yield_pct": 9.89,
-      "roe_pct": 13.76,
-      "graham_price": 29.07,
-      "bazin_price": 3.5,
-      "score": 5.0,
-      "upside_graham_pct": 103.7
-    },
-    {
       "ticker": "BRSR6",
       "name": "Banco do Estado do Rio Grande do Sul S.A.",
       "sector": "Serviços Financeiros",
@@ -89,6 +75,20 @@
       "bazin_price": 14.67,
       "score": 5.0,
       "upside_graham_pct": 286.1
+    },
+    {
+      "ticker": "BBDC3",
+      "name": "Banco Bradesco S.A.",
+      "sector": "Serviços Financeiros",
+      "price": 14.27,
+      "pe_ratio": 6.52,
+      "pb_ratio": 0.83,
+      "dividend_yield_pct": 9.89,
+      "roe_pct": 13.76,
+      "graham_price": 29.07,
+      "bazin_price": 3.5,
+      "score": 5.0,
+      "upside_graham_pct": 103.7
     },
     {
       "ticker": "CMIG3",
@@ -133,18 +133,18 @@
       "upside_graham_pct": 135.2
     },
     {
-      "ticker": "EZTC3",
-      "name": "EZTEC Empreendimentos e Participações S.A.",
+      "ticker": "EVEN3",
+      "name": "Even Construtora e Incorporadora S.A.",
       "sector": "Imobiliário",
-      "price": 10.76,
-      "pe_ratio": 6.52,
-      "pb_ratio": 0.57,
-      "dividend_yield_pct": 9.2,
-      "roe_pct": 10.55,
-      "graham_price": 26.46,
-      "bazin_price": 6.33,
+      "price": 4.35,
+      "pe_ratio": 2.19,
+      "pb_ratio": 0.45,
+      "dividend_yield_pct": 21.06,
+      "roe_pct": 11.13,
+      "graham_price": 20.73,
+      "bazin_price": 15.33,
       "score": 5.0,
-      "upside_graham_pct": 145.9
+      "upside_graham_pct": 376.6
     }
   ],
   "top_fiis": [
