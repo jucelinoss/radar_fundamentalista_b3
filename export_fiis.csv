@@ -24,7 +24,7 @@ VILG11,Vinci Logistica Fundo Investimento Imobiliario FII,R$ 88.15,0.78,10.6%,R$
 RBRR11,Fundo Investimento Imobiliario - FII RBR Rendimento High Grade,R$ 73.00,0.78,13.53%,R$ 10.80,5.0
 CPTS11,Capitania Securities II Fundo Investimento Imobiliario FII,R$ 7.30,0.79,13.49%,R$ 1.08,5.0
 FYTO11,Fii Nch Brasil Recebiveis Imobiliarios Para Fii Fyto Recebiveis Imob,R$ 7.83,0.79,15.44%,R$ 1.20,5.0
-ALZC11,Alianza Crédito Imobiliário Fundo De Investimento Imobiliário,R$ 7.30,0.79,16.74%,R$ 1.44,5.0
+ALZC11,Alianza Crédito Imobiliário Fundo De Investimento Imobiliário,R$ 7.30,0.79,15.3%,R$ 1.44,5.0
 RBVA11,Fundo Invest Imobiliario Agencias Caixa - FII Fund,R$ 8.70,0.8,11.38%,R$ 1.08,5.0
 HSML11,Hsi Malls Fundo De Investimento Imobiliario,R$ 82.72,0.8,10.29%,R$ 9.00,5.0
 VGIP11,Valora Cri Indice De Preco Fundo De Investimento Imobiliario,R$ 72.50,0.8,14.21%,R$ 12.72,5.0
@@ -40,11 +40,11 @@ CPSH11,Capitania Shoppings Fundo De Investimento Imobiliario,R$ 9.43,0.83,14.21%
 BTHF11,Btg Pactual Real Estate Hedge Fund Fii Fundo De Investimento Imobiliario,R$ 8.38,0.83,14.09%,R$ 1.21,5.0
 RZTR11,Fundo De Investimento Imobiliario Riza Terrax,R$ 81.47,0.83,14.48%,R$ 10.80,5.0
 XPLG11,Xp Log Fundo Investimento Imobiliario FII,R$ 88.45,0.83,11.12%,R$ 9.84,5.0
-MCRE11,Maua Capital Real Estate Fundo De Investimento Imobiliario,R$ 8.49,0.83,15.55%,R$ 1.32,5.0
+MCRE11,Maua Capital Real Estate Fundo De Investimento Imobiliario,R$ 8.49,0.83,14.25%,R$ 1.32,5.0
 RECR11,Fundo Investimento Imobiliario Fii Ubs (Br) Recebveis Imobiliarios,R$ 74.52,0.84,14.02%,R$ 13.18,5.0
 RZAK11,Riza Akin Fundo De Investimento Imobiliario – FII,R$ 74.51,0.84,14.63%,R$ 12.60,5.0
 WHGR11,Whg Real Estate Fundo De Investimento Imobiliario – Fii,R$ 8.44,0.85,14.22%,R$ 1.20,5.0
-RZAT11,Riza Arctium Real Estate Fundo De Investimento Imobiliario,R$ 86.49,0.85,15.03%,R$ 20.40,5.0
+RZAT11,Riza Arctium Real Estate Fundo De Investimento Imobiliario,R$ 86.49,0.85,15.03%,R$ 12.60,5.0
 GARE11,Guardian Logistica Fundo De Investimento Imobiliario,R$ 8.09,0.85,11.29%,R$ 1.00,5.0
 GRUL11,Icatu Vanguarda Gru Logistico Fundo De Investimento Imobiliario Responsabilidade Limitada,R$ 8.16,0.85,11.76%,R$ 0.96,5.0
 XPCI11,Xp Credito Imobiliario ae Fundo De Investimento Imobiliario,R$ 76.40,0.85,14.19%,R$ 11.16,5.0
@@ -68,10 +68,10 @@ VGIR11,Valora Re III Fundo De Investimento Imobiliario,R$ 9.18,0.93,16.45%,R$ 1.
 MCCI11,Fundo De Investimento Imobiliario Maua Capital Recebiveis Imobiliarios,R$ 90.17,0.94,13.31%,R$ 12.00,5.0
 KNIP11,Kinea Indices Precos Fundo Investimento Imobiliario - FII,R$ 88.17,0.95,11.52%,R$ 11.40,5.0
 MANA11,Manati Capital Hedge Fund Fundo De Investimento Imobiliario,R$ 9.00,0.95,13.83%,R$ 1.44,5.0
-SNME11,Suno Multiestrategia Fundo De Investimento Imobiliario,R$ 9.18,0.96,17.32%,R$ 2.64,5.0
+SNME11,Suno Multiestrategia Fundo De Investimento Imobiliario,R$ 9.18,0.96,16.12%,R$ 1.58,5.0
 KNHY11,Kinea High Yield Cri Fundo Investimento Imobiliario FII,R$ 95.73,0.97,13.66%,R$ 14.40,5.0
-AFHF11,AF Invest Real Estate Multiestrategia Fundo De Investimento Imobiliario Responsabilidade Limitada,R$ 9.98,0.98,14.98%,R$ 2.64,5.0
-SNEL11,Fundo De Investimento Imobiliario Suno Energias Limpas,R$ 8.16,0.99,14.71%,R$ 1.20,5.0
+AFHF11,AF Invest Real Estate Multiestrategia Fundo De Investimento Imobiliario Responsabilidade Limitada,R$ 9.98,0.98,14.98%,R$ 1.44,5.0
+SNEL11,Fundo De Investimento Imobiliario Suno Energias Limpas,R$ 8.16,0.99,13.48%,R$ 1.20,5.0
 KNSC11,Kinea Securities Fundo De Investimento Imobiliario – Fii,R$ 8.87,1.01,12.94%,R$ 1.32,5.0
 KNUQ11,FII KINEA UNCI,R$ 102.94,1.01,14.35%,R$ 14.77,5.0
 KNCR11,Kinea Rendimentos Imobiliários Fundo de Investimento Imobiliário - FII,R$ 105.24,1.04,13.62%,R$ 15.00,5.0
@@ -106,7 +106,7 @@ VISC11,Vinci Shopping Centers Fundo Investimento Imobiliario - Fii,R$ 101.07,0.8
 HGRU11,Patria Renda Urbana - Fundo De Investimento Imobiliario,R$ 114.63,0.89,9.55%,R$ 11.40,4.0
 HGLG11,Cshg Logistica - Fundo De Investimento Imobiliario,R$ 145.11,0.92,9.14%,R$ 14.04,4.0
 KNRI11,Kinea Renda Imobiliária Fundo de Investimento Imobiliário,R$ 149.12,0.93,8.72%,R$ 13.20,4.0
-BTLG11,BTG Pactual Logística Fundo de Investimento Imobiliário,R$ 98.31,0.95,9.72%,R$ 9.72,4.0
+BTLG11,BTG Pactual Logística Fundo de Investimento Imobiliário,R$ 98.31,0.95,8.93%,R$ 9.72,4.0
 SJAU11,Sj Au Logistica Fundo De Investimento Imobiliario,R$ 1.69,1.13,25.0%,R$ 100.00,4.0
 PVBI11,Fundo De Investimento ImobiliarRio Vbi Prime Properties,R$ 63.99,0.59,8.05%,R$ 4.80,3.0
 ARTE11,FII ARTE    CI  ER,R$ 7.10,0.68,8.31%,R$ 0.59,3.0
