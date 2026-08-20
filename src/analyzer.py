@@ -211,7 +211,9 @@ def get_true_yield(ticker_info: dict[str, Any], yf_ticker: Any | None = None, pr
     Fluxo:
       1. Se yf_ticker e price estão disponíveis, tenta usar ticker.actions
          para somar dividendos dos últimos 365 dias e dividir pelo preço.
-      2. Fallback: reconcilia dividendRate, dividendYield e lastDividendValue via _derive_dividend_fields.
+      2. Se a soma representar apenas 1 ou poucos proventos mensais não-anualizados (< 4.5% com <= 3 distribuições),
+         recorre ao _derive_dividend_fields ou annualiza por 12x.
+      3. Fallback: reconcilia dividendRate, dividendYield e lastDividendValue via _derive_dividend_fields.
     """
     if yf_ticker is not None and price is not None and price > 0:
         try:
@@ -221,9 +223,30 @@ def get_true_yield(ticker_info: dict[str, Any], yf_ticker: Any | None = None, pr
                 from datetime import datetime, timezone
                 cutoff = datetime.now(timezone.utc) - DateOffset(days=365)
                 recent = history[history.index >= cutoff]
-                total_divs = recent['Dividends'].sum()
+                div_series = recent['Dividends'].dropna()
+                total_divs = float(div_series.sum())
+                count_divs = len(div_series)
+
                 if total_divs > 0:
-                    return round(total_divs / price, DY_DECIMALS)
+                    calculated_dy = round(total_divs / price, DY_DECIMALS)
+                    # Detect un-annualized monthly distributions (e.g. single dividend in yfinance actions)
+                    if calculated_dy < 0.045 and count_divs <= 3:
+                        derived_dy, _ = _derive_dividend_fields(
+                            ticker_info.get('dividendYield'),
+                            ticker_info.get('dividendRate') or (total_divs * 12.0),
+                            price,
+                            last_div=ticker_info.get('lastDividendValue')
+                        )
+                        if derived_dy >= 0.045:
+                            return derived_dy
+                        return round((total_divs * 12.0) / price, DY_DECIMALS)
+
+                    # If calculated_dy is suspiciously small (< 0.05) while ticker_info has a healthy DY (e.g. CVM data >= 0.05)
+                    info_dy = normalize_dividend_yield(ticker_info.get('dividendYield'))
+                    if calculated_dy < 0.05 and info_dy >= 0.05:
+                        return info_dy
+
+                    return calculated_dy
         except Exception:
             pass
     dy, _ = _derive_dividend_fields(
