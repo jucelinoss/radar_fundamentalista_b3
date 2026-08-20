@@ -559,6 +559,29 @@ class TestGetTrueYield:
         result = get_true_yield(info, yf_ticker=mock_ticker, price=0)
         assert result == 0.06
 
+    def test_single_monthly_dividend_annualizes(self):
+        """Single monthly dividend (e.g. 0.11 / 8.16 < 0.045) should annualize by 12x."""
+        import pandas as pd
+        from datetime import datetime, timezone
+        idx = pd.to_datetime([datetime.now(timezone.utc)])
+        actions_df = pd.DataFrame({'Dividends': [0.11]}, index=idx)
+        mock_ticker = type('MockTicker', (), {'actions': actions_df})()
+        info = {}
+        result = get_true_yield(info, yf_ticker=mock_ticker, price=8.16)
+        # (0.11 * 12) / 8.16 = 1.32 / 8.16 = 0.1618
+        assert 0.15 <= result <= 0.17, f"Expected annualized DY ~0.16, got {result}"
+
+    def test_single_dividend_prefers_info_dy_when_available(self):
+        """When info contains curated/CVM DY, prefer it over un-annualized single dividend."""
+        import pandas as pd
+        from datetime import datetime, timezone
+        idx = pd.to_datetime([datetime.now(timezone.utc)])
+        actions_df = pd.DataFrame({'Dividends': [0.11]}, index=idx)
+        mock_ticker = type('MockTicker', (), {'actions': actions_df})()
+        info = {'dividendYield': 0.1498}
+        result = get_true_yield(info, yf_ticker=mock_ticker, price=8.16)
+        assert result == 0.1498, f"Expected 0.1498, got {result}"
+
 
 # ======================================================================
 # Timezone-aware Tests (catch the yfinance timezone bug)
