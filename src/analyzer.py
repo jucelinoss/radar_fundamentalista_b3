@@ -163,6 +163,12 @@ def safe_float(value: Any) -> float | None:
         return None
 
 
+def _normalize_pe(value: Any) -> float | None:
+    """Return a P/E multiple only when earnings are positive."""
+    pe_ratio = safe_float(value)
+    return pe_ratio if pe_ratio is not None and pe_ratio > 0 else None
+
+
 def calculate_graham_price(eps: float | None, book_value: float | None) -> float | None:
     """
     Calculates Graham's Fair Price: sqrt(22.5 * LPA * VPA)
@@ -834,7 +840,7 @@ def analyze_stock(ticker: str, info: dict[str, Any]) -> dict[str, Any]:
     
     eps = safe_float(info.get('trailingEps'))
     book_value = safe_float(info.get('bookValue'))
-    pe_ratio = safe_float(info.get('trailingPE'))
+    pe_ratio = _normalize_pe(info.get('trailingPE'))
     pb_ratio = safe_float(info.get('priceToBook'))
     
     # Tenta obter o DY real a partir do histórico de dividendos (soma 12 meses / preço)
