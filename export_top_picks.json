@@ -1,11 +1,25 @@
 {
   "meta": {
-    "exported_at": "2026-08-31T12:50:55.382331",
+    "exported_at": "2026-08-31T12:53:19.100079",
     "source": "Radar Fundamentalista B3 - Top Picks",
     "description": "Melhores ativos por score fundamentalista. Pronto para alimentar IA com sua carteira.",
     "suggested_prompt": "Analise minha carteira de investimentos comparando com estes top picks. Para cada ativo da minha carteira, sugira se devo manter, aumentar, reduzir ou vender, considerando os scores fundamentalistas, DY, P/L, P/VP, ROE e margem de seguranca de Graham."
   },
   "top_stocks": [
+    {
+      "ticker": "ABCB4",
+      "name": "Banco ABC Brasil S.A.",
+      "sector": "Serviços Financeiros",
+      "price": 23.1,
+      "pe_ratio": 4.15,
+      "pb_ratio": 0.82,
+      "dividend_yield_pct": 11.69,
+      "roe_pct": 14.9,
+      "graham_price": 59.39,
+      "bazin_price": 39.0,
+      "score": 5.0,
+      "upside_graham_pct": 157.1
+    },
     {
       "ticker": "AXIA3",
       "name": "AXIA Energia SA",
@@ -35,18 +49,18 @@
       "upside_graham_pct": 94.7
     },
     {
-      "ticker": "ABCB4",
-      "name": "Banco ABC Brasil S.A.",
+      "ticker": "BBDC4",
+      "name": "Banco Bradesco S.A.",
       "sector": "Serviços Financeiros",
-      "price": 23.1,
-      "pe_ratio": 4.15,
-      "pb_ratio": 0.82,
-      "dividend_yield_pct": 11.69,
-      "roe_pct": 14.9,
-      "graham_price": 59.39,
-      "bazin_price": 39.0,
+      "price": 17.08,
+      "pe_ratio": 7.8,
+      "pb_ratio": 1.0,
+      "dividend_yield_pct": 9.09,
+      "roe_pct": 13.76,
+      "graham_price": 29.07,
+      "bazin_price": 3.83,
       "score": 5.0,
-      "upside_graham_pct": 157.1
+      "upside_graham_pct": 70.2
     },
     {
       "ticker": "BBDC3",
@@ -63,18 +77,18 @@
       "upside_graham_pct": 93.3
     },
     {
-      "ticker": "BBDC4",
-      "name": "Banco Bradesco S.A.",
+      "ticker": "BRSR6",
+      "name": "Banco do Estado do Rio Grande do Sul S.A.",
       "sector": "Serviços Financeiros",
-      "price": 17.08,
-      "pe_ratio": 7.8,
-      "pb_ratio": 1.0,
-      "dividend_yield_pct": 9.09,
-      "roe_pct": 13.76,
-      "graham_price": 29.07,
-      "bazin_price": 3.83,
+      "price": 13.87,
+      "pe_ratio": 3.48,
+      "pb_ratio": 0.48,
+      "dividend_yield_pct": 11.44,
+      "roe_pct": 14.48,
+      "graham_price": 50.99,
+      "bazin_price": 14.67,
       "score": 5.0,
-      "upside_graham_pct": 70.2
+      "upside_graham_pct": 267.6
     },
     {
       "ticker": "CEAB3",
@@ -91,32 +105,18 @@
       "upside_graham_pct": 177.4
     },
     {
-      "ticker": "BRSR6",
-      "name": "Banco do Estado do Rio Grande do Sul S.A.",
-      "sector": "Serviços Financeiros",
-      "price": 13.87,
-      "pe_ratio": 3.48,
-      "pb_ratio": 0.48,
-      "dividend_yield_pct": 11.44,
-      "roe_pct": 14.48,
-      "graham_price": 50.99,
-      "bazin_price": 14.67,
-      "score": 5.0,
-      "upside_graham_pct": 267.6
-    },
-    {
       "ticker": "CMIG4",
       "name": "Companhia Energética de Minas Gerais - CEMIG",
       "sector": "Utilidade Pública",
       "price": 10.51,
-      "pe_ratio": 6.57,
+      "pe_ratio": 6.49,
       "pb_ratio": 1.03,
       "dividend_yield_pct": 12.19,
       "roe_pct": 15.94,
-      "graham_price": 19.16,
+      "graham_price": 19.28,
       "bazin_price": 21.33,
       "score": 5.0,
-      "upside_graham_pct": 82.3
+      "upside_graham_pct": 83.4
     },
     {
       "ticker": "CYRE3",
