@@ -6,6 +6,8 @@ Or:        python -m pytest src/tests/ -v
 """
 import math
 
+import pytest
+
 from analyzer import (
     calculate_graham_price,
     calculate_bazin_price,
@@ -323,6 +325,23 @@ class TestAnalyzeStock:
         assert result["score"] == 3, f"Expected score 3, got {result['score']}"
         assert result["graham_price"] == round(math.sqrt(22.5 * 4.2 * 25), 2)
         assert result["bazin_price"] == round(2.64 / 0.06, 2)
+
+    @pytest.mark.parametrize("raw_pe", [-25.64, 0.0])
+    def test_non_positive_pe_is_treated_as_unavailable(self, raw_pe):
+        """Loss-making or zero-earnings P/E must not enter persisted metrics."""
+        result = analyze_stock(
+            "LOSS3.SA",
+            {
+                "currentPrice": 78.58,
+                "trailingEps": -3.06,
+                "trailingPE": raw_pe,
+                "bookValue": 40.0,
+                "longName": "Loss Corp",
+            },
+        )
+
+        assert result["pe_ratio"] is None
+        assert result["pe_medio_5y"] is None
 
     def test_stock_with_minimal_info(self):
         """Should handle missing fields gracefully."""
