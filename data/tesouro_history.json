@@ -171265,6 +171265,16 @@
       "quote_method": "tesouro-rate-v2",
       "score": 5.94,
       "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-08-31",
+      "buy_yield": 0.0007000000000000001,
+      "buy_price": 19718.79,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "selic_spread",
+      "quote_method": "tesouro-rate-v2",
+      "score": 5.94,
+      "score_method": "tesouro-opportunity-v2"
     }
   ],
   "Tesouro Prefixado com Juros Semestrais 2027": [
@@ -346713,6 +346723,16 @@
     },
     {
       "date": "2026-08-31",
+      "buy_yield": 0.0,
+      "buy_price": 10.757575,
+      "source": "tesouro_investir_endpoint",
+      "yield_kind": "selic_spread",
+      "quote_method": "tesouro-rate-v2",
+      "score": 5.5,
+      "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-09-01",
       "buy_yield": 0.0,
       "buy_price": 10.757575,
       "source": "tesouro_investir_endpoint",
