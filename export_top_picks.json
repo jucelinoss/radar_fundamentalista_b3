@@ -1,6 +1,6 @@
 {
   "meta": {
-    "exported_at": "2026-09-02T13:49:45.393231",
+    "exported_at": "2026-09-02T13:51:53.204587",
     "source": "Radar Fundamentalista B3 - Top Picks",
     "description": "Melhores ativos por score fundamentalista. Pronto para alimentar IA com sua carteira.",
     "suggested_prompt": "Analise minha carteira de investimentos comparando com estes top picks. Para cada ativo da minha carteira, sugira se devo manter, aumentar, reduzir ou vender, considerando os scores fundamentalistas, DY, P/L, P/VP, ROE e margem de seguranca de Graham."
@@ -10,7 +10,7 @@
       "ticker": "ABCB4",
       "name": "Banco ABC Brasil S.A.",
       "sector": "Serviços Financeiros",
-      "price": 23.87,
+      "price": 23.88,
       "pe_ratio": 4.29,
       "pb_ratio": 0.85,
       "dividend_yield_pct": 11.31,
@@ -18,21 +18,21 @@
       "graham_price": 59.39,
       "bazin_price": 39.0,
       "score": 5.0,
-      "upside_graham_pct": 148.8
+      "upside_graham_pct": 148.7
     },
     {
       "ticker": "BBAS3",
       "name": "Banco do Brasil S.A.",
       "sector": "Serviços Financeiros",
-      "price": 21.61,
-      "pe_ratio": 10.05,
+      "price": 21.68,
+      "pe_ratio": 10.08,
       "pb_ratio": 0.68,
       "dividend_yield_pct": 30.0,
       "roe_pct": 10.55,
       "graham_price": 39.27,
       "bazin_price": 2.33,
       "score": 5.0,
-      "upside_graham_pct": 81.7
+      "upside_graham_pct": 81.1
     },
     {
       "ticker": "AXIA3",
@@ -49,34 +49,6 @@
       "upside_graham_pct": 29.1
     },
     {
-      "ticker": "BBDC4",
-      "name": "Banco Bradesco S.A.",
-      "sector": "Serviços Financeiros",
-      "price": 17.69,
-      "pe_ratio": 8.08,
-      "pb_ratio": 1.03,
-      "dividend_yield_pct": 8.78,
-      "roe_pct": 13.76,
-      "graham_price": 29.07,
-      "bazin_price": 3.83,
-      "score": 5.0,
-      "upside_graham_pct": 64.3
-    },
-    {
-      "ticker": "BRSR6",
-      "name": "Banco do Estado do Rio Grande do Sul S.A.",
-      "sector": "Serviços Financeiros",
-      "price": 14.65,
-      "pe_ratio": 3.65,
-      "pb_ratio": 0.51,
-      "dividend_yield_pct": 10.83,
-      "roe_pct": 14.48,
-      "graham_price": 51.12,
-      "bazin_price": 14.67,
-      "score": 5.0,
-      "upside_graham_pct": 248.9
-    },
-    {
       "ticker": "BBDC3",
       "name": "Banco Bradesco S.A.",
       "sector": "Serviços Financeiros",
@@ -91,60 +63,88 @@
       "upside_graham_pct": 87.3
     },
     {
+      "ticker": "BBDC4",
+      "name": "Banco Bradesco S.A.",
+      "sector": "Serviços Financeiros",
+      "price": 17.68,
+      "pe_ratio": 8.07,
+      "pb_ratio": 1.03,
+      "dividend_yield_pct": 8.78,
+      "roe_pct": 13.76,
+      "graham_price": 29.07,
+      "bazin_price": 3.83,
+      "score": 5.0,
+      "upside_graham_pct": 64.4
+    },
+    {
+      "ticker": "BRSR6",
+      "name": "Banco do Estado do Rio Grande do Sul S.A.",
+      "sector": "Serviços Financeiros",
+      "price": 14.62,
+      "pe_ratio": 3.65,
+      "pb_ratio": 0.5,
+      "dividend_yield_pct": 10.85,
+      "roe_pct": 14.48,
+      "graham_price": 51.12,
+      "bazin_price": 14.67,
+      "score": 5.0,
+      "upside_graham_pct": 249.7
+    },
+    {
       "ticker": "CMIG4",
       "name": "Companhia Energética de Minas Gerais - CEMIG",
       "sector": "Utilidade Pública",
-      "price": 10.91,
+      "price": 10.9,
       "pe_ratio": 6.73,
       "pb_ratio": 1.07,
-      "dividend_yield_pct": 11.74,
+      "dividend_yield_pct": 11.75,
       "roe_pct": 15.94,
       "graham_price": 19.28,
       "bazin_price": 21.33,
       "score": 5.0,
-      "upside_graham_pct": 76.7
+      "upside_graham_pct": 76.9
     },
     {
       "ticker": "CYRE3",
       "name": "Cyrela Brazil Realty S.A. Empreendimentos e Participações",
       "sector": "Consumo Cíclico",
-      "price": 25.12,
+      "price": 25.1,
       "pe_ratio": 5.4,
       "pb_ratio": 0.98,
-      "dividend_yield_pct": 10.87,
+      "dividend_yield_pct": 10.88,
       "roe_pct": 20.59,
       "graham_price": 51.78,
       "bazin_price": 63.33,
       "score": 5.0,
-      "upside_graham_pct": 106.1
+      "upside_graham_pct": 106.3
     },
     {
       "ticker": "ECOR3",
       "name": "EcoRodovias Infraestrutura e Logística S.A.",
       "sector": "Bens Industriais",
-      "price": 7.43,
-      "pe_ratio": 9.41,
+      "price": 7.45,
+      "pe_ratio": 9.43,
       "pb_ratio": 1.26,
       "dividend_yield_pct": 30.0,
       "roe_pct": 12.31,
       "graham_price": 10.25,
       "bazin_price": 5.0,
       "score": 5.0,
-      "upside_graham_pct": 38.0
+      "upside_graham_pct": 37.6
     },
     {
-      "ticker": "EVEN3",
-      "name": "Even Construtora e Incorporadora S.A.",
+      "ticker": "EZTC3",
+      "name": "EZTEC Empreendimentos e Participações S.A.",
       "sector": "Imobiliário",
-      "price": 4.31,
-      "pe_ratio": 3.5,
-      "pb_ratio": 0.44,
-      "dividend_yield_pct": 21.26,
-      "roe_pct": 11.13,
-      "graham_price": 16.38,
-      "bazin_price": 15.33,
+      "price": 13.28,
+      "pe_ratio": 8.1,
+      "pb_ratio": 0.7,
+      "dividend_yield_pct": 7.46,
+      "roe_pct": 10.55,
+      "graham_price": 26.38,
+      "bazin_price": 6.33,
       "score": 5.0,
-      "upside_graham_pct": 280.0
+      "upside_graham_pct": 98.6
     }
   ],
   "top_fiis": [
@@ -160,18 +160,18 @@
     {
       "ticker": "IRIM11",
       "name": "Iridium Fundo De Investimento Imobiliario",
-      "price": 60.92,
+      "price": 60.93,
       "pb_ratio": 0.73,
-      "dividend_yield_pct": 16.5,
+      "dividend_yield_pct": 16.49,
       "score": 5.0,
       "dividend_rate": 9.24
     },
     {
       "ticker": "VCJR11",
       "name": "Vectis Juros Real Fundo De Investimento Imobiliario - Fii",
-      "price": 67.83,
+      "price": 67.82,
       "pb_ratio": 0.73,
-      "dividend_yield_pct": 15.21,
+      "dividend_yield_pct": 15.22,
       "score": 5.0,
       "dividend_rate": 15.0
     },
@@ -205,9 +205,9 @@
     {
       "ticker": "TRXF11",
       "name": "TRX REAL ESTATE FUNDO DE INVESTIMENTO IMOBILIÁRIO - FII",
-      "price": 75.2,
-      "pb_ratio": 0.74,
-      "dividend_yield_pct": 14.45,
+      "price": 75.38,
+      "pb_ratio": 0.75,
+      "dividend_yield_pct": 14.42,
       "score": 5.0,
       "dividend_rate": 11.8
     },
@@ -223,7 +223,7 @@
     {
       "ticker": "GTWR11",
       "name": "Fundo Investimento Imobiliario Green Towers",
-      "price": 76.92,
+      "price": 76.9,
       "pb_ratio": 0.76,
       "dividend_yield_pct": 14.04,
       "score": 5.0,
@@ -297,38 +297,38 @@
     {
       "ticker": "RURA11",
       "name": "Itau Asset Rural Fiagro - Imobiliario",
-      "price": 8.04,
+      "price": 8.03,
       "pb_ratio": 0.78,
-      "dividend_yield_pct": 13.97,
+      "dividend_yield_pct": 13.99,
       "score": 5.0,
-      "dividend_rate": 1.0323
+      "dividend_rate": 1.0311
     },
     {
       "ticker": "OIAG11",
       "name": "Ourinvest Innovation - Fiagro Imobiliario",
-      "price": 7.96,
+      "price": 7.97,
       "pb_ratio": 0.81,
-      "dividend_yield_pct": 17.9,
+      "dividend_yield_pct": 17.88,
       "score": 5.0,
       "dividend_rate": 1.425
     },
     {
       "ticker": "RZAG11",
       "name": "Fundo De Investimento Nas Cadeias Produtivas Agroindustriais Riza Agro - Fiagro - Imobiliario",
-      "price": 8.18,
+      "price": 8.2,
       "pb_ratio": 0.82,
-      "dividend_yield_pct": 15.28,
+      "dividend_yield_pct": 15.24,
       "score": 5.0,
-      "dividend_rate": 0.9816
+      "dividend_rate": 0.984
     },
     {
       "ticker": "KNCA11",
       "name": "Kinea Credito Agro Fiagro-Imobiliario",
-      "price": 85.37,
+      "price": 85.44,
       "pb_ratio": 0.86,
-      "dividend_yield_pct": 12.81,
+      "dividend_yield_pct": 12.8,
       "score": 5.0,
-      "dividend_rate": 10.142
+      "dividend_rate": 10.1503
     }
   ]
 }
