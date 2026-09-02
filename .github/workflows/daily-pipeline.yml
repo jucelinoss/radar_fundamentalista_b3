@@ -1,7 +1,7 @@
 # GitHub Actions: Daily B3 Data Pipeline + GitHub Pages Deploy
 #
 # Runs the complete data pipeline (ingestion + dashboard generation)
-# every weekday at 8:00 AM BRT (11:00 UTC).
+# every weekday at 10:00 PM BRT (01:00 UTC on the following day).
 #
 # The generated dashboard is deployed to GitHub Pages automatically,
 # but ONLY when the data actually changes (avoids unnecessary deployments).
@@ -21,7 +21,7 @@ on:
   push:
     branches: [main, dev]
   schedule:
-    - cron: '0 11 * * 1-5'   # 08:00 BRT, dias úteis
+    - cron: '0 1 * * 2-6'    # 22:00 BRT, noites de segunda a sexta
   workflow_dispatch:
     inputs:
       force:
