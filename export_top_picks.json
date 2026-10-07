@@ -1,188 +1,188 @@
 {
   "meta": {
-    "exported_at": "2026-10-06T06:59:41.608837",
+    "exported_at": "2026-10-07T06:40:38.561336",
     "source": "Radar Fundamentalista B3 - Top Picks",
     "description": "Melhores ativos por score fundamentalista. Pronto para alimentar IA com sua carteira.",
     "suggested_prompt": "Analise minha carteira de investimentos comparando com estes top picks. Para cada ativo da minha carteira, sugira se devo manter, aumentar, reduzir ou vender, considerando os scores fundamentalistas, DY, P/L, P/VP, ROE e margem de seguranca de Graham."
   },
   "top_stocks": [
     {
+      "ticker": "ABCB4",
+      "name": "Banco ABC Brasil S.A.",
+      "sector": "Serviços Financeiros",
+      "price": 28.82,
+      "pe_ratio": 6.83,
+      "pb_ratio": 1.02,
+      "dividend_yield_pct": 9.33,
+      "roe_pct": 14.9,
+      "graham_price": 51.72,
+      "bazin_price": 39.0,
+      "score": 5.0,
+      "upside_graham_pct": 79.5
+    },
+    {
       "ticker": "AXIA3",
       "name": "AXIA Energia SA",
       "sector": "Utilidade Pública",
-      "price": 61.38,
-      "pe_ratio": 14.18,
-      "pb_ratio": 1.44,
-      "dividend_yield_pct": 6.41,
+      "price": 59.48,
+      "pe_ratio": 13.31,
+      "pb_ratio": 1.4,
+      "dividend_yield_pct": 30.0,
       "roe_pct": 10.01,
-      "graham_price": 64.45,
+      "graham_price": 65.48,
       "bazin_price": 31.5,
       "score": 5.0,
-      "upside_graham_pct": 5.0
+      "upside_graham_pct": 10.1
     },
     {
       "ticker": "BBAS3",
       "name": "Banco do Brasil S.A.",
       "sector": "Serviços Financeiros",
-      "price": 26.33,
-      "pe_ratio": 12.25,
-      "pb_ratio": 0.83,
+      "price": 24.64,
+      "pe_ratio": 10.71,
+      "pb_ratio": 0.77,
       "dividend_yield_pct": 30.0,
       "roe_pct": 10.55,
-      "graham_price": 39.27,
+      "graham_price": 40.62,
       "bazin_price": 2.33,
       "score": 5.0,
-      "upside_graham_pct": 49.1
+      "upside_graham_pct": 64.9
     },
     {
-      "ticker": "ABCB4",
-      "name": "Banco ABC Brasil S.A.",
-      "sector": "Serviços Financeiros",
-      "price": 28.24,
-      "pe_ratio": 7.1,
-      "pb_ratio": 1.0,
-      "dividend_yield_pct": 9.52,
-      "roe_pct": 14.9,
-      "graham_price": 50.22,
-      "bazin_price": 39.0,
+      "ticker": "CEAB3",
+      "name": "C&A Modas S.A.",
+      "sector": "Consumo Cíclico",
+      "price": 12.61,
+      "pe_ratio": 7.08,
+      "pb_ratio": 0.99,
+      "dividend_yield_pct": 30.0,
+      "roe_pct": 15.49,
+      "graham_price": 22.53,
+      "bazin_price": 8.67,
       "score": 5.0,
-      "upside_graham_pct": 77.8
+      "upside_graham_pct": 78.7
     },
     {
       "ticker": "BRSR6",
       "name": "Banco do Estado do Rio Grande do Sul S.A.",
       "sector": "Serviços Financeiros",
-      "price": 16.87,
-      "pe_ratio": 4.21,
-      "pb_ratio": 0.58,
-      "dividend_yield_pct": 9.12,
+      "price": 17.2,
+      "pe_ratio": 4.38,
+      "pb_ratio": 0.59,
+      "dividend_yield_pct": 8.94,
       "roe_pct": 14.48,
-      "graham_price": 51.12,
+      "graham_price": 50.61,
       "bazin_price": 14.67,
       "score": 5.0,
-      "upside_graham_pct": 203.0
+      "upside_graham_pct": 194.2
     },
     {
       "ticker": "CMIG4",
       "name": "Companhia Energética de Minas Gerais - CEMIG",
       "sector": "Utilidade Pública",
-      "price": 11.98,
+      "price": 11.99,
       "pe_ratio": 7.4,
-      "pb_ratio": 1.17,
-      "dividend_yield_pct": 9.51,
+      "pb_ratio": 1.18,
+      "dividend_yield_pct": 9.5,
       "roe_pct": 15.94,
       "graham_price": 19.28,
       "bazin_price": 19.0,
       "score": 5.0,
-      "upside_graham_pct": 60.9
+      "upside_graham_pct": 60.8
     },
     {
       "ticker": "CYRE3",
       "name": "Cyrela Brazil Realty S.A. Empreendimentos e Participações",
       "sector": "Consumo Cíclico",
-      "price": 33.14,
-      "pe_ratio": 7.65,
-      "pb_ratio": 1.29,
-      "dividend_yield_pct": 8.24,
+      "price": 34.18,
+      "pe_ratio": 7.89,
+      "pb_ratio": 1.33,
+      "dividend_yield_pct": 7.99,
       "roe_pct": 20.59,
       "graham_price": 49.97,
       "bazin_price": 45.5,
       "score": 5.0,
-      "upside_graham_pct": 50.8
+      "upside_graham_pct": 46.2
     },
     {
       "ticker": "EVEN3",
       "name": "Even Construtora e Incorporadora S.A.",
       "sector": "Imobiliário",
-      "price": 5.52,
-      "pe_ratio": 5.47,
+      "price": 5.49,
+      "pe_ratio": 5.38,
       "pb_ratio": 0.57,
-      "dividend_yield_pct": 16.6,
+      "dividend_yield_pct": 16.69,
       "roe_pct": 11.13,
-      "graham_price": 14.85,
+      "graham_price": 14.92,
       "bazin_price": 15.33,
       "score": 5.0,
-      "upside_graham_pct": 169.0
+      "upside_graham_pct": 171.8
     },
     {
       "ticker": "LREN3",
       "name": "Lojas Renner S.A.",
       "sector": "Consumo Cíclico",
-      "price": 13.57,
-      "pe_ratio": 8.99,
-      "pb_ratio": 1.26,
-      "dividend_yield_pct": 6.78,
+      "price": 13.69,
+      "pe_ratio": 9.07,
+      "pb_ratio": 1.27,
+      "dividend_yield_pct": 6.72,
       "roe_pct": 14.46,
       "graham_price": 19.14,
       "bazin_price": 15.33,
       "score": 5.0,
-      "upside_graham_pct": 41.0
-    },
-    {
-      "ticker": "PETR4",
-      "name": "Petróleo Brasileiro S.A. - Petrobras",
-      "sector": "Energia",
-      "price": 55.36,
-      "pe_ratio": 5.28,
-      "pb_ratio": 1.48,
-      "dividend_yield_pct": 6.62,
-      "roe_pct": 30.27,
-      "graham_price": 93.85,
-      "bazin_price": 72.33,
-      "score": 5.0,
-      "upside_graham_pct": 69.5
+      "upside_graham_pct": 39.8
     },
     {
       "ticker": "POMO4",
       "name": "Marcopolo S.A.",
       "sector": "Bens Industriais",
-      "price": 4.68,
-      "pe_ratio": 4.88,
-      "pb_ratio": 1.37,
-      "dividend_yield_pct": 19.75,
+      "price": 4.7,
+      "pe_ratio": 4.9,
+      "pb_ratio": 1.38,
+      "dividend_yield_pct": 19.66,
       "roe_pct": 28.32,
       "graham_price": 8.59,
       "bazin_price": 17.83,
       "score": 5.0,
-      "upside_graham_pct": 83.5
+      "upside_graham_pct": 82.8
     }
   ],
   "top_fiis": [
     {
+      "ticker": "TRXF11",
+      "name": "TRX REAL ESTATE FUNDO DE INVESTIMENTO IMOBILIÁRIO - FII",
+      "price": 71.15,
+      "pb_ratio": 0.7,
+      "dividend_yield_pct": 15.28,
+      "score": 5.0,
+      "dividend_rate": 11.16
+    },
+    {
       "ticker": "LIFE11",
       "name": "Life Capital Partners Fundo De Investimentos Imobiliarios",
-      "price": 7.03,
+      "price": 7.02,
       "pb_ratio": 0.7,
-      "dividend_yield_pct": 20.27,
+      "dividend_yield_pct": 20.3,
       "score": 5.0,
       "dividend_rate": 1.38
     },
     {
+      "ticker": "HABT11",
+      "name": "Habitat Ii - Fundo De Investimento Imobiliario",
+      "price": 68.37,
+      "pb_ratio": 0.72,
+      "dividend_yield_pct": 16.66,
+      "score": 5.0,
+      "dividend_rate": 11.04
+    },
+    {
       "ticker": "VRTM11",
       "name": "Fator Verita Multiestrategia Fundo De Investimento Imobiliario",
-      "price": 6.72,
-      "pb_ratio": 0.71,
-      "dividend_yield_pct": 16.07,
+      "price": 6.75,
+      "pb_ratio": 0.72,
+      "dividend_yield_pct": 16.0,
       "score": 5.0,
       "dividend_rate": 1.08
-    },
-    {
-      "ticker": "VCJR11",
-      "name": "Vectis Juros Real Fundo De Investimento Imobiliario - Fii",
-      "price": 67.3,
-      "pb_ratio": 0.73,
-      "dividend_yield_pct": 16.88,
-      "score": 5.0,
-      "dividend_rate": 9.0
-    },
-    {
-      "ticker": "RPRI11",
-      "name": "RBR Premium Recebiveis Imobiliarios Fundo De Investimento Imobiliario",
-      "price": 73.09,
-      "pb_ratio": 0.74,
-      "dividend_yield_pct": 15.25,
-      "score": 5.0,
-      "dividend_rate": 12.1
     },
     {
       "ticker": "XPIN11",
@@ -194,141 +194,141 @@
       "dividend_rate": 10.8
     },
     {
-      "ticker": "RBRX11",
-      "name": "Rbr Alpha Plus Multiestrategia Real Estate Fundo De Investimento Imobiliario",
-      "price": 7.43,
+      "ticker": "VCJR11",
+      "name": "Vectis Juros Real Fundo De Investimento Imobiliario - Fii",
+      "price": 70.0,
       "pb_ratio": 0.76,
-      "dividend_yield_pct": 14.54,
-      "score": 5.0,
-      "dividend_rate": 1.08
-    },
-    {
-      "ticker": "IRIM11",
-      "name": "Iridium Fundo De Investimento Imobiliario",
-      "price": 63.4,
-      "pb_ratio": 0.76,
-      "dividend_yield_pct": 15.9,
+      "dividend_yield_pct": 16.23,
       "score": 5.0,
       "dividend_rate": 9.0
     },
     {
+      "ticker": "RPRI11",
+      "name": "RBR Premium Recebiveis Imobiliarios Fundo De Investimento Imobiliario",
+      "price": 76.99,
+      "pb_ratio": 0.77,
+      "dividend_yield_pct": 14.48,
+      "score": 5.0,
+      "dividend_rate": 12.1
+    },
+    {
       "ticker": "RBFM11",
       "name": "Rio Bravo Ifix Fundo De Fundos Investimento Imobiliario - FII",
-      "price": 9.98,
-      "pb_ratio": 0.76,
-      "dividend_yield_pct": 13.81,
+      "price": 10.21,
+      "pb_ratio": 0.78,
+      "dividend_yield_pct": 13.5,
       "score": 5.0,
       "dividend_rate": 1.3
     },
     {
-      "ticker": "JSAF11",
-      "name": "Js Ativos Financeiros Fundo De Investimento Imobiliario",
-      "price": 7.19,
-      "pb_ratio": 0.76,
-      "dividend_yield_pct": 13.42,
+      "ticker": "TEPP11",
+      "name": "SDI Properties Fundo De Investimento Imobiliario",
+      "price": 7.53,
+      "pb_ratio": 0.78,
+      "dividend_yield_pct": 15.44,
       "score": 5.0,
-      "dividend_rate": 0.96
+      "dividend_rate": 0.82
     },
     {
-      "ticker": "RBRR11",
-      "name": "Fundo Investimento Imobiliario - FII RBR Rendimento High Grade",
-      "price": 70.72,
-      "pb_ratio": 0.76,
-      "dividend_yield_pct": 14.04,
+      "ticker": "JSAF11",
+      "name": "Js Ativos Financeiros Fundo De Investimento Imobiliario",
+      "price": 7.4,
+      "pb_ratio": 0.78,
+      "dividend_yield_pct": 13.04,
       "score": 5.0,
-      "dividend_rate": 10.8
+      "dividend_rate": 0.96
     }
   ],
   "top_fiagros": [
     {
-      "ticker": "LSAG11",
-      "name": "LESTE FUNDO DE INVESTIMENTO NAS CADEIAS PRODUTIVAS AGROINDUSTRIAIS- FIAGRO - IMOBILIÁRIO",
-      "price": 71.87,
-      "pb_ratio": 0.73,
-      "dividend_yield_pct": 17.49,
+      "ticker": "GRWA11",
+      "name": "Greenwich Agro Fundo De Investimento Nas Cadeias Produtivas Agroindustriais - Fiagro - Imobiliario",
+      "price": 7.29,
+      "pb_ratio": 0.7,
+      "dividend_yield_pct": 14.4,
       "score": 5.0,
-      "dividend_rate": 8.6244
+      "dividend_rate": 1.05
     },
     {
-      "ticker": "AAGR11",
-      "name": "Asset Bank Agronegocios Fiagro - Direitos Creditorios - Responsabilidade Limitada",
-      "price": 105.0,
-      "pb_ratio": 0.75,
-      "dividend_yield_pct": 15.82,
+      "ticker": "LSAG11",
+      "name": "LESTE FUNDO DE INVESTIMENTO NAS CADEIAS PRODUTIVAS AGROINDUSTRIAIS- FIAGRO - IMOBILIÁRIO",
+      "price": 71.54,
+      "pb_ratio": 0.72,
+      "dividend_yield_pct": 17.57,
       "score": 5.0,
-      "dividend_rate": 22.428
+      "dividend_rate": 8.5848
     },
     {
       "ticker": "PLCA11",
       "name": "Plural Credito Agro - Fiagro - Imobiliario",
-      "price": 72.49,
-      "pb_ratio": 0.75,
-      "dividend_yield_pct": 15.73,
+      "price": 72.0,
+      "pb_ratio": 0.74,
+      "dividend_yield_pct": 15.83,
       "score": 5.0,
-      "dividend_rate": 8.6988
+      "dividend_rate": 8.64
+    },
+    {
+      "ticker": "AAGR11",
+      "name": "Asset Bank Agronegocios Fiagro - Direitos Creditorios - Responsabilidade Limitada",
+      "price": 107.0,
+      "pb_ratio": 0.76,
+      "dividend_yield_pct": 15.53,
+      "score": 5.0,
+      "dividend_rate": 22.8552
     },
     {
       "ticker": "CPTR11",
       "name": "Capitania Agro Strategies - Fiagro - Imobiliario Fund",
-      "price": 7.5,
-      "pb_ratio": 0.75,
-      "dividend_yield_pct": 17.8,
+      "price": 7.62,
+      "pb_ratio": 0.76,
+      "dividend_yield_pct": 17.52,
       "score": 5.0,
-      "dividend_rate": 9.9
+      "dividend_rate": 10.0584
     },
     {
       "ticker": "XPCA11",
       "name": "Xp Credito Agricola - Fundo De Investimento Nas Cadeias Produtivas - Fiagro - Imobiliario",
-      "price": 7.39,
-      "pb_ratio": 0.77,
-      "dividend_yield_pct": 17.32,
+      "price": 7.46,
+      "pb_ratio": 0.78,
+      "dividend_yield_pct": 17.16,
       "score": 5.0,
-      "dividend_rate": 0.9045
+      "dividend_rate": 0.9131
     },
     {
       "ticker": "RURA11",
       "name": "Itau Asset Rural Fiagro - Imobiliario",
-      "price": 8.06,
-      "pb_ratio": 0.78,
-      "dividend_yield_pct": 15.11,
+      "price": 8.11,
+      "pb_ratio": 0.79,
+      "dividend_yield_pct": 15.02,
       "score": 5.0,
-      "dividend_rate": 0.9865
+      "dividend_rate": 0.9927
     },
     {
       "ticker": "EGAF11",
       "name": "Ecoagro I Fundo De Investimento Nas Cadeias Produtivas Agroindustriais Fiagro Imobiliario",
-      "price": 81.6,
+      "price": 81.4,
       "pb_ratio": 0.82,
-      "dividend_yield_pct": 18.62,
+      "dividend_yield_pct": 20.21,
       "score": 5.0,
-      "dividend_rate": 13.8067
-    },
-    {
-      "ticker": "RZAG11",
-      "name": "Fundo De Investimento Nas Cadeias Produtivas Agroindustriais Riza Agro - Fiagro - Imobiliario",
-      "price": 8.26,
-      "pb_ratio": 0.82,
-      "dividend_yield_pct": 16.65,
-      "score": 5.0,
-      "dividend_rate": 0.9912
+      "dividend_rate": 13.7729
     },
     {
       "ticker": "OIAG11",
       "name": "Ourinvest Innovation - Fiagro Imobiliario",
-      "price": 8.08,
+      "price": 8.14,
       "pb_ratio": 0.83,
-      "dividend_yield_pct": 17.57,
+      "dividend_yield_pct": 17.44,
       "score": 5.0,
       "dividend_rate": 1.42
     },
     {
-      "ticker": "FGAA11",
-      "name": "FG/Agro Fundo De Investimento Nas Cadeias Produtivas Agroindustriais - Fiagro-Imobiliario",
-      "price": 8.17,
-      "pb_ratio": 0.86,
-      "dividend_yield_pct": 16.95,
+      "ticker": "RZAG11",
+      "name": "Fundo De Investimento Nas Cadeias Produtivas Agroindustriais Riza Agro - Fiagro - Imobiliario",
+      "price": 8.36,
+      "pb_ratio": 0.83,
+      "dividend_yield_pct": 16.45,
       "score": 5.0,
-      "dividend_rate": 1.1373
+      "dividend_rate": 1.0032
     }
   ]
 }
