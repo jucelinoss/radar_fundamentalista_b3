@@ -4,7 +4,7 @@ Valida:
 1. Precisao matematica do calculo de Meta de Renda (Bruto, Liquido, IR/JCP, Cotas/Titulos).
 2. Precisao matematica da projecao Bola de Neve (Juros compostos, Magic Number, IR acumulado).
 3. Segregacao por categorias de ativos (Estrategias, Acoes, FIIs, FIAGROs, Tesouro Direto).
-4. Tratamento de aliquotas tributarias (Isento 0%, Acoes c/ JCP 3.75%, Tesouro 15%, Curto prazo 22.5%).
+4. Tratamento de aliquotas tributarias (Isento 0%, Acoes c/ JCP 4.375% estimado, Tesouro 15%, Curto prazo 22.5%).
 5. Integridade estrutural do DOM e funcoes JS no index-v2.html e dashboard.js.
 """
 
@@ -102,11 +102,11 @@ class TestCalculatorMathPrecision:
         assert res["units"] == 123
 
     def test_goal_stock_with_jcp_effective_tax(self):
-        """Acoes com ~25% JCP a 15% IR = 3.75% IR efetivo."""
-        res = calculate_goal_math(monthly_net_target=2000.0, gross_dy=0.08, tax_rate=0.0375, unit_price=25.0)
-        expected_net_dy = 0.08 * (1 - 0.0375) # 0.077
+        """Estimativa de 25% dos proventos em JCP, tributado a 17.5% em 2026."""
+        res = calculate_goal_math(monthly_net_target=2000.0, gross_dy=0.08, tax_rate=0.04375, unit_price=25.0)
+        expected_net_dy = 0.08 * (1 - 0.04375)
         assert math.isclose(res["net_dy"], expected_net_dy, rel_tol=1e-5)
-        assert res["total_required"] == round(24000.0 / 0.077, 2)
+        assert res["total_required"] == round(24000.0 / expected_net_dy, 2)
         assert res["units"] == math.ceil(res["total_required"] / 25.0)
 
     def test_snowball_compounding_five_years(self):

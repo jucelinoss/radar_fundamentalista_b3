@@ -2129,7 +2129,22 @@ const tableSortState = {};
                         }
                     } catch (e) {}
                     homeTs.textContent = 'Atualizado em: ' + formattedMacroTs +
-                        (focusOfficial ? ' · Focus: BCB/OData' : ' · ⚠️ Focus indisponível');
+                        (focusOfficial
+                            ? ' · Focus BCB/OData: ' + (macro.focus_data_date || 'data indisponível')
+                            : ' · ⚠️ Focus indisponível');
+                }
+                const sourceDatesEl = document.getElementById('home-source-dates');
+                if (sourceDatesEl) {
+                    const dates = macro.source_dates || {};
+                    const sourceLabels = [
+                        ['focus', 'Focus BCB/OData'], ['selic', 'Selic BCB/SGS'],
+                        ['ipca', 'IPCA IBGE/SIDRA'], ['cambio', 'Câmbio BCB/PTAX'],
+                        ['tesouro_direto', 'Tesouro Direto'], ['cvm_fii', 'CVM FIIs'],
+                        ['cvm_fiagro', 'CVM FIAGROs']
+                    ];
+                    sourceDatesEl.textContent = 'Fontes e datas: ' + sourceLabels.map(([key, label]) =>
+                        label + ' ' + (dates[key] || 'indisponível')
+                    ).join(' · ');
                 }
             }
 
@@ -5084,12 +5099,12 @@ const tableSortState = {};
 
         function _getEffectiveTaxRate(taxSelectorVal, assetTaxType) {
             if (taxSelectorVal === 'exempt') return 0;
-            if (taxSelectorVal === 'stock_jcp') return 0.0375; // ~25% JCP tributado a 15%
+            if (taxSelectorVal === 'stock_jcp') return 0.04375; // Estimativa: 25% dos proventos em JCP, retidos a 17,5% em 2026
             if (taxSelectorVal === 'fixed_15') return 0.15;
             if (taxSelectorVal === 'fixed_22_5') return 0.225;
             // auto
             if (assetTaxType === 'exempt') return 0;
-            if (assetTaxType === 'stock') return 0.0375; // Estimativa média ponderada B3
+            if (assetTaxType === 'stock') return 0.04375; // Estimativa média: 25% dos proventos em JCP a 17,5%
             if (assetTaxType === 'tesouro') return 0.15; // Regressiva longo prazo > 2 anos
             return 0;
         }
@@ -5166,7 +5181,7 @@ const tableSortState = {};
                 } else if (cat === 'fiis' || cat === 'fiagros') {
                     magicDescEl.textContent = `Rendimentos mensais de FIIs e FIAGROs são 100% isentos de Imposto de Renda para pessoas físicas.`;
                 } else {
-                    magicDescEl.textContent = `Ações distribuem dividendos isentos e JCP tributado em 15% na fonte, com alíquota média combinada de ~3,75%.`;
+                    magicDescEl.textContent = `Dividendos são em regra isentos para pessoa física, com exceções legais; JCP tem retenção de 17,5% em 2026. A estimativa média desta simulação supõe que 25% dos proventos sejam JCP (~4,38% efetivos).`;
                 }
             }
         }
@@ -5501,7 +5516,7 @@ const tableSortState = {};
                 recommendedPlan = 'PGBL';
                 if (isLongo) {
                     recommendedRegime = 'Tabela Regressiva (10% IR Mínimo)';
-                    rationale = 'Perfil ideal para <strong>PGBL com Regime Regressivo</strong>: você abate até 12% da renda bruta hoje (reinvestindo a restituição) e usufrui da alíquota definitiva de 10% no resgate de longo prazo.';
+                    rationale = 'Perfil ideal para <strong>PGBL com Regime Regressivo</strong>: você pode deduzir contribuições até 12% dos rendimentos tributáveis (observadas as regras da declaração completa e da previdência oficial) e usufruir da alíquota de 10% no resgate de longo prazo.';
                 } else {
                     recommendedRegime = 'Tabela Progressiva (Compensável no IRPF)';
                     rationale = 'Como o prazo é curto (≤ 5 anos), a tabela regressiva cobraria entre 25% e 35% de IR. A <strong>Tabela Progressiva</strong> pode ser mais vantajosa caso sua renda no momento do resgate seja baixa ou isenta.';
@@ -5571,7 +5586,8 @@ const tableSortState = {};
             const pctInput = document.getElementById('calc-prev-pct');
             const yearsSelect = document.getElementById('calc-prev-years');
             const regimeSelect = document.getElementById('calc-prev-regime');
-            const progTaxSelect = document.getElementById('calc-prev-prog-tax');
+            const progWithdrawalInput = document.getElementById('calc-prev-prog-tax');
+            const progOtherIncomeInput = document.getElementById('calc-prev-prog-other-income');
             const returnInput = document.getElementById('calc-prev-return');
             const reinvestTaxSelect = document.getElementById('calc-prev-reinvest-tax');
 
@@ -5579,26 +5595,44 @@ const tableSortState = {};
             const investPct = Math.min(12, Math.max(1, parseFloat(pctInput?.value) || 12)) / 100.0;
             const years = parseInt(yearsSelect?.value) || 30;
             const regime = regimeSelect?.value || 'regressive';
-            const progTaxRate = parseFloat(progTaxSelect?.value) || 0.15;
+            const monthlyPgblWithdrawal = Math.max(0, parseFloat(progWithdrawalInput?.value) || 0);
+            const monthlyOtherIncomeAtRedemption = Math.max(0, parseFloat(progOtherIncomeInput?.value) || 0);
             const annualReturn = (parseFloat(returnInput?.value) || 10.0) / 100.0;
             const reinvestTaxRate = parseFloat(reinvestTaxSelect?.value) || 0.15;
 
-            // 1. Benefício Fiscal Anual (IRPF Completo)
+            // 1. Benefício fiscal anual: estima INSS CLT progressivo (tabela 2026).
+            const declSelect = document.getElementById('calc-prev-diag-decl');
+            const inssSelect = document.getElementById('calc-prev-diag-inss');
+            const eligibleForPgblDeduction = declSelect?.value === 'completa' && inssSelect?.value === 'sim';
+            const monthlySalary = annualIncome / 12;
+            const monthlyInss = Math.min(monthlySalary, 1621.00) * 0.075
+                + Math.max(0, Math.min(monthlySalary, 2902.84) - 1621.00) * 0.09
+                + Math.max(0, Math.min(monthlySalary, 4354.27) - 2902.84) * 0.12
+                + Math.max(0, Math.min(monthlySalary, 8475.55) - 4354.27) * 0.14;
+            const annualInss = inssSelect?.value === 'sim' ? monthlyInss * 12 : 0;
             const annualInvest = annualIncome * investPct;
             const monthlyInvest = annualInvest / 12.0;
-            const newTaxBase = Math.max(0, annualIncome - annualInvest);
+            const isCompleta = declSelect?.value === 'completa';
+            const officialDeduction = isCompleta && inssSelect?.value === 'sim' ? annualInss : 0;
+            const simplifiedDeduction = Math.min(annualIncome * 0.20, 17640);
+            const taxBaseWithoutPgbl = Math.max(0, annualIncome - (isCompleta ? officialDeduction : simplifiedDeduction));
+            const deductiblePgbl = eligibleForPgblDeduction ? annualInvest : 0;
+            const newTaxBase = Math.max(0, taxBaseWithoutPgbl - deductiblePgbl);
 
-            function calcIrpfTax(income) {
-                if (income <= 22847.76) return { rate: 0.0, deduction: 0, tax: 0 };
-                if (income <= 33919.80) return { rate: 0.075, deduction: 1713.58, tax: Math.max(0, income * 0.075 - 1713.58) };
-                if (income <= 45012.60) return { rate: 0.15, deduction: 4257.57, tax: Math.max(0, income * 0.15 - 4257.57) };
-                if (income <= 55976.16) return { rate: 0.225, deduction: 7633.51, tax: Math.max(0, income * 0.225 - 7633.51) };
-                return { rate: 0.275, deduction: 10432.32, tax: Math.max(0, income * 0.275 - 10432.32) };
+            function calcIrpfTax(base, grossIncome) {
+                let tax = 0;
+                if (base > 55976.16) tax = base * 0.275 - 10904.66;
+                else if (base > 45012.60) tax = base * 0.225 - 8105.85;
+                else if (base > 33919.80) tax = base * 0.15 - 4729.91;
+                else if (base > 29145.60) tax = base * 0.075 - 2185.92;
+                const annualReduction = grossIncome <= 60000 ? 2694.15
+                    : grossIncome <= 88200 ? Math.max(0, 8429.73 - 0.095575 * grossIncome) : 0;
+                return Math.max(0, tax - annualReduction);
             }
 
-            const taxWithoutPgbl = calcIrpfTax(annualIncome).tax;
-            const taxWithPgbl = calcIrpfTax(newTaxBase).tax;
-            const annualTaxSavings = Math.max(0, taxWithoutPgbl - taxWithPgbl);
+            const taxWithoutPgbl = calcIrpfTax(taxBaseWithoutPgbl, annualIncome);
+            const taxWithPgbl = calcIrpfTax(newTaxBase, annualIncome);
+            const annualTaxSavings = eligibleForPgblDeduction ? Math.max(0, taxWithoutPgbl - taxWithPgbl) : 0;
             const totalTaxSavingsNoInterest = annualTaxSavings * years;
             const monthlyReinvestAmount = annualTaxSavings / 12.0;
 
@@ -5618,8 +5652,24 @@ const tableSortState = {};
 
             // Alíquota de IR no Resgate
             let effectiveRedemptionTax = 0.10;
+            let vgblEffectiveTax = 0.10;
             if (regime === 'progressive') {
-                effectiveRedemptionTax = progTaxRate;
+                // Estima 12 parcelas mensais iguais pelo ajuste anual de 2026 e a renda informada.
+                const taxOnAnnualIncome = (grossIncome) => {
+                    const simplifiedBase = Math.max(0, grossIncome - Math.min(grossIncome * 0.20, 17640));
+                    return calcIrpfTax(simplifiedBase, grossIncome);
+                };
+                const annualOtherIncome = monthlyOtherIncomeAtRedemption * 12;
+                const taxRateForMonthlyBenefit = (monthlyTaxableBenefit) => {
+                    const annualBenefit = monthlyTaxableBenefit * 12;
+                    if (annualBenefit <= 0) return 0;
+                    const taxWithBenefit = taxOnAnnualIncome(annualOtherIncome + annualBenefit);
+                    const taxWithoutBenefit = taxOnAnnualIncome(annualOtherIncome);
+                    return Math.max(0, taxWithBenefit - taxWithoutBenefit) / annualBenefit;
+                };
+                effectiveRedemptionTax = taxRateForMonthlyBenefit(monthlyPgblWithdrawal);
+                const vgblTaxableShare = mainTotalGross > 0 ? mainTotalEarnings / mainTotalGross : 0;
+                vgblEffectiveTax = taxRateForMonthlyBenefit(monthlyPgblWithdrawal * vgblTaxableShare);
             } else {
                 if (years <= 2) effectiveRedemptionTax = 0.35;
                 else if (years <= 4) effectiveRedemptionTax = 0.30;
@@ -5627,10 +5677,11 @@ const tableSortState = {};
                 else if (years <= 8) effectiveRedemptionTax = 0.20;
                 else if (years <= 10) effectiveRedemptionTax = 0.15;
                 else effectiveRedemptionTax = 0.10;
+                vgblEffectiveTax = effectiveRedemptionTax;
             }
 
             // Cenário 1: VGBL (IR incide apenas sobre o Lucro)
-            const vgblTax = mainTotalEarnings * effectiveRedemptionTax;
+            const vgblTax = mainTotalEarnings * vgblEffectiveTax;
             const vgblNet = mainTotalGross - vgblTax;
 
             // Cenário 2: PGBL Simples (IR incide sobre o Total, mas soma a economia não reinvestida)
@@ -5658,7 +5709,7 @@ const tableSortState = {};
 
             if (annualInvestEl) annualInvestEl.textContent = `R$ ${annualInvest.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (R$ ${monthlyInvest.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mês)`;
             if (newTaxBaseEl) newTaxBaseEl.textContent = `R$ ${newTaxBase.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            if (taxDiffEl) taxDiffEl.textContent = `R$ ${taxWithoutPgbl.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} → R$ ${taxWithPgbl.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (taxDiffEl) taxDiffEl.textContent = `INSS estimado: R$ ${annualInss.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} · IR: R$ ${taxWithoutPgbl.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} → R$ ${taxWithPgbl.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             if (taxSavingsAnnualEl) taxSavingsAnnualEl.textContent = `+ R$ ${annualTaxSavings.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ano`;
             if (taxSavingsTotalEl) taxSavingsTotalEl.textContent = `R$ ${totalTaxSavingsNoInterest.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -5667,7 +5718,7 @@ const tableSortState = {};
             const vgblTaxEl = document.getElementById('calc-prev-vgbl-tax');
             const vgblNetEl = document.getElementById('calc-prev-vgbl-net');
             if (vgblGrossEl) vgblGrossEl.textContent = `R$ ${mainTotalGross.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            if (vgblTaxEl) vgblTaxEl.textContent = `R$ ${vgblTax.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${(effectiveRedemptionTax * 100).toFixed(1)}%)`;
+            if (vgblTaxEl) vgblTaxEl.textContent = `R$ ${vgblTax.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${(vgblEffectiveTax * 100).toFixed(1)}%)`;
             if (vgblNetEl) vgblNetEl.textContent = `R$ ${vgblNet.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
             // PGBL Simples Elements
