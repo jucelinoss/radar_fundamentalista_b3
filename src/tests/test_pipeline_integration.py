@@ -39,6 +39,7 @@ KNOWN_GOOD_FII = "MXRF11.SA"         # Maxi Renda FII — very liquid
 KNOWN_GOOD_FIAGRO = "KNCA11.SA"      # Kinea FIAGRO — reasonable liquidity
 KNOWN_GOOD_MAPPED = "NTCO3.SA"       # Maps to NATU3.SA
 KNOWN_DELISTED = "CIEL3.SA"          # Delisted in mappings
+KNOWN_UNAVAILABLE_FII = "SHOP11.SA"  # Removed from trading universe
 SMALL_SUBSET = ["PETR4.SA", "VALE3.SA", "BBAS3.SA", "MXRF11.SA", "KNCA11.SA"]
 
 # ======================================================================
@@ -79,6 +80,18 @@ class TestTickerResolution:
         resolved, delisted = resolve_ticker("CIEL3.SA", mappings)
         assert delisted is True
         assert resolved == "CIEL3.SA"
+
+    def test_shop11_is_marked_unavailable_and_not_monitored(self):
+        import json
+        from ingestion import resolve_ticker
+
+        mappings = self._load_mappings()
+        cfg_path = os.path.join(SRC_DIR, "..", "config", "tickers.json")
+        with open(cfg_path, "r", encoding="utf-8") as f:
+            cfg = json.load(f)
+
+        assert resolve_ticker(KNOWN_UNAVAILABLE_FII, mappings) == (KNOWN_UNAVAILABLE_FII, True)
+        assert KNOWN_UNAVAILABLE_FII not in cfg["fiis"]["tickers"]
 
     def test_unknown_ticker_passthrough(self):
         """Unknown ticker should pass through unchanged."""
