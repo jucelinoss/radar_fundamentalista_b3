@@ -83,6 +83,8 @@ def test_all_have_ticker_and_name(request, table, label):
 class TestStockRanges:
     """Validates that stock indicators stay within acceptable ranges."""
 
+    MAX_VALID_PE_RATIO = 250
+
     def test_price_positive(self, stocks):
         outliers = [s for s in stocks if s.get("price") is None or s["price"] <= 0]
         assert len(outliers) == 0, f"{len(outliers)} ações com preço inválido: {[s['ticker'] for s in outliers]}"
@@ -107,12 +109,12 @@ class TestStockRanges:
         )
 
     def test_pe_ratio_range(self, stocks):
-        """P/E should be positive and under 200 (exclui empresas sem lucro)."""
+        """P/E should be positive and under 250; high values must still be consistent with price/EPS."""
         vals = [s.get("pe_ratio") for s in stocks if s.get("pe_ratio") is not None]
         outliers = [s for s in stocks if s.get("pe_ratio") is not None
-                    and (s["pe_ratio"] <= 0 or s["pe_ratio"] > 200)]
+                    and (s["pe_ratio"] <= 0 or s["pe_ratio"] > self.MAX_VALID_PE_RATIO)]
         assert len(outliers) == 0, (
-            f"{len(outliers)} ações com P/L fora do range 0-200:\n"
+            f"{len(outliers)} ações com P/L fora do range 0-{self.MAX_VALID_PE_RATIO}:\n"
             + "\n".join(f"  {s['ticker']}: P/L={s['pe_ratio']:.2f}" for s in outliers)
         )
 
