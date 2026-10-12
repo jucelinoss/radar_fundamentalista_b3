@@ -76,6 +76,17 @@ def _build_reverse_mappings(mappings: dict[str, Any]) -> dict[str, str]:
     return result
 
 
+def _exclude_delisted_assets(assets: list[dict[str, Any]], mappings: dict[str, Any]) -> list[dict[str, Any]]:
+    """Hide assets explicitly marked as delisted, including rows left in SQLite."""
+    delisted = {
+        ticker for ticker, target in mappings.items()
+        if not ticker.startswith("_") and target is None
+    }
+    if not delisted:
+        return assets
+    return [asset for asset in assets if asset.get("ticker") not in delisted]
+
+
 def _clean_ticker_display(stocks: list[dict[str, Any]], fiis: list[dict[str, Any]],
                           fiagros: list[dict[str, Any]], index_membership: dict[str, str],
                           stock_indices: dict[str, list[str]]) -> None:
@@ -413,9 +424,9 @@ def generate_dashboard() -> None:
     mappings: dict[str, Any] = load_ticker_mappings()
     mappings_clean: dict[str, str] = _build_reverse_mappings(mappings)
 
-    stocks: list[dict[str, Any]] = database.get_all_stocks()
-    fiis: list[dict[str, Any]] = database.get_all_fiis()
-    fiagros: list[dict[str, Any]] = database.get_all_fiagros()
+    stocks: list[dict[str, Any]] = _exclude_delisted_assets(database.get_all_stocks(), mappings)
+    fiis: list[dict[str, Any]] = _exclude_delisted_assets(database.get_all_fiis(), mappings)
+    fiagros: list[dict[str, Any]] = _exclude_delisted_assets(database.get_all_fiagros(), mappings)
     logger.info(f"  Loaded {len(stocks)} stocks, {len(fiis)} FIIs, {len(fiagros)} FIAGROs")
 
     _clean_ticker_display(stocks, fiis, fiagros, mappings_clean, STOCK_INDICES)
