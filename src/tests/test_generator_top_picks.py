@@ -19,9 +19,19 @@ if SRC_DIR not in sys.path:
 from generator import (
     _build_tesouro_history_meta,
     _compute_top_picks,
+    _exclude_delisted_assets,
     _merge_tesouro_history,
     _summarize,
 )
+
+
+def test_generator_excludes_delisted_rows_even_if_they_remain_in_database():
+    assets = [
+        {"ticker": "SHOP11.SA", "name": "Multi Shoppings"},
+        {"ticker": "HGBS11.SA", "name": "Hedge Brasil Shopping"},
+    ]
+
+    assert _exclude_delisted_assets(assets, {"SHOP11.SA": None}) == [assets[1]]
 
 
 class TestMergeTesouroHistory:
