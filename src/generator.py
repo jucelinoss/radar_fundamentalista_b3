@@ -459,6 +459,13 @@ def generate_dashboard() -> None:
         try:
             logger.info("  [v3] Carregando macro_state...")
             ms = macro_fetcher.fetch_macro_state()
+            cvm_source_dates = {}
+            for label, filename in (("cvm_fii", "fii_vpa.json"), ("cvm_fiagro", "fiagro_vpa.json")):
+                cache_path = os.path.join(PROJECT_ROOT, "data", filename)
+                if os.path.exists(cache_path):
+                    cvm_source_dates[label] = datetime.fromtimestamp(
+                        os.path.getmtime(cache_path), timezone.utc
+                    ).date().isoformat()
 
             # Monta payload macro compacto (sem lista completa de bonds — fica no TD abaixo)
             macro_state_payload = {
@@ -473,12 +480,16 @@ def generate_dashboard() -> None:
                 "focus_ipca_weekly": ms.get("FOCUS_IPCA_WEEKLY_OBSERVATIONS", []),
                 "ettj_curve": ms.get("ETTJ_CURVE", {}),
                 "fetched_at": ms.get("fetched_at"),
+                "focus_data_date": ms.get("FOCUS_DATA_DATE"),
+                "source_dates": {**ms.get("DATA_SOURCE_DATES", {}), **cvm_source_dates},
                 "SELIC_HISTORY": ms.get("SELIC_HISTORY", []),
                 "IPCA_HISTORY": ms.get("IPCA_HISTORY", []),
                 "IPCA_YTD_HISTORY": ms.get("IPCA_YTD_HISTORY", []),
                 "CAMBIO_HISTORY": ms.get("CAMBIO_HISTORY", []),
                 "data_sources": {
                     "focus": ms.get("FOCUS_DATA_SOURCE", "unavailable"),
+                    "focus_data_date": ms.get("FOCUS_DATA_DATE"),
+                    "focus_indicator_dates": ms.get("FOCUS_INDICATOR_DATES", {}),
                     "tesouro_direto": (
                         ms.get("TESOURO_DIRETO_BONDS", [{}])[0].get("data_source", "unavailable")
                         if ms.get("TESOURO_DIRETO_BONDS") else "unavailable"

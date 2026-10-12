@@ -83,7 +83,7 @@ TESOURO_CSV_RETRY_BACKOFF_SECONDS = 1
 # O CSV do Tesouro Transparente é uma série histórica e ainda contém IGP-M+,
 # linha descontinuada que não integra mais o catálogo de compra do Tesouro Direto.
 DISCONTINUED_TESOURO_TYPES = {"IGP-M+"}
-MACRO_STATE_SCHEMA_VERSION = 13
+MACRO_STATE_SCHEMA_VERSION = 14
 TESOURO_QUOTE_METHOD = "tesouro-rate-v2"
 _REQUIRED_HISTORY_KEYS = ("SELIC_HISTORY", "IPCA_HISTORY", "CAMBIO_HISTORY")
 
@@ -529,6 +529,8 @@ def fetch_focus() -> dict[str, Any]:
     """
     result: dict[str, Any] = {v: [] for v in _FOCUS_INDICATORS.values()}
     result["FOCUS_DATA_SOURCE"] = "unavailable"
+    result["FOCUS_DATA_DATE"] = None
+    result["FOCUS_INDICATOR_DATES"] = {}
     current_year = datetime.now().year
     years = [current_year, current_year + 1, current_year + 2, current_year + 3]
 
@@ -560,7 +562,7 @@ def fetch_focus() -> dict[str, Any]:
             items = data.get("value", [])
             sorted_items = sorted(items, key=lambda x: x.get("Data", ""), reverse=True)
             if sorted_items:
-                result["FOCUS_DATA_SOURCE"] = "bcb_expectativas_odata"
+                result["FOCUS_INDICATOR_DATES"][key] = sorted_items[0].get("Data")
             for item in sorted_items:
                 try:
                     yr = int(item["DataReferencia"])
@@ -579,6 +581,20 @@ def fetch_focus() -> dict[str, Any]:
 
         result[key] = [yearly[y] for y in years]
         logger.info(f"[macro_fetcher] Focus {indicator_pt}: {result[key]}")
+
+    indicator_dates = list(result["FOCUS_INDICATOR_DATES"].values())
+    focus_dates_aligned = (
+        len(indicator_dates) == len(_FOCUS_INDICATORS)
+        and len({str(date)[:10] for date in indicator_dates if date}) == 1
+    )
+    focus_complete = all(
+        len(result.get(key, [])) == len(years)
+        and all(value is not None for value in result[key])
+        for key in _FOCUS_INDICATORS.values()
+    ) and focus_dates_aligned
+    if focus_complete:
+        result["FOCUS_DATA_SOURCE"] = "bcb_expectativas_odata"
+        result["FOCUS_DATA_DATE"] = str(indicator_dates[0])[:10]
 
     return result
 
@@ -1323,11 +1339,21 @@ def fetch_macro_state(force: bool = False) -> dict[str, Any]:
     # 1. Selic (efetiva Over) + Selic Meta (COPOM)
     current_selic = fetch_selic()
     selic_meta = fetch_selic_meta()
+    fresh_selic = current_selic is not None and current_selic >= 0.01
+    fresh_selic_meta = selic_meta is not None and selic_meta >= 0.01
     logger.info(f"[macro_fetcher] Selic atual: {current_selic}, Meta COPOM: {selic_meta}")
 
     # 2. Focus
     focus = fetch_focus()
 
+    focus_complete = (
+        focus.get("FOCUS_DATA_SOURCE") == "bcb_expectativas_odata"
+        and all(
+            len(focus.get(key, [])) == 4
+            and all(value is not None for value in focus[key])
+            for key in _FOCUS_INDICATORS.values()
+        )
+    )
     # Derivados úteis
     focus_selic_list = focus.get("FOCUS_SELIC", [])
     focus_selic_next = focus_selic_list[1] if len(focus_selic_list) > 1 else None
@@ -1345,6 +1371,7 @@ def fetch_macro_state(force: bool = False) -> dict[str, Any]:
             bond["buy_yield"] = 0.0
             bond["yield_kind"] = "selic_spread"
 
+    fresh_tesouro = bool(tesouro_bonds) and any(not bond.get("is_demo") for bond in tesouro_bonds)
     # Uma indisponibilidade transitória não deve apagar a última série oficial.
     # Mantém os títulos reais do cache anterior até que a fonte responda novamente.
     old_cache = _load_cache_ignore_stale()
@@ -1396,6 +1423,34 @@ def fetch_macro_state(force: bool = False) -> dict[str, Any]:
         f"Câmbio {len(cambio_history)} pts (SGS 1)"
     )
 
+    fresh_history = bool(selic_history and ipca_history and cambio_history)
+    if not (fresh_selic and fresh_selic_meta and focus_complete and fresh_history and fresh_tesouro):
+        failed = []
+        if not fresh_selic:
+            failed.append("Selic Over (BCB/SGS)")
+        if not fresh_selic_meta:
+            failed.append("Selic Meta (BCB/SGS)")
+        if not focus_complete:
+            missing_focus = [
+                indicator for indicator, key in _FOCUS_INDICATORS.items()
+                if len(focus.get(key, [])) != 4 or any(value is None for value in focus.get(key, []))
+            ]
+            if not missing_focus:
+                missing_focus.append("datas de referência desalinhadas")
+            failed.append("Boletim Focus (BCB): " + ", ".join(missing_focus))
+        if not selic_history:
+            failed.append("histórico Selic Meta (BCB/SGS)")
+        if not ipca_history:
+            failed.append("IPCA (IBGE/SIDRA)")
+        if not cambio_history:
+            failed.append("câmbio (BCB/PTAX)")
+        if not fresh_tesouro:
+            failed.append("Tesouro Direto (cotação oficial)")
+        raise RuntimeError(
+            "Fontes macro incompletas; mantendo a última foto publicada. "
+            "Indisponíveis: " + ", ".join(failed)
+        )
+
     # Fallback: se API falhou, usa último cache válido (nunca dados sintéticos)
     if not selic_history or not ipca_history or not cambio_history:
         if old_cache:
@@ -1426,6 +1481,15 @@ def fetch_macro_state(force: bool = False) -> dict[str, Any]:
         "FOCUS_IPCA_WEEKLY": focus.get("FOCUS_IPCA_WEEKLY", []),
         "FOCUS_IPCA_WEEKLY_OBSERVATIONS": focus.get("FOCUS_IPCA_WEEKLY_OBSERVATIONS", []),
         "FOCUS_DATA_SOURCE": focus.get("FOCUS_DATA_SOURCE", "unavailable"),
+        "FOCUS_DATA_DATE": focus.get("FOCUS_DATA_DATE"),
+        "FOCUS_INDICATOR_DATES": focus.get("FOCUS_INDICATOR_DATES", {}),
+        "DATA_SOURCE_DATES": {
+            "focus": focus.get("FOCUS_DATA_DATE"),
+            "selic": selic_history[-1].get("date") if selic_history else None,
+            "ipca": ipca_history[-1].get("date") if ipca_history else None,
+            "cambio": cambio_history[-1].get("date") if cambio_history else None,
+            "tesouro_direto": next((bond.get("market_date") for bond in tesouro_bonds if bond.get("market_date")), None),
+        },
         "ETTJ_CURVE": ettj,
         "TESOURO_DIRETO_BONDS": tesouro_bonds,
         "SELIC_HISTORY": selic_history,

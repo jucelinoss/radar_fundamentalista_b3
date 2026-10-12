@@ -55,6 +55,10 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self) -> None:
         path: str = self.path.split("?", 1)[0]
 
+        if path == "/":
+            self.path = "/index-v2.html"
+            path = "/index-v2.html"
+
         # Browser default favicon probe → project SVG icon
         if path in ("/favicon.ico", "/favicon.ico/"):
             abspath: str = os.path.join(PROJECT_ROOT, "icons", "icon.svg")
@@ -118,7 +122,7 @@ def run_server(port: int = 8000) -> None:
 
     with QuietThreadingTCPServer(("", port), Handler) as httpd:
         logger.info(f"  🌐 http://localhost:{port}")
-        logger.info(f"  📊 http://localhost:{port}/index.html")
+        logger.info(f"  📊 http://localhost:{port}/index-v2.html")
         logger.info("Press Ctrl+C to stop.")
         try:
             httpd.serve_forever()
