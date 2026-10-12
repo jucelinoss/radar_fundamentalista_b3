@@ -181,6 +181,7 @@
                 </article>
             </div>
             <p id="home-timestamp" class="macro-sub"></p>
+            <p id="home-source-dates" class="macro-sub"></p>
 
             <div class="home-picks-grid">
                 <section id="home-top-global-card" class="home-pick-card featured-global">
@@ -437,7 +438,7 @@
                     <button type="button" class="calc-mode-btn active" id="btn-calc-mode-goal" onclick="switchCalcMode('goal')">Meta de Renda</button>
                     <button type="button" class="calc-mode-btn" id="btn-calc-mode-snowball" onclick="switchCalcMode('snowball')">Acumulação & Juros Compostos</button>
                     <button type="button" class="calc-mode-btn" id="btn-calc-mode-compare-rf" onclick="switchCalcMode('compare_rf')">Comparativo de Renda Fixa</button>
-                    <button type="button" class="calc-mode-btn" id="btn-calc-mode-previdencia" onclick="switchCalcMode('previdencia')">Previdência Privada (PGBL x VGBL) <span class="info-tooltip" data-tooltip="PGBL deduz até 12% da renda bruta no IRPF completo; VGBL tributa apenas os lucros no resgate.">ⓘ</span></button>
+                    <button type="button" class="calc-mode-btn" id="btn-calc-mode-previdencia" onclick="switchCalcMode('previdencia')">Previdência Privada (PGBL x VGBL) <span class="info-tooltip" data-tooltip="No modelo completo, contribuições ao PGBL podem ser deduzidas até 12% dos rendimentos tributáveis, observada a contribuição à previdência oficial; VGBL tributa apenas os rendimentos no resgate.">ⓘ</span></button>
                     <button type="button" class="calc-mode-btn" id="btn-calc-mode-fire" onclick="switchCalcMode('fire')">Retirada Sustentável (FIRE) <span class="info-tooltip" data-tooltip="FIRE (Financial Independence, Retire Early): Cálculo da taxa segura anual de saques para viver de renda perpétua.">ⓘ</span></button>
                     <button type="button" class="calc-mode-btn" id="btn-calc-mode-rules" onclick="switchCalcMode('rules')">Modelos de Valuation & Alocação</button>
                 </div>
@@ -484,7 +485,7 @@
                         <select id="calc-goal-tax" onchange="calculateIncomeGoal()">
                             <option value="auto">Automático (Conforme ativo selecionado)</option>
                             <option value="exempt">Isento de IR (FIIs / Dividendos)</option>
-                            <option value="stock_jcp">Ações com JCP (~25% JCP a 15% IR = ~3,75% efetivo)</option>
+                            <option value="stock_jcp">Ações com JCP (estimativa: 25% em JCP a 17,5% = 4,38% efetivo)</option>
                             <option value="fixed_15">Renda Fixa / Tesouro > 2 anos (15,0% IR)</option>
                             <option value="fixed_22_5">Renda Fixa Curto Prazo &lt; 180d (22,5% IR)</option>
                         </select>
@@ -578,7 +579,7 @@
                         <select id="calc-snow-tax" onchange="calculateSnowball()">
                             <option value="auto">Automático (Conforme ativo selecionado)</option>
                             <option value="exempt">Isento de IR (FIIs / Dividendos)</option>
-                            <option value="stock_jcp">Ações com JCP (~25% JCP a 15% IR = ~3,75% efetivo)</option>
+                            <option value="stock_jcp">Ações com JCP (estimativa: 25% em JCP a 17,5% = 4,38% efetivo)</option>
                             <option value="fixed_15">Renda Fixa / Tesouro > 2 anos (15,0% IR)</option>
                             <option value="fixed_22_5">Renda Fixa Curto Prazo &lt; 180d (22,5% IR)</option>
                         </select>
@@ -815,7 +816,7 @@
                                 <span id="calc-prev-diag-regime-badge" class="badge">Regime: Regressivo</span>
                             </div>
                             <div id="calc-prev-diag-desc" style="font-size:0.80rem; color:var(--text-secondary); line-height:1.45;">
-                                Perfil ideal para <strong>PGBL com Regime Regressivo</strong>: você abate até 12% da renda bruta hoje (reinvestindo a restituição) e usufrui da alíquota definitiva de 10% no resgate de longo prazo.
+                                Perfil ideal para <strong>PGBL com Regime Regressivo</strong>: você pode deduzir contribuições até o limite legal de 12% (observadas as regras da declaração completa e da previdência oficial) e usufruir da alíquota de 10% no resgate de longo prazo.
                             </div>
                         </div>
                         <button type="button" class="btn btn-secondary" onclick="applyDiagnosticToSimulation()" style="font-size:0.80rem; padding:0.45rem 0.85rem; white-space:nowrap;">
@@ -827,8 +828,9 @@
                 <div class="calc-card">
                     <h3 style="font-size: 0.95rem; font-weight: 700;">Parâmetros Fiscais & Aporte</h3>
                     <div class="calc-input-group">
-                        <label for="calc-prev-income">Renda Bruta Anual Tributável (R$)</label>
+                        <label for="calc-prev-income">Rendimentos tributáveis anuais — ano-calendário 2026 (R$)</label>
                         <input type="number" id="calc-prev-income" value="120000" min="10000" step="5000" oninput="calculatePrevidencia()">
+                        <small class="calc-hint">Para INSS, estima 12 salários mensais iguais pela tabela CLT de 2026, limitado ao teto; não inclui 13º, dependentes ou outras deduções.</small>
                         <div class="calc-presets-row">
                             <button type="button" class="calc-preset-btn" onclick="setPrevIncomePreset(60000)">R$ 60k/ano</button>
                             <button type="button" class="calc-preset-btn active" onclick="setPrevIncomePreset(120000)">R$ 120k/ano</button>
@@ -862,14 +864,11 @@
                         </select>
                     </div>
                     <div class="calc-input-group hidden" id="calc-prev-prog-tax-group">
-                        <label for="calc-prev-prog-tax">Alíquota Efetiva de IRPF Estimada no Resgate</label>
-                        <select id="calc-prev-prog-tax" onchange="calculatePrevidencia()">
-                            <option value="0.00">0,0% — Isento (Renda até R$ 2.259/mês)</option>
-                            <option value="0.075">7,5% — Faixa 1 IRPF</option>
-                            <option value="0.150" selected>15,0% — Faixa 2 / Retenção Padrão</option>
-                            <option value="0.225">22,5% — Faixa 3 IRPF</option>
-                            <option value="0.275">27,5% — Teto Máximo IRPF</option>
-                        </select>
+                        <label for="calc-prev-prog-tax">Benefício bruto mensal estimado do PGBL no resgate (R$)</label>
+                        <input type="number" id="calc-prev-prog-tax" value="5000" min="0" step="250" oninput="calculatePrevidencia()">
+                        <label for="calc-prev-prog-other-income" style="margin-top:0.5rem;">Outras rendas tributáveis mensais no resgate (R$)</label>
+                        <input type="number" id="calc-prev-prog-other-income" value="0" min="0" step="500" oninput="calculatePrevidencia()">
+                        <small class="calc-hint">Estima 12 parcelas mensais iguais pela tabela anual de 2026, considerando as outras rendas e o desconto simplificado. Até R$ 5.000 mensais (R$ 60.000 anuais), o IR final pode ser zero; a retenção de 15% no resgate é antecipação compensável. A alíquota efetiva estimada é aplicada ao saldo projetado para comparar os planos.</small>
                     </div>
                     <div class="calc-input-group">
                         <label for="calc-prev-return">Taxa de Retorno Esperada (% a.a.)</label>
@@ -910,7 +909,7 @@
                         </div>
                     </div>
 
-                    <h3 style="font-size: 0.95rem; font-weight: 700; margin-top:0.5rem;">Simulação de Resgate Líquido</h3>
+                    <h3 style="font-size: 0.95rem; font-weight: 700; margin-top:0.5rem;">Saldo Líquido Projetado (IR estimado pelo benefício mensal)</h3>
                     <div style="display:flex; flex-direction:column; gap:0.5rem;">
                         <!-- 1. VGBL -->
                         <div class="calc-compare-card" id="calc-prev-card-vgbl">
@@ -980,7 +979,7 @@
                         <div class="calc-prev-guide-card">
                             <h4>Quando escolher PGBL vs VGBL</h4>
                             <ul class="calc-prev-guide-list">
-                                <li><strong>Escolha o PGBL se:</strong> Faz a declaração completa do IRPF, contribui para o INSS/RPPS e quer abater até 12% da sua renda bruta anual tributável hoje para reinvestir a restituição.</li>
+                                <li><strong>Escolha o PGBL se:</strong> Faz a declaração completa do IRPF, contribui para o INSS/RPPS e quer deduzir contribuições até 12% dos rendimentos tributáveis sujeitos ao ajuste anual para reinvestir a economia fiscal.</li>
                                 <li><strong>Escolha o VGBL se:</strong> Faz a declaração simplificada, é isento, é MEI/PJ com renda via dividendos isentos, ou já atingiu o teto de 12% em PGBL e deseja alocar valores adicionais.</li>
                                 <li><strong>Base de Cálculo no Resgate:</strong> No PGBL, o IR incide sobre o total resgatado (capital + juros). No VGBL, o IR incide exclusivamente sobre o rendimento (lucro).</li>
                                 <li><strong>Planejamento Sucessório:</strong> Ambos os planos não entram no inventário tradicional e possuem repasse ágil aos beneficiários indicados.</li>
@@ -992,7 +991,7 @@
                             <h4>Tabela Regressiva vs Tabela Progressiva</h4>
                             <ul class="calc-prev-guide-list">
                                 <li><strong>Tabela Regressiva (Definitiva):</strong> Alíquota decresce com o tempo (35% até 2 anos até atingir 10% após 10 anos). Ideal para foco de longo prazo e aposentadoria, garantindo a menor alíquota de IR do país.</li>
-                                <li><strong>Tabela Progressiva (Compensável):</strong> Retenção de 15% na fonte no resgate e ajuste na declaração anual do IRPF. Ideal se o resgate for de curto prazo ou se a renda tributável total na aposentadoria for baixa (podendo ser isenta ou 7,5%).</li>
+                                <li><strong>Tabela Progressiva (Compensável):</strong> O resgate é tributável e há retenção padrão de 15% como antecipação, compensada no ajuste anual. Em 2026, a redução mensal zera o imposto sobre rendimentos tributáveis até R$ 5.000; no ajuste anual de 2026 (exercício 2027), a redução pode zerar o imposto para rendimentos tributáveis até R$ 60.000. A simulação da calculadora usa o ajuste anual e desconto simplificado.</li>
                                 <li><strong>Lei nº 14.803/2024 (Regra Vigente):</strong> O investidor não precisa mais definir o regime no momento da contratação. A opção por tributação regressiva ou progressiva pode ser feita no momento do primeiro resgate ou concessão do benefício.</li>
                             </ul>
                         </div>
@@ -1616,7 +1615,7 @@
                             <br>• <strong>ON (Ordinárias - final 3):</strong> Garantem direito a voto nas assembleias e <em>Tag Along</em> legal.
                             <br>• <strong>PN (Preferenciais - final 4):</strong> Prioridade no recebimento de dividendos em dinheiro.
                         </div>
-                        <p><strong>Formas de Ganho:</strong> Valorização da cotação no mercado + Proventos em dinheiro (Dividendos isentos de IR e Juros sobre Capital Próprio - JCP tributados em 15% na fonte).</p>
+                        <p><strong>Formas de Ganho:</strong> Valorização da cotação no mercado + proventos em dinheiro. JCP tem retenção de 17,5% na fonte desde 2026; dividendos podem ter retenção em situações previstas na legislação.</p>
                         <div class="learn-pro-tip">
                             <span>💡</span>
                             <div><strong>Dica do Especialista:</strong> Invista com foco em empresas perenes, com lucros consistentes, vantagens competitivas (moats) e endividamento sob controle.</div>
@@ -1953,7 +1952,7 @@
                         <div class="learn-concept-highlight">
                             <strong>Regras de Ouro:</strong>
                             <br>• <strong>Quem deve fazer:</strong> Quem entrega a <strong>Declaração Completa do IRPF</strong> e contribui para o INSS ou Regime Próprio (RPPS).
-                            <br>• <strong>Limite Legal:</strong> Abate até <strong>12% da renda bruta anual</strong> da base de cálculo do IR.
+                            <br>• <strong>Limite Legal:</strong> Deduz contribuições até <strong>12% dos rendimentos tributáveis</strong> sujeitos ao ajuste anual, atendidas as condições legais.
                             <br>• <strong>Tributação no Resgate:</strong> O imposto incide sobre o <strong>montante total resgatado</strong> (capital + rendimento).
                         </div>
                         <div class="learn-pro-tip">
@@ -1998,7 +1997,7 @@
                             <br>• 6 a 8 anos: 20% | 8 a 10 anos: 15% | <strong>Acima de 10 anos: 10%</strong>
                             <br><br>
                             <strong>2. Tabela Progressiva (Faixa de Renda):</strong>
-                            <br>• Retenção de 15% na fonte no resgate, com ajuste final na Declaração Anual conforme sua renda total (isento até 27,5%).
+                            <br>• Retenção padrão de 15% na fonte no resgate, como antecipação, com ajuste pela tabela progressiva anual vigente conforme a renda tributável. Em 2026, a redução mensal pode zerar o imposto até R$ 5.000 e a redução anual até R$ 60.000, observadas as regras de cálculo.
                         </div>
                         <div class="learn-pro-tip">
                             <span>💡</span>
@@ -2019,8 +2018,10 @@
                             <strong>Resumo de Alíquotas:</strong>
                             <br>• <strong>Ações (Swing Trade):</strong> 15% sobre o lucro. Vendas totais de até <strong>R$ 20.000/mês são 100% isentas</strong> de IR sobre o ganho.
                             <br>• <strong>Ações (Day Trade):</strong> 20% sobre o lucro (sem isenção de R$ 20k).
+                            <br>• <strong>Juros sobre Capital Próprio (JCP):</strong> retenção de 17,5% na fonte a partir de 2026.
+                            <br>• <strong>Dividendos:</strong> pagamentos superiores a R$ 50.000 no mês por uma mesma empresa podem ter retenção de 10%. A partir do ano-calendário 2026, rendimentos totais anuais acima de R$ 600.000 também podem sujeitar a pessoa física ao IR mínimo. Estas regras não são calculadas pelas simulações simplificadas desta página.
                             <br>• <strong>FIIs e FIAGROs:</strong> Proventos isentos; ganho de capital na venda de cotas tributado em <strong>20% via DARF</strong>.
-                            <br>• <strong>Renda Fixa Tradicional (CDB/Tesouro):</strong> Tabela regressiva de 22,5% (até 6 meses) até 15% (acima de 2 anos).
+                            <br>• <strong>Renda Fixa Tradicional (CDB/Tesouro):</strong> Tabela regressiva: 22,5% até 180 dias; 20% de 181 a 360 dias; 17,5% de 361 a 720 dias; 15% acima de 720 dias.
                             <br>• <strong>LCI, LCA, CRI e CRA:</strong> 100% isentos de IR para pessoa física.
                         </div>
                     </div>
