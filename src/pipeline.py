@@ -75,25 +75,39 @@ def _reset_status_file() -> None:
 # ---------------------------------------------------------------------------
 def run_ingestion(max_age_hours: int = 6, force: bool = False) -> dict[str, Any]:
     """Execute the data ingestion pipeline."""
+    cvm_sources_ok = True
     # 1. Update VPA caches from CVM (FIAGROs + FIIs)
     try:
         import cvm_updater
-        cvm_updater.update_fiagro_vpas(force=force)
+        fiagro_vpas = cvm_updater.update_fiagro_vpas(force=force)
+        cvm_sources_ok = cvm_sources_ok and _cvm_cache_usable(cvm_updater.FIAGRO_CACHE, fiagro_vpas)
     except Exception as e:
-        logger.warning(f"Failed to update CVM FIAGRO VPA cache: {e}. Ingestion will proceed using existing cache.")
+        cvm_sources_ok = False
+        logger.warning(f"Failed to update CVM FIAGRO VPA cache: {e}. This refresh will not be published.")
     try:
         import cvm_updater
-        cvm_updater.update_fii_vpas(force=force)
+        fii_vpas = cvm_updater.update_fii_vpas(force=force)
+        cvm_sources_ok = cvm_sources_ok and _cvm_cache_usable(cvm_updater.FII_CACHE, fii_vpas)
     except Exception as e:
-        logger.warning(f"Failed to update CVM FII VPA cache: {e}. Ingestion will proceed using existing cache.")
+        cvm_sources_ok = False
+        logger.warning(f"Failed to update CVM FII VPA cache: {e}. This refresh will not be published.")
 
     import ingestion
     logger.info("=" * 60)
     logger.info("  STEP 1/2: DATA INGESTION")
     logger.info("=" * 60)
     result: dict[str, Any] = ingestion.run_full_ingestion(max_age_hours=max_age_hours, force=force)
+    result["cvm_sources_ok"] = cvm_sources_ok
     logger.info(f"Ingestion result: {result}")
     return result
+
+
+def _cvm_cache_usable(path: str, values: dict[str, Any]) -> bool:
+    """CVM cache is acceptable only when populated and refreshed within seven days."""
+    try:
+        return bool(values) and os.path.exists(path) and (time.time() - os.path.getmtime(path)) <= 7 * 24 * 3600
+    except OSError:
+        return False
 
 
 def _update_vpa_from_cache() -> None:
@@ -184,6 +198,7 @@ def run_full_pipeline(max_age_hours: int = 6, force: bool = False) -> bool:
         logger.info("=" * 60)
         logger.info("  STEP 1.5/2: MACRO DATA FETCH (v3)")
         logger.info("=" * 60)
+        macro_ok = True
         try:
             import macro_fetcher
             ms = macro_fetcher.fetch_macro_state(force=force)
@@ -191,12 +206,18 @@ def run_full_pipeline(max_age_hours: int = 6, force: bool = False) -> bool:
             bonds_count = len(ms.get("TESOURO_DIRETO_BONDS", []))
             logger.info(f"  Macro OK — Selic: {selic:.2%}, TD bonds: {bonds_count}")
         except Exception as e:
+            macro_ok = False
             logger.warning(f"  Macro fetch failed (continuando sem dados v3): {e}")
 
-        if result["ok"] > 0 or result["fail"] == 0:
+        if result["fail"] == 0 and result.get("cvm_sources_ok", True) and macro_ok and (result["ok"] > 0 or result["fail"] == 0):
             run_generator()
         else:
-            logger.warning("No successful ingestions; skipping dashboard generation")
+            logger.error(
+                "Incomplete refresh (asset failures=%s, macro_ok=%s); "
+                "skipping dashboard generation to preserve the last complete snapshot",
+                result.get("fail", 0), macro_ok and result.get("cvm_sources_ok", True),
+            )
+            return False
     except Exception as e:
         logger.error(f"Pipeline failed: {e}", exc_info=True)
         return False

@@ -1,7 +1,7 @@
 """Esteira de Testes Automatizados para a Calculadora de Renda Fixa e Previdencia Privada (PGBL x VGBL).
 
 Valida:
-1. Precisao matematica da deducao do IRPF anual (teto de 12% da renda bruta).
+1. Precisao matematica da deducao do IRPF anual (teto de 12% dos rendimentos tributaveis).
 2. Precisao matematica da projecao VGBL x PGBL simples x PGBL com Reinvestimento fiscal (Caso exato da planilha).
 3. Precisao do calculo comparativo de Renda Fixa (Poupanca vs CDB vs LCI/LCA vs Tesouro com tabela regressiva).
 4. Integridade estrutural do DOM e funcoes JS no index-v2.html e dashboard.js.
@@ -22,17 +22,30 @@ CSS_PATH = REPO_ROOT / "assets" / "dashboard.css"
 # ===================================================================
 
 def calc_irpf_due(income: float):
-    """Calcula o imposto de renda anual devido pela tabela progressiva oficial."""
-    if income <= 22847.76:
-        return {"rate": 0.0, "deduction": 0.0, "tax": 0.0}
+    """Calcula o IR anual de 2026: tabela progressiva mais redução da Lei 15.270/2025."""
+    if income <= 29145.60:
+        rate, deduction, tax = 0.0, 0.0, 0.0
     elif income <= 33919.80:
-        return {"rate": 0.075, "deduction": 1713.58, "tax": max(0.0, income * 0.075 - 1713.58)}
+        rate, deduction = 0.075, 2185.92
+        tax = max(0.0, income * rate - deduction)
     elif income <= 45012.60:
-        return {"rate": 0.15, "deduction": 4257.57, "tax": max(0.0, income * 0.15 - 4257.57)}
+        rate, deduction = 0.15, 4729.91
+        tax = max(0.0, income * rate - deduction)
     elif income <= 55976.16:
-        return {"rate": 0.225, "deduction": 7633.51, "tax": max(0.0, income * 0.225 - 7633.51)}
+        rate, deduction = 0.225, 8105.85
+        tax = max(0.0, income * rate - deduction)
     else:
-        return {"rate": 0.275, "deduction": 10432.32, "tax": max(0.0, income * 0.275 - 10432.32)}
+        rate, deduction = 0.275, 10904.66
+        tax = max(0.0, income * rate - deduction)
+
+    annual_reduction = 2694.15 if income <= 60000 else (
+        max(0.0, 8429.73 - 0.095575 * income) if income <= 88200 else 0.0
+    )
+    return {
+        "rate": rate,
+        "deduction": deduction,
+        "tax": max(0.0, tax - annual_reduction),
+    }
 
 
 def calc_future_value(pmt: float, annual_rate: float, months: int):
@@ -146,12 +159,12 @@ class TestPrevidenciaMathPrecision:
         """Valida os intervalos da tabela do IRPF."""
         # Isento
         assert calc_irpf_due(20000)["tax"] == 0.0
-        # Faixa 7.5%
+        # A redução anual de 2026 zera o imposto para esta renda.
         f2 = calc_irpf_due(30000)
-        assert round(f2["tax"], 2) == round(30000 * 0.075 - 1713.58, 2)
+        assert f2["tax"] == 0.0
         # Faixa 27.5%
         f5 = calc_irpf_due(100000)
-        assert round(f5["tax"], 2) == round(100000 * 0.275 - 10432.32, 2)
+        assert round(f5["tax"], 2) == round(100000 * 0.275 - 10904.66, 2)
 
 
 class TestFixedIncomeComparisonPrecision:
@@ -211,6 +224,7 @@ class TestPrevidenciaAndRfDOMContract:
             "calc-prev-years",
             "calc-prev-regime",
             "calc-prev-prog-tax",
+            "calc-prev-prog-other-income",
             "calc-prev-return",
             "calc-prev-reinvest-tax",
             "calc-prev-annual-invest",

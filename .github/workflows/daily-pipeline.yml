@@ -144,7 +144,7 @@ jobs:
       - name: Check if deployable files changed
         id: check-changes
         run: |
-          # Always deploy generated data.json and index.html
+          # Publish the canonical V2 page at the Pages root and keep its direct URL.
           echo "Data generated — deploying to GitHub Pages"
           echo "changed=true" >> "$GITHUB_OUTPUT"
 
@@ -182,9 +182,8 @@ jobs:
             --exclude 'data/' \
             ./ _site/
 
-          # A versão moderna unificada é a página principal padrão
-          cp index.html _site/index.html
-          cp index.html _site/index-v2.html
+          cp index-v2.html _site/index.html
+          cp index-v2.html _site/index-v2.html
           mkdir -p _site/data
           cp data/tesouro_history.json _site/data/tesouro_history.json
           cp data/export_*.csv data/export_*.json _site/

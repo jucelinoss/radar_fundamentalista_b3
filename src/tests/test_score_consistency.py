@@ -92,7 +92,7 @@ def test_db_vs_json_consistency():
 
 def test_html_templates_consistency():
     """Verify frontend HTML files render from pre-calculated data without client-side score recalculation."""
-    templates = ["index.html", "index-v2.html"]
+    templates = ["index-v2.html"]
     recalcs = ["scoreDYStock", "scorePEStock", "scorePBStock", "scoreROEStock", "scoreGrahamStock", "scorePBFii", "scoreDYFiiV2", "scoreConsistencyV2"]
 
     for t_file in templates:

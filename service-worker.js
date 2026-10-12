@@ -1,6 +1,6 @@
 /* Radar Fundamentalista B3 — Service Worker v1.2 */
 
-const CACHE = "radar-b3-v17";
+const CACHE = "radar-b3-v18";
 const STATIC_ASSETS = [
   "/manifest.json",
   "/icons/icon.svg",
@@ -11,7 +11,7 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE).then((cache) => {
       cache.addAll(STATIC_ASSETS);
-      return cache.addAll(["index.html", "data.json"]).catch(() => {});
+      return cache.addAll(["index-v2.html", "data.json"]).catch(() => {});
     })
   );
   self.skipWaiting();
@@ -46,7 +46,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   /* Network-first for dashboard (always try fresh data) */
-  if (url.pathname.endsWith("index.html") || url.pathname.endsWith("data.json") || url.pathname.endsWith("/")) {
+  if (url.pathname.endsWith("index-v2.html") || url.pathname.endsWith("data.json") || url.pathname.endsWith("/")) {
     event.respondWith(
       fetch(request)
         .then((res) => {
