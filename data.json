@@ -13589,7 +13589,7 @@
     "Telecomunicações",
     "Utilidade Pública"
   ],
-  "timestamp": "12/10/2026 18:50:37",
+  "timestamp": "13/10/2026 04:12:10",
   "macro_state": {
     "selic": 0.127986,
     "selic_meta": 0.1375,
@@ -13652,11 +13652,11 @@
       "5y": 0.134,
       "10y": 0.1366
     },
-    "fetched_at": "2026-10-12T21:50:33.026418+00:00",
+    "fetched_at": "2026-10-13T07:12:05.353202+00:00",
     "focus_data_date": "2026-10-02",
     "source_dates": {
       "focus": "2026-10-02",
-      "selic": "2026-10-12",
+      "selic": "2026-10-13",
       "ipca": "01/09/2026",
       "cambio": "2026-10-09",
       "tesouro_direto": "2026-10-09",
@@ -13664,10 +13664,6 @@
       "cvm_fiagro": "2026-10-12"
     },
     "SELIC_HISTORY": [
-      {
-        "date": "2016-10-12",
-        "value": 0.1425
-      },
       {
         "date": "2016-10-13",
         "value": 0.1425
@@ -28275,6 +28271,10 @@
       {
         "date": "2026-10-12",
         "value": 0.1375
+      },
+      {
+        "date": "2026-10-13",
+        "value": 0.1375
       }
     ],
     "IPCA_HISTORY": [
@@ -39365,7 +39365,7 @@
       "name": "Tesouro IPCA+ com Juros Semestrais 2045",
       "type": "IPCA+",
       "maturity_date": "2045-05-15",
-      "days_to_maturity": 6790,
+      "days_to_maturity": 6789,
       "buy_yield": 0.0653,
       "sell_yield": 0.0665,
       "yield_kind": "rate",
@@ -51900,7 +51900,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "IPCA+ com cupom · mais de 7 anos",
@@ -51935,14 +51935,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.78,
           "max": 1.0,
-          "desc": "Prazo de 18.6 anos (6790 dias). Cupons semestrais reduzem a duration e amortizam a oscilação.",
+          "desc": "Prazo de 18.6 anos (6789 dias). Cupons semestrais reduzem a duration e amortizam a oscilação.",
           "tip": "Títulos com cupom pagam renda semestral, reduzindo a duration efetiva e amortecendo oscilações de preço na curva."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "6790 dias até o vencimento.",
+          "desc": "6789 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -51962,7 +51962,7 @@
       "name": "Tesouro Prefixado 2029",
       "type": "Prefixado",
       "maturity_date": "2029-01-01",
-      "days_to_maturity": 812,
+      "days_to_maturity": 811,
       "buy_yield": 0.12300000000000001,
       "sell_yield": 0.1242,
       "yield_kind": "rate",
@@ -63557,7 +63557,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "Prefixado sem cupom · até 3 anos",
@@ -63592,14 +63592,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.19,
           "max": 1.0,
-          "desc": "Duration integral de 2.2 anos (812 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 2.2 anos (811 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "812 dias até o vencimento.",
+          "desc": "811 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -63619,7 +63619,7 @@
       "name": "Tesouro Selic 2031",
       "type": "Selic",
       "maturity_date": "2031-03-01",
-      "days_to_maturity": 1601,
+      "days_to_maturity": 1600,
       "buy_yield": 0.0009,
       "sell_yield": 0.001,
       "yield_kind": "selic_spread",
@@ -67854,7 +67854,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "Selic",
@@ -67889,7 +67889,7 @@
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "1601 dias até o vencimento.",
+          "desc": "1600 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -67909,7 +67909,7 @@
       "name": "Tesouro Prefixado com Juros Semestrais 2037",
       "type": "Prefixado",
       "maturity_date": "2037-01-01",
-      "days_to_maturity": 3734,
+      "days_to_maturity": 3733,
       "buy_yield": 0.1257,
       "sell_yield": 0.12689999999999999,
       "yield_kind": "rate",
@@ -69654,7 +69654,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "Prefixado com cupom · 3–7 anos",
@@ -69689,14 +69689,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.44,
           "max": 1.0,
-          "desc": "Prazo de 10.2 anos (3734 dias). Cupons semestrais reduzem a duration e amortizam a oscilação.",
+          "desc": "Prazo de 10.2 anos (3733 dias). Cupons semestrais reduzem a duration e amortizam a oscilação.",
           "tip": "Títulos com cupom pagam renda semestral, reduzindo a duration efetiva e amortecendo oscilações de preço na curva."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "3734 dias até o vencimento.",
+          "desc": "3733 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -69716,7 +69716,7 @@
       "name": "Tesouro Prefixado 2032",
       "type": "Prefixado",
       "maturity_date": "2032-01-01",
-      "days_to_maturity": 1907,
+      "days_to_maturity": 1906,
       "buy_yield": 0.12539999999999998,
       "sell_yield": 0.1266,
       "yield_kind": "rate",
@@ -73951,7 +73951,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "Prefixado sem cupom · 3–7 anos",
@@ -73986,14 +73986,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.35,
           "max": 1.0,
-          "desc": "Duration integral de 5.2 anos (1907 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 5.2 anos (1906 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "1907 dias até o vencimento.",
+          "desc": "1906 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -74013,7 +74013,7 @@
       "name": "Tesouro IPCA+ 2040",
       "type": "IPCA+",
       "maturity_date": "2040-08-15",
-      "days_to_maturity": 5056,
+      "days_to_maturity": 5055,
       "buy_yield": 0.06509999999999999,
       "sell_yield": 0.0663,
       "yield_kind": "rate",
@@ -78248,7 +78248,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "IPCA+ sem cupom · mais de 7 anos",
@@ -78283,14 +78283,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.85,
           "max": 1.0,
-          "desc": "Duration integral de 13.9 anos (5056 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 13.8 anos (5055 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "5056 dias até o vencimento.",
+          "desc": "5055 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -78313,7 +78313,7 @@
       "buy_price": 10.757575,
       "min_investment": 1.0,
       "yield_reference": "selic",
-      "days_to_maturity": 3368,
+      "days_to_maturity": 3367,
       "buy_yield": 0.0,
       "sell_yield": null,
       "sell_price": null,
@@ -78877,15 +78877,25 @@
           "quote_method": "tesouro-rate-v2",
           "score": 6.75,
           "score_method": "tesouro-opportunity-v2"
+        },
+        {
+          "date": "2026-10-13",
+          "buy_yield": 0.0,
+          "buy_price": 10.757575,
+          "source": "tesouro_investir_endpoint",
+          "yield_kind": "selic_spread",
+          "quote_method": "tesouro-rate-v2",
+          "score": 6.75,
+          "score_method": "tesouro-opportunity-v2"
         }
       ],
-      "market_date": "2026-10-12",
+      "market_date": "2026-10-13",
       "data_source": "tesouro_investir_endpoint",
       "is_demo": false,
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "Tesouro24x7",
       "yield_kind": "selic_spread",
@@ -78921,7 +78931,7 @@
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "3368 dias até o vencimento.",
+          "desc": "3367 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -78929,9 +78939,9 @@
       "general_rank": 7,
       "group_rank": 1,
       "history_meta": {
-        "last_history_date": "2026-10-12",
+        "last_history_date": "2026-10-13",
         "last_history_source": "tesouro_investir_endpoint",
-        "current_quote_date": "2026-10-12",
+        "current_quote_date": "2026-10-13",
         "current_quote_source": "tesouro_investir_endpoint",
         "gap_days": 0,
         "freshness": "current"
@@ -78941,7 +78951,7 @@
       "name": "Tesouro IPCA+ 2050",
       "type": "IPCA+",
       "maturity_date": "2050-08-15",
-      "days_to_maturity": 8708,
+      "days_to_maturity": 8707,
       "buy_yield": 0.06480000000000001,
       "sell_yield": 0.066,
       "yield_kind": "rate",
@@ -83176,7 +83186,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "IPCA+ sem cupom · mais de 7 anos",
@@ -83211,14 +83221,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.99,
           "max": 1.0,
-          "desc": "Duration integral de 23.9 anos (8708 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 23.9 anos (8707 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "8708 dias até o vencimento.",
+          "desc": "8707 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -83238,7 +83248,7 @@
       "name": "Tesouro IPCA+ com Juros Semestrais 2060",
       "type": "IPCA+",
       "maturity_date": "2060-08-15",
-      "days_to_maturity": 12361,
+      "days_to_maturity": 12360,
       "buy_yield": 0.0647,
       "sell_yield": 0.0659,
       "yield_kind": "rate",
@@ -87473,7 +87483,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "IPCA+ com cupom · mais de 7 anos",
@@ -87508,14 +87518,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.98,
           "max": 1.0,
-          "desc": "Prazo de 33.9 anos (12361 dias). Cupons semestrais reduzem a duration e amortizam a oscilação.",
+          "desc": "Prazo de 33.9 anos (12360 dias). Cupons semestrais reduzem a duration e amortizam a oscilação.",
           "tip": "Títulos com cupom pagam renda semestral, reduzindo a duration efetiva e amortecendo oscilações de preço na curva."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "12361 dias até o vencimento.",
+          "desc": "12360 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -87535,7 +87545,7 @@
       "name": "Tesouro IPCA+ com Juros Semestrais 2037",
       "type": "IPCA+",
       "maturity_date": "2037-05-15",
-      "days_to_maturity": 3868,
+      "days_to_maturity": 3867,
       "buy_yield": 0.0666,
       "sell_yield": 0.0678,
       "yield_kind": "rate",
@@ -89280,7 +89290,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "IPCA+ com cupom · 3–7 anos",
@@ -89315,14 +89325,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.46,
           "max": 1.0,
-          "desc": "Prazo de 10.6 anos (3868 dias). Cupons semestrais reduzem a duration e amortizam a oscilação.",
+          "desc": "Prazo de 10.6 anos (3867 dias). Cupons semestrais reduzem a duration e amortizam a oscilação.",
           "tip": "Títulos com cupom pagam renda semestral, reduzindo a duration efetiva e amortecendo oscilações de preço na curva."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "3868 dias até o vencimento.",
+          "desc": "3867 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -89342,7 +89352,7 @@
       "name": "Tesouro IPCA+ 2032",
       "type": "IPCA+",
       "maturity_date": "2032-08-15",
-      "days_to_maturity": 2134,
+      "days_to_maturity": 2133,
       "buy_yield": 0.0665,
       "sell_yield": 0.0677,
       "yield_kind": "rate",
@@ -91087,7 +91097,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "IPCA+ sem cupom · 3–7 anos",
@@ -91122,14 +91132,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.39,
           "max": 1.0,
-          "desc": "Duration integral de 5.8 anos (2134 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 5.8 anos (2133 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "2134 dias até o vencimento.",
+          "desc": "2133 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -91149,7 +91159,7 @@
       "name": "Tesouro Renda+ Aposentadoria Extra 2030",
       "type": "RendA+",
       "maturity_date": "2049-12-15",
-      "days_to_maturity": 8465,
+      "days_to_maturity": 8464,
       "buy_yield": 0.06559999999999999,
       "sell_yield": 0.0668,
       "yield_kind": "rate",
@@ -100394,7 +100404,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "RendA+",
@@ -100429,14 +100439,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.99,
           "max": 1.0,
-          "desc": "Duration integral de 23.2 anos (8465 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 23.2 anos (8464 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "8465 dias até o vencimento.",
+          "desc": "8464 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -100457,7 +100467,7 @@
       "name": "Tesouro Renda+ Aposentadoria Extra 2035",
       "type": "RendA+",
       "maturity_date": "2054-12-15",
-      "days_to_maturity": 10291,
+      "days_to_maturity": 10290,
       "buy_yield": 0.06509999999999999,
       "sell_yield": 0.0663,
       "yield_kind": "rate",
@@ -109702,7 +109712,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "RendA+",
@@ -109737,14 +109747,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 1.0,
           "max": 1.0,
-          "desc": "Duration integral de 28.2 anos (10291 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 28.2 anos (10290 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "10291 dias até o vencimento.",
+          "desc": "10290 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -109765,7 +109775,7 @@
       "name": "Tesouro Renda+ Aposentadoria Extra 2040",
       "type": "RendA+",
       "maturity_date": "2059-12-15",
-      "days_to_maturity": 12117,
+      "days_to_maturity": 12116,
       "buy_yield": 0.0645,
       "sell_yield": 0.06570000000000001,
       "yield_kind": "rate",
@@ -119010,7 +119020,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "RendA+",
@@ -119045,14 +119055,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 1.0,
           "max": 1.0,
-          "desc": "Duration integral de 33.2 anos (12117 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 33.2 anos (12116 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "12117 dias até o vencimento.",
+          "desc": "12116 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -119073,7 +119083,7 @@
       "name": "Tesouro Educa+ 2034",
       "type": "Educa+",
       "maturity_date": "2038-12-15",
-      "days_to_maturity": 4447,
+      "days_to_maturity": 4446,
       "buy_yield": 0.0665,
       "sell_yield": 0.0677,
       "yield_kind": "rate",
@@ -127068,7 +127078,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "Educa+",
@@ -127103,14 +127113,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.79,
           "max": 1.0,
-          "desc": "Duration integral de 12.2 anos (4447 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 12.2 anos (4446 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "4447 dias até o vencimento.",
+          "desc": "4446 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -127131,7 +127141,7 @@
       "name": "Tesouro Educa+ 2033",
       "type": "Educa+",
       "maturity_date": "2037-12-15",
-      "days_to_maturity": 4082,
+      "days_to_maturity": 4081,
       "buy_yield": 0.0666,
       "sell_yield": 0.0678,
       "yield_kind": "rate",
@@ -135126,7 +135136,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "Educa+",
@@ -135161,14 +135171,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.74,
           "max": 1.0,
-          "desc": "Duration integral de 11.2 anos (4082 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 11.2 anos (4081 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "4082 dias até o vencimento.",
+          "desc": "4081 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -135189,7 +135199,7 @@
       "name": "Tesouro Renda+ Aposentadoria Extra 2045",
       "type": "RendA+",
       "maturity_date": "2064-12-15",
-      "days_to_maturity": 13944,
+      "days_to_maturity": 13943,
       "buy_yield": 0.0643,
       "sell_yield": 0.0655,
       "yield_kind": "rate",
@@ -144434,7 +144444,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "RendA+",
@@ -144469,14 +144479,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 1.0,
           "max": 1.0,
-          "desc": "Duration integral de 38.2 anos (13944 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 38.2 anos (13943 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "13944 dias até o vencimento.",
+          "desc": "13943 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -144497,7 +144507,7 @@
       "name": "Tesouro Educa+ 2035",
       "type": "Educa+",
       "maturity_date": "2039-12-15",
-      "days_to_maturity": 4812,
+      "days_to_maturity": 4811,
       "buy_yield": 0.0663,
       "sell_yield": 0.0675,
       "yield_kind": "rate",
@@ -152492,7 +152502,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "Educa+",
@@ -152527,14 +152537,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.83,
           "max": 1.0,
-          "desc": "Duration integral de 13.2 anos (4812 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 13.2 anos (4811 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "4812 dias até o vencimento.",
+          "desc": "4811 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -152555,7 +152565,7 @@
       "name": "Tesouro Educa+ 2032",
       "type": "Educa+",
       "maturity_date": "2036-12-15",
-      "days_to_maturity": 3717,
+      "days_to_maturity": 3716,
       "buy_yield": 0.0665,
       "sell_yield": 0.0677,
       "yield_kind": "rate",
@@ -160550,7 +160560,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "Educa+",
@@ -160585,14 +160595,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.68,
           "max": 1.0,
-          "desc": "Duration integral de 10.2 anos (3717 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 10.2 anos (3716 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "3717 dias até o vencimento.",
+          "desc": "3716 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -160613,7 +160623,7 @@
       "name": "Tesouro Educa+ 2036",
       "type": "Educa+",
       "maturity_date": "2040-12-15",
-      "days_to_maturity": 5178,
+      "days_to_maturity": 5177,
       "buy_yield": 0.066,
       "sell_yield": 0.0672,
       "yield_kind": "rate",
@@ -168608,7 +168618,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "Educa+",
@@ -168643,14 +168653,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.87,
           "max": 1.0,
-          "desc": "Duration integral de 14.2 anos (5178 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 14.2 anos (5177 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "5178 dias até o vencimento.",
+          "desc": "5177 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -168671,7 +168681,7 @@
       "name": "Tesouro Renda+ Aposentadoria Extra 2050",
       "type": "RendA+",
       "maturity_date": "2069-12-15",
-      "days_to_maturity": 15770,
+      "days_to_maturity": 15769,
       "buy_yield": 0.064,
       "sell_yield": 0.0652,
       "yield_kind": "rate",
@@ -177916,7 +177926,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "RendA+",
@@ -177951,14 +177961,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 1.0,
           "max": 1.0,
-          "desc": "Duration integral de 43.2 anos (15770 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 43.2 anos (15769 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "15770 dias até o vencimento.",
+          "desc": "15769 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -177979,7 +177989,7 @@
       "name": "Tesouro Educa+ 2037",
       "type": "Educa+",
       "maturity_date": "2041-12-15",
-      "days_to_maturity": 5543,
+      "days_to_maturity": 5542,
       "buy_yield": 0.06570000000000001,
       "sell_yield": 0.0669,
       "yield_kind": "rate",
@@ -185974,7 +185984,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "Educa+",
@@ -186009,14 +186019,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.9,
           "max": 1.0,
-          "desc": "Duration integral de 15.2 anos (5543 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 15.2 anos (5542 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "5543 dias até o vencimento.",
+          "desc": "5542 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -186037,7 +186047,7 @@
       "name": "Tesouro Educa+ 2031",
       "type": "Educa+",
       "maturity_date": "2035-12-15",
-      "days_to_maturity": 3351,
+      "days_to_maturity": 3350,
       "buy_yield": 0.0665,
       "sell_yield": 0.0677,
       "yield_kind": "rate",
@@ -194032,7 +194042,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "Educa+",
@@ -194067,14 +194077,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.61,
           "max": 1.0,
-          "desc": "Duration integral de 9.2 anos (3351 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 9.2 anos (3350 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "3351 dias até o vencimento.",
+          "desc": "3350 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -194095,7 +194105,7 @@
       "name": "Tesouro Educa+ 2030",
       "type": "Educa+",
       "maturity_date": "2034-12-15",
-      "days_to_maturity": 2986,
+      "days_to_maturity": 2985,
       "buy_yield": 0.0665,
       "sell_yield": 0.0677,
       "yield_kind": "rate",
@@ -202090,7 +202100,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "Educa+",
@@ -202125,14 +202135,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.55,
           "max": 1.0,
-          "desc": "Duration integral de 8.2 anos (2986 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 8.2 anos (2985 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "2986 dias até o vencimento.",
+          "desc": "2985 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -202153,7 +202163,7 @@
       "name": "Tesouro Educa+ 2038",
       "type": "Educa+",
       "maturity_date": "2042-12-15",
-      "days_to_maturity": 5908,
+      "days_to_maturity": 5907,
       "buy_yield": 0.0654,
       "sell_yield": 0.0666,
       "yield_kind": "rate",
@@ -210148,7 +210158,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "Educa+",
@@ -210183,14 +210193,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.92,
           "max": 1.0,
-          "desc": "Duration integral de 16.2 anos (5908 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 16.2 anos (5907 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "5908 dias até o vencimento.",
+          "desc": "5907 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -210211,7 +210221,7 @@
       "name": "Tesouro Renda+ Aposentadoria Extra 2055",
       "type": "RendA+",
       "maturity_date": "2074-12-15",
-      "days_to_maturity": 17596,
+      "days_to_maturity": 17595,
       "buy_yield": 0.0638,
       "sell_yield": 0.065,
       "yield_kind": "rate",
@@ -219456,7 +219466,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "RendA+",
@@ -219491,14 +219501,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 1.0,
           "max": 1.0,
-          "desc": "Duration integral de 48.2 anos (17596 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 48.2 anos (17595 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "17596 dias até o vencimento.",
+          "desc": "17595 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -219519,7 +219529,7 @@
       "name": "Tesouro Renda+ Aposentadoria Extra 2060",
       "type": "RendA+",
       "maturity_date": "2079-12-15",
-      "days_to_maturity": 19422,
+      "days_to_maturity": 19421,
       "buy_yield": 0.0638,
       "sell_yield": 0.065,
       "yield_kind": "rate",
@@ -228764,7 +228774,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "RendA+",
@@ -228799,14 +228809,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 1.0,
           "max": 1.0,
-          "desc": "Duration integral de 53.2 anos (19422 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 53.2 anos (19421 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "19422 dias até o vencimento.",
+          "desc": "19421 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -228827,7 +228837,7 @@
       "name": "Tesouro Renda+ Aposentadoria Extra 2065",
       "type": "RendA+",
       "maturity_date": "2084-12-15",
-      "days_to_maturity": 21249,
+      "days_to_maturity": 21248,
       "buy_yield": 0.0638,
       "sell_yield": 0.065,
       "yield_kind": "rate",
@@ -238072,7 +238082,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "RendA+",
@@ -238107,14 +238117,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 1.0,
           "max": 1.0,
-          "desc": "Duration integral de 58.2 anos (21249 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 58.2 anos (21248 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "21249 dias até o vencimento.",
+          "desc": "21248 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -238135,7 +238145,7 @@
       "name": "Tesouro Educa+ 2039",
       "type": "Educa+",
       "maturity_date": "2043-12-15",
-      "days_to_maturity": 6273,
+      "days_to_maturity": 6272,
       "buy_yield": 0.0652,
       "sell_yield": 0.0664,
       "yield_kind": "rate",
@@ -246130,7 +246140,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "Educa+",
@@ -246165,14 +246175,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.94,
           "max": 1.0,
-          "desc": "Duration integral de 17.2 anos (6273 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 17.2 anos (6272 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "6273 dias até o vencimento.",
+          "desc": "6272 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -246193,7 +246203,7 @@
       "name": "Tesouro Educa+ 2041",
       "type": "Educa+",
       "maturity_date": "2045-12-15",
-      "days_to_maturity": 7004,
+      "days_to_maturity": 7003,
       "buy_yield": 0.065,
       "sell_yield": 0.0662,
       "yield_kind": "rate",
@@ -254188,7 +254198,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "Educa+",
@@ -254223,14 +254233,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.96,
           "max": 1.0,
-          "desc": "Duration integral de 19.2 anos (7004 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 19.2 anos (7003 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "7004 dias até o vencimento.",
+          "desc": "7003 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -254251,7 +254261,7 @@
       "name": "Tesouro Educa+ 2029",
       "type": "Educa+",
       "maturity_date": "2033-12-15",
-      "days_to_maturity": 2621,
+      "days_to_maturity": 2620,
       "buy_yield": 0.0665,
       "sell_yield": 0.0677,
       "yield_kind": "rate",
@@ -262246,7 +262256,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "Educa+",
@@ -262281,14 +262291,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.48,
           "max": 1.0,
-          "desc": "Duration integral de 7.2 anos (2621 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 7.2 anos (2620 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "2621 dias até o vencimento.",
+          "desc": "2620 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -262309,7 +262319,7 @@
       "name": "Tesouro Educa+ 2040",
       "type": "Educa+",
       "maturity_date": "2044-12-15",
-      "days_to_maturity": 6639,
+      "days_to_maturity": 6638,
       "buy_yield": 0.065,
       "sell_yield": 0.0662,
       "yield_kind": "rate",
@@ -270304,7 +270314,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "Educa+",
@@ -270339,14 +270349,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.95,
           "max": 1.0,
-          "desc": "Duration integral de 18.2 anos (6639 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 18.2 anos (6638 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "6639 dias até o vencimento.",
+          "desc": "6638 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -270367,7 +270377,7 @@
       "name": "Tesouro Educa+ 2028",
       "type": "Educa+",
       "maturity_date": "2032-12-15",
-      "days_to_maturity": 2256,
+      "days_to_maturity": 2255,
       "buy_yield": 0.0664,
       "sell_yield": 0.0676,
       "yield_kind": "rate",
@@ -278362,7 +278372,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "Educa+",
@@ -278397,14 +278407,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.41,
           "max": 1.0,
-          "desc": "Duration integral de 6.2 anos (2256 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 6.2 anos (2255 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "2256 dias até o vencimento.",
+          "desc": "2255 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -278425,7 +278435,7 @@
       "name": "Tesouro Educa+ 2042",
       "type": "Educa+",
       "maturity_date": "2046-12-15",
-      "days_to_maturity": 7369,
+      "days_to_maturity": 7368,
       "buy_yield": 0.0649,
       "sell_yield": 0.0661,
       "yield_kind": "rate",
@@ -286166,7 +286176,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "Educa+",
@@ -286201,14 +286211,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.97,
           "max": 1.0,
-          "desc": "Duration integral de 20.2 anos (7369 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 20.2 anos (7368 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "7369 dias até o vencimento.",
+          "desc": "7368 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -286229,7 +286239,7 @@
       "name": "Tesouro Educa+ 2027",
       "type": "Educa+",
       "maturity_date": "2031-12-15",
-      "days_to_maturity": 1890,
+      "days_to_maturity": 1889,
       "buy_yield": 0.0659,
       "sell_yield": 0.06709999999999999,
       "yield_kind": "rate",
@@ -294224,7 +294234,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "Educa+",
@@ -294259,14 +294269,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.34,
           "max": 1.0,
-          "desc": "Duration integral de 5.2 anos (1890 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 5.2 anos (1889 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "1890 dias até o vencimento.",
+          "desc": "1889 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -294287,7 +294297,7 @@
       "name": "Tesouro Educa+ 2044",
       "type": "Educa+",
       "maturity_date": "2048-12-15",
-      "days_to_maturity": 8100,
+      "days_to_maturity": 8099,
       "buy_yield": 0.0649,
       "sell_yield": 0.0661,
       "yield_kind": "rate",
@@ -301032,7 +301042,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "Educa+",
@@ -301067,14 +301077,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.98,
           "max": 1.0,
-          "desc": "Duration integral de 22.2 anos (8100 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 22.2 anos (8099 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "8100 dias até o vencimento.",
+          "desc": "8099 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -301095,7 +301105,7 @@
       "name": "Tesouro Educa+ 2043",
       "type": "Educa+",
       "maturity_date": "2047-12-15",
-      "days_to_maturity": 7734,
+      "days_to_maturity": 7733,
       "buy_yield": 0.0649,
       "sell_yield": 0.0661,
       "yield_kind": "rate",
@@ -308338,7 +308348,7 @@
       "purchase_available": true,
       "availability_status": "available",
       "purchase_availability_source": "tesouro_investir_endpoint",
-      "availability_checked_at": "2026-10-12T21:49:58.680860+00:00",
+      "availability_checked_at": "2026-10-13T07:11:37.153602+00:00",
       "availability_reason": "Título listado no endpoint de investimento do Tesouro Direto.",
       "availability_channel": "TesouroLegado",
       "group": "Educa+",
@@ -308373,14 +308383,14 @@
           "label": "Potencial de marcação a mercado",
           "score": 0.98,
           "max": 1.0,
-          "desc": "Duration integral de 21.2 anos (7734 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
+          "desc": "Duration integral de 21.2 anos (7733 dias) sem cupom. Alta alavancagem de PU em ciclos de corte da Selic.",
           "tip": "Títulos longos sem cupom concentram todo o retorno no PU; a duration elevada maximiza os ganhos de capital na queda dos juros."
         },
         {
           "label": "IR até o vencimento",
           "score": 0.5,
           "max": 0.5,
-          "desc": "7734 dias até o vencimento.",
+          "desc": "7733 dias até o vencimento.",
           "tip": "Alíquota regressiva de IR no vencimento."
         }
       ],
@@ -308528,7 +308538,7 @@
         "buy_price": 4636.15,
         "score": 7.38,
         "badge": "bom",
-        "days_to_maturity": 6790,
+        "days_to_maturity": 6789,
         "maturity_date": "2045-05-15",
         "purchase_available": true,
         "availability_status": "available",
@@ -308541,7 +308551,7 @@
         "buy_price": 774.89,
         "score": 6.91,
         "badge": "bom",
-        "days_to_maturity": 812,
+        "days_to_maturity": 811,
         "maturity_date": "2029-01-01",
         "purchase_available": true,
         "availability_status": "available",
@@ -308554,7 +308564,7 @@
         "buy_price": 19991.91,
         "score": 6.76,
         "badge": "bom",
-        "days_to_maturity": 1601,
+        "days_to_maturity": 1600,
         "maturity_date": "2031-03-01",
         "purchase_available": true,
         "availability_status": "available",
@@ -308567,7 +308577,7 @@
         "buy_price": 891.19,
         "score": 6.32,
         "badge": "bom",
-        "days_to_maturity": 3734,
+        "days_to_maturity": 3733,
         "maturity_date": "2037-01-01",
         "purchase_available": true,
         "availability_status": "available",
@@ -308580,7 +308590,7 @@
         "buy_price": 541.87,
         "score": 6.22,
         "badge": "bom",
-        "days_to_maturity": 1907,
+        "days_to_maturity": 1906,
         "maturity_date": "2032-01-01",
         "purchase_available": true,
         "availability_status": "available",
