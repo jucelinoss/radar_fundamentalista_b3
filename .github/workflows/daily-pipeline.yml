@@ -93,7 +93,7 @@ jobs:
             rm -f data/tesouro_history.json
           fi
 
-      - name: Restore database & CVM cache (isolated by branch and tickers.json)
+      - name: Restore database, CVM & macro cache (isolated by branch and tickers.json)
         id: db-cache
         uses: actions/cache@v4
         with:
@@ -103,6 +103,7 @@ jobs:
             data/fii_vpa.json
             data/fiagro_dy.json
             data/fii_dy.json
+            data/macro_state.json
           key: b3-db-${{ github.ref_name }}-${{ hashFiles('config/tickers.json') }}
           restore-keys: |
             b3-db-${{ github.ref_name }}-
