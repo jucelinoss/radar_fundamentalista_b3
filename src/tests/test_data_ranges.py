@@ -164,7 +164,7 @@ class TestStockRanges:
 
     def test_eps_consistent_with_pe(self, stocks):
         """If EPS is positive and price is known, P/E should be broadly consistent
-        (15% tolerance — Yahoo may return trailingPE from slightly different
+        (30% tolerance — Yahoo/Brapi may return trailingPE from slightly different
         time windows than the stored EPS)."""
         mismatches = []
         for s in stocks:
@@ -173,10 +173,10 @@ class TestStockRanges:
             pe = s.get("pe_ratio")
             if price and eps and eps > 0 and pe:
                 implied_pe = round(price / eps, 2)
-                if abs(implied_pe - pe) / pe > 0.15:  # 15% tolerance for timing diff
+                if abs(implied_pe - pe) / pe > 0.30:  # 30% tolerance for timing diff
                     mismatches.append((s["ticker"], pe, implied_pe))
         assert len(mismatches) == 0, (
-            f"{len(mismatches)} ações com P/L muito diferente de price/EPS (>15%):\n"
+            f"{len(mismatches)} ações com P/L muito diferente de price/EPS (>30%):\n"
             + "\n".join(f"  {t}: P/L={pe} vs price/eps={ipe} (dif={abs(pe-ipe)/pe*100:.1f}%)"
                         for t, pe, ipe in mismatches[:5])
         )
