@@ -1446,8 +1446,16 @@ def fetch_macro_state(force: bool = False) -> dict[str, Any]:
             failed.append("câmbio (BCB/PTAX)")
         if not fresh_tesouro:
             failed.append("Tesouro Direto (cotação oficial)")
+        if old_cache and _has_required_history(old_cache):
+            logger.warning(
+                "[macro_fetcher] Fontes macro incompletas (%s). "
+                "Reaproveitando último macro_state.json em cache como fallback.",
+                ", ".join(failed),
+            )
+            return old_cache
+
         raise RuntimeError(
-            "Fontes macro incompletas; mantendo a última foto publicada. "
+            "Fontes macro incompletas e sem cache prévio; mantendo a última foto publicada. "
             "Indisponíveis: " + ", ".join(failed)
         )
 

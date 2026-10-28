@@ -206,8 +206,18 @@ def run_full_pipeline(max_age_hours: int = 6, force: bool = False) -> bool:
             bonds_count = len(ms.get("TESOURO_DIRETO_BONDS", []))
             logger.info(f"  Macro OK — Selic: {selic:.2%}, TD bonds: {bonds_count}")
         except Exception as e:
-            macro_ok = False
-            logger.warning(f"  Macro fetch failed (continuando sem dados v3): {e}")
+            try:
+                import macro_fetcher
+                cached_ms = macro_fetcher._load_cache_ignore_stale()
+                if cached_ms and macro_fetcher._has_required_history(cached_ms):
+                    macro_ok = True
+                    logger.warning(f"  Macro fetch exception ({e}); mantendo macro_state.json em cache como fallback.")
+                else:
+                    macro_ok = False
+                    logger.warning(f"  Macro fetch failed (sem cache disponível): {e}")
+            except Exception:
+                macro_ok = False
+                logger.warning(f"  Macro fetch failed (continuando sem dados v3): {e}")
 
         if result["fail"] == 0 and result.get("cvm_sources_ok", True) and macro_ok and (result["ok"] > 0 or result["fail"] == 0):
             run_generator()
