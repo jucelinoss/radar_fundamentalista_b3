@@ -50399,13 +50399,6 @@
   ],
   "Tesouro IPCA+ com Juros Semestrais 2045": [
     {
-      "date": "2021-10-28",
-      "buy_yield": 0.0553,
-      "buy_price": 4030.29,
-      "source": "tesouro_transparente_csv",
-      "score": 8.92
-    },
-    {
       "date": "2021-10-29",
       "buy_yield": 0.0565,
       "buy_price": 3976.43,
@@ -59122,6 +59115,16 @@
       "quote_method": "tesouro-rate-v2",
       "score": 9.31,
       "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.0741,
+      "buy_price": 4263.56,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 9.06,
+      "score_method": "tesouro-opportunity-v2"
     }
   ],
   "Tesouro IPCA+ 2040": [
@@ -62150,6 +62153,16 @@
       "yield_kind": "rate",
       "quote_method": "tesouro-rate-v2",
       "score": 9.56,
+      "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.07519999999999999,
+      "buy_price": 1764.99,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 9.09,
       "score_method": "tesouro-opportunity-v2"
     }
   ],
@@ -85213,6 +85226,16 @@
       "quote_method": "tesouro-rate-v2",
       "score": 9.55,
       "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.1487,
+      "buy_price": 794.14,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 9.51,
+      "score_method": "tesouro-opportunity-v2"
     }
   ],
   "Tesouro IPCA+ 2045": [
@@ -104017,6 +104040,16 @@
       "quote_method": "tesouro-rate-v2",
       "score": 8.94,
       "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.07719999999999999,
+      "buy_price": 4347.62,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 8.32,
+      "score_method": "tesouro-opportunity-v2"
     }
   ],
   "Tesouro IPCA+ 2029": [
@@ -113187,6 +113220,16 @@
       "quote_method": "tesouro-rate-v2",
       "score": 9.41,
       "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.1508,
+      "buy_price": 485.87,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 9.42,
+      "score_method": "tesouro-opportunity-v2"
     }
   ],
   "Tesouro IPCA+ 2050": [
@@ -116211,6 +116254,16 @@
       "date": "2026-10-27",
       "buy_yield": 0.0716,
       "buy_price": 929.79,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 8.26,
+      "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.0716,
+      "buy_price": 930.11,
       "source": "tesouro_transparente_csv",
       "yield_kind": "rate",
       "quote_method": "tesouro-rate-v2",
@@ -121774,6 +121827,16 @@
       "quote_method": "tesouro-rate-v2",
       "score": 7.92,
       "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.0787,
+      "buy_price": 3084.29,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 7.97,
+      "score_method": "tesouro-opportunity-v2"
     }
   ],
   "Tesouro IPCA+ com Juros Semestrais 2060": [
@@ -124798,6 +124861,16 @@
       "date": "2026-10-27",
       "buy_yield": 0.07339999999999999,
       "buy_price": 4070.81,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 8.52,
+      "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.07339999999999999,
+      "buy_price": 4072.22,
       "source": "tesouro_transparente_csv",
       "yield_kind": "rate",
       "quote_method": "tesouro-rate-v2",
@@ -141738,6 +141811,16 @@
       "date": "2026-10-27",
       "buy_yield": 0.14880000000000002,
       "buy_price": 741.63,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 8.84,
+      "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.14880000000000002,
+      "buy_price": 742.03,
       "source": "tesouro_transparente_csv",
       "yield_kind": "rate",
       "quote_method": "tesouro-rate-v2",
@@ -173587,6 +173670,16 @@
       "yield_kind": "selic_spread",
       "quote_method": "tesouro-rate-v2",
       "score": 7.93,
+      "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.001,
+      "buy_price": 20101.38,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "selic_spread",
+      "quote_method": "tesouro-rate-v2",
+      "score": 7.94,
       "score_method": "tesouro-opportunity-v2"
     }
   ],
@@ -221781,6 +221874,16 @@
       "quote_method": "tesouro-rate-v2",
       "score": 9.53,
       "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.07629999999999999,
+      "buy_price": 2045.74,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 9.08,
+      "score_method": "tesouro-opportunity-v2"
     }
   ],
   "Tesouro Educa+ 2035": [
@@ -227442,6 +227545,16 @@
       "quote_method": "tesouro-rate-v2",
       "score": 9.52,
       "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.0768,
+      "buy_price": 2190.35,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 9.1,
+      "score_method": "tesouro-opportunity-v2"
     }
   ],
   "Tesouro Educa+ 2037": [
@@ -233102,6 +233215,16 @@
       "yield_kind": "rate",
       "quote_method": "tesouro-rate-v2",
       "score": 9.43,
+      "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.0757,
+      "buy_price": 1914.6,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 9.02,
       "score_method": "tesouro-opportunity-v2"
     }
   ],
@@ -244800,6 +244923,16 @@
       "quote_method": "tesouro-rate-v2",
       "score": 9.52,
       "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.07730000000000001,
+      "buy_price": 2346.79,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 9.14,
+      "score_method": "tesouro-opportunity-v2"
     }
   ],
   "Tesouro Educa+ 2038": [
@@ -250460,6 +250593,16 @@
       "yield_kind": "rate",
       "quote_method": "tesouro-rate-v2",
       "score": 9.33,
+      "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.0751,
+      "buy_price": 1793.87,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 8.98,
       "score_method": "tesouro-opportunity-v2"
     }
   ],
@@ -256122,6 +256265,16 @@
       "quote_method": "tesouro-rate-v2",
       "score": 9.4,
       "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.07769999999999999,
+      "buy_price": 2518.65,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 9.15,
+      "score_method": "tesouro-opportunity-v2"
     }
   ],
   "Tesouro Educa+ 2039": [
@@ -261782,6 +261935,16 @@
       "yield_kind": "rate",
       "quote_method": "tesouro-rate-v2",
       "score": 9.24,
+      "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.0745,
+      "buy_price": 1682.49,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 8.88,
       "score_method": "tesouro-opportunity-v2"
     }
   ],
@@ -267444,6 +267607,16 @@
       "quote_method": "tesouro-rate-v2",
       "score": 9.21,
       "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.0781,
+      "buy_price": 2705.59,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 9.1,
+      "score_method": "tesouro-opportunity-v2"
     }
   ],
   "Tesouro Educa+ 2040": [
@@ -273105,6 +273278,16 @@
       "quote_method": "tesouro-rate-v2",
       "score": 9.15,
       "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.07400000000000001,
+      "buy_price": 1577.64,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 8.75,
+      "score_method": "tesouro-opportunity-v2"
     }
   ],
   "Tesouro Educa+ 2031": [
@@ -278765,6 +278948,16 @@
       "yield_kind": "rate",
       "quote_method": "tesouro-rate-v2",
       "score": 9.03,
+      "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.0783,
+      "buy_price": 2912.27,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 9.14,
       "score_method": "tesouro-opportunity-v2"
     }
   ],
@@ -290463,6 +290656,16 @@
       "quote_method": "tesouro-rate-v2",
       "score": 9.04,
       "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.07339999999999999,
+      "buy_price": 1483.09,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 8.61,
+      "score_method": "tesouro-opportunity-v2"
     }
   ],
   "Tesouro Educa+ 2030": [
@@ -296123,6 +296326,16 @@
       "yield_kind": "rate",
       "quote_method": "tesouro-rate-v2",
       "score": 8.8,
+      "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.0783,
+      "buy_price": 3139.32,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 9.01,
       "score_method": "tesouro-opportunity-v2"
     }
   ],
@@ -301785,6 +301998,16 @@
       "quote_method": "tesouro-rate-v2",
       "score": 8.85,
       "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.0729,
+      "buy_price": 1393.58,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 8.35,
+      "score_method": "tesouro-opportunity-v2"
     }
   ],
   "Tesouro Educa+ 2043": [
@@ -307445,6 +307668,16 @@
       "yield_kind": "rate",
       "quote_method": "tesouro-rate-v2",
       "score": 8.6,
+      "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.0726,
+      "buy_price": 1306.32,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 8.02,
       "score_method": "tesouro-opportunity-v2"
     }
   ],
@@ -319142,6 +319375,16 @@
       "yield_kind": "rate",
       "quote_method": "tesouro-rate-v2",
       "score": 8.27,
+      "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.0723,
+      "buy_price": 1225.2,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 7.66,
       "score_method": "tesouro-opportunity-v2"
     }
   ],
@@ -350501,6 +350744,16 @@
       "quote_method": "tesouro-rate-v2",
       "score": 7.96,
       "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.0717,
+      "buy_price": 264.31,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 8.71,
+      "score_method": "tesouro-opportunity-v2"
     }
   ],
   "Tesouro Renda+ Aposentadoria Extra 2035": [
@@ -351002,6 +351255,16 @@
       "yield_kind": "rate",
       "quote_method": "tesouro-rate-v2",
       "score": 9.33,
+      "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.0737,
+      "buy_price": 1434.2,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 9.07,
       "score_method": "tesouro-opportunity-v2"
     }
   ],
@@ -351505,6 +351768,16 @@
       "quote_method": "tesouro-rate-v2",
       "score": 7.96,
       "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.0717,
+      "buy_price": 187.36,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 8.71,
+      "score_method": "tesouro-opportunity-v2"
     }
   ],
   "Tesouro Renda+ Aposentadoria Extra 2055": [
@@ -352006,6 +352279,16 @@
       "yield_kind": "rate",
       "quote_method": "tesouro-rate-v2",
       "score": 8.15,
+      "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.0717,
+      "buy_price": 372.92,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 8.73,
       "score_method": "tesouro-opportunity-v2"
     }
   ],
@@ -352509,6 +352792,16 @@
       "quote_method": "tesouro-rate-v2",
       "score": 8.99,
       "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.0724,
+      "buy_price": 1032.84,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 8.86,
+      "score_method": "tesouro-opportunity-v2"
     }
   ],
   "Tesouro Renda+ Aposentadoria Extra 2030": [
@@ -353010,6 +353303,16 @@
       "yield_kind": "rate",
       "quote_method": "tesouro-rate-v2",
       "score": 9.44,
+      "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.0751,
+      "buy_price": 2013.65,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 9.23,
       "score_method": "tesouro-opportunity-v2"
     }
   ],
@@ -353513,6 +353816,16 @@
       "quote_method": "tesouro-rate-v2",
       "score": 8.62,
       "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.0718,
+      "buy_price": 740.46,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 8.72,
+      "score_method": "tesouro-opportunity-v2"
     }
   ],
   "Tesouro Renda+ Aposentadoria Extra 2050": [
@@ -354014,6 +354327,16 @@
       "yield_kind": "rate",
       "quote_method": "tesouro-rate-v2",
       "score": 8.38,
+      "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.0716,
+      "buy_price": 527.64,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 8.5,
       "score_method": "tesouro-opportunity-v2"
     }
   ],
@@ -354517,6 +354840,16 @@
       "quote_method": "tesouro-rate-v2",
       "score": 7.39,
       "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.07719999999999999,
+      "buy_price": 3941.45,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 7.76,
+      "score_method": "tesouro-opportunity-v2"
     }
   ],
   "Tesouro Educa+ 2028": [
@@ -355019,6 +355352,16 @@
       "quote_method": "tesouro-rate-v2",
       "score": 8.15,
       "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.0782,
+      "buy_price": 3648.72,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 8.54,
+      "score_method": "tesouro-opportunity-v2"
     }
   ],
   "Tesouro Educa+ 2029": [
@@ -355520,6 +355863,16 @@
       "yield_kind": "rate",
       "quote_method": "tesouro-rate-v2",
       "score": 8.56,
+      "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-28",
+      "buy_yield": 0.0783,
+      "buy_price": 3384.23,
+      "source": "tesouro_transparente_csv",
+      "yield_kind": "rate",
+      "quote_method": "tesouro-rate-v2",
+      "score": 8.85,
       "score_method": "tesouro-opportunity-v2"
     }
   ],
@@ -356146,6 +356499,16 @@
     },
     {
       "date": "2026-10-29",
+      "buy_yield": 0.0,
+      "buy_price": 10.757575,
+      "source": "tesouro_investir_endpoint",
+      "yield_kind": "selic_spread",
+      "quote_method": "tesouro-rate-v2",
+      "score": 5.5,
+      "score_method": "tesouro-opportunity-v2"
+    },
+    {
+      "date": "2026-10-30",
       "buy_yield": 0.0,
       "buy_price": 10.757575,
       "source": "tesouro_investir_endpoint",
