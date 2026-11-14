@@ -4890,7 +4890,28 @@ const tableSortState = {};
             }
             else if (mode === 'fire') calculateFireRetirement();
             else if (mode === 'rules') calculateAllRules();
-            else if (mode === 'retrospective') calculateRetrospective();
+            else if (mode === 'retrospective') {
+                const retroAsset = document.getElementById('calc-retro-asset');
+                if (!retroAsset || retroAsset.options.length === 0) {
+                    filterCalculatorAssets('retro');
+                }
+                requestAnimationFrame(() => {
+                    calculateRetrospective();
+                });
+            }
+        }
+
+        function addGoalPreset(delta) {
+            const input = document.getElementById('calc-goal-target');
+            if (input) {
+                if (delta === 0) {
+                    input.value = 0;
+                } else {
+                    const current = Math.max(0, parseFloat(input.value) || 0);
+                    input.value = Math.round(current + delta);
+                }
+                calculateIncomeGoal();
+            }
         }
 
         function setGoalPreset(val) {
@@ -4903,6 +4924,19 @@ const tableSortState = {};
             }
         }
 
+        function addSnowMonthlyPreset(delta) {
+            const input = document.getElementById('calc-snow-monthly');
+            if (input) {
+                if (delta === 0) {
+                    input.value = 0;
+                } else {
+                    const current = Math.max(0, parseFloat(input.value) || 0);
+                    input.value = Math.round(current + delta);
+                }
+                calculateSnowball();
+            }
+        }
+
         function setSnowMonthlyPreset(val) {
             const input = document.getElementById('calc-snow-monthly');
             if (input) {
@@ -4910,6 +4944,19 @@ const tableSortState = {};
                 const buttons = document.querySelectorAll('#calc-grid-snowball .calc-preset-btn');
                 buttons.forEach(b => b.classList.toggle('active', b.textContent.includes(val.toLocaleString('pt-BR'))));
                 calculateSnowball();
+            }
+        }
+
+        function addRfAmountPreset(delta) {
+            const input = document.getElementById('calc-rf-amount');
+            if (input) {
+                if (delta === 0) {
+                    input.value = 0;
+                } else {
+                    const current = Math.max(0, parseFloat(input.value) || 0);
+                    input.value = Math.round(current + delta);
+                }
+                calculateRfComparison();
             }
         }
 
@@ -5088,6 +5135,10 @@ const tableSortState = {};
             assetSelect.innerHTML = filtered.map(item => {
                 return `<option value="${item.id}" data-category="${item.category}" data-dy="${item.dy.toFixed(2)}" data-price="${item.price.toFixed(2)}" data-tax="${item.taxType}" data-has-coupon="${item.hasCoupon ? 'true' : 'false'}">${item.label}</option>`;
             }).join('');
+
+            if (assetSelect.options.length > 0 && (!assetSelect.value || assetSelect.selectedIndex < 0)) {
+                assetSelect.selectedIndex = 0;
+            }
 
             if (mode === 'goal') {
                 onGoalAssetChange();
@@ -5468,6 +5519,19 @@ const tableSortState = {};
             }
         }
 
+        function addRetroAmountPreset(delta) {
+            const input = document.getElementById('calc-retro-amount');
+            if (input) {
+                if (delta === 0) {
+                    input.value = 0;
+                } else {
+                    const current = Math.max(0, parseFloat(input.value) || 0);
+                    input.value = Math.round(current + delta);
+                }
+                calculateRetrospective();
+            }
+        }
+
         function setRetroAmountPreset(val) {
             const input = document.getElementById('calc-retro-amount');
             if (input) {
@@ -5506,16 +5570,26 @@ const tableSortState = {};
 
             if (!assetSelect || !tbody) return;
 
+            if (assetSelect.options.length === 0) {
+                filterCalculatorAssets('retro');
+            }
+            if (assetSelect.options.length > 0 && (!assetSelect.value || assetSelect.selectedIndex < 0)) {
+                assetSelect.selectedIndex = 0;
+            }
+
             const selectedAssetId = assetSelect.value;
-            const amount = parseFloat(amountInput ? amountInput.value : 5000) || 5000;
+            const amount = Math.max(0, parseFloat(amountInput ? amountInput.value : 5000) || 0);
             const modality = modalitySelect ? modalitySelect.value : 'single';
             const reinvest = reinvestSelect ? (reinvestSelect.value === 'yes') : true;
-            const annualInflation = inflationInput ? ((parseFloat(inflationInput.value) || 5.5) / 100) : 0.055;
+            const annualInflation = Math.max(0, inflationInput ? ((parseFloat(inflationInput.value) || 5.5) / 100) : 0.055);
 
             const catalog = getCalculatorAssetCatalog();
             const assetItem = catalog.find(item => item.id === selectedAssetId) || catalog.find(item => item.category !== 'strategies') || catalog[0];
 
             if (!assetItem) return;
+            if (assetSelect.value !== assetItem.id && assetSelect.options.length > 0) {
+                assetSelect.value = assetItem.id;
+            }
 
             const data = window.dashboardData || {};
             let assetObj = null;
@@ -5530,7 +5604,7 @@ const tableSortState = {};
             }
 
             const currentPrice = assetItem.price || (assetObj ? Number(assetObj.price) : 0) || 100;
-            const currentDy = (assetItem.dy || 0) / 100;
+            const currentDy = Math.max(0, (assetItem.dy || 0) / 100);
 
             let history = [];
             if (assetObj && assetObj.history_json) {
@@ -5541,7 +5615,7 @@ const tableSortState = {};
                 }
             }
             if (Array.isArray(history)) {
-                history = history.filter(p => p && p.date && p.price != null && p.price > 0);
+                history = history.filter(p => p && p.date && p.price != null && Number(p.price) > 0);
                 history.sort((a, b) => new Date(a.date) - new Date(b.date));
             } else {
                 history = [];
@@ -5553,15 +5627,17 @@ const tableSortState = {};
             if (history.length >= 2) {
                 const earliest = new Date(history[0].date);
                 const latest = new Date(history[history.length - 1].date);
-                historyDurationYears = Math.max(0, (latest - earliest) / (365.25 * 86400000));
-                earliestDateStr = history[0].date;
-                latestDateStr = history[history.length - 1].date;
+                if (!isNaN(earliest.getTime()) && !isNaN(latest.getTime())) {
+                    historyDurationYears = Math.max(0, (latest - earliest) / (365.25 * 86400000));
+                    earliestDateStr = history[0].date;
+                    latestDateStr = history[history.length - 1].date;
+                }
             }
 
             // Rentabilidade anualizada do 1º ano observado (para projeção sintética dos períodos excedentes)
             let r1y = currentDy;
             if (history.length >= 8 && historyDurationYears >= 0.8) {
-                const p0 = history[0].price;
+                const p0 = Math.max(0.0001, Number(history[0].price) || 0.0001);
                 const target1yDate = new Date(new Date(history[0].date).getTime() + 365.25 * 86400000);
                 let p1Point = history[Math.min(12, history.length - 1)];
                 let minDiff = Infinity;
@@ -5572,20 +5648,24 @@ const tableSortState = {};
                         p1Point = history[i];
                     }
                 }
-                const p1 = p1Point ? p1Point.price : p0;
+                const p1 = Math.max(0.0001, p1Point ? (Number(p1Point.price) || p0) : p0);
                 const priceRet1y = (p1 - p0) / p0;
                 const pts1y = history.filter(p => new Date(p.date) <= target1yDate);
                 const avgDy1y = pts1y.length > 0 ? (pts1y.reduce((acc, p) => acc + (Number(p.dy) || 0), 0) / pts1y.length) / 100 : currentDy;
                 r1y = priceRet1y + avgDy1y;
             } else if (history.length >= 2 && historyDurationYears > 0.1) {
-                const p0 = history[0].price;
-                const pend = history[history.length - 1].price;
-                const priceCagr = Math.pow(pend / p0, 1 / historyDurationYears) - 1;
-                r1y = priceCagr + currentDy;
+                const p0 = Math.max(0.0001, Number(history[0].price) || 0.0001);
+                const pend = Math.max(0.0001, Number(history[history.length - 1].price) || 0.0001);
+                const ratio = Math.max(0.0001, pend / p0);
+                const priceCagr = Math.pow(ratio, 1 / Math.max(0.1, historyDurationYears)) - 1;
+                r1y = (isNaN(priceCagr) ? 0 : priceCagr) + currentDy;
             } else {
                 r1y = Math.max(0.06, currentDy);
             }
 
+            if (isNaN(r1y) || !isFinite(r1y)) {
+                r1y = currentDy;
+            }
             // Limita taxa do 1º ano a patamares estatisticamente realistas para projeções longas (-40% a +100% a.a.)
             r1y = Math.max(-0.40, Math.min(1.00, r1y));
 
@@ -5628,9 +5708,9 @@ const tableSortState = {};
                             startIndex = i;
                         }
                     }
-                    const pStart = startPt.price;
-                    const pEnd = latestPt.price;
-                    const fPrice = pEnd / pStart;
+                    const pStart = Math.max(0.0001, Number(startPt.price) || 0.0001);
+                    const pEnd = Math.max(0.0001, Number(latestPt.price) || 0.0001);
+                    const fPrice = Math.max(0.0001, pEnd / pStart);
                     const periodSlice = history.slice(startIndex);
                     const avgDyPeriod = periodSlice.length > 0
                         ? (periodSlice.reduce((acc, p) => acc + (Number(p.dy) || 0), 0) / periodSlice.length) / 100
@@ -5638,9 +5718,10 @@ const tableSortState = {};
 
                     if (reinvest) {
                         const cagr = Math.pow(fPrice, 1 / H) - 1 + avgDyPeriod;
-                        totalFactor = Math.pow(1 + Math.max(-0.95, cagr), H);
+                        const baseH = Math.max(0.01, 1 + Math.max(-0.95, cagr));
+                        totalFactor = Math.pow(baseH, H);
                     } else {
-                        totalFactor = fPrice + (avgDyPeriod * H);
+                        totalFactor = Math.max(0.01, fPrice + (avgDyPeriod * H));
                     }
                     obsText = `✅ Histórico B3 Real (${H} ano${H > 1 ? 's' : ''}): cotação R$ ${pStart.toFixed(2)} ➔ R$ ${pEnd.toFixed(2)} + DY médio ${(avgDyPeriod * 100).toFixed(1)}% a.a.`;
                 } else {
@@ -5648,19 +5729,30 @@ const tableSortState = {};
                     const obsDuration = Math.max(0, historyDurationYears);
                     let fObs = 1.0;
                     if (obsDuration >= 0.5 && history.length >= 4) {
-                        const pStart = history[0].price;
-                        const pEnd = history[history.length - 1].price;
-                        const fPrice = pEnd / pStart;
-                        const avgDy = (history.reduce((acc, p) => acc + (Number(p.dy) || 0), 0) / history.length) / 100;
-                        fObs = reinvest ? Math.pow(1 + (Math.pow(fPrice, 1 / obsDuration) - 1 + avgDy), obsDuration) : (fPrice + avgDy * obsDuration);
+                        const pStart = Math.max(0.0001, Number(history[0].price) || 0.0001);
+                        const pEnd = Math.max(0.0001, Number(history[history.length - 1].price) || 0.0001);
+                        const fPrice = Math.max(0.0001, pEnd / pStart);
+                        const avgDy = Math.max(0, (history.reduce((acc, p) => acc + (Number(p.dy) || 0), 0) / history.length) / 100);
+                        if (reinvest) {
+                            const cagrObs = Math.pow(fPrice, 1 / Math.max(0.1, obsDuration)) - 1 + avgDy;
+                            const baseObs = Math.max(0.01, 1 + cagrObs);
+                            fObs = Math.pow(baseObs, obsDuration);
+                        } else {
+                            fObs = Math.max(0.01, fPrice + avgDy * obsDuration);
+                        }
                     }
                     const missingYears = Math.max(0, H - obsDuration);
-                    const fProj = Math.pow(1 + r1y, missingYears);
-                    totalFactor = fObs * fProj;
+                    const baseProj = Math.max(0.01, 1 + r1y);
+                    const fProj = Math.pow(baseProj, missingYears);
+                    totalFactor = Math.max(0.001, fObs * fProj);
 
                     const yrStart = earliestDateStr ? earliestDateStr.substring(0, 4) : 'recente';
                     const obsYearsCount = obsDuration < 1 ? '<1' : obsDuration.toFixed(1);
                     obsText = `⚠️ Projeção sintética: Ativo com ${obsYearsCount} ano${obsDuration >= 2 ? 's' : ''} na B3 (desde ${yrStart}). Período adicional de ${missingYears.toFixed(1)} anos projetado com o retorno do 1º ano (${(r1y * 100).toFixed(1)}% a.a.).`;
+                }
+
+                if (isNaN(totalFactor) || !isFinite(totalFactor)) {
+                    totalFactor = 1.0;
                 }
 
                 let totalInvested = amount;
@@ -5668,17 +5760,21 @@ const tableSortState = {};
 
                 if (modality === 'monthly') {
                     totalInvested = amount * (H * 12);
-                    const cagrEq = Math.pow(Math.max(0.01, totalFactor), 1 / H) - 1;
-                    const monthlyRate = Math.pow(1 + cagrEq, 1 / 12) - 1;
-                    if (monthlyRate > 0) {
+                    const cagrEq = Math.pow(Math.max(0.001, totalFactor), 1 / H) - 1;
+                    const baseM = Math.max(0.001, 1 + cagrEq);
+                    const monthlyRate = Math.pow(baseM, 1 / 12) - 1;
+                    if (monthlyRate > 0.000001) {
                         balanceNominal = amount * ((Math.pow(1 + monthlyRate, H * 12) - 1) / monthlyRate);
                     } else {
                         balanceNominal = totalInvested;
                     }
                 }
 
-                const cumInflation = Math.pow(1 + annualInflation, H);
-                const balanceReal = balanceNominal / cumInflation;
+                const cumInflation = Math.max(0.01, Math.pow(1 + annualInflation, H));
+                let balanceReal = balanceNominal / cumInflation;
+
+                if (isNaN(balanceNominal) || !isFinite(balanceNominal)) balanceNominal = totalInvested;
+                if (isNaN(balanceReal) || !isFinite(balanceReal)) balanceReal = balanceNominal / cumInflation;
 
                 const totalNominalReturnPct = totalInvested > 0 ? ((balanceNominal - totalInvested) / totalInvested) * 100 : 0;
                 const totalRealReturnPct = totalInvested > 0 ? ((balanceReal - totalInvested) / totalInvested) * 100 : 0;
@@ -5732,7 +5828,9 @@ const tableSortState = {};
                 `;
             }).join('');
 
-            renderRetroChart(chartDataPoints);
+            requestAnimationFrame(() => {
+                renderRetroChart(chartDataPoints);
+            });
         }
 
         function renderRetroChart(points) {
@@ -5756,7 +5854,7 @@ const tableSortState = {};
                     datasets: [
                         {
                             label: 'Total Investido',
-                            data: points.map(p => p.invested),
+                            data: points.map(p => Number(p.invested) || 0),
                             backgroundColor: isLight ? 'rgba(100, 116, 139, 0.4)' : 'rgba(148, 163, 184, 0.35)',
                             borderColor: isLight ? '#64748b' : '#94a3b8',
                             borderWidth: 1,
@@ -5764,7 +5862,7 @@ const tableSortState = {};
                         },
                         {
                             label: 'Poder Real (IPCA)',
-                            data: points.map(p => p.balanceReal),
+                            data: points.map(p => Number(p.balanceReal) || 0),
                             backgroundColor: isLight ? 'rgba(2, 132, 199, 0.75)' : 'rgba(56, 189, 248, 0.75)',
                             borderColor: isLight ? '#0284c7' : '#38bdf8',
                             borderWidth: 1,
@@ -5772,7 +5870,7 @@ const tableSortState = {};
                         },
                         {
                             label: 'Saldo Nominal Hoje',
-                            data: points.map(p => p.balanceNominal),
+                            data: points.map(p => Number(p.balanceNominal) || 0),
                             backgroundColor: '#10b981',
                             borderColor: '#059669',
                             borderWidth: 1,
@@ -5793,7 +5891,7 @@ const tableSortState = {};
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return ` ${context.dataset.label}: R$ ${context.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                                    return ` ${context.dataset.label}: R$ ${(Number(context.parsed.y) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
                                 }
                             }
                         }
@@ -5825,7 +5923,7 @@ const tableSortState = {};
             const lciPctInput = document.getElementById('calc-rf-lci-pct');
             const tdYieldInput = document.getElementById('calc-rf-td-yield');
 
-            const amount = Math.max(100, parseFloat(amountInput?.value) || 10000);
+            const amount = Math.max(0, parseFloat(amountInput ? amountInput.value : 10000) || 0);
             const days = parseInt(daysSelect?.value) || 720;
             const years = days / 365.0;
             const cdiRate = (parseFloat(cdiInput?.value) || 13.0) / 100.0;
