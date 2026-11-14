@@ -126,14 +126,20 @@ def calculate_retrospective_math(
             total_factor = f_price + (avg_dy * target_years)
     else:
         obs_duration = history_duration_years
-        p_start = history_points[0].get("price", 1.0) if history_points else 1.0
-        p_end = history_points[-1].get("price", p_start) if history_points else p_start
-        f_price = p_end / p_start
+        p_start = max(0.0001, history_points[0].get("price", 1.0) if history_points else 1.0)
+        p_end = max(0.0001, history_points[-1].get("price", p_start) if history_points else p_start)
+        f_price = max(0.0001, p_end / p_start)
         avg_dy = (sum(p.get("dy", 0.0) for p in history_points) / len(history_points)) / 100.0 if history_points else current_dy
-        f_obs = math.pow(1.0 + (math.pow(f_price, 1.0 / obs_duration) - 1.0 + avg_dy), obs_duration) if obs_duration >= 0.5 else 1.0
+        if obs_duration >= 0.5:
+            cagr_obs = math.pow(f_price, 1.0 / max(0.1, obs_duration)) - 1.0 + avg_dy
+            base_obs = max(0.01, 1.0 + cagr_obs)
+            f_obs = math.pow(base_obs, obs_duration)
+        else:
+            f_obs = 1.0
         missing_years = max(0.0, target_years - obs_duration)
-        f_proj = math.pow(1.0 + r1y, missing_years)
-        total_factor = f_obs * f_proj
+        base_proj = max(0.01, 1.0 + r1y)
+        f_proj = math.pow(base_proj, missing_years)
+        total_factor = max(0.001, f_obs * f_proj)
 
     total_invested = amount if modality == "single" else amount * (target_years * 12)
     if modality == "single":
@@ -259,6 +265,28 @@ class TestCalculatorMathPrecision:
         assert res["balance_nominal"] > 5000.0
         # O saldo real é deflacionado por 5 anos de inflação a 5%
         assert math.isclose(res["balance_real"], res["balance_nominal"] / math.pow(1.05, 5), rel_tol=1e-3)
+
+    def test_retrospective_simulator_math_negative_returns_and_nan_resilience(self):
+        """Valida resiliência matemática contra retornos negativos e potências fracionárias (evitando NaN)."""
+        # Ativo que caiu 70% em 9 meses (período fracionário < 1 ano)
+        pts = [
+            {"date": "2025-01-01", "price": 10.0, "dy": 5.0},
+            {"date": "2025-05-01", "price": 6.0, "dy": 5.0},
+            {"date": "2025-09-01", "price": 3.0, "dy": 5.0},
+        ]
+        res = calculate_retrospective_math(
+            amount=5000.0,
+            modality="single",
+            reinvest=True,
+            annual_inflation=0.06,
+            history_points=pts,
+            target_years=3,
+            current_dy=0.05
+        )
+        assert res["balance_nominal"] > 0
+        assert not math.isnan(res["balance_nominal"])
+        assert not math.isnan(res["balance_real"])
+        assert res["total_invested"] == 5000.0
 
 
 # ===================================================================
@@ -493,14 +521,40 @@ class TestCalculatorDOMContract:
         assert 'id="calc-retro-tbody"' in html_content
         assert 'id="retro-chart"' in html_content
         # Presets e funções
-        assert 'setRetroAmountPreset' in html_content
+        assert 'addRetroAmountPreset' in html_content
         assert 'setRetroInflationPreset' in html_content
         assert 'onRetroCategoryChange' in html_content
         # Funções implementadas em dashboard.js
         assert 'function calculateRetrospective()' in js_content
         assert 'function renderRetroChart(' in js_content
+        assert 'function addRetroAmountPreset(' in js_content
         assert 'function setRetroAmountPreset(' in js_content
         assert 'function setRetroInflationPreset(' in js_content
         assert 'function onRetroCategoryChange(' in js_content
         assert "mode === 'retrospective'" in js_content or "currentCalcMode === 'retrospective'" in js_content
+
+    def test_calculator_incremental_presets_bindings(self, html_content, js_content):
+        """Valida que todas as calculadoras possuem botões incrementais (+100, +X) e opção de Zerar."""
+        # Funções incrementais em dashboard.js
+        assert 'function addGoalPreset(' in js_content
+        assert 'function addSnowMonthlyPreset(' in js_content
+        assert 'function addRfAmountPreset(' in js_content
+        assert 'function addRetroAmountPreset(' in js_content
+        # Compatibilidade com set*Preset
+        assert 'function setGoalPreset(' in js_content
+        assert 'function setSnowMonthlyPreset(' in js_content
+        assert 'function setRfAmountPreset(' in js_content
+        assert 'function setRetroAmountPreset(' in js_content
+
+        # Botões incrementais no HTML
+        assert 'addGoalPreset(0)' in html_content
+        assert 'addGoalPreset(100)' in html_content
+        assert 'addSnowMonthlyPreset(0)' in html_content
+        assert 'addSnowMonthlyPreset(100)' in html_content
+        assert 'addRfAmountPreset(0)' in html_content
+        assert 'addRfAmountPreset(100)' in html_content
+        assert 'addRetroAmountPreset(0)' in html_content
+        assert 'addRetroAmountPreset(100)' in html_content
+        assert '+100' in html_content
+        assert 'Zerar' in html_content
 
