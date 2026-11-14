@@ -221,10 +221,15 @@ def run_full_pipeline(max_age_hours: int = 6, force: bool = False) -> bool:
 
         total_assets = result.get("ok", 0) + result.get("fail", 0)
         max_acceptable_fail = max(15, int(total_assets * 0.10)) if total_assets else 15
+
+        from src.database import get_all_stocks, get_all_fiis, get_all_fiagros
+        db_asset_count = len(get_all_stocks()) + len(get_all_fiis()) + len(get_all_fiagros())
+        has_healthy_data = result.get("ok", 0) > 0 or (total_assets == 0 and db_asset_count > 50)
+
         if (
             result.get("cvm_sources_ok", True)
             and macro_ok
-            and result.get("ok", 0) > 0
+            and has_healthy_data
             and result.get("fail", 0) <= max_acceptable_fail
         ):
             run_generator()
