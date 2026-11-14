@@ -673,7 +673,7 @@
                             <span class="calc-stat-val" id="calc-snow-result-real-monthly-income" style="font-weight: 700; color: #0284c7;">R$ 0,00 / mês real</span>
                         </div>
                     </div>
-                    <div style="position: relative; height: 220px; width: 100%; margin-top: 0.5rem;">
+                    <div class="calc-chart-wrapper" style="margin-top: 0.5rem;">
                         <canvas id="snowball-chart"></canvas>
                     </div>
                 </div>
@@ -1002,7 +1002,7 @@
                         </div>
                     </div>
 
-                    <div style="position: relative; height: 180px; width: 100%; margin-top: 0.6rem;">
+                    <div class="calc-chart-wrapper" style="height: 190px; margin-top: 0.6rem;">
                         <canvas id="previdencia-chart"></canvas>
                     </div>
                 </div>
@@ -1397,29 +1397,39 @@
                         <div id="calc-retro-asset-badge" style="font-size: 0.75rem; padding: 0.2rem 0.55rem; border-radius: var(--radius-sm); background: var(--surface-2); border: 1px solid var(--card-border); font-weight: 600;"></div>
                     </div>
 
-                    <!-- Tabela responsiva de horizontes -->
-                    <div style="overflow-x: auto; margin-top: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--card-border);">
-                        <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left;" id="calc-retro-table">
+                    <!-- Resumo Rápido de Marcos Chave (KPI Cards) -->
+                    <div class="calc-kpi-grid" id="calc-retro-kpi-grid">
+                        <!-- Preenchido dinamicamente com 1A, 5A, 10A, 20A -->
+                    </div>
+
+                    <!-- Gráfico Retrospectivo dos Horizontes (Visualização imediata, sem rolagem prévia) -->
+                    <div class="calc-chart-wrapper" style="margin-top: 0.5rem;">
+                        <canvas id="retro-chart"></canvas>
+                    </div>
+
+                    <!-- Dica sutil de rolagem horizontal em telas móveis -->
+                    <div class="calc-table-hint">
+                        <span>👉 Deslize horizontalmente na tabela abaixo para ver todos os dados</span>
+                    </div>
+
+                    <!-- Tabela responsiva de horizontes com coluna de prazo fixa -->
+                    <div class="calc-table-wrapper">
+                        <table id="calc-retro-table">
                             <thead>
                                 <tr style="background: var(--surface-2); border-bottom: 1px solid var(--card-border); color: var(--text-secondary); font-size: 0.74rem; text-transform: uppercase;">
-                                    <th style="padding: 0.6rem 0.65rem;">Horizonte</th>
-                                    <th style="padding: 0.6rem 0.65rem;">Total Investido</th>
-                                    <th style="padding: 0.6rem 0.65rem;">Saldo Hoje (Nominal)</th>
-                                    <th style="padding: 0.6rem 0.65rem; color: #0284c7;">Poder Real (IPCA)</th>
-                                    <th style="padding: 0.6rem 0.65rem;">Rentab. Total</th>
-                                    <th style="padding: 0.6rem 0.65rem;">Renda Est. Hoje</th>
-                                    <th style="padding: 0.6rem 0.65rem; min-width: 190px;">Origem dos Dados & Obs</th>
+                                    <th class="calc-retro-sticky-col" style="padding: 0.55rem 0.65rem;">Horizonte</th>
+                                    <th style="padding: 0.55rem 0.65rem;">Total Investido</th>
+                                    <th style="padding: 0.55rem 0.65rem;">Saldo Hoje (Nominal)</th>
+                                    <th style="padding: 0.55rem 0.65rem; color: #0284c7;">Poder Real (IPCA)</th>
+                                    <th style="padding: 0.55rem 0.65rem;">Rentab. Total</th>
+                                    <th style="padding: 0.55rem 0.65rem;">Renda Est. Hoje</th>
+                                    <th style="padding: 0.55rem 0.65rem;">Origem & Obs</th>
                                 </tr>
                             </thead>
                             <tbody id="calc-retro-tbody">
                                 <!-- Preenchido dinamicamente com 1, 2, 3, 5, 10, 15, 20 anos -->
                             </tbody>
                         </table>
-                    </div>
-
-                    <!-- Gráfico Retrospectivo dos Horizontes -->
-                    <div style="position: relative; height: 210px; width: 100%; margin-top: 1rem;">
-                        <canvas id="retro-chart"></canvas>
                     </div>
                 </div>
             </div>

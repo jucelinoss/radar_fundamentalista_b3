@@ -558,3 +558,23 @@ class TestCalculatorDOMContract:
         assert '+100' in html_content
         assert 'Zerar' in html_content
 
+    def test_calculator_responsive_layout_and_kpi_cards(self, html_content, css_content, js_content):
+        """Valida confinamento de layout responsivo, KPI cards e coluna sticky para tabelas no celular."""
+        # Containers e wrappers responsivos no HTML
+        assert 'id="calc-retro-kpi-grid"' in html_content
+        assert 'class="calc-chart-wrapper"' in html_content
+        assert 'class="calc-table-wrapper"' in html_content
+        assert 'calc-retro-sticky-col' in html_content
+        assert 'calc-table-hint' in html_content
+
+        # Regras CSS de confinamento e responsividade
+        assert '.calc-chart-wrapper' in css_content
+        assert '.calc-kpi-grid' in css_content
+        assert '.calc-kpi-card' in css_content
+        assert '.calc-retro-sticky-col' in css_content
+        assert '.calc-table-wrapper' in css_content
+
+        # Lógica em dashboard.js para popular KPI cards
+        assert 'calc-retro-kpi-grid' in js_content
+        assert 'calc-retro-sticky-col' in js_content
+
