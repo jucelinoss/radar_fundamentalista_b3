@@ -5439,6 +5439,7 @@ const tableSortState = {};
             const isLight = !document.body.classList.contains('dark');
             const gridColor = isLight ? '#e2e4ea' : '#282c38';
             const tickColor = isLight ? '#6b7084' : '#8b8fa3';
+            const isMobile = window.innerWidth < 640;
 
             snowballChartInstance = new Chart(ctx, {
                 type: 'bar',
@@ -5451,7 +5452,9 @@ const tableSortState = {};
                             backgroundColor: isLight ? 'rgba(100, 116, 139, 0.45)' : 'rgba(148, 163, 184, 0.35)',
                             borderColor: isLight ? '#64748b' : '#94a3b8',
                             borderWidth: 1,
-                            borderRadius: 4
+                            borderRadius: 4,
+                            categoryPercentage: isMobile ? 0.90 : 0.82,
+                            barPercentage: isMobile ? 0.95 : 0.88
                         },
                         {
                             label: 'Poder Real (IPCA)',
@@ -5459,7 +5462,9 @@ const tableSortState = {};
                             backgroundColor: isLight ? 'rgba(2, 132, 199, 0.7)' : 'rgba(56, 189, 248, 0.7)',
                             borderColor: isLight ? '#0284c7' : '#38bdf8',
                             borderWidth: 1,
-                            borderRadius: 4
+                            borderRadius: 4,
+                            categoryPercentage: isMobile ? 0.90 : 0.82,
+                            barPercentage: isMobile ? 0.95 : 0.88
                         },
                         {
                             label: 'Patrimônio Nominal',
@@ -5467,7 +5472,9 @@ const tableSortState = {};
                             backgroundColor: '#10b981',
                             borderColor: '#059669',
                             borderWidth: 1,
-                            borderRadius: 4
+                            borderRadius: 4,
+                            categoryPercentage: isMobile ? 0.90 : 0.82,
+                            barPercentage: isMobile ? 0.95 : 0.88
                         }
                     ]
                 },
@@ -5479,7 +5486,13 @@ const tableSortState = {};
                         keyValueLabels: false,
                         legend: {
                             display: true,
-                            labels: { color: tickColor, font: { size: 10, weight: '600', family: 'Inter, sans-serif' } }
+                            position: 'top',
+                            labels: {
+                                color: tickColor,
+                                boxWidth: isMobile ? 8 : 12,
+                                padding: isMobile ? 6 : 10,
+                                font: { size: isMobile ? 10 : 11, weight: '600', family: 'Inter, sans-serif' }
+                            }
                         },
                         tooltip: {
                             callbacks: {
@@ -5492,14 +5505,17 @@ const tableSortState = {};
                     scales: {
                         x: {
                             grid: { display: false },
-                            ticks: { color: tickColor, font: { size: 10, family: 'Inter, sans-serif' } }
+                            ticks: {
+                                color: tickColor,
+                                font: { size: isMobile ? 10 : 11, weight: '700', family: 'Inter, sans-serif' }
+                            }
                         },
                         y: {
                             grid: { color: gridColor },
                             ticks: {
                                 color: tickColor,
-                                maxTicksLimit: 5,
-                                font: { size: 10, family: 'Inter, sans-serif' },
+                                maxTicksLimit: isMobile ? 4 : 5,
+                                font: { size: isMobile ? 9 : 10, family: 'Inter, sans-serif' },
                                 callback: v => `R$ ${(v / 1000).toFixed(0)}k`
                             }
                         }
@@ -5801,6 +5817,25 @@ const tableSortState = {};
                 });
             });
 
+            const kpiGrid = document.getElementById('calc-retro-kpi-grid');
+            if (kpiGrid) {
+                const kpiHorizons = [1, 5, 10, 20];
+                const kpiItems = rowsData.filter(r => kpiHorizons.includes(r.hYears));
+                kpiGrid.innerHTML = kpiItems.map(k => {
+                    const retNomColor = k.totalNominalReturnPct >= 0 ? 'var(--positive)' : 'var(--negative, #ef4444)';
+                    const retRealColor = k.totalRealReturnPct >= 0 ? '#0284c7' : 'var(--negative, #ef4444)';
+                    return `
+                        <div class="calc-kpi-card">
+                            <span class="calc-kpi-label">${k.hYears} Ano${k.hYears > 1 ? 's' : ''}</span>
+                            <span class="calc-kpi-val" style="color: ${retNomColor};">R$ ${Math.round(k.balanceNominal).toLocaleString('pt-BR')}</span>
+                            <span class="calc-kpi-sub" style="color: ${retRealColor};">
+                                ${k.totalRealReturnPct >= 0 ? '+' : ''}${k.totalRealReturnPct.toFixed(0)}% real
+                            </span>
+                        </div>
+                    `;
+                }).join('');
+            }
+
             tbody.innerHTML = rowsData.map(r => {
                 const badgeColor = r.isReal ? '#10b981' : '#f59e0b';
                 const badgeBg = r.isReal ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)';
@@ -5809,17 +5844,17 @@ const tableSortState = {};
 
                 return `
                     <tr style="border-bottom: 1px solid var(--card-border); transition: background 0.15s ease;">
-                        <td style="padding: 0.65rem 0.75rem; font-weight: 700;">${r.horizon}</td>
-                        <td style="padding: 0.65rem 0.75rem; color: var(--text-secondary);">R$ ${r.totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                        <td style="padding: 0.65rem 0.75rem; font-weight: 700; color: ${retNomColor};">R$ ${r.balanceNominal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                        <td style="padding: 0.65rem 0.75rem; font-weight: 700; color: #0284c7;">R$ ${r.balanceReal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                        <td style="padding: 0.65rem 0.75rem;">
+                        <td class="calc-retro-sticky-col" style="padding: 0.55rem 0.65rem; font-weight: 700; white-space: nowrap;">${r.horizon}</td>
+                        <td style="padding: 0.55rem 0.65rem; color: var(--text-secondary); white-space: nowrap;">R$ ${r.totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        <td style="padding: 0.55rem 0.65rem; font-weight: 700; color: ${retNomColor}; white-space: nowrap;">R$ ${r.balanceNominal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        <td style="padding: 0.55rem 0.65rem; font-weight: 700; color: #0284c7; white-space: nowrap;">R$ ${r.balanceReal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        <td style="padding: 0.55rem 0.65rem; white-space: nowrap;">
                             <div style="font-weight: 700; color: ${retNomColor};">${r.totalNominalReturnPct >= 0 ? '+' : ''}${r.totalNominalReturnPct.toFixed(1)}% nom</div>
-                            <div style="font-size: 0.74rem; color: ${retRealColor}; font-weight: 600;">${r.totalRealReturnPct >= 0 ? '+' : ''}${r.totalRealReturnPct.toFixed(1)}% real</div>
+                            <div style="font-size: 0.72rem; color: ${retRealColor}; font-weight: 600;">${r.totalRealReturnPct >= 0 ? '+' : ''}${r.totalRealReturnPct.toFixed(1)}% real</div>
                         </td>
-                        <td style="padding: 0.65rem 0.75rem; font-weight: 600; color: var(--gold);">R$ ${r.monthlyIncomeToday.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mês</td>
-                        <td style="padding: 0.65rem 0.75rem; font-size: 0.74rem; line-height: 1.35; color: var(--text-muted);">
-                            <span style="display: inline-block; padding: 0.15rem 0.4rem; border-radius: 4px; font-weight: 700; font-size: 0.68rem; margin-bottom: 0.2rem; background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeColor};">
+                        <td style="padding: 0.55rem 0.65rem; font-weight: 600; color: var(--gold); white-space: nowrap;">R$ ${r.monthlyIncomeToday.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mês</td>
+                        <td style="padding: 0.55rem 0.65rem; font-size: 0.72rem; line-height: 1.35; color: var(--text-muted); min-width: 140px; max-width: 220px; white-space: normal;">
+                            <span style="display: inline-block; padding: 0.12rem 0.35rem; border-radius: 4px; font-weight: 700; font-size: 0.66rem; margin-bottom: 0.2rem; background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeColor};">
                                 ${r.isReal ? 'DADOS REAIS' : 'PROJEÇÃO 1º ANO'}
                             </span><br>
                             ${r.obsText}
@@ -5846,6 +5881,7 @@ const tableSortState = {};
             const isLight = !document.body.classList.contains('dark');
             const gridColor = isLight ? '#e2e4ea' : '#282c38';
             const tickColor = isLight ? '#6b7084' : '#8b8fa3';
+            const isMobile = window.innerWidth < 640;
 
             retroChartInstance = new Chart(ctx, {
                 type: 'bar',
@@ -5858,7 +5894,9 @@ const tableSortState = {};
                             backgroundColor: isLight ? 'rgba(100, 116, 139, 0.4)' : 'rgba(148, 163, 184, 0.35)',
                             borderColor: isLight ? '#64748b' : '#94a3b8',
                             borderWidth: 1,
-                            borderRadius: 4
+                            borderRadius: 3,
+                            categoryPercentage: isMobile ? 0.90 : 0.82,
+                            barPercentage: isMobile ? 0.95 : 0.88
                         },
                         {
                             label: 'Poder Real (IPCA)',
@@ -5866,7 +5904,9 @@ const tableSortState = {};
                             backgroundColor: isLight ? 'rgba(2, 132, 199, 0.75)' : 'rgba(56, 189, 248, 0.75)',
                             borderColor: isLight ? '#0284c7' : '#38bdf8',
                             borderWidth: 1,
-                            borderRadius: 4
+                            borderRadius: 3,
+                            categoryPercentage: isMobile ? 0.90 : 0.82,
+                            barPercentage: isMobile ? 0.95 : 0.88
                         },
                         {
                             label: 'Saldo Nominal Hoje',
@@ -5874,7 +5914,9 @@ const tableSortState = {};
                             backgroundColor: '#10b981',
                             borderColor: '#059669',
                             borderWidth: 1,
-                            borderRadius: 4
+                            borderRadius: 3,
+                            categoryPercentage: isMobile ? 0.90 : 0.82,
+                            barPercentage: isMobile ? 0.95 : 0.88
                         }
                     ]
                 },
@@ -5886,7 +5928,13 @@ const tableSortState = {};
                         keyValueLabels: false,
                         legend: {
                             display: true,
-                            labels: { color: tickColor, font: { size: 10, weight: '600', family: 'Inter, sans-serif' } }
+                            position: 'top',
+                            labels: {
+                                color: tickColor,
+                                boxWidth: isMobile ? 8 : 12,
+                                padding: isMobile ? 6 : 10,
+                                font: { size: isMobile ? 10 : 11, weight: '600', family: 'Inter, sans-serif' }
+                            }
                         },
                         tooltip: {
                             callbacks: {
@@ -5899,14 +5947,17 @@ const tableSortState = {};
                     scales: {
                         x: {
                             grid: { display: false },
-                            ticks: { color: tickColor, font: { size: 10, family: 'Inter, sans-serif' } }
+                            ticks: {
+                                color: tickColor,
+                                font: { size: isMobile ? 10 : 11, weight: '700', family: 'Inter, sans-serif' }
+                            }
                         },
                         y: {
                             grid: { color: gridColor },
                             ticks: {
                                 color: tickColor,
-                                maxTicksLimit: 5,
-                                font: { size: 10, family: 'Inter, sans-serif' },
+                                maxTicksLimit: isMobile ? 4 : 5,
+                                font: { size: isMobile ? 9 : 10, family: 'Inter, sans-serif' },
                                 callback: v => `R$ ${(v / 1000).toFixed(0)}k`
                             }
                         }
