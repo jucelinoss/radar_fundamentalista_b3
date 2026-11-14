@@ -5367,6 +5367,48 @@ const tableSortState = {};
                 realMonthlyIncomeEl.textContent = `R$ ${finalRealMonthlyIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / mês real`;
             }
 
+            // Atualização da Visão Didática / Simplificada (Hero 3 Passos & Narrativa)
+            const snowHeroInvestedEl = document.getElementById('calc-snow-hero-invested');
+            const snowHeroInvestedSubEl = document.getElementById('calc-snow-hero-invested-sub');
+            const snowHeroNominalEl = document.getElementById('calc-snow-hero-nominal');
+            const snowHeroNominalSubEl = document.getElementById('calc-snow-hero-nominal-sub');
+            const snowHeroRealGainEl = document.getElementById('calc-snow-hero-real-gain');
+            const snowHeroRealSubEl = document.getElementById('calc-snow-hero-real-sub');
+            const snowHeroNarrativeEl = document.getElementById('calc-snow-hero-narrative');
+
+            const realGainPct = totalInvested > 0 ? ((realNetGain / totalInvested) * 100) : 0;
+            const nominalGainPct = totalInvested > 0 ? (((balance - totalInvested) / totalInvested) * 100) : 0;
+            const inflErosion = Math.max(0, balance - finalRealBalance);
+
+            if (snowHeroInvestedEl) snowHeroInvestedEl.textContent = `R$ ${totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (snowHeroInvestedSubEl) {
+                snowHeroInvestedSubEl.textContent = initialCapital > 0 && monthlyContribution > 0
+                    ? `R$ ${Math.round(initialCapital).toLocaleString('pt-BR')} inicial + R$ ${Math.round(monthlyContribution).toLocaleString('pt-BR')}/mês (${years} anos)`
+                    : (monthlyContribution > 0 ? `R$ ${Math.round(monthlyContribution).toLocaleString('pt-BR')}/mês por ${years} anos` : `Aporte único de R$ ${Math.round(initialCapital).toLocaleString('pt-BR')}`);
+            }
+            if (snowHeroNominalEl) snowHeroNominalEl.textContent = `R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (snowHeroNominalSubEl) {
+                snowHeroNominalSubEl.textContent = `${nominalGainPct >= 0 ? '+' : ''}${nominalGainPct.toFixed(1)}% nominal · Renda: R$ ${finalMonthlyNetIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mês`;
+            }
+            if (snowHeroRealGainEl) {
+                const isPos = realNetGain >= 0;
+                snowHeroRealGainEl.textContent = `${isPos ? '+' : ''}R$ ${realNetGain.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                snowHeroRealGainEl.style.color = isPos ? '#0284c7' : 'var(--negative, #ef4444)';
+            }
+            if (snowHeroRealSubEl) {
+                snowHeroRealSubEl.textContent = `Poder real hoje: R$ ${finalRealBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${realGainPct >= 0 ? '+' : ''}${realGainPct.toFixed(1)}% real)`;
+            }
+            if (snowHeroNarrativeEl) {
+                const isPos = realNetGain >= 0;
+                const gainColor = isPos ? 'var(--positive)' : 'var(--negative, #ef4444)';
+                snowHeroNarrativeEl.innerHTML = `
+                    💡 <strong>Resumo do seu Dinheiro (${years} anos):</strong> Você aporta um total de <strong>R$ ${Math.round(totalInvested).toLocaleString('pt-BR')}</strong> do seu bolso.<br>
+                    • <strong>Na Corretora:</strong> seu saldo final estimado será de <strong>R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong> gerando cerca de <strong>R$ ${finalMonthlyNetIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mês</strong> em proventos líquidos.<br>
+                    • <strong>Efeito Inflação:</strong> o IPCA médio estimado em ${(annualInflation * 100).toFixed(1)}% a.a. corroerá ~R$ ${inflErosion.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} do saldo aparente. Seu poder de compra real será de <strong>R$ ${finalRealBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>.<br>
+                    • <strong>Seu Ganho Real Líquido no Bolso:</strong> <strong style="color: ${gainColor};">${isPos ? '+' : ''}R$ ${realNetGain.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${isPos ? '+' : ''}${realGainPct.toFixed(1)}% real acima da inflação)</strong>.
+                `;
+            }
+
             let price = 0;
             let cat = 'stocks';
             let hasCoupon = true;
@@ -5570,6 +5612,37 @@ const tableSortState = {};
 
         function onRetroCategoryChange() {
             filterCalculatorAssets('retro');
+        }
+
+        /* ── Alternadores de Visão Simplificada / Detalhes Técnicos ── */
+        function toggleSnowDetails() {
+            const pane = document.getElementById('calc-snow-details-pane');
+            const btn = document.getElementById('calc-snow-toggle-btn');
+            if (!pane || !btn) return;
+            const isHidden = pane.classList.contains('hidden');
+            pane.classList.toggle('hidden', !isHidden);
+            btn.classList.toggle('open', isHidden);
+            const labelSpan = btn.querySelector('span:first-child');
+            if (labelSpan) {
+                labelSpan.textContent = isHidden
+                    ? '▲ Ocultar Detalhes Avançados'
+                    : '🔍 Ver Detalhes Avançados (IR, Dividendos, Fisher e Magic Number)';
+            }
+        }
+
+        function toggleRetroDetails() {
+            const pane = document.getElementById('calc-retro-details-pane');
+            const btn = document.getElementById('calc-retro-toggle-btn');
+            if (!pane || !btn) return;
+            const isHidden = pane.classList.contains('hidden');
+            pane.classList.toggle('hidden', !isHidden);
+            btn.classList.toggle('open', isHidden);
+            const labelSpan = btn.querySelector('span:first-child');
+            if (labelSpan) {
+                labelSpan.textContent = isHidden
+                    ? '▲ Ocultar Tabela Completa e Detalhes Técnicos'
+                    : '📊 Ver Tabela Completa e Detalhes Técnicos';
+            }
         }
 
         /* ── Simulador Retrospectivo ("Quanto Teria Hoje?") ── */
@@ -5792,6 +5865,8 @@ const tableSortState = {};
                 if (isNaN(balanceNominal) || !isFinite(balanceNominal)) balanceNominal = totalInvested;
                 if (isNaN(balanceReal) || !isFinite(balanceReal)) balanceReal = balanceNominal / cumInflation;
 
+                const inflationCost = Math.max(0, balanceNominal - balanceReal);
+                const realNetGain = balanceReal - totalInvested;
                 const totalNominalReturnPct = totalInvested > 0 ? ((balanceNominal - totalInvested) / totalInvested) * 100 : 0;
                 const totalRealReturnPct = totalInvested > 0 ? ((balanceReal - totalInvested) / totalInvested) * 100 : 0;
                 const monthlyIncomeToday = balanceNominal * (currentDy / 12);
@@ -5802,6 +5877,8 @@ const tableSortState = {};
                     totalInvested,
                     balanceNominal,
                     balanceReal,
+                    inflationCost,
+                    realNetGain,
                     totalNominalReturnPct,
                     totalRealReturnPct,
                     monthlyIncomeToday,
@@ -5817,40 +5894,76 @@ const tableSortState = {};
                 });
             });
 
+            // Frase Síntese Didática em Linguagem Natural (Benchmark de 5 anos ou marco representativo)
+            const heroNarrativeEl = document.getElementById('calc-retro-hero-narrative');
+            if (heroNarrativeEl) {
+                const heroRow = rowsData.find(r => r.hYears === 5) || rowsData[0];
+                if (heroRow) {
+                    const assetLabel = assetItem.label || assetItem.id;
+                    const isGainPos = heroRow.realNetGain >= 0;
+                    const gainColor = isGainPos ? 'var(--positive)' : 'var(--negative, #ef4444)';
+                    const modText = modality === 'monthly'
+                        ? `aportes mensais de <strong>R$ ${Math.round(amount).toLocaleString('pt-BR')}</strong>`
+                        : `um aporte único de <strong>R$ ${Math.round(amount).toLocaleString('pt-BR')}</strong>`;
+
+                    heroNarrativeEl.innerHTML = `
+                        💡 <strong>Resumo do seu Dinheiro (${heroRow.horizon}):</strong> Se você tivesse iniciado com ${modText} em <strong>${assetLabel}</strong> há ${heroRow.hYears} anos (total investido: <strong>R$ ${Math.round(heroRow.totalInvested).toLocaleString('pt-BR')}</strong>):<br>
+                        • <strong>Na Corretora Hoje:</strong> você teria <strong>R$ ${Math.round(heroRow.balanceNominal).toLocaleString('pt-BR')}</strong> (${heroRow.totalNominalReturnPct >= 0 ? '+' : ''}${heroRow.totalNominalReturnPct.toFixed(1)}% nominal) gerando ~<strong>R$ ${Math.round(heroRow.monthlyIncomeToday).toLocaleString('pt-BR')}/mês</strong> em proventos estimados.<br>
+                        • <strong>Efeito Inflação:</strong> o IPCA médio acumulado (~${(annualInflation * 100).toFixed(1)}% a.a.) corroeu ~R$ ${Math.round(heroRow.inflationCost).toLocaleString('pt-BR')} do ganho aparente. Seu poder de compra real líquido hoje é de <strong>R$ ${Math.round(heroRow.balanceReal).toLocaleString('pt-BR')}</strong>.<br>
+                        • <strong>Seu Ganho Real Líquido no Bolso:</strong> <strong style="color: ${gainColor};">${isGainPos ? '+' : ''}R$ ${Math.round(heroRow.realNetGain).toLocaleString('pt-BR')} (${isGainPos ? '+' : ''}${heroRow.totalRealReturnPct.toFixed(1)}% real acima da inflação)</strong>.
+                    `;
+                }
+            }
+
+            // Cards de Resumo Rápido Didáticos (KPIs de 1A, 5A, 10A e 20A)
             const kpiGrid = document.getElementById('calc-retro-kpi-grid');
             if (kpiGrid) {
                 const kpiHorizons = [1, 5, 10, 20];
                 const kpiItems = rowsData.filter(r => kpiHorizons.includes(r.hYears));
                 kpiGrid.innerHTML = kpiItems.map(k => {
                     const retNomColor = k.totalNominalReturnPct >= 0 ? 'var(--positive)' : 'var(--negative, #ef4444)';
-                    const retRealColor = k.totalRealReturnPct >= 0 ? '#0284c7' : 'var(--negative, #ef4444)';
+                    const retRealColor = k.realNetGain >= 0 ? '#0284c7' : 'var(--negative, #ef4444)';
+                    const badgeLabel = k.isReal ? 'Real B3' : 'Projeção';
+                    const badgeBg = k.isReal ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.12)';
+                    const badgeColor = k.isReal ? '#10b981' : '#f59e0b';
+
                     return `
                         <div class="calc-kpi-card">
-                            <span class="calc-kpi-label">${k.hYears} Ano${k.hYears > 1 ? 's' : ''}</span>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span class="calc-kpi-label">${k.hYears} Ano${k.hYears > 1 ? 's' : ''}</span>
+                                <span style="font-size: 0.62rem; font-weight: 700; padding: 0.1rem 0.35rem; border-radius: 3px; background: ${badgeBg}; color: ${badgeColor};">${badgeLabel}</span>
+                            </div>
+                            <div style="font-size: 0.68rem; color: var(--text-muted); margin-top: 0.15rem;">Saldo Corretora:</div>
                             <span class="calc-kpi-val" style="color: ${retNomColor};">R$ ${Math.round(k.balanceNominal).toLocaleString('pt-BR')}</span>
-                            <span class="calc-kpi-sub" style="color: ${retRealColor};">
-                                ${k.totalRealReturnPct >= 0 ? '+' : ''}${k.totalRealReturnPct.toFixed(0)}% real
+                            <div style="font-size: 0.68rem; color: var(--text-muted); margin-top: 0.15rem;">Ganho Real Líquido:</div>
+                            <span class="calc-kpi-sub" style="color: ${retRealColor}; font-weight: 700;">
+                                ${k.realNetGain >= 0 ? '+' : ''}R$ ${Math.round(k.realNetGain).toLocaleString('pt-BR')} (${k.totalRealReturnPct >= 0 ? '+' : ''}${k.totalRealReturnPct.toFixed(0)}%)
                             </span>
                         </div>
                     `;
                 }).join('');
             }
 
+            // Tabela Detalhada com decomposição passo a passo
             tbody.innerHTML = rowsData.map(r => {
                 const badgeColor = r.isReal ? '#10b981' : '#f59e0b';
                 const badgeBg = r.isReal ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)';
                 const retNomColor = r.totalNominalReturnPct >= 0 ? 'var(--positive)' : 'var(--negative, #ef4444)';
-                const retRealColor = r.totalRealReturnPct >= 0 ? '#0284c7' : 'var(--negative, #ef4444)';
+                const retRealColor = r.realNetGain >= 0 ? 'var(--positive)' : 'var(--negative, #ef4444)';
 
                 return `
                     <tr style="border-bottom: 1px solid var(--card-border); transition: background 0.15s ease;">
                         <td class="calc-retro-sticky-col" style="padding: 0.55rem 0.65rem; font-weight: 700; white-space: nowrap;">${r.horizon}</td>
                         <td style="padding: 0.55rem 0.65rem; color: var(--text-secondary); white-space: nowrap;">R$ ${r.totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                        <td style="padding: 0.55rem 0.65rem; font-weight: 700; color: ${retNomColor}; white-space: nowrap;">R$ ${r.balanceNominal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        <td style="padding: 0.55rem 0.65rem; font-weight: 700; color: ${retNomColor}; white-space: nowrap;">
+                            R$ ${r.balanceNominal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            <div style="font-size: 0.70rem; color: var(--text-muted); font-weight: 500;">${r.totalNominalReturnPct >= 0 ? '+' : ''}${r.totalNominalReturnPct.toFixed(1)}% nom</div>
+                        </td>
+                        <td style="padding: 0.55rem 0.65rem; color: #ef4444; font-weight: 600; white-space: nowrap;">-R$ ${r.inflationCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                         <td style="padding: 0.55rem 0.65rem; font-weight: 700; color: #0284c7; white-space: nowrap;">R$ ${r.balanceReal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                        <td style="padding: 0.55rem 0.65rem; white-space: nowrap;">
-                            <div style="font-weight: 700; color: ${retNomColor};">${r.totalNominalReturnPct >= 0 ? '+' : ''}${r.totalNominalReturnPct.toFixed(1)}% nom</div>
-                            <div style="font-size: 0.72rem; color: ${retRealColor}; font-weight: 600;">${r.totalRealReturnPct >= 0 ? '+' : ''}${r.totalRealReturnPct.toFixed(1)}% real</div>
+                        <td style="padding: 0.55rem 0.65rem; font-weight: 700; color: ${retRealColor}; white-space: nowrap;">
+                            ${r.realNetGain >= 0 ? '+' : ''}R$ ${r.realNetGain.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            <div style="font-size: 0.70rem; color: ${retRealColor}; font-weight: 600;">${r.totalRealReturnPct >= 0 ? '+' : ''}${r.totalRealReturnPct.toFixed(1)}% real</div>
                         </td>
                         <td style="padding: 0.55rem 0.65rem; font-weight: 600; color: var(--gold); white-space: nowrap;">R$ ${r.monthlyIncomeToday.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mês</td>
                         <td style="padding: 0.55rem 0.65rem; font-size: 0.72rem; line-height: 1.35; color: var(--text-muted); min-width: 140px; max-width: 220px; white-space: normal;">

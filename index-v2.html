@@ -614,67 +614,103 @@
                 </div>
 
                 <div class="calc-card">
-                    <h3 id="calc-snow-card-title" style="font-size: 0.95rem; font-weight: 700;">Projeção de Acúmulo & Reinvestimento Autossustentável</h3>
-                    <div class="calc-magic-badge" id="calc-snow-magic-badge">
-                        <div class="calc-magic-icon" id="calc-snow-magic-icon"></div>
-                        <div class="calc-magic-text">
-                            <strong id="calc-magic-number-title">Ponto de Reinvestimento Automático: Calculando...</strong>
-                            <span id="calc-magic-number-desc">Quantidade de cotas necessária para que os proventos mensais financiem novas cotas de forma autossustentável.</span>
+                    <h3 id="calc-snow-card-title" style="font-size: 0.95rem; font-weight: 700;">Resultado da Projeção (Acúmulo & Ganho Real)</h3>
+
+                    <!-- Visão Simplificada / Didática (Padrão): O Dinheiro em 3 Passos -->
+                    <div class="calc-hero-flow" id="calc-snow-hero-flow">
+                        <div class="calc-hero-card highlight-invested">
+                            <span class="calc-hero-step-tag">1. Seu Bolso (Aportes)</span>
+                            <span class="calc-hero-val" id="calc-snow-hero-invested">R$ 0,00</span>
+                            <span class="calc-hero-sub" id="calc-snow-hero-invested-sub">Capital inicial + aportes mensais</span>
+                        </div>
+                        <div class="calc-hero-card highlight-nominal">
+                            <span class="calc-hero-step-tag">2. Na Corretora (Nominal)</span>
+                            <span class="calc-hero-val" id="calc-snow-hero-nominal" style="color: var(--positive);">R$ 0,00</span>
+                            <span class="calc-hero-sub" id="calc-snow-hero-nominal-sub">Saldo bruto com proventos reinvestidos</span>
+                        </div>
+                        <div class="calc-hero-card highlight-real">
+                            <span class="calc-hero-step-tag">3. Ganho Real (No Bolso)</span>
+                            <span class="calc-hero-val" id="calc-snow-hero-real-gain" style="color: #0284c7;">+R$ 0,00</span>
+                            <span class="calc-hero-sub" id="calc-snow-hero-real-sub">Acima da inflação (Poder real de hoje)</span>
                         </div>
                     </div>
-                    <div class="calc-result-box">
-                        <div class="calc-stat-item">
-                            <span style="color: var(--text-secondary);">Patrimônio Final Estimado (Nominal):</span>
-                            <span class="calc-stat-val" id="calc-snow-result-total" style="font-size: 1.2rem; color: var(--positive);">R$ 0,00</span>
-                        </div>
-                        <div class="calc-stat-item" style="background: rgba(14, 165, 233, 0.08); padding: 0.45rem 0.65rem; border-radius: var(--radius-sm); border: 1px solid rgba(14, 165, 233, 0.25); margin: 0.2rem 0;">
-                            <span style="color: #0284c7; font-weight: 600;">
-                                Poder de Compra Real (Corrigido pelo IPCA):
-                                <span class="info-tooltip" data-tooltip="Patrimônio final deflacionado pelo IPCA acumulado no prazo, representando quanto esse montante valeria em poder de compra de hoje.">ⓘ</span>
-                            </span>
-                            <span class="calc-stat-val" id="calc-snow-result-real-total" style="font-size: 1.15rem; font-weight: 800; color: #0284c7;">R$ 0,00</span>
-                        </div>
-                        <div class="calc-stat-item">
-                            <span style="color: var(--text-secondary);">Total Aportado:</span>
-                            <span class="calc-stat-val" id="calc-snow-result-invested">R$ 0,00</span>
-                        </div>
-                        <div class="calc-stat-item">
-                            <span id="calc-snow-result-dividends-label" style="color: var(--text-secondary);">Rendimento Gerado por Juros/Dividendos (Líquido):</span>
-                            <span class="calc-stat-val" id="calc-snow-result-dividends" style="color: var(--gold);">R$ 0,00</span>
-                        </div>
-                        <div class="calc-stat-item">
-                            <span style="color: var(--text-secondary);">Ganho Real Acima da Inflação:</span>
-                            <span class="calc-stat-val" id="calc-snow-result-real-gain" style="color: var(--positive); font-weight: 700;">+R$ 0,00</span>
-                        </div>
-                        <div class="calc-stat-item">
-                            <span style="color: var(--text-secondary);">Taxa Real Líquida Anual (Fisher):</span>
-                            <span class="calc-stat-val" id="calc-snow-result-real-rate" style="color: var(--text-primary); font-weight: 700;">+0,00% a.a. real</span>
-                        </div>
-                        <div class="calc-progress-container">
-                            <div class="calc-progress-bar">
-                                <div class="calc-progress-invested" id="calc-snow-bar-invested" style="width: 50%;"></div>
-                                <div class="calc-progress-returns" id="calc-snow-bar-returns" style="width: 50%;"></div>
-                            </div>
-                            <div class="calc-progress-legend">
-                                <span>Aportes: <strong id="calc-snow-pct-invested">50%</strong></span>
-                                <span>Juros / Proventos: <strong id="calc-snow-pct-returns">50%</strong></span>
-                            </div>
-                        </div>
-                        <div class="calc-stat-item" style="margin-top: 0.5rem;">
-                            <span style="color: var(--text-secondary);">Imposto de Renda Acumulado (Estimado):</span>
-                            <span class="calc-stat-val" id="calc-snow-result-tax" style="color: var(--text-muted);">R$ 0,00</span>
-                        </div>
-                        <div class="calc-stat-item">
-                            <span id="calc-snow-monthly-income-label" style="color: var(--text-secondary);">Renda Mensal Líquida no Final (Nominal):</span>
-                            <span class="calc-stat-val" id="calc-snow-result-monthly-income" style="font-weight: 800; color: var(--positive);">R$ 0,00 / mês</span>
-                        </div>
-                        <div class="calc-stat-item">
-                            <span style="color: var(--text-secondary);">Renda Mensal Real (Poder de Compra de Hoje):</span>
-                            <span class="calc-stat-val" id="calc-snow-result-real-monthly-income" style="font-weight: 700; color: #0284c7;">R$ 0,00 / mês real</span>
-                        </div>
+
+                    <!-- Frase Síntese Didática em Linguagem Natural -->
+                    <div class="calc-hero-narrative" id="calc-snow-hero-narrative">
+                        Carregando projeção didática...
                     </div>
-                    <div class="calc-chart-wrapper" style="margin-top: 0.5rem;">
+
+                    <!-- Gráfico Temporal de Evolução (Investido vs Real vs Nominal) -->
+                    <div class="calc-chart-wrapper" style="margin-top: 0.4rem;">
                         <canvas id="snowball-chart"></canvas>
+                    </div>
+
+                    <!-- Botão de Alternância para Visão Detalhada -->
+                    <button type="button" class="calc-details-toggle-btn" id="calc-snow-toggle-btn" onclick="toggleSnowDetails()">
+                        <span>🔍 Ver Detalhes Avançados (IR, Dividendos, Fisher e Magic Number)</span>
+                        <span class="calc-toggle-icon">▼</span>
+                    </button>
+
+                    <!-- Painel de Detalhes Técnicos (Oculto por padrão, expansível sob demanda) -->
+                    <div class="calc-details-pane hidden" id="calc-snow-details-pane">
+                        <div class="calc-magic-badge" id="calc-snow-magic-badge">
+                            <div class="calc-magic-icon" id="calc-snow-magic-icon"></div>
+                            <div class="calc-magic-text">
+                                <strong id="calc-magic-number-title">Ponto de Reinvestimento Automático: Calculando...</strong>
+                                <span id="calc-magic-number-desc">Quantidade de cotas necessária para que os proventos mensais financiem novas cotas de forma autossustentável.</span>
+                            </div>
+                        </div>
+                        <div class="calc-result-box">
+                            <div class="calc-stat-item">
+                                <span style="color: var(--text-secondary);">Patrimônio Final Estimado (Nominal):</span>
+                                <span class="calc-stat-val" id="calc-snow-result-total" style="font-size: 1.2rem; color: var(--positive);">R$ 0,00</span>
+                            </div>
+                            <div class="calc-stat-item" style="background: rgba(14, 165, 233, 0.08); padding: 0.45rem 0.65rem; border-radius: var(--radius-sm); border: 1px solid rgba(14, 165, 233, 0.25); margin: 0.2rem 0;">
+                                <span style="color: #0284c7; font-weight: 600;">
+                                    Poder de Compra Real (Corrigido pelo IPCA):
+                                    <span class="info-tooltip" data-tooltip="Patrimônio final deflacionado pelo IPCA acumulado no prazo, representando quanto esse montante valeria em poder de compra de hoje.">ⓘ</span>
+                                </span>
+                                <span class="calc-stat-val" id="calc-snow-result-real-total" style="font-size: 1.15rem; font-weight: 800; color: #0284c7;">R$ 0,00</span>
+                            </div>
+                            <div class="calc-stat-item">
+                                <span style="color: var(--text-secondary);">Total Aportado:</span>
+                                <span class="calc-stat-val" id="calc-snow-result-invested">R$ 0,00</span>
+                            </div>
+                            <div class="calc-stat-item">
+                                <span id="calc-snow-result-dividends-label" style="color: var(--text-secondary);">Rendimento Gerado por Juros/Dividendos (Líquido):</span>
+                                <span class="calc-stat-val" id="calc-snow-result-dividends" style="color: var(--gold);">R$ 0,00</span>
+                            </div>
+                            <div class="calc-stat-item">
+                                <span style="color: var(--text-secondary);">Ganho Real Acima da Inflação:</span>
+                                <span class="calc-stat-val" id="calc-snow-result-real-gain" style="color: var(--positive); font-weight: 700;">+R$ 0,00</span>
+                            </div>
+                            <div class="calc-stat-item">
+                                <span style="color: var(--text-secondary);">Taxa Real Líquida Anual (Fisher):</span>
+                                <span class="calc-stat-val" id="calc-snow-result-real-rate" style="color: var(--text-primary); font-weight: 700;">+0,00% a.a. real</span>
+                            </div>
+                            <div class="calc-progress-container">
+                                <div class="calc-progress-bar">
+                                    <div class="calc-progress-invested" id="calc-snow-bar-invested" style="width: 50%;"></div>
+                                    <div class="calc-progress-returns" id="calc-snow-bar-returns" style="width: 50%;"></div>
+                                </div>
+                                <div class="calc-progress-legend">
+                                    <span>Aportes: <strong id="calc-snow-pct-invested">50%</strong></span>
+                                    <span>Juros / Proventos: <strong id="calc-snow-pct-returns">50%</strong></span>
+                                </div>
+                            </div>
+                            <div class="calc-stat-item" style="margin-top: 0.5rem;">
+                                <span style="color: var(--text-secondary);">Imposto de Renda Acumulado (Estimado):</span>
+                                <span class="calc-stat-val" id="calc-snow-result-tax" style="color: var(--text-muted);">R$ 0,00</span>
+                            </div>
+                            <div class="calc-stat-item">
+                                <span id="calc-snow-monthly-income-label" style="color: var(--text-secondary);">Renda Mensal Líquida no Final (Nominal):</span>
+                                <span class="calc-stat-val" id="calc-snow-result-monthly-income" style="font-weight: 800; color: var(--positive);">R$ 0,00 / mês</span>
+                            </div>
+                            <div class="calc-stat-item">
+                                <span style="color: var(--text-secondary);">Renda Mensal Real (Poder de Compra de Hoje):</span>
+                                <span class="calc-stat-val" id="calc-snow-result-real-monthly-income" style="font-weight: 700; color: #0284c7;">R$ 0,00 / mês real</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1391,10 +1427,15 @@
                 <div class="calc-card" style="display: flex; flex-direction: column;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; border-bottom: 1px solid var(--card-border); padding-bottom: 0.65rem;">
                         <div>
-                            <h3 id="calc-retro-card-title" style="font-size: 0.95rem; font-weight: 700; margin: 0; border: none; padding: 0;">Resultado da Simulação Retrospectiva ("E Se Tivesse Investido?")</h3>
+                            <h3 id="calc-retro-card-title" style="font-size: 0.95rem; font-weight: 700; margin: 0; border: none; padding: 0;">Resultado da Simulação Retrospectiva ("Quanto Teria Hoje?")</h3>
                             <span id="calc-retro-asset-info" style="font-size: 0.8rem; color: var(--text-muted);">Carregando dados do ativo...</span>
                         </div>
                         <div id="calc-retro-asset-badge" style="font-size: 0.75rem; padding: 0.2rem 0.55rem; border-radius: var(--radius-sm); background: var(--surface-2); border: 1px solid var(--card-border); font-weight: 600;"></div>
+                    </div>
+
+                    <!-- Frase Síntese Didática em Linguagem Natural -->
+                    <div class="calc-hero-narrative" id="calc-retro-hero-narrative">
+                        Carregando simulação didática...
                     </div>
 
                     <!-- Resumo Rápido de Marcos Chave (KPI Cards) -->
@@ -1407,29 +1448,39 @@
                         <canvas id="retro-chart"></canvas>
                     </div>
 
-                    <!-- Dica sutil de rolagem horizontal em telas móveis -->
-                    <div class="calc-table-hint">
-                        <span>👉 Deslize horizontalmente na tabela abaixo para ver todos os dados</span>
-                    </div>
+                    <!-- Botão de Alternância para Visão Detalhada -->
+                    <button type="button" class="calc-details-toggle-btn" id="calc-retro-toggle-btn" onclick="toggleRetroDetails()">
+                        <span>📊 Ver Tabela Completa e Detalhes Técnicos</span>
+                        <span class="calc-toggle-icon">▼</span>
+                    </button>
 
-                    <!-- Tabela responsiva de horizontes com coluna de prazo fixa -->
-                    <div class="calc-table-wrapper">
-                        <table id="calc-retro-table">
-                            <thead>
-                                <tr style="background: var(--surface-2); border-bottom: 1px solid var(--card-border); color: var(--text-secondary); font-size: 0.74rem; text-transform: uppercase;">
-                                    <th class="calc-retro-sticky-col" style="padding: 0.55rem 0.65rem;">Horizonte</th>
-                                    <th style="padding: 0.55rem 0.65rem;">Total Investido</th>
-                                    <th style="padding: 0.55rem 0.65rem;">Saldo Hoje (Nominal)</th>
-                                    <th style="padding: 0.55rem 0.65rem; color: #0284c7;">Poder Real (IPCA)</th>
-                                    <th style="padding: 0.55rem 0.65rem;">Rentab. Total</th>
-                                    <th style="padding: 0.55rem 0.65rem;">Renda Est. Hoje</th>
-                                    <th style="padding: 0.55rem 0.65rem;">Origem & Obs</th>
-                                </tr>
-                            </thead>
-                            <tbody id="calc-retro-tbody">
-                                <!-- Preenchido dinamicamente com 1, 2, 3, 5, 10, 15, 20 anos -->
-                            </tbody>
-                        </table>
+                    <!-- Painel de Detalhes Técnicos (Oculto por padrão, expansível sob demanda) -->
+                    <div class="calc-details-pane hidden" id="calc-retro-details-pane">
+                        <!-- Dica sutil de rolagem horizontal em telas móveis -->
+                        <div class="calc-table-hint">
+                            <span>👉 Deslize horizontalmente na tabela abaixo para ver todos os dados</span>
+                        </div>
+
+                        <!-- Tabela responsiva de horizontes com coluna de prazo fixa -->
+                        <div class="calc-table-wrapper">
+                            <table id="calc-retro-table">
+                                <thead>
+                                    <tr style="background: var(--surface-2); border-bottom: 1px solid var(--card-border); color: var(--text-secondary); font-size: 0.74rem; text-transform: uppercase;">
+                                        <th class="calc-retro-sticky-col" style="padding: 0.55rem 0.65rem;">Horizonte</th>
+                                        <th style="padding: 0.55rem 0.65rem;">Total Investido</th>
+                                        <th style="padding: 0.55rem 0.65rem;">Saldo Hoje (Nominal)</th>
+                                        <th style="padding: 0.55rem 0.65rem; color: #ef4444;">Efeito Inflação</th>
+                                        <th style="padding: 0.55rem 0.65rem; color: #0284c7;">Poder Real (IPCA)</th>
+                                        <th style="padding: 0.55rem 0.65rem; color: var(--positive);">Ganho Real Líquido</th>
+                                        <th style="padding: 0.55rem 0.65rem;">Renda Est. Hoje</th>
+                                        <th style="padding: 0.55rem 0.65rem;">Origem & Obs</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="calc-retro-tbody">
+                                    <!-- Preenchido dinamicamente com 1, 2, 3, 5, 10, 15, 20 anos -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
