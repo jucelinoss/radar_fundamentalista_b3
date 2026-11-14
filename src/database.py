@@ -104,8 +104,45 @@ def _add_column_if_not_exists(cursor: sqlite3.Cursor, table_name: str, column_na
 # ---------------------------------------------------------------------------
 
 
+def delete_asset(ticker: str) -> None:
+    """Remove an asset from all tables (stocks, fiis, fiagros)."""
+    with get_connection() as conn:
+        for table in ("stocks", "fiis", "fiagros"):
+            conn.execute(f"DELETE FROM {table} WHERE ticker = ?", (ticker,))
+            clean_ticker = ticker.replace(".SA", "")
+            if clean_ticker != ticker:
+                conn.execute(f"DELETE FROM {table} WHERE ticker = ?", (clean_ticker,))
+            else:
+                conn.execute(f"DELETE FROM {table} WHERE ticker = ?", (f"{ticker}.SA",))
+
+
+def purge_invalid_assets(delisted_tickers: set[str] | None = None) -> int:
+    """Remove assets with invalid prices (<= 0 or NULL) or marked as delisted."""
+    purged = 0
+    with get_connection() as conn:
+        for table in ("stocks", "fiis", "fiagros"):
+            cursor = conn.cursor()
+            cursor.execute(f"DELETE FROM {table} WHERE price IS NULL OR price <= 0")
+            purged += cursor.rowcount
+            if delisted_tickers:
+                expanded = set()
+                for dt in delisted_tickers:
+                    expanded.add(dt)
+                    expanded.add(dt.replace(".SA", ""))
+                    expanded.add(f"{dt}.SA")
+                placeholders = ','.join(['?'] * len(expanded))
+                cursor.execute(f"DELETE FROM {table} WHERE ticker IN ({placeholders})", list(expanded))
+                purged += cursor.rowcount
+    return purged
+
+
 def save_stock(data: dict[str, Any]) -> None:
     """Insert or replace a stock record."""
+    price = data.get("price")
+    if price is None or price <= 0:
+        delete_asset(data["ticker"])
+        return
+
     import json
     breakdown_json = json.dumps(data.get('score_breakdown') or [])
     with get_connection() as conn:
@@ -117,7 +154,7 @@ def save_stock(data: dict[str, Any]) -> None:
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             data['ticker'], data.get('name'), data.get('sector', 'Outros'),
-            data.get('price'), data.get('pe_ratio'),
+            price, data.get('pe_ratio'),
             data.get('pb_ratio'), data.get('dividend_yield'), data.get('roe'),
             data.get('eps'), data.get('book_value'), data.get('graham_price'),
             data.get('bazin_price'), data.get('score'), data.get('history_json'),
@@ -154,6 +191,11 @@ def get_stock_by_ticker(ticker: str) -> dict[str, Any] | None:
 
 def save_fii(data: dict[str, Any]) -> None:
     """Insert or replace a FII record."""
+    price = data.get("price")
+    if price is None or price <= 0:
+        delete_asset(data["ticker"])
+        return
+
     import json
     breakdown_json = json.dumps(data.get('score_breakdown') or [])
     with get_connection() as conn:
@@ -164,7 +206,7 @@ def save_fii(data: dict[str, Any]) -> None:
             dividend_consistency, score_v2, score_breakdown, history_version
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
-            data['ticker'], data.get('name'), data.get('price'),
+            data['ticker'], data.get('name'), price,
             data.get('pb_ratio'), data.get('dividend_yield'),
             data.get('dividend_rate'), data.get('book_value'),
             data.get('score', 0),
@@ -190,6 +232,11 @@ def get_all_fiis() -> list[dict[str, Any]]:
 
 def save_fiagro(data: dict[str, Any]) -> None:
     """Insert or replace a FIAGRO record."""
+    price = data.get("price")
+    if price is None or price <= 0:
+        delete_asset(data["ticker"])
+        return
+
     import json
     breakdown_json = json.dumps(data.get('score_breakdown') or [])
     with get_connection() as conn:
@@ -200,7 +247,7 @@ def save_fiagro(data: dict[str, Any]) -> None:
             dividend_consistency, score_v2, score_breakdown, history_version
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
-            data['ticker'], data.get('name'), data.get('price'),
+            data['ticker'], data.get('name'), price,
             data.get('pb_ratio'), data.get('dividend_yield'),
             data.get('dividend_rate'), data.get('book_value'),
             data.get('score', 0),

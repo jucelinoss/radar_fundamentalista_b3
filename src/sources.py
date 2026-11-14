@@ -470,8 +470,13 @@ def _inject_cvm_data(ticker: str, info: dict[str, Any], asset_type: str) -> None
     vpa = vpa_map.get(clean_ticker)
     if vpa and vpa > 0:
         info["bookValue"] = vpa
-        price = info.get("currentPrice") or info.get("regularMarketPrice")
-        if price is not None:
+        price = None
+        for fld in ("currentPrice", "regularMarketPrice", "previousClose"):
+            cand = info.get(fld)
+            if cand is not None and isinstance(cand, (int, float)) and cand > 0:
+                price = cand
+                break
+        if price is not None and price > 0:
             # Only set priceToBook if not already present from source
             if not info.get("priceToBook"):
                 info["priceToBook"] = round(price / vpa, 4)
@@ -483,8 +488,13 @@ def _inject_cvm_data(ticker: str, info: dict[str, Any], asset_type: str) -> None
     if cvm_dy is not None and cvm_dy > 0 and (not existing_dy or existing_dy < 0.05):
         info["dividendYield"] = cvm_dy
         # Recalculate dividendRate if we have price
-        price = info.get("currentPrice") or info.get("regularMarketPrice")
-        if price is not None:
+        price = None
+        for fld in ("currentPrice", "regularMarketPrice", "previousClose"):
+            cand = info.get(fld)
+            if cand is not None and isinstance(cand, (int, float)) and cand > 0:
+                price = cand
+                break
+        if price is not None and price > 0:
             info["dividendRate"] = round(cvm_dy * price, 4)
 
 

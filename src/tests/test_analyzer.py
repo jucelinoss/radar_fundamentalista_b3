@@ -366,6 +366,26 @@ class TestAnalyzeStock:
         assert result["price"] == 25.0
         assert result["name"] == "Fallback Corp"
 
+    def test_price_fallback_to_previous_close_when_zero(self):
+        """Should fallback to previousClose if currentPrice and regularMarketPrice are 0.0."""
+        from analyzer import _parse_price
+        info = {
+            "currentPrice": 0.0,
+            "regularMarketPrice": 0.0,
+            "previousClose": 63.5,
+        }
+        assert _parse_price(info) == 63.5
+
+    def test_price_returns_none_when_all_non_positive(self):
+        """Should return None if all price indicators are <= 0 or None."""
+        from analyzer import _parse_price
+        info = {
+            "currentPrice": 0.0,
+            "regularMarketPrice": 0.0,
+            "previousClose": 0.0,
+        }
+        assert _parse_price(info) is None
+
     def test_dividend_derivation(self):
         """If dividendYield missing but dividendRate present, should derive."""
         info = {

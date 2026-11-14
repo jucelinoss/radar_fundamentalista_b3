@@ -416,6 +416,12 @@ def _backfill_variable_income_history(
         asset["history_json"] = json.dumps([by_date[key] for key in sorted(by_date)])
 
 
+def _is_valid_asset(asset: dict[str, Any]) -> bool:
+    """Check that an asset has essential valid presentation data (ticker, name, price > 0)."""
+    price = asset.get("price")
+    return bool(asset.get("ticker") and asset.get("name") and price is not None and price > 0)
+
+
 def generate_dashboard() -> None:
     """Main generator: read DB, compute aggregates, save JSON data."""
     logger.info("Generating dashboard JSON...")
@@ -424,9 +430,12 @@ def generate_dashboard() -> None:
     mappings: dict[str, Any] = load_ticker_mappings()
     mappings_clean: dict[str, str] = _build_reverse_mappings(mappings)
 
-    stocks: list[dict[str, Any]] = _exclude_delisted_assets(database.get_all_stocks(), mappings)
-    fiis: list[dict[str, Any]] = _exclude_delisted_assets(database.get_all_fiis(), mappings)
-    fiagros: list[dict[str, Any]] = _exclude_delisted_assets(database.get_all_fiagros(), mappings)
+    delisted = {ticker for ticker, target in mappings.items() if not ticker.startswith("_") and target is None}
+    database.purge_invalid_assets(delisted)
+
+    stocks: list[dict[str, Any]] = [s for s in _exclude_delisted_assets(database.get_all_stocks(), mappings) if _is_valid_asset(s)]
+    fiis: list[dict[str, Any]] = [f for f in _exclude_delisted_assets(database.get_all_fiis(), mappings) if _is_valid_asset(f)]
+    fiagros: list[dict[str, Any]] = [f for f in _exclude_delisted_assets(database.get_all_fiagros(), mappings) if _is_valid_asset(f)]
     logger.info(f"  Loaded {len(stocks)} stocks, {len(fiis)} FIIs, {len(fiagros)} FIAGROs")
 
     _clean_ticker_display(stocks, fiis, fiagros, mappings_clean, STOCK_INDICES)
