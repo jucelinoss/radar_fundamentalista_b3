@@ -441,6 +441,7 @@
                     <button type="button" class="calc-mode-btn" id="btn-calc-mode-previdencia" onclick="switchCalcMode('previdencia')">Previdência Privada (PGBL x VGBL) <span class="info-tooltip" data-tooltip="No modelo completo, contribuições ao PGBL podem ser deduzidas até 12% dos rendimentos tributáveis, observada a contribuição à previdência oficial; VGBL tributa apenas os rendimentos no resgate.">ⓘ</span></button>
                     <button type="button" class="calc-mode-btn" id="btn-calc-mode-fire" onclick="switchCalcMode('fire')">Retirada Sustentável (FIRE) <span class="info-tooltip" data-tooltip="FIRE (Financial Independence, Retire Early): Cálculo da taxa segura anual de saques para viver de renda perpétua.">ⓘ</span></button>
                     <button type="button" class="calc-mode-btn" id="btn-calc-mode-rules" onclick="switchCalcMode('rules')">Modelos de Valuation & Alocação</button>
+                    <button type="button" class="calc-mode-btn" id="btn-calc-mode-retrospective" onclick="switchCalcMode('retrospective')">Simulador Retrospectivo ("Quanto Teria Hoje?") <span class="info-tooltip" data-tooltip="Simula quanto você teria hoje se tivesse investido há 1, 2, 3, 5, 10, 15 ou 20 anos em qualquer ativo da B3. Para ativos com histórico menor que o período, os dados do 1º ano são projetados para completar o horizonte.">ⓘ</span></button>
                 </div>
             </div>
 
@@ -575,6 +576,18 @@
                         <input type="number" id="calc-snow-dy" value="10.0" min="0.5" max="40" step="0.1" oninput="calculateSnowball()">
                     </div>
                     <div class="calc-input-group">
+                        <label for="calc-snow-inflation">
+                            Inflação Anual Estimada - IPCA (%)
+                            <span class="info-tooltip" data-tooltip="Usada para calcular o ganho real líquido e o poder de compra deflacionado do patrimônio e da renda passiva. Padrão inicial sincronizado com a projeção Focus do Banco Central.">ⓘ</span>
+                        </label>
+                        <input type="number" id="calc-snow-inflation" value="4.5" min="0" max="30" step="0.1" oninput="calculateSnowball()">
+                        <div class="calc-presets-row">
+                            <button type="button" class="calc-preset-btn" onclick="setSnowInflationPreset(3.0)">3,0% (Meta)</button>
+                            <button type="button" class="calc-preset-btn active" onclick="setSnowInflationPreset(4.5)">4,5% (Focus)</button>
+                            <button type="button" class="calc-preset-btn" onclick="setSnowInflationPreset(6.0)">6,0% (Conservador)</button>
+                        </div>
+                    </div>
+                    <div class="calc-input-group">
                         <label for="calc-snow-tax">Tributação & Regime Fiscal (IR / JCP)</label>
                         <select id="calc-snow-tax" onchange="calculateSnowball()">
                             <option value="auto">Automático (Conforme ativo selecionado)</option>
@@ -608,8 +621,15 @@
                     </div>
                     <div class="calc-result-box">
                         <div class="calc-stat-item">
-                            <span style="color: var(--text-secondary);">Patrimônio Final Estimado:</span>
+                            <span style="color: var(--text-secondary);">Patrimônio Final Estimado (Nominal):</span>
                             <span class="calc-stat-val" id="calc-snow-result-total" style="font-size: 1.2rem; color: var(--positive);">R$ 0,00</span>
+                        </div>
+                        <div class="calc-stat-item" style="background: rgba(14, 165, 233, 0.08); padding: 0.45rem 0.65rem; border-radius: var(--radius-sm); border: 1px solid rgba(14, 165, 233, 0.25); margin: 0.2rem 0;">
+                            <span style="color: #0284c7; font-weight: 600;">
+                                Poder de Compra Real (Corrigido pelo IPCA):
+                                <span class="info-tooltip" data-tooltip="Patrimônio final deflacionado pelo IPCA acumulado no prazo, representando quanto esse montante valeria em poder de compra de hoje.">ⓘ</span>
+                            </span>
+                            <span class="calc-stat-val" id="calc-snow-result-real-total" style="font-size: 1.15rem; font-weight: 800; color: #0284c7;">R$ 0,00</span>
                         </div>
                         <div class="calc-stat-item">
                             <span style="color: var(--text-secondary);">Total Aportado:</span>
@@ -618,6 +638,14 @@
                         <div class="calc-stat-item">
                             <span id="calc-snow-result-dividends-label" style="color: var(--text-secondary);">Rendimento Gerado por Juros/Dividendos (Líquido):</span>
                             <span class="calc-stat-val" id="calc-snow-result-dividends" style="color: var(--gold);">R$ 0,00</span>
+                        </div>
+                        <div class="calc-stat-item">
+                            <span style="color: var(--text-secondary);">Ganho Real Acima da Inflação:</span>
+                            <span class="calc-stat-val" id="calc-snow-result-real-gain" style="color: var(--positive); font-weight: 700;">+R$ 0,00</span>
+                        </div>
+                        <div class="calc-stat-item">
+                            <span style="color: var(--text-secondary);">Taxa Real Líquida Anual (Fisher):</span>
+                            <span class="calc-stat-val" id="calc-snow-result-real-rate" style="color: var(--text-primary); font-weight: 700;">+0,00% a.a. real</span>
                         </div>
                         <div class="calc-progress-container">
                             <div class="calc-progress-bar">
@@ -634,8 +662,12 @@
                             <span class="calc-stat-val" id="calc-snow-result-tax" style="color: var(--text-muted);">R$ 0,00</span>
                         </div>
                         <div class="calc-stat-item">
-                            <span id="calc-snow-monthly-income-label" style="color: var(--text-secondary);">Renda Mensal Líquida no Final do Período:</span>
+                            <span id="calc-snow-monthly-income-label" style="color: var(--text-secondary);">Renda Mensal Líquida no Final (Nominal):</span>
                             <span class="calc-stat-val" id="calc-snow-result-monthly-income" style="font-weight: 800; color: var(--positive);">R$ 0,00 / mês</span>
+                        </div>
+                        <div class="calc-stat-item">
+                            <span style="color: var(--text-secondary);">Renda Mensal Real (Poder de Compra de Hoje):</span>
+                            <span class="calc-stat-val" id="calc-snow-result-real-monthly-income" style="font-weight: 700; color: #0284c7;">R$ 0,00 / mês real</span>
                         </div>
                     </div>
                     <div style="position: relative; height: 220px; width: 100%; margin-top: 0.5rem;">
@@ -1285,6 +1317,104 @@
                             <span>Renda Fixa (Tesouro / CDB):</span>
                             <strong id="rule-age-bonds" style="color:var(--gold);">35%</strong>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modo 6: Simulador Retrospectivo ("Quanto Teria Hoje?") -->
+            <div class="calc-grid hidden" id="calc-grid-retrospective">
+                <div class="calc-card">
+                    <h3 style="font-size: 0.95rem; font-weight: 700;">Parâmetros da Simulação Retrospectiva</h3>
+                    <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: -0.3rem; margin-bottom: 0.8rem; line-height: 1.4;">
+                        Veja quanto seu capital teria rendido hoje se você tivesse investido há <strong>1, 2, 3, 5, 10, 15 ou 20 anos</strong> em qualquer ativo. Para ativos com tempo de listagem inferior ao prazo simulado, a rentabilidade do 1º ano é projetada para completar o período, com nota explicativa.
+                    </p>
+                    <div class="calc-input-group">
+                        <label for="calc-retro-category">Classe de Ativo</label>
+                        <select id="calc-retro-category" onchange="onRetroCategoryChange()">
+                            <option value="all">Todas as Classes</option>
+                            <option value="stocks">Ações B3 (Dividendos / Valor)</option>
+                            <option value="fiis">FIIs (Fundos Imobiliários)</option>
+                            <option value="fiagros">FIAGROs (Cadeia Agroindustrial)</option>
+                            <option value="tesouro">Tesouro Direto (Títulos Públicos)</option>
+                        </select>
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-retro-asset">Ativo ou Título Específico</label>
+                        <select id="calc-retro-asset" onchange="calculateRetrospective()">
+                            <!-- Populado dinamicamente -->
+                        </select>
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-retro-amount">Valor do Investimento (R$)</label>
+                        <input type="number" id="calc-retro-amount" value="5000" min="10" step="100" oninput="calculateRetrospective()">
+                        <div class="calc-presets-row">
+                            <button type="button" class="calc-preset-btn" onclick="setRetroAmountPreset(1000)">R$ 1.000</button>
+                            <button type="button" class="calc-preset-btn active" onclick="setRetroAmountPreset(5000)">R$ 5.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="setRetroAmountPreset(10000)">R$ 10.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="setRetroAmountPreset(50000)">R$ 50.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="setRetroAmountPreset(100000)">R$ 100.000</button>
+                        </div>
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-retro-modality">Modalidade de Aporte</label>
+                        <select id="calc-retro-modality" onchange="calculateRetrospective()">
+                            <option value="single" selected>Aporte Único no Início do Período</option>
+                            <option value="monthly">Aportes Mensais Constantes</option>
+                        </select>
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-retro-reinvest">Reinvestimento de Proventos</label>
+                        <select id="calc-retro-reinvest" onchange="calculateRetrospective()">
+                            <option value="yes" selected>Sim (Reinvestir Proventos - Total Return)</option>
+                            <option value="no">Não (Apenas Valorização + Proventos em Caixa)</option>
+                        </select>
+                    </div>
+                    <div class="calc-input-group">
+                        <label for="calc-retro-inflation">
+                            Inflação Anual Média para Deflação (IPCA % a.a.)
+                            <span class="info-tooltip" data-tooltip="Taxa de inflação anual usada para apurar o poder de compra real deflacionado do patrimônio hoje. Padrão inicial 5,5% a.a. (média histórica do Brasil).">ⓘ</span>
+                        </label>
+                        <input type="number" id="calc-retro-inflation" value="5.5" min="0" max="30" step="0.1" oninput="calculateRetrospective()">
+                        <div class="calc-presets-row">
+                            <button type="button" class="calc-preset-btn" onclick="setRetroInflationPreset(4.5)">4,5% (Focus)</button>
+                            <button type="button" class="calc-preset-btn active" onclick="setRetroInflationPreset(5.5)">5,5% (Histórico)</button>
+                            <button type="button" class="calc-preset-btn" onclick="setRetroInflationPreset(6.5)">6,5% (Conservador)</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="calc-card" style="display: flex; flex-direction: column;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; border-bottom: 1px solid var(--card-border); padding-bottom: 0.65rem;">
+                        <div>
+                            <h3 id="calc-retro-card-title" style="font-size: 0.95rem; font-weight: 700; margin: 0; border: none; padding: 0;">Resultado da Simulação Retrospectiva ("E Se Tivesse Investido?")</h3>
+                            <span id="calc-retro-asset-info" style="font-size: 0.8rem; color: var(--text-muted);">Carregando dados do ativo...</span>
+                        </div>
+                        <div id="calc-retro-asset-badge" style="font-size: 0.75rem; padding: 0.2rem 0.55rem; border-radius: var(--radius-sm); background: var(--surface-2); border: 1px solid var(--card-border); font-weight: 600;"></div>
+                    </div>
+
+                    <!-- Tabela responsiva de horizontes -->
+                    <div style="overflow-x: auto; margin-top: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--card-border);">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left;" id="calc-retro-table">
+                            <thead>
+                                <tr style="background: var(--surface-2); border-bottom: 1px solid var(--card-border); color: var(--text-secondary); font-size: 0.74rem; text-transform: uppercase;">
+                                    <th style="padding: 0.6rem 0.65rem;">Horizonte</th>
+                                    <th style="padding: 0.6rem 0.65rem;">Total Investido</th>
+                                    <th style="padding: 0.6rem 0.65rem;">Saldo Hoje (Nominal)</th>
+                                    <th style="padding: 0.6rem 0.65rem; color: #0284c7;">Poder Real (IPCA)</th>
+                                    <th style="padding: 0.6rem 0.65rem;">Rentab. Total</th>
+                                    <th style="padding: 0.6rem 0.65rem;">Renda Est. Hoje</th>
+                                    <th style="padding: 0.6rem 0.65rem; min-width: 190px;">Origem dos Dados & Obs</th>
+                                </tr>
+                            </thead>
+                            <tbody id="calc-retro-tbody">
+                                <!-- Preenchido dinamicamente com 1, 2, 3, 5, 10, 15, 20 anos -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Gráfico Retrospectivo dos Horizontes -->
+                    <div style="position: relative; height: 210px; width: 100%; margin-top: 1rem;">
+                        <canvas id="retro-chart"></canvas>
                     </div>
                 </div>
             </div>

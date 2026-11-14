@@ -4844,6 +4844,7 @@ const tableSortState = {};
         /* ── Calculadora / Simulador de Renda Passiva & Bola de Neve ── */
         let snowballChartInstance = null;
         let previdenciaChartInstance = null;
+        let retroChartInstance = null;
         let currentCalcMode = 'goal';
 
         function switchCalcMode(mode) {
@@ -4854,6 +4855,7 @@ const tableSortState = {};
             const btnPrev = document.getElementById('btn-calc-mode-previdencia');
             const btnFire = document.getElementById('btn-calc-mode-fire');
             const btnRules = document.getElementById('btn-calc-mode-rules');
+            const btnRetro = document.getElementById('btn-calc-mode-retrospective');
 
             const gridGoal = document.getElementById('calc-grid-goal');
             const gridSnow = document.getElementById('calc-grid-snowball');
@@ -4861,6 +4863,7 @@ const tableSortState = {};
             const gridPrev = document.getElementById('calc-grid-previdencia');
             const gridFire = document.getElementById('calc-grid-fire');
             const gridRules = document.getElementById('calc-grid-rules');
+            const gridRetro = document.getElementById('calc-grid-retrospective');
 
             if (btnGoal) btnGoal.classList.toggle('active', mode === 'goal');
             if (btnSnow) btnSnow.classList.toggle('active', mode === 'snowball');
@@ -4868,6 +4871,7 @@ const tableSortState = {};
             if (btnPrev) btnPrev.classList.toggle('active', mode === 'previdencia');
             if (btnFire) btnFire.classList.toggle('active', mode === 'fire');
             if (btnRules) btnRules.classList.toggle('active', mode === 'rules');
+            if (btnRetro) btnRetro.classList.toggle('active', mode === 'retrospective');
 
             if (gridGoal) gridGoal.classList.toggle('hidden', mode !== 'goal');
             if (gridSnow) gridSnow.classList.toggle('hidden', mode !== 'snowball');
@@ -4875,6 +4879,7 @@ const tableSortState = {};
             if (gridPrev) gridPrev.classList.toggle('hidden', mode !== 'previdencia');
             if (gridFire) gridFire.classList.toggle('hidden', mode !== 'fire');
             if (gridRules) gridRules.classList.toggle('hidden', mode !== 'rules');
+            if (gridRetro) gridRetro.classList.toggle('hidden', mode !== 'retrospective');
 
             if (mode === 'goal') calculateIncomeGoal();
             else if (mode === 'snowball') calculateSnowball();
@@ -4885,6 +4890,7 @@ const tableSortState = {};
             }
             else if (mode === 'fire') calculateFireRetirement();
             else if (mode === 'rules') calculateAllRules();
+            else if (mode === 'retrospective') calculateRetrospective();
         }
 
         function setGoalPreset(val) {
@@ -4964,16 +4970,18 @@ const tableSortState = {};
 
             // 2. Ações B3
             if (Array.isArray(data.stocks)) {
-                data.stocks.slice(0, 30).forEach(s => {
+                data.stocks.forEach(s => {
                     const dy = (Number(s.dividend_yield) || 0) * 100;
-                    if (dy > 0) {
+                    const price = Number(s.price) || 0;
+                    if (price > 0) {
                         catalog.push({
                             id: s.ticker,
                             category: 'stocks',
                             label: `${s.ticker} - ${s.name || ''} (DY ${dy.toFixed(1)}%)`,
                             dy: dy,
-                            price: Number(s.price) || 0,
-                            taxType: 'stock'
+                            price: price,
+                            taxType: 'stock',
+                            history_json: s.history_json
                         });
                     }
                 });
@@ -4981,16 +4989,18 @@ const tableSortState = {};
 
             // 3. FIIs
             if (Array.isArray(data.fiis)) {
-                data.fiis.slice(0, 30).forEach(f => {
+                data.fiis.forEach(f => {
                     const dy = (Number(f.dividend_yield) || 0) * 100;
-                    if (dy > 0) {
+                    const price = Number(f.price) || 0;
+                    if (price > 0) {
                         catalog.push({
                             id: f.ticker,
                             category: 'fiis',
                             label: `${f.ticker} - ${f.name || ''} (DY ${dy.toFixed(1)}%)`,
                             dy: dy,
-                            price: Number(f.price) || 0,
-                            taxType: 'exempt'
+                            price: price,
+                            taxType: 'exempt',
+                            history_json: f.history_json
                         });
                     }
                 });
@@ -4998,16 +5008,18 @@ const tableSortState = {};
 
             // 4. FIAGROs
             if (Array.isArray(data.fiagros)) {
-                data.fiagros.slice(0, 20).forEach(fg => {
+                data.fiagros.forEach(fg => {
                     const dy = (Number(fg.dividend_yield) || 0) * 100;
-                    if (dy > 0) {
+                    const price = Number(fg.price) || 0;
+                    if (price > 0) {
                         catalog.push({
                             id: fg.ticker,
                             category: 'fiagros',
                             label: `${fg.ticker} - ${fg.name || ''} (DY ${dy.toFixed(1)}%)`,
                             dy: dy,
-                            price: Number(fg.price) || 0,
-                            taxType: 'exempt'
+                            price: price,
+                            taxType: 'exempt',
+                            history_json: fg.history_json
                         });
                     }
                 });
@@ -5043,18 +5055,35 @@ const tableSortState = {};
 
         function populateCalculatorSelects() {
             if (!window.dashboardData) return;
+            const macro = window.dashboardData.macro_state || {};
+            const ipcaFocusVal = (macro.focus_ipca && macro.focus_ipca[0] != null) ? (macro.focus_ipca[0] * 100) : null;
+            if (ipcaFocusVal != null) {
+                const snowInf = document.getElementById('calc-snow-inflation');
+                if (snowInf && !snowInf.dataset.userEdited) {
+                    snowInf.value = ipcaFocusVal.toFixed(1);
+                }
+            }
             filterCalculatorAssets('goal');
             filterCalculatorAssets('snow');
+            filterCalculatorAssets('retro');
         }
 
         function filterCalculatorAssets(mode) {
-            const categorySelect = document.getElementById(mode === 'goal' ? 'calc-goal-category' : 'calc-snow-category');
-            const assetSelect = document.getElementById(mode === 'goal' ? 'calc-goal-asset' : 'calc-snow-asset');
+            const categorySelect = document.getElementById(
+                mode === 'goal' ? 'calc-goal-category' :
+                mode === 'snow' ? 'calc-snow-category' : 'calc-retro-category'
+            );
+            const assetSelect = document.getElementById(
+                mode === 'goal' ? 'calc-goal-asset' :
+                mode === 'snow' ? 'calc-snow-asset' : 'calc-retro-asset'
+            );
             if (!categorySelect || !assetSelect) return;
 
             const selectedCat = categorySelect.value || 'all';
             const catalog = getCalculatorAssetCatalog();
-            const filtered = selectedCat === 'all' ? catalog : catalog.filter(item => item.category === selectedCat);
+            const filtered = selectedCat === 'all'
+                ? (mode === 'retro' ? catalog.filter(item => item.category !== 'strategies') : catalog)
+                : catalog.filter(item => item.category === selectedCat);
 
             assetSelect.innerHTML = filtered.map(item => {
                 return `<option value="${item.id}" data-category="${item.category}" data-dy="${item.dy.toFixed(2)}" data-price="${item.price.toFixed(2)}" data-tax="${item.taxType}" data-has-coupon="${item.hasCoupon ? 'true' : 'false'}">${item.label}</option>`;
@@ -5062,8 +5091,10 @@ const tableSortState = {};
 
             if (mode === 'goal') {
                 onGoalAssetChange();
-            } else {
+            } else if (mode === 'snow') {
                 onSnowballAssetChange();
+            } else if (mode === 'retro') {
+                calculateRetrospective();
             }
         }
 
@@ -5190,15 +5221,20 @@ const tableSortState = {};
             const initialEl = document.getElementById('calc-snow-initial');
             const monthlyEl = document.getElementById('calc-snow-monthly');
             const dyEl = document.getElementById('calc-snow-dy');
+            const inflationEl = document.getElementById('calc-snow-inflation');
             const yearsEl = document.getElementById('calc-snow-years');
             const taxSelect = document.getElementById('calc-snow-tax');
             const assetSelect = document.getElementById('calc-snow-asset');
 
             const totalEl = document.getElementById('calc-snow-result-total');
+            const realTotalEl = document.getElementById('calc-snow-result-real-total');
             const investedEl = document.getElementById('calc-snow-result-invested');
             const divEl = document.getElementById('calc-snow-result-dividends');
+            const realGainEl = document.getElementById('calc-snow-result-real-gain');
+            const realRateEl = document.getElementById('calc-snow-result-real-rate');
             const taxEl = document.getElementById('calc-snow-result-tax');
             const monthlyIncomeEl = document.getElementById('calc-snow-result-monthly-income');
+            const realMonthlyIncomeEl = document.getElementById('calc-snow-result-real-monthly-income');
             const magicTitleEl = document.getElementById('calc-magic-number-title');
             const magicDescEl = document.getElementById('calc-magic-number-desc');
             const magicIconEl = document.getElementById('calc-snow-magic-icon');
@@ -5211,6 +5247,7 @@ const tableSortState = {};
             const initialCapital = parseFloat(initialEl.value) || 0;
             const monthlyContribution = parseFloat(monthlyEl.value) || 0;
             const grossAnnualDy = (parseFloat(dyEl.value) || 10.0) / 100;
+            const annualInflation = inflationEl ? ((parseFloat(inflationEl.value) || 0) / 100) : 0.045;
 
             const opt = assetSelect ? assetSelect.selectedOptions[0] : null;
             const assetTaxType = opt ? (opt.dataset.tax || 'exempt') : 'exempt';
@@ -5232,10 +5269,13 @@ const tableSortState = {};
                 totalInvested += monthlyContribution;
 
                 if (m % 12 === 0 || m === months) {
+                    const cumInflation = Math.pow(1 + annualInflation, m / 12);
+                    const realBalance = balance / cumInflation;
                     historyPoints.push({
                         year: `Ano ${Math.round(m / 12)}`,
                         invested: Math.round(totalInvested),
                         balance: Math.round(balance),
+                        balanceReal: Math.round(realBalance),
                         dividends: Math.round(balance - totalInvested)
                     });
                 }
@@ -5246,11 +5286,34 @@ const tableSortState = {};
             const finalTaxEstimated = finalDividendsGross - finalDividendsNet;
             const finalMonthlyNetIncome = balance * monthlyNetRate;
 
+            const finalCumInflation = Math.pow(1 + annualInflation, years);
+            const finalRealBalance = balance / finalCumInflation;
+            const finalRealMonthlyIncome = finalMonthlyNetIncome / finalCumInflation;
+            const realAnnualRate = ((1 + netAnnualDy) / (1 + annualInflation)) - 1;
+            const realNetGain = finalRealBalance - totalInvested;
+
             if (totalEl) totalEl.textContent = `R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (realTotalEl) realTotalEl.textContent = `R$ ${finalRealBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             if (investedEl) investedEl.textContent = `R$ ${totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             if (divEl) divEl.textContent = `R$ ${finalDividendsNet.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (realGainEl) {
+                const isPos = realNetGain >= 0;
+                realGainEl.textContent = `${isPos ? '+' : ''}R$ ${realNetGain.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                realGainEl.style.color = isPos ? 'var(--positive)' : 'var(--negative, #ef4444)';
+            }
+            if (realRateEl) {
+                const isPos = realAnnualRate >= 0;
+                realRateEl.textContent = `${isPos ? '+' : ''}${(realAnnualRate * 100).toFixed(2)}% a.a. real`;
+                realRateEl.style.color = isPos ? 'var(--positive)' : 'var(--negative, #ef4444)';
+            }
             if (taxEl) {
                 taxEl.textContent = taxRate > 0 ? `R$ ${finalTaxEstimated.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${(taxRate * 100).toFixed(1)}% retido)` : `R$ 0,00 (Isento)`;
+            }
+            if (monthlyIncomeEl) {
+                monthlyIncomeEl.textContent = `R$ ${finalMonthlyNetIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / mês`;
+            }
+            if (realMonthlyIncomeEl) {
+                realMonthlyIncomeEl.textContent = `R$ ${finalRealMonthlyIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / mês real`;
             }
 
             let price = 0;
@@ -5278,7 +5341,7 @@ const tableSortState = {};
                 if (magicCardTitleEl) magicCardTitleEl.textContent = 'Projeção de Acúmulo & Reinvestimento Autossustentável';
                 if (magicIconEl) magicIconEl.textContent = '';
                 if (divLabelEl) divLabelEl.textContent = 'Rendimento Gerado por Juros/Dividendos (Líquido):';
-                if (monthlyIncomeLabelEl) monthlyIncomeLabelEl.textContent = 'Renda Mensal Líquida no Final do Período:';
+                if (monthlyIncomeLabelEl) monthlyIncomeLabelEl.textContent = 'Renda Mensal Líquida no Final (Nominal):';
                 if (monthlyIncomeEl) monthlyIncomeEl.textContent = `R$ ${finalMonthlyNetIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / mês líquido`;
 
                 const unitName = cat === 'tesouro' ? 'títulos' : (cat === 'stocks' ? 'ações' : 'cotas');
@@ -5334,14 +5397,382 @@ const tableSortState = {};
                         {
                             label: 'Total Aportado',
                             data: points.map(p => p.invested),
-                            backgroundColor: isLight ? 'rgba(100, 116, 139, 0.4)' : 'rgba(148, 163, 184, 0.4)',
+                            backgroundColor: isLight ? 'rgba(100, 116, 139, 0.45)' : 'rgba(148, 163, 184, 0.35)',
                             borderColor: isLight ? '#64748b' : '#94a3b8',
                             borderWidth: 1,
                             borderRadius: 4
                         },
                         {
-                            label: 'Patrimônio Total (c/ Dividendos)',
+                            label: 'Poder Real (IPCA)',
+                            data: points.map(p => p.balanceReal),
+                            backgroundColor: isLight ? 'rgba(2, 132, 199, 0.7)' : 'rgba(56, 189, 248, 0.7)',
+                            borderColor: isLight ? '#0284c7' : '#38bdf8',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Patrimônio Nominal',
                             data: points.map(p => p.balance),
+                            backgroundColor: '#10b981',
+                            borderColor: '#059669',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        valueLabels: false,
+                        keyValueLabels: false,
+                        legend: {
+                            display: true,
+                            labels: { color: tickColor, font: { size: 10, weight: '600', family: 'Inter, sans-serif' } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.dataset.label}: R$ ${context.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: tickColor, font: { size: 10, family: 'Inter, sans-serif' } }
+                        },
+                        y: {
+                            grid: { color: gridColor },
+                            ticks: {
+                                color: tickColor,
+                                maxTicksLimit: 5,
+                                font: { size: 10, family: 'Inter, sans-serif' },
+                                callback: v => `R$ ${(v / 1000).toFixed(0)}k`
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function setSnowInflationPreset(val) {
+            const input = document.getElementById('calc-snow-inflation');
+            if (input) {
+                input.value = val.toFixed(1);
+                input.dataset.userEdited = 'true';
+                const buttons = document.querySelectorAll('#calc-grid-snowball .calc-presets-row:last-of-type .calc-preset-btn');
+                buttons.forEach(b => b.classList.toggle('active', b.textContent.includes(val.toFixed(1).replace('.', ','))));
+                calculateSnowball();
+            }
+        }
+
+        function setRetroAmountPreset(val) {
+            const input = document.getElementById('calc-retro-amount');
+            if (input) {
+                input.value = val;
+                const buttons = document.querySelectorAll('#calc-grid-retrospective .calc-presets-row:first-of-type .calc-preset-btn');
+                buttons.forEach(b => b.classList.toggle('active', b.textContent.includes(val.toLocaleString('pt-BR'))));
+                calculateRetrospective();
+            }
+        }
+
+        function setRetroInflationPreset(val) {
+            const input = document.getElementById('calc-retro-inflation');
+            if (input) {
+                input.value = val.toFixed(1);
+                const buttons = document.querySelectorAll('#calc-grid-retrospective .calc-presets-row:last-of-type .calc-preset-btn');
+                buttons.forEach(b => b.classList.toggle('active', b.textContent.includes(val.toFixed(1).replace('.', ','))));
+                calculateRetrospective();
+            }
+        }
+
+        function onRetroCategoryChange() {
+            filterCalculatorAssets('retro');
+        }
+
+        /* ── Simulador Retrospectivo ("Quanto Teria Hoje?") ── */
+        function calculateRetrospective() {
+            const assetSelect = document.getElementById('calc-retro-asset');
+            const amountInput = document.getElementById('calc-retro-amount');
+            const modalitySelect = document.getElementById('calc-retro-modality');
+            const reinvestSelect = document.getElementById('calc-retro-reinvest');
+            const inflationInput = document.getElementById('calc-retro-inflation');
+
+            const tbody = document.getElementById('calc-retro-tbody');
+            const infoEl = document.getElementById('calc-retro-asset-info');
+            const badgeEl = document.getElementById('calc-retro-asset-badge');
+
+            if (!assetSelect || !tbody) return;
+
+            const selectedAssetId = assetSelect.value;
+            const amount = parseFloat(amountInput ? amountInput.value : 5000) || 5000;
+            const modality = modalitySelect ? modalitySelect.value : 'single';
+            const reinvest = reinvestSelect ? (reinvestSelect.value === 'yes') : true;
+            const annualInflation = inflationInput ? ((parseFloat(inflationInput.value) || 5.5) / 100) : 0.055;
+
+            const catalog = getCalculatorAssetCatalog();
+            const assetItem = catalog.find(item => item.id === selectedAssetId) || catalog.find(item => item.category !== 'strategies') || catalog[0];
+
+            if (!assetItem) return;
+
+            const data = window.dashboardData || {};
+            let assetObj = null;
+            if (assetItem.category === 'stocks') {
+                assetObj = (data.stocks || []).find(s => s.ticker === assetItem.id);
+            } else if (assetItem.category === 'fiis') {
+                assetObj = (data.fiis || []).find(f => f.ticker === assetItem.id);
+            } else if (assetItem.category === 'fiagros') {
+                assetObj = (data.fiagros || []).find(fg => fg.ticker === assetItem.id);
+            } else if (assetItem.category === 'tesouro') {
+                assetObj = (data.tesouro_direto || []).find(td => (td.name === assetItem.id || td.ticker === assetItem.id));
+            }
+
+            const currentPrice = assetItem.price || (assetObj ? Number(assetObj.price) : 0) || 100;
+            const currentDy = (assetItem.dy || 0) / 100;
+
+            let history = [];
+            if (assetObj && assetObj.history_json) {
+                try {
+                    history = typeof assetObj.history_json === 'string' ? JSON.parse(assetObj.history_json) : assetObj.history_json;
+                } catch (e) {
+                    history = [];
+                }
+            }
+            if (Array.isArray(history)) {
+                history = history.filter(p => p && p.date && p.price != null && p.price > 0);
+                history.sort((a, b) => new Date(a.date) - new Date(b.date));
+            } else {
+                history = [];
+            }
+
+            let historyDurationYears = 0;
+            let earliestDateStr = '';
+            let latestDateStr = '';
+            if (history.length >= 2) {
+                const earliest = new Date(history[0].date);
+                const latest = new Date(history[history.length - 1].date);
+                historyDurationYears = Math.max(0, (latest - earliest) / (365.25 * 86400000));
+                earliestDateStr = history[0].date;
+                latestDateStr = history[history.length - 1].date;
+            }
+
+            // Rentabilidade anualizada do 1º ano observado (para projeção sintética dos períodos excedentes)
+            let r1y = currentDy;
+            if (history.length >= 8 && historyDurationYears >= 0.8) {
+                const p0 = history[0].price;
+                const target1yDate = new Date(new Date(history[0].date).getTime() + 365.25 * 86400000);
+                let p1Point = history[Math.min(12, history.length - 1)];
+                let minDiff = Infinity;
+                for (let i = 1; i < history.length; i++) {
+                    const diff = Math.abs(new Date(history[i].date) - target1yDate);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        p1Point = history[i];
+                    }
+                }
+                const p1 = p1Point ? p1Point.price : p0;
+                const priceRet1y = (p1 - p0) / p0;
+                const pts1y = history.filter(p => new Date(p.date) <= target1yDate);
+                const avgDy1y = pts1y.length > 0 ? (pts1y.reduce((acc, p) => acc + (Number(p.dy) || 0), 0) / pts1y.length) / 100 : currentDy;
+                r1y = priceRet1y + avgDy1y;
+            } else if (history.length >= 2 && historyDurationYears > 0.1) {
+                const p0 = history[0].price;
+                const pend = history[history.length - 1].price;
+                const priceCagr = Math.pow(pend / p0, 1 / historyDurationYears) - 1;
+                r1y = priceCagr + currentDy;
+            } else {
+                r1y = Math.max(0.06, currentDy);
+            }
+
+            // Limita taxa do 1º ano a patamares estatisticamente realistas para projeções longas (-40% a +100% a.a.)
+            r1y = Math.max(-0.40, Math.min(1.00, r1y));
+
+            if (infoEl) {
+                const histDesc = historyDurationYears >= 1
+                    ? `${historyDurationYears.toFixed(1)} anos na B3 (${earliestDateStr.substring(0, 4)} a ${latestDateStr.substring(0, 4)})`
+                    : (history.length > 0 ? `${(historyDurationYears * 12).toFixed(0)} meses na B3` : 'Sem cotações históricas');
+                infoEl.innerHTML = `<strong>${assetItem.label}</strong> · Cotação Atual: <strong>R$ ${currentPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong> · DY: <strong>${(currentDy * 100).toFixed(1)}% a.a.</strong> · Histórico: ${histDesc}`;
+            }
+            if (badgeEl) {
+                badgeEl.textContent = assetItem.category.toUpperCase();
+                badgeEl.style.color = assetItem.category === 'fiis' ? '#10b981' : assetItem.category === 'stocks' ? '#3b82f6' : assetItem.category === 'fiagros' ? '#d97706' : '#8b5cf6';
+            }
+
+            const horizons = [1, 2, 3, 5, 10, 15, 20];
+            const rowsData = [];
+            const chartDataPoints = [];
+
+            horizons.forEach(H => {
+                let totalFactor = 1.0;
+                let isReal = false;
+                let obsText = '';
+
+                if (assetItem.category === 'tesouro') {
+                    totalFactor = Math.pow(1 + currentDy, H);
+                    isReal = true;
+                    obsText = `🏛️ Contrato Tesouro Direto: rendimento projetado à taxa contratada (${(currentDy * 100).toFixed(2)}% a.a.).`;
+                } else if (historyDurationYears >= H * 0.85 && history.length >= Math.min(12, H * 6)) {
+                    isReal = true;
+                    const latestPt = history[history.length - 1];
+                    const targetDate = new Date(new Date(latestPt.date).getTime() - H * 365.25 * 86400000);
+                    let startPt = history[0];
+                    let minDiff = Infinity;
+                    let startIndex = 0;
+                    for (let i = 0; i < history.length; i++) {
+                        const diff = Math.abs(new Date(history[i].date) - targetDate);
+                        if (diff < minDiff) {
+                            minDiff = diff;
+                            startPt = history[i];
+                            startIndex = i;
+                        }
+                    }
+                    const pStart = startPt.price;
+                    const pEnd = latestPt.price;
+                    const fPrice = pEnd / pStart;
+                    const periodSlice = history.slice(startIndex);
+                    const avgDyPeriod = periodSlice.length > 0
+                        ? (periodSlice.reduce((acc, p) => acc + (Number(p.dy) || 0), 0) / periodSlice.length) / 100
+                        : currentDy;
+
+                    if (reinvest) {
+                        const cagr = Math.pow(fPrice, 1 / H) - 1 + avgDyPeriod;
+                        totalFactor = Math.pow(1 + Math.max(-0.95, cagr), H);
+                    } else {
+                        totalFactor = fPrice + (avgDyPeriod * H);
+                    }
+                    obsText = `✅ Histórico B3 Real (${H} ano${H > 1 ? 's' : ''}): cotação R$ ${pStart.toFixed(2)} ➔ R$ ${pEnd.toFixed(2)} + DY médio ${(avgDyPeriod * 100).toFixed(1)}% a.a.`;
+                } else {
+                    isReal = false;
+                    const obsDuration = Math.max(0, historyDurationYears);
+                    let fObs = 1.0;
+                    if (obsDuration >= 0.5 && history.length >= 4) {
+                        const pStart = history[0].price;
+                        const pEnd = history[history.length - 1].price;
+                        const fPrice = pEnd / pStart;
+                        const avgDy = (history.reduce((acc, p) => acc + (Number(p.dy) || 0), 0) / history.length) / 100;
+                        fObs = reinvest ? Math.pow(1 + (Math.pow(fPrice, 1 / obsDuration) - 1 + avgDy), obsDuration) : (fPrice + avgDy * obsDuration);
+                    }
+                    const missingYears = Math.max(0, H - obsDuration);
+                    const fProj = Math.pow(1 + r1y, missingYears);
+                    totalFactor = fObs * fProj;
+
+                    const yrStart = earliestDateStr ? earliestDateStr.substring(0, 4) : 'recente';
+                    const obsYearsCount = obsDuration < 1 ? '<1' : obsDuration.toFixed(1);
+                    obsText = `⚠️ Projeção sintética: Ativo com ${obsYearsCount} ano${obsDuration >= 2 ? 's' : ''} na B3 (desde ${yrStart}). Período adicional de ${missingYears.toFixed(1)} anos projetado com o retorno do 1º ano (${(r1y * 100).toFixed(1)}% a.a.).`;
+                }
+
+                let totalInvested = amount;
+                let balanceNominal = amount * totalFactor;
+
+                if (modality === 'monthly') {
+                    totalInvested = amount * (H * 12);
+                    const cagrEq = Math.pow(Math.max(0.01, totalFactor), 1 / H) - 1;
+                    const monthlyRate = Math.pow(1 + cagrEq, 1 / 12) - 1;
+                    if (monthlyRate > 0) {
+                        balanceNominal = amount * ((Math.pow(1 + monthlyRate, H * 12) - 1) / monthlyRate);
+                    } else {
+                        balanceNominal = totalInvested;
+                    }
+                }
+
+                const cumInflation = Math.pow(1 + annualInflation, H);
+                const balanceReal = balanceNominal / cumInflation;
+
+                const totalNominalReturnPct = totalInvested > 0 ? ((balanceNominal - totalInvested) / totalInvested) * 100 : 0;
+                const totalRealReturnPct = totalInvested > 0 ? ((balanceReal - totalInvested) / totalInvested) * 100 : 0;
+                const monthlyIncomeToday = balanceNominal * (currentDy / 12);
+
+                rowsData.push({
+                    horizon: `${H} Ano${H > 1 ? 's' : ''}`,
+                    hYears: H,
+                    totalInvested,
+                    balanceNominal,
+                    balanceReal,
+                    totalNominalReturnPct,
+                    totalRealReturnPct,
+                    monthlyIncomeToday,
+                    isReal,
+                    obsText
+                });
+
+                chartDataPoints.push({
+                    label: `${H}A`,
+                    invested: Math.round(totalInvested),
+                    balanceReal: Math.round(balanceReal),
+                    balanceNominal: Math.round(balanceNominal)
+                });
+            });
+
+            tbody.innerHTML = rowsData.map(r => {
+                const badgeColor = r.isReal ? '#10b981' : '#f59e0b';
+                const badgeBg = r.isReal ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)';
+                const retNomColor = r.totalNominalReturnPct >= 0 ? 'var(--positive)' : 'var(--negative, #ef4444)';
+                const retRealColor = r.totalRealReturnPct >= 0 ? '#0284c7' : 'var(--negative, #ef4444)';
+
+                return `
+                    <tr style="border-bottom: 1px solid var(--card-border); transition: background 0.15s ease;">
+                        <td style="padding: 0.65rem 0.75rem; font-weight: 700;">${r.horizon}</td>
+                        <td style="padding: 0.65rem 0.75rem; color: var(--text-secondary);">R$ ${r.totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        <td style="padding: 0.65rem 0.75rem; font-weight: 700; color: ${retNomColor};">R$ ${r.balanceNominal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        <td style="padding: 0.65rem 0.75rem; font-weight: 700; color: #0284c7;">R$ ${r.balanceReal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        <td style="padding: 0.65rem 0.75rem;">
+                            <div style="font-weight: 700; color: ${retNomColor};">${r.totalNominalReturnPct >= 0 ? '+' : ''}${r.totalNominalReturnPct.toFixed(1)}% nom</div>
+                            <div style="font-size: 0.74rem; color: ${retRealColor}; font-weight: 600;">${r.totalRealReturnPct >= 0 ? '+' : ''}${r.totalRealReturnPct.toFixed(1)}% real</div>
+                        </td>
+                        <td style="padding: 0.65rem 0.75rem; font-weight: 600; color: var(--gold);">R$ ${r.monthlyIncomeToday.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mês</td>
+                        <td style="padding: 0.65rem 0.75rem; font-size: 0.74rem; line-height: 1.35; color: var(--text-muted);">
+                            <span style="display: inline-block; padding: 0.15rem 0.4rem; border-radius: 4px; font-weight: 700; font-size: 0.68rem; margin-bottom: 0.2rem; background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeColor};">
+                                ${r.isReal ? 'DADOS REAIS' : 'PROJEÇÃO 1º ANO'}
+                            </span><br>
+                            ${r.obsText}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            renderRetroChart(chartDataPoints);
+        }
+
+        function renderRetroChart(points) {
+            const canvas = document.getElementById('retro-chart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if (retroChartInstance) {
+                retroChartInstance.destroy();
+                retroChartInstance = null;
+            }
+            if (!points || points.length === 0) return;
+
+            const isLight = !document.body.classList.contains('dark');
+            const gridColor = isLight ? '#e2e4ea' : '#282c38';
+            const tickColor = isLight ? '#6b7084' : '#8b8fa3';
+
+            retroChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: points.map(p => p.label),
+                    datasets: [
+                        {
+                            label: 'Total Investido',
+                            data: points.map(p => p.invested),
+                            backgroundColor: isLight ? 'rgba(100, 116, 139, 0.4)' : 'rgba(148, 163, 184, 0.35)',
+                            borderColor: isLight ? '#64748b' : '#94a3b8',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Poder Real (IPCA)',
+                            data: points.map(p => p.balanceReal),
+                            backgroundColor: isLight ? 'rgba(2, 132, 199, 0.75)' : 'rgba(56, 189, 248, 0.75)',
+                            borderColor: isLight ? '#0284c7' : '#38bdf8',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Saldo Nominal Hoje',
+                            data: points.map(p => p.balanceNominal),
                             backgroundColor: '#10b981',
                             borderColor: '#059669',
                             borderWidth: 1,
@@ -6032,6 +6463,7 @@ const tableSortState = {};
             else if (currentCalcMode === 'previdencia') calculatePrevidencia();
             else if (currentCalcMode === 'fire') calculateFireRetirement();
             else if (currentCalcMode === 'rules') calculateAllRules();
+            else if (currentCalcMode === 'retrospective') calculateRetrospective();
         }
 
         /* ── Macro Forecaster & Scenario Simulator ── */
