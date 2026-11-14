@@ -45,7 +45,7 @@ def calculate_goal_math(monthly_net_target: float, gross_dy: float, tax_rate: fl
     }
 
 
-def calculate_snowball_math(initial: float, monthly: float, gross_dy: float, tax_rate: float, years: int, unit_price: float = 0.0):
+def calculate_snowball_math(initial: float, monthly: float, gross_dy: float, tax_rate: float, years: int, unit_price: float = 0.0, annual_inflation: float = 0.045):
     net_dy = gross_dy * (1.0 - tax_rate)
     monthly_net_rate = math.pow(1.0 + net_dy, 1.0 / 12.0) - 1.0
     months = years * 12
@@ -65,6 +65,12 @@ def calculate_snowball_math(initial: float, monthly: float, gross_dy: float, tax
     magic_number = math.ceil(1.0 / monthly_net_rate) if monthly_net_rate > 0 else 0
     magic_capital = magic_number * unit_price if unit_price > 0 else 0.0
 
+    cum_inflation = math.pow(1.0 + annual_inflation, years)
+    final_real_balance = balance / cum_inflation
+    final_real_monthly_income = final_monthly_net_income / cum_inflation
+    real_annual_rate = ((1.0 + net_dy) / (1.0 + annual_inflation)) - 1.0
+    real_net_gain = final_real_balance - total_invested
+
     return {
         "final_balance": round(balance, 2),
         "total_invested": round(total_invested, 2),
@@ -72,7 +78,82 @@ def calculate_snowball_math(initial: float, monthly: float, gross_dy: float, tax
         "final_tax_estimated": round(final_tax_estimated, 2),
         "final_monthly_net_income": round(final_monthly_net_income, 2),
         "magic_number": magic_number,
-        "magic_capital": round(magic_capital, 2)
+        "magic_capital": round(magic_capital, 2),
+        "final_real_balance": round(final_real_balance, 2),
+        "final_real_monthly_income": round(final_real_monthly_income, 2),
+        "real_annual_rate": round(real_annual_rate, 6),
+        "real_net_gain": round(real_net_gain, 2)
+    }
+
+
+def calculate_retrospective_math(
+    amount: float,
+    modality: str,
+    reinvest: bool,
+    annual_inflation: float,
+    history_points: list,
+    target_years: int,
+    current_dy: float
+):
+    """Oraculo matematico para o simulador retrospectivo."""
+    history_duration_years = 0.0
+    if len(history_points) >= 2:
+        # Assumindo pontos mensais ~ 12 pts por ano
+        history_duration_years = (len(history_points) - 1) / 12.0
+
+    # Retorno do 1o ano
+    r1y = current_dy
+    if len(history_points) >= 12:
+        p0 = history_points[0].get("price", 1.0)
+        p1 = history_points[min(12, len(history_points) - 1)].get("price", p0)
+        ret_price_1y = (p1 - p0) / p0
+        avg_dy_1y = sum(p.get("dy", 0.0) for p in history_points[:12]) / 12.0 / 100.0
+        r1y = ret_price_1y + avg_dy_1y
+
+    is_real = history_duration_years >= target_years * 0.9 and len(history_points) >= target_years * 6
+
+    if is_real:
+        start_idx = max(0, len(history_points) - 1 - (target_years * 12))
+        p_start = history_points[start_idx].get("price", 1.0)
+        p_end = history_points[-1].get("price", p_start)
+        f_price = p_end / p_start
+        period_slice = history_points[start_idx:]
+        avg_dy = (sum(p.get("dy", 0.0) for p in period_slice) / len(period_slice)) / 100.0 if period_slice else current_dy
+        if reinvest:
+            cagr = math.pow(f_price, 1.0 / target_years) - 1.0 + avg_dy
+            total_factor = math.pow(1.0 + cagr, target_years)
+        else:
+            total_factor = f_price + (avg_dy * target_years)
+    else:
+        obs_duration = history_duration_years
+        p_start = history_points[0].get("price", 1.0) if history_points else 1.0
+        p_end = history_points[-1].get("price", p_start) if history_points else p_start
+        f_price = p_end / p_start
+        avg_dy = (sum(p.get("dy", 0.0) for p in history_points) / len(history_points)) / 100.0 if history_points else current_dy
+        f_obs = math.pow(1.0 + (math.pow(f_price, 1.0 / obs_duration) - 1.0 + avg_dy), obs_duration) if obs_duration >= 0.5 else 1.0
+        missing_years = max(0.0, target_years - obs_duration)
+        f_proj = math.pow(1.0 + r1y, missing_years)
+        total_factor = f_obs * f_proj
+
+    total_invested = amount if modality == "single" else amount * (target_years * 12)
+    if modality == "single":
+        balance_nom = amount * total_factor
+    else:
+        cagr_eq = math.pow(max(0.01, total_factor), 1.0 / target_years) - 1.0
+        m_rate = math.pow(1.0 + cagr_eq, 1.0 / 12.0) - 1.0
+        balance_nom = amount * ((math.pow(1.0 + m_rate, target_years * 12) - 1.0) / m_rate) if m_rate > 0 else total_invested
+
+    cum_inf = math.pow(1.0 + annual_inflation, target_years)
+    balance_real = balance_nom / cum_inf
+
+    return {
+        "is_real": is_real,
+        "total_invested": round(total_invested, 2),
+        "balance_nominal": round(balance_nom, 2),
+        "balance_real": round(balance_real, 2),
+        "nominal_return_pct": round(((balance_nom - total_invested) / total_invested) * 100.0, 2),
+        "real_return_pct": round(((balance_real - total_invested) / total_invested) * 100.0, 2),
+        "r1y": round(r1y, 4)
     }
 
 
@@ -124,6 +205,60 @@ class TestCalculatorMathPrecision:
         assert res["final_tax_estimated"] > 0.00
         assert res["total_invested"] == 130000.00 # 10000 + 1000 * 120
         assert res["final_balance"] > 200000.00
+
+    def test_snowball_real_growth_ipca_adjustment(self):
+        """Valida que o poder de compra real e a rentabilidade real líquida (Fisher) são calculados corretamente."""
+        # 10% a.a. líquido, inflação de 4.5% a.a., por 5 anos
+        res = calculate_snowball_math(initial=10000.0, monthly=500.0, gross_dy=0.10, tax_rate=0.0, years=5, annual_inflation=0.045)
+        # Fisher: (1 + 0.10) / (1 + 0.045) - 1 = 1.10 / 1.045 - 1 = 0.0526315 (5.26% a.a. real)
+        expected_real_rate = (1.10 / 1.045) - 1.0
+        assert math.isclose(res["real_annual_rate"], expected_real_rate, rel_tol=1e-4)
+
+        # Deflator acumulado em 5 anos: (1.045)^5 = 1.24618
+        cum_inf = math.pow(1.045, 5)
+        assert math.isclose(res["final_real_balance"], res["final_balance"] / cum_inf, rel_tol=1e-3)
+        assert res["final_real_balance"] < res["final_balance"] # Poder real é menor que o saldo nominal
+        assert res["real_net_gain"] == round(res["final_real_balance"] - res["total_invested"], 2)
+
+    def test_retrospective_simulator_math_within_lifespan(self):
+        """Valida simulação retrospectiva quando o histórico cobre o horizonte pedido (dados reais)."""
+        # Cria histórico sintético de 36 meses (~3 anos)
+        # Preço sobe de 10.0 para 13.0, com DY de 10% a cada ano
+        pts = [{"date": f"2023-{m:02d}-01", "price": 10.0 + (m * 0.1), "dy": 10.0} for m in range(1, 37)]
+        res = calculate_retrospective_math(
+            amount=5000.0,
+            modality="single",
+            reinvest=True,
+            annual_inflation=0.05,
+            history_points=pts,
+            target_years=2,
+            current_dy=0.10
+        )
+        assert res["is_real"] is True
+        assert res["total_invested"] == 5000.0
+        assert res["balance_nominal"] > 5000.0
+        assert res["balance_real"] < res["balance_nominal"]
+        assert res["nominal_return_pct"] > res["real_return_pct"]
+
+    def test_retrospective_simulator_math_synthetic_projection_1st_year(self):
+        """Valida projeção sintética com retorno do 1º ano quando o horizonte excede o tempo de vida do ativo."""
+        # Ativo só tem 12 meses (1 ano de vida na B3)
+        pts = [{"date": f"2025-{m:02d}-01", "price": 10.0 + (m * 0.15), "dy": 12.0} for m in range(1, 13)]
+        # Simula horizonte de 5 anos (1 ano observado + 4 anos projetados pelo retorno do 1º ano)
+        res = calculate_retrospective_math(
+            amount=5000.0,
+            modality="single",
+            reinvest=True,
+            annual_inflation=0.05,
+            history_points=pts,
+            target_years=5,
+            current_dy=0.12
+        )
+        assert res["is_real"] is False # Período excedente requer projeção
+        assert res["r1y"] > 0.10 # Retorno observado do 1º ano
+        assert res["balance_nominal"] > 5000.0
+        # O saldo real é deflacionado por 5 anos de inflação a 5%
+        assert math.isclose(res["balance_real"], res["balance_nominal"] / math.pow(1.05, 5), rel_tol=1e-3)
 
 
 # ===================================================================
@@ -325,4 +460,47 @@ class TestCalculatorDOMContract:
         assert 'FIIs' in html_content
         assert 'FIAGROs' in html_content
         assert 'Tesouro Direto' in html_content
+
+    def test_calculator_snowball_inflation_and_real_growth_elements(self, html_content, js_content):
+        """Valida que a calculadora Bola de Neve possui os elementos e scripts de inflação e poder de compra real."""
+        # Inputs e presets no HTML
+        assert 'id="calc-snow-inflation"' in html_content
+        assert 'setSnowInflationPreset' in html_content
+        # Métricas reais no HTML
+        assert 'id="calc-snow-result-real-total"' in html_content
+        assert 'id="calc-snow-result-real-gain"' in html_content
+        assert 'id="calc-snow-result-real-rate"' in html_content
+        assert 'id="calc-snow-result-real-monthly-income"' in html_content
+        # Lógica em dashboard.js
+        assert 'balanceReal' in js_content
+        assert 'calc-snow-inflation' in js_content
+        assert 'setSnowInflationPreset' in js_content
+        assert 'Poder Real (IPCA)' in js_content
+
+    def test_calculator_retrospective_simulator_elements_and_js_bindings(self, html_content, js_content):
+        """Valida o modo de simulação retrospectiva ("Quanto teria hoje?") e seus bindings JS."""
+        # Botão seletor e container de grid
+        assert 'id="btn-calc-mode-retrospective"' in html_content
+        assert 'id="calc-grid-retrospective"' in html_content
+        # Controles de entrada
+        assert 'id="calc-retro-category"' in html_content
+        assert 'id="calc-retro-asset"' in html_content
+        assert 'id="calc-retro-amount"' in html_content
+        assert 'id="calc-retro-modality"' in html_content
+        assert 'id="calc-retro-reinvest"' in html_content
+        assert 'id="calc-retro-inflation"' in html_content
+        assert 'id="calc-retro-table"' in html_content
+        assert 'id="calc-retro-tbody"' in html_content
+        assert 'id="retro-chart"' in html_content
+        # Presets e funções
+        assert 'setRetroAmountPreset' in html_content
+        assert 'setRetroInflationPreset' in html_content
+        assert 'onRetroCategoryChange' in html_content
+        # Funções implementadas em dashboard.js
+        assert 'function calculateRetrospective()' in js_content
+        assert 'function renderRetroChart(' in js_content
+        assert 'function setRetroAmountPreset(' in js_content
+        assert 'function setRetroInflationPreset(' in js_content
+        assert 'function onRetroCategoryChange(' in js_content
+        assert "mode === 'retrospective'" in js_content or "currentCalcMode === 'retrospective'" in js_content
 
