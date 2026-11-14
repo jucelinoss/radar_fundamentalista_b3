@@ -451,13 +451,14 @@
                     <h3 style="font-size: 0.95rem; font-weight: 700;">Parâmetros da Meta</h3>
                     <div class="calc-input-group">
                         <label for="calc-goal-target">Renda Líquida Mensal Desejada (R$)</label>
-                        <input type="number" id="calc-goal-target" value="1000" min="10" step="50" oninput="calculateIncomeGoal()">
+                        <input type="number" id="calc-goal-target" value="1000" min="0" step="50" oninput="calculateIncomeGoal()">
                         <div class="calc-presets-row">
-                            <button type="button" class="calc-preset-btn" onclick="setGoalPreset(500)">R$ 500</button>
-                            <button type="button" class="calc-preset-btn active" onclick="setGoalPreset(1000)">R$ 1.000</button>
-                            <button type="button" class="calc-preset-btn" onclick="setGoalPreset(2500)">R$ 2.500</button>
-                            <button type="button" class="calc-preset-btn" onclick="setGoalPreset(5000)">R$ 5.000</button>
-                            <button type="button" class="calc-preset-btn" onclick="setGoalPreset(10000)">R$ 10.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="addGoalPreset(0)" title="Zerar valor">Zerar</button>
+                            <button type="button" class="calc-preset-btn" onclick="addGoalPreset(100)">+100</button>
+                            <button type="button" class="calc-preset-btn" onclick="addGoalPreset(500)">+500</button>
+                            <button type="button" class="calc-preset-btn" onclick="addGoalPreset(1000)">+1.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="addGoalPreset(2500)">+2.500</button>
+                            <button type="button" class="calc-preset-btn" onclick="addGoalPreset(5000)">+5.000</button>
                         </div>
                     </div>
                     <div class="calc-input-group">
@@ -547,11 +548,13 @@
                         <label for="calc-snow-monthly">Aporte Mensal (R$)</label>
                         <input type="number" id="calc-snow-monthly" value="500" min="0" step="50" oninput="calculateSnowball()">
                         <div class="calc-presets-row">
-                            <button type="button" class="calc-preset-btn" onclick="setSnowMonthlyPreset(200)">R$ 200</button>
-                            <button type="button" class="calc-preset-btn active" onclick="setSnowMonthlyPreset(500)">R$ 500</button>
-                            <button type="button" class="calc-preset-btn" onclick="setSnowMonthlyPreset(1000)">R$ 1.000</button>
-                            <button type="button" class="calc-preset-btn" onclick="setSnowMonthlyPreset(2000)">R$ 2.000</button>
-                            <button type="button" class="calc-preset-btn" onclick="setSnowMonthlyPreset(5000)">R$ 5.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="addSnowMonthlyPreset(0)" title="Zerar valor">Zerar</button>
+                            <button type="button" class="calc-preset-btn" onclick="addSnowMonthlyPreset(100)">+100</button>
+                            <button type="button" class="calc-preset-btn" onclick="addSnowMonthlyPreset(200)">+200</button>
+                            <button type="button" class="calc-preset-btn" onclick="addSnowMonthlyPreset(500)">+500</button>
+                            <button type="button" class="calc-preset-btn" onclick="addSnowMonthlyPreset(1000)">+1.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="addSnowMonthlyPreset(2000)">+2.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="addSnowMonthlyPreset(5000)">+5.000</button>
                         </div>
                     </div>
                     <div class="calc-input-group">
@@ -682,13 +685,14 @@
                     <h3 style="font-size: 0.95rem; font-weight: 700;">Parâmetros de Simulação</h3>
                     <div class="calc-input-group">
                         <label for="calc-rf-amount">Valor a Investir (R$)</label>
-                        <input type="number" id="calc-rf-amount" value="10000" min="100" step="1000" oninput="calculateRfComparison()">
+                        <input type="number" id="calc-rf-amount" value="10000" min="0" step="100" oninput="calculateRfComparison()">
                         <div class="calc-presets-row">
-                            <button type="button" class="calc-preset-btn" onclick="setRfAmountPreset(1000)">R$ 1.000</button>
-                            <button type="button" class="calc-preset-btn" onclick="setRfAmountPreset(5000)">R$ 5.000</button>
-                            <button type="button" class="calc-preset-btn active" onclick="setRfAmountPreset(10000)">R$ 10.000</button>
-                            <button type="button" class="calc-preset-btn" onclick="setRfAmountPreset(50000)">R$ 50.000</button>
-                            <button type="button" class="calc-preset-btn" onclick="setRfAmountPreset(100000)">R$ 100.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="addRfAmountPreset(0)" title="Zerar valor">Zerar</button>
+                            <button type="button" class="calc-preset-btn" onclick="addRfAmountPreset(100)">+100</button>
+                            <button type="button" class="calc-preset-btn" onclick="addRfAmountPreset(1000)">+1.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="addRfAmountPreset(5000)">+5.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="addRfAmountPreset(10000)">+10.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="addRfAmountPreset(50000)">+50.000</button>
                         </div>
                     </div>
                     <div class="calc-input-group">
@@ -1346,13 +1350,14 @@
                     </div>
                     <div class="calc-input-group">
                         <label for="calc-retro-amount">Valor do Investimento (R$)</label>
-                        <input type="number" id="calc-retro-amount" value="5000" min="10" step="100" oninput="calculateRetrospective()">
+                        <input type="number" id="calc-retro-amount" value="5000" min="0" step="100" oninput="calculateRetrospective()">
                         <div class="calc-presets-row">
-                            <button type="button" class="calc-preset-btn" onclick="setRetroAmountPreset(1000)">R$ 1.000</button>
-                            <button type="button" class="calc-preset-btn active" onclick="setRetroAmountPreset(5000)">R$ 5.000</button>
-                            <button type="button" class="calc-preset-btn" onclick="setRetroAmountPreset(10000)">R$ 10.000</button>
-                            <button type="button" class="calc-preset-btn" onclick="setRetroAmountPreset(50000)">R$ 50.000</button>
-                            <button type="button" class="calc-preset-btn" onclick="setRetroAmountPreset(100000)">R$ 100.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="addRetroAmountPreset(0)" title="Zerar valor">Zerar</button>
+                            <button type="button" class="calc-preset-btn" onclick="addRetroAmountPreset(100)">+100</button>
+                            <button type="button" class="calc-preset-btn" onclick="addRetroAmountPreset(1000)">+1.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="addRetroAmountPreset(5000)">+5.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="addRetroAmountPreset(10000)">+10.000</button>
+                            <button type="button" class="calc-preset-btn" onclick="addRetroAmountPreset(50000)">+50.000</button>
                         </div>
                     </div>
                     <div class="calc-input-group">
