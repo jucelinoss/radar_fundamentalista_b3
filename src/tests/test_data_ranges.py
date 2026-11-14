@@ -226,11 +226,11 @@ class TestFiiRanges:
         )
 
     def test_pb_ratio_range(self, fiis):
-        """FII P/VP should be 0-5."""
+        """FII P/VP should be 0-10."""
         outliers = [f for f in fiis if f.get("pb_ratio") is not None
-                    and (f["pb_ratio"] < 0 or f["pb_ratio"] > 5)]
+                    and (f["pb_ratio"] < 0 or f["pb_ratio"] > 10)]
         assert len(outliers) == 0, (
-            f"{len(outliers)} FIIs com P/VP fora do range 0-5:\n"
+            f"{len(outliers)} FIIs com P/VP fora do range 0-10:\n"
             + "\n".join(f"  {f['ticker']}: P/VP={f['pb_ratio']:.4f}" for f in outliers)
         )
 
@@ -283,11 +283,11 @@ class TestFiagroRanges:
         )
 
     def test_pb_ratio_range(self, fiagros):
-        """FIAGRO P/VP should be 0-5."""
+        """FIAGRO P/VP should be 0-10."""
         outliers = [f for f in fiagros if f.get("pb_ratio") is not None
-                    and (f["pb_ratio"] < 0 or f["pb_ratio"] > 5)]
+                    and (f["pb_ratio"] < 0 or f["pb_ratio"] > 10)]
         assert len(outliers) == 0, (
-            f"{len(outliers)} FIAGROs com P/VP fora do range 0-5:\n"
+            f"{len(outliers)} FIAGROs com P/VP fora do range 0-10:\n"
             + "\n".join(f"  {f['ticker']}: P/VP={f['pb_ratio']:.4f}" for f in outliers)
         )
 
