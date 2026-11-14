@@ -93,6 +93,19 @@ class TestTickerResolution:
         assert resolve_ticker(KNOWN_UNAVAILABLE_FII, mappings) == (KNOWN_UNAVAILABLE_FII, True)
         assert KNOWN_UNAVAILABLE_FII not in cfg["fiis"]["tickers"]
 
+    def test_patria_merged_fiis_are_marked_unavailable_and_not_monitored(self):
+        import json
+        from ingestion import resolve_ticker
+
+        mappings = self._load_mappings()
+        cfg_path = os.path.join(SRC_DIR, "..", "config", "tickers.json")
+        with open(cfg_path, "r", encoding="utf-8") as f:
+            cfg = json.load(f)
+
+        for ticker in ("RBRR11.SA", "VCJR11.SA", "RPRI11.SA"):
+            assert resolve_ticker(ticker, mappings) == (ticker, True)
+            assert ticker not in cfg["fiis"]["tickers"]
+
     def test_unknown_ticker_passthrough(self):
         """Unknown ticker should pass through unchanged."""
         from ingestion import resolve_ticker

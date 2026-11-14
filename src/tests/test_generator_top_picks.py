@@ -20,6 +20,7 @@ from generator import (
     _build_tesouro_history_meta,
     _compute_top_picks,
     _exclude_delisted_assets,
+    _is_valid_asset,
     _merge_tesouro_history,
     _summarize,
 )
@@ -27,11 +28,20 @@ from generator import (
 
 def test_generator_excludes_delisted_rows_even_if_they_remain_in_database():
     assets = [
-        {"ticker": "SHOP11.SA", "name": "Multi Shoppings"},
-        {"ticker": "HGBS11.SA", "name": "Hedge Brasil Shopping"},
+        {"ticker": "SHOP11.SA", "name": "Multi Shoppings", "price": 10.0},
+        {"ticker": "HGBS11.SA", "name": "Hedge Brasil Shopping", "price": 20.0},
     ]
 
     assert _exclude_delisted_assets(assets, {"SHOP11.SA": None}) == [assets[1]]
+
+
+def test_generator_is_valid_asset_filters_invalid_prices_and_names():
+    assert _is_valid_asset({"ticker": "TEST11.SA", "name": "Valid Fund", "price": 50.0}) is True
+    assert _is_valid_asset({"ticker": "TEST11.SA", "name": "Zero Price", "price": 0.0}) is False
+    assert _is_valid_asset({"ticker": "TEST11.SA", "name": "Negative Price", "price": -5.0}) is False
+    assert _is_valid_asset({"ticker": "TEST11.SA", "name": "None Price", "price": None}) is False
+    assert _is_valid_asset({"ticker": "TEST11.SA", "name": "", "price": 50.0}) is False
+    assert _is_valid_asset({"ticker": "", "name": "No Ticker", "price": 50.0}) is False
 
 
 class TestMergeTesouroHistory:

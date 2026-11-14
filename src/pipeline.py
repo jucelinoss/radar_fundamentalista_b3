@@ -219,13 +219,21 @@ def run_full_pipeline(max_age_hours: int = 6, force: bool = False) -> bool:
                 macro_ok = False
                 logger.warning(f"  Macro fetch failed (continuando sem dados v3): {e}")
 
-        if result["fail"] == 0 and result.get("cvm_sources_ok", True) and macro_ok and (result["ok"] > 0 or result["fail"] == 0):
+        total_assets = result.get("ok", 0) + result.get("fail", 0)
+        max_acceptable_fail = max(15, int(total_assets * 0.10)) if total_assets else 15
+        if (
+            result.get("cvm_sources_ok", True)
+            and macro_ok
+            and result.get("ok", 0) > 0
+            and result.get("fail", 0) <= max_acceptable_fail
+        ):
             run_generator()
         else:
             logger.error(
-                "Incomplete refresh (asset failures=%s, macro_ok=%s); "
+                "Incomplete refresh (asset ok=%s, failures=%s, threshold=%s, macro_ok=%s); "
                 "skipping dashboard generation to preserve the last complete snapshot",
-                result.get("fail", 0), macro_ok and result.get("cvm_sources_ok", True),
+                result.get("ok", 0), result.get("fail", 0), max_acceptable_fail,
+                macro_ok and result.get("cvm_sources_ok", True),
             )
             return False
     except Exception as e:

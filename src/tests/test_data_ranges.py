@@ -39,11 +39,33 @@ def db():
     conn.close()
 
 
+def _load_delisted_tickers() -> set[str]:
+    mappings_path = os.path.join(os.path.dirname(SRC_DIR), "data", "ticker_mappings.json")
+    if not os.path.exists(mappings_path):
+        return set()
+    import json
+    try:
+        with open(mappings_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return {
+            ticker for ticker, target in data.items()
+            if not ticker.startswith("_") and target is None
+        }
+    except Exception:
+        return set()
+
+
 def _fetch_all(cursor, table: str) -> list[dict]:
-    """Fetch all rows from a table as dicts."""
+    """Fetch active rows from a table as dicts, ignoring delisted tickers."""
+    delisted = _load_delisted_tickers()
     cursor.execute(f"SELECT * FROM {table}")
     columns = [desc[0] for desc in cursor.description]
-    return [dict(zip(columns, row)) for row in cursor.fetchall()]
+    rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    return [
+        r for r in rows
+        if r.get("ticker") not in delisted
+        and f"{r.get('ticker')}.SA" not in delisted
+    ]
 
 
 @pytest.fixture(scope="module")
@@ -70,9 +92,10 @@ def fiagros(db):
 ])
 def test_all_have_ticker_and_name(request, table, label):
     """Every asset must have a ticker and name."""
+    delisted = _load_delisted_tickers()
     cursor = request.getfixturevalue("db").cursor()
     cursor.execute(f"SELECT ticker, name FROM {table} WHERE ticker IS NULL OR name IS NULL")
-    nulls = cursor.fetchall()
+    nulls = [r for r in cursor.fetchall() if r[0] not in delisted]
     assert len(nulls) == 0, f"{len(nulls)} {label} sem ticker ou nome"
 
 

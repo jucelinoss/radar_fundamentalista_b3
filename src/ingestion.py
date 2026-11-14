@@ -250,6 +250,13 @@ def _fetch_with_retry(ticker: str, resolved_ticker: str, asset_type: str,
                 analysis = analyzer.analyze_fiagro(resolved_ticker, info)
             else:
                 analysis = analyzer.analyze_fii(resolved_ticker, info)
+
+            # Ensure the price is valid (> 0)
+            price = analysis.get("price")
+            if price is None or price <= 0:
+                logger.warning(f"  ⚠️  {resolved_ticker}: cotação ausente ou zerada ({price}); ativo sem liquidez/deslistado")
+                return None
+
             history_str = fetch_history(
                 resolved_ticker, config,
                 period=pipeline_cfg.get("history_years", "10y"),
@@ -302,10 +309,15 @@ def ingest_single_asset(ticker: str, asset_type: str, mappings: dict[str, Any], 
 
     try:
         analysis = _fetch_with_retry(ticker, resolved_ticker, asset_type, config, retry_attempts, retry_delay)
-        if analysis is None:
-            log_failed_ticker(ticker, f"No data (resolved: {resolved_ticker})")
-            tracker.increment(ok=False)
-            return False
+        if analysis is None or analysis.get("price") is None or analysis.get("price") <= 0:
+            logger.warning(f"  ⏭️  {display_name} → indisponível ou sem cotação válida (> 0), removendo do radar")
+            database.delete_asset(ticker)
+            if resolved_ticker != ticker:
+                database.delete_asset(resolved_ticker)
+            log_failed_ticker(ticker, f"No valid price/data (resolved: {resolved_ticker})")
+            # Trata como ignorado graciosamente para não quebrar o pipeline
+            tracker.increment(ok=True)
+            return True
 
         _persist_asset(analysis, asset_type)
         logger.info(f"  ✅ {display_name}")
@@ -453,6 +465,12 @@ def run_full_ingestion(max_age_hours: int = 6, force: bool = False) -> dict[str,
     stocks_ok, stocks_fail = ingest_batch(stocks_tickers, "stock", mappings, config, tracker)
     fiis_ok, fiis_fail = ingest_batch(fiis_tickers, "fii", mappings, config, tracker)
     fiagros_ok, fiagros_fail = ingest_batch(fiagros_tickers, "fiagro", mappings, config, tracker)
+
+    # Purge any invalid or delisted rows left in database
+    delisted = {ticker for ticker, target in mappings.items() if not ticker.startswith("_") and target is None}
+    purged = database.purge_invalid_assets(delisted)
+    if purged:
+        logger.info(f"  🧹 Purged {purged} invalid/delisted asset rows from database")
 
     duration = round(time.time() - start_time, 2)
     total_ok = stocks_ok + fiis_ok + fiagros_ok

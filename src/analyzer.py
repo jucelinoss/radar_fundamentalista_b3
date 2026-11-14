@@ -617,11 +617,16 @@ SECTOR_MAP = {
 }
 
 def _parse_price(info: dict[str, Any]) -> float | None:
-    """Extract and sanitize the current price from yfinance info."""
-    price = info.get('currentPrice')
-    if price is None:
-        price = info.get('regularMarketPrice')
-    return safe_float(price)
+    """Extract and sanitize the current price from yfinance info.
+    Only strictly positive values (> 0) are considered valid.
+    Falls back across currentPrice -> regularMarketPrice -> previousClose.
+    """
+    for field in ('currentPrice', 'regularMarketPrice', 'previousClose'):
+        raw = info.get(field)
+        val = safe_float(raw)
+        if val is not None and val > 0:
+            return val
+    return None
 
 
 def _derive_dividend_fields(dividend_yield: Any, dividend_rate: Any, price: float | None, last_div: Any = None) -> tuple[float, float | None]:
