@@ -2082,6 +2082,120 @@ body.is-col-resizing * {
         .dark thead .calc-retro-sticky-col {
             background: var(--surface-2);
         }
+
+        /* ── Fluxo Didático / Simplificado de Investimento & Ganho Real ── */
+        .calc-hero-flow {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.55rem;
+            margin: 0.6rem 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        @media (max-width: 768px) {
+            .calc-hero-flow {
+                grid-template-columns: 1fr;
+                gap: 0.45rem;
+            }
+        }
+        .calc-hero-card {
+            background: var(--surface-2);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            padding: 0.65rem 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            box-sizing: border-box;
+            transition: transform 0.15s ease, border-color 0.15s ease;
+        }
+        .calc-hero-card.highlight-invested {
+            border-left: 3px solid #64748b;
+        }
+        .calc-hero-card.highlight-nominal {
+            border-left: 3px solid #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+        .calc-hero-card.highlight-real {
+            border-left: 3px solid #0284c7;
+            background: rgba(2, 132, 199, 0.07);
+        }
+        .calc-hero-step-tag {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .calc-hero-val {
+            font-size: 1.12rem;
+            font-weight: 800;
+            line-height: 1.25;
+            color: var(--text-primary);
+        }
+        .calc-hero-sub {
+            font-size: 0.73rem;
+            color: var(--text-secondary);
+            line-height: 1.35;
+        }
+        .calc-hero-narrative {
+            background: var(--surface-2);
+            border-left: 3px solid #0284c7;
+            padding: 0.6rem 0.8rem;
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            font-size: 0.80rem;
+            line-height: 1.45;
+            color: var(--text-secondary);
+            margin: 0.5rem 0;
+            box-sizing: border-box;
+        }
+        .calc-hero-narrative strong {
+            color: var(--text-primary);
+        }
+        .calc-details-toggle-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 0.85rem;
+            margin: 0.6rem 0 0.4rem 0;
+            background: var(--surface-2);
+            border: 1px dashed var(--card-border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 0.80rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+            box-sizing: border-box;
+        }
+        .calc-details-toggle-btn:hover {
+            background: var(--surface-hover);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .calc-details-toggle-btn .calc-toggle-icon {
+            font-size: 0.72rem;
+            transition: transform 0.25s ease;
+            display: inline-block;
+        }
+        .calc-details-toggle-btn.open .calc-toggle-icon {
+            transform: rotate(180deg);
+        }
+        .calc-details-pane {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            width: 100%;
+            box-sizing: border-box;
+            animation: fadeIn 0.2s ease-in-out;
+        }
+        .calc-details-pane.hidden {
+            display: none !important;
+        }
         .calc-progress-container {
             margin-top: 0.75rem;
             display: flex;
