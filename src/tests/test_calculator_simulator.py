@@ -578,3 +578,37 @@ class TestCalculatorDOMContract:
         assert 'calc-retro-kpi-grid' in js_content
         assert 'calc-retro-sticky-col' in js_content
 
+    def test_simplified_didactic_views_and_detail_toggles(self, html_content, css_content, js_content):
+        """Valida arquitetura de visualização simplificada/didática por padrão com botões de alternância de detalhes."""
+        # 1. Elementos da Visão Simplificada / Hero Flow na Bola de Neve
+        assert 'id="calc-snow-hero-flow"' in html_content
+        assert 'id="calc-snow-hero-invested"' in html_content
+        assert 'id="calc-snow-hero-nominal"' in html_content
+        assert 'id="calc-snow-hero-real-gain"' in html_content
+        assert 'id="calc-snow-hero-narrative"' in html_content
+        assert 'id="calc-snow-toggle-btn"' in html_content
+        assert 'id="calc-snow-details-pane"' in html_content
+        assert 'toggleSnowDetails()' in html_content
+
+        # 2. Elementos da Visão Simplificada no Simulador Retrospectivo
+        assert 'id="calc-retro-hero-narrative"' in html_content
+        assert 'id="calc-retro-toggle-btn"' in html_content
+        assert 'id="calc-retro-details-pane"' in html_content
+        assert 'toggleRetroDetails()' in html_content
+
+        # 3. Funções de Alternância em dashboard.js
+        assert 'function toggleSnowDetails()' in js_content
+        assert 'function toggleRetroDetails()' in js_content
+        assert 'calc-snow-hero-invested' in js_content
+        assert 'calc-retro-hero-narrative' in js_content
+        assert 'inflationCost' in js_content
+        assert 'realNetGain' in js_content
+
+        # 4. Classes CSS para visualização didática
+        assert '.calc-hero-flow' in css_content
+        assert '.calc-hero-card' in css_content
+        assert '.calc-hero-narrative' in css_content
+        assert '.calc-details-toggle-btn' in css_content
+        assert '.calc-details-pane' in css_content
+
+
