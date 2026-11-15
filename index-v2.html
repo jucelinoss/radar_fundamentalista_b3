@@ -23,7 +23,7 @@
     <!-- html2pdf.js for PDF export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-        <link rel="stylesheet" href="assets/dashboard.css?v=6">
+        <link rel="stylesheet" href="assets/dashboard.css?v=20">
 </head>
 
 <body>
@@ -646,8 +646,8 @@
                     </div>
 
                     <!-- Botão de Alternância para Visão Detalhada -->
-                    <button type="button" class="calc-details-toggle-btn" id="calc-snow-toggle-btn" onclick="toggleSnowDetails()">
-                        <span>🔍 Ver Detalhes Avançados (IR, Dividendos, Fisher e Magic Number)</span>
+                    <button type="button" class="calc-details-toggle-btn" id="calc-snow-toggle-btn" onclick="toggleSnowDetails()" aria-expanded="false">
+                        <span class="calc-toggle-text">🔍 Ver Detalhes Avançados (IR, Dividendos, Fisher e Magic Number)</span>
                         <span class="calc-toggle-icon">▼</span>
                     </button>
 
@@ -1449,8 +1449,8 @@
                     </div>
 
                     <!-- Botão de Alternância para Visão Detalhada -->
-                    <button type="button" class="calc-details-toggle-btn" id="calc-retro-toggle-btn" onclick="toggleRetroDetails()">
-                        <span>📊 Ver Tabela Completa e Detalhes Técnicos</span>
+                    <button type="button" class="calc-details-toggle-btn" id="calc-retro-toggle-btn" onclick="toggleRetroDetails()" aria-expanded="false">
+                        <span class="calc-toggle-text">📊 Ver Tabela Completa e Detalhes Técnicos</span>
                         <span class="calc-toggle-icon">▼</span>
                     </button>
 
@@ -2709,7 +2709,64 @@
         </div>
     </footer>
 
-        <script src="assets/dashboard.js?v=17" defer></script>
+        <script src="assets/dashboard.js?v=20" defer></script>
+
+    <!-- Inline Fallback Garantido para Alternadores de Detalhes das Calculadoras -->
+    <script>
+        function toggleSnowDetails() {
+            var pane = document.getElementById('calc-snow-details-pane');
+            var btn = document.getElementById('calc-snow-toggle-btn');
+            if (!pane) return;
+            var isHidden = pane.classList.contains('hidden') || pane.style.display === 'none' || (window.getComputedStyle && getComputedStyle(pane).display === 'none');
+            if (isHidden) {
+                pane.classList.remove('hidden');
+                pane.style.display = 'flex';
+                if (btn) {
+                    btn.classList.add('open');
+                    btn.setAttribute('aria-expanded', 'true');
+                    var span = btn.querySelector('.calc-toggle-text') || btn.querySelector('span:first-child');
+                    if (span) span.textContent = '▲ Ocultar Detalhes Avançados';
+                }
+            } else {
+                pane.classList.add('hidden');
+                pane.style.display = 'none';
+                if (btn) {
+                    btn.classList.remove('open');
+                    btn.setAttribute('aria-expanded', 'false');
+                    var span = btn.querySelector('.calc-toggle-text') || btn.querySelector('span:first-child');
+                    if (span) span.textContent = '🔍 Ver Detalhes Avançados (IR, Dividendos, Fisher e Magic Number)';
+                }
+            }
+        }
+        window.toggleSnowDetails = toggleSnowDetails;
+
+        function toggleRetroDetails() {
+            var pane = document.getElementById('calc-retro-details-pane');
+            var btn = document.getElementById('calc-retro-toggle-btn');
+            if (!pane) return;
+            var isHidden = pane.classList.contains('hidden') || pane.style.display === 'none' || (window.getComputedStyle && getComputedStyle(pane).display === 'none');
+            if (isHidden) {
+                pane.classList.remove('hidden');
+                pane.style.display = 'flex';
+                if (btn) {
+                    btn.classList.add('open');
+                    btn.setAttribute('aria-expanded', 'true');
+                    var span = btn.querySelector('.calc-toggle-text') || btn.querySelector('span:first-child');
+                    if (span) span.textContent = '▲ Ocultar Tabela Completa e Detalhes Técnicos';
+                }
+            } else {
+                pane.classList.add('hidden');
+                pane.style.display = 'none';
+                if (btn) {
+                    btn.classList.remove('open');
+                    btn.setAttribute('aria-expanded', 'false');
+                    var span = btn.querySelector('.calc-toggle-text') || btn.querySelector('span:first-child');
+                    if (span) span.textContent = '📊 Ver Tabela Completa e Detalhes Técnicos';
+                }
+            }
+        }
+        window.toggleRetroDetails = toggleRetroDetails;
+    </script>
 
     <!-- Service Worker: enable PWA offline support -->
     <script>

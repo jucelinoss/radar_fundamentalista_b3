@@ -5618,30 +5618,69 @@ const tableSortState = {};
         function toggleSnowDetails() {
             const pane = document.getElementById('calc-snow-details-pane');
             const btn = document.getElementById('calc-snow-toggle-btn');
-            if (!pane || !btn) return;
-            const isHidden = pane.classList.contains('hidden');
-            pane.classList.toggle('hidden', !isHidden);
-            btn.classList.toggle('open', isHidden);
-            const labelSpan = btn.querySelector('span:first-child');
-            if (labelSpan) {
-                labelSpan.textContent = isHidden
-                    ? '▲ Ocultar Detalhes Avançados'
-                    : '🔍 Ver Detalhes Avançados (IR, Dividendos, Fisher e Magic Number)';
+            if (!pane) return;
+            const isCurrentlyHidden = pane.classList.contains('hidden') || pane.style.display === 'none' || (window.getComputedStyle && getComputedStyle(pane).display === 'none');
+            if (isCurrentlyHidden) {
+                pane.classList.remove('hidden');
+                pane.style.display = 'flex';
+                if (btn) {
+                    btn.classList.add('open');
+                    btn.setAttribute('aria-expanded', 'true');
+                    const labelSpan = btn.querySelector('.calc-toggle-text') || btn.querySelector('span:first-child');
+                    if (labelSpan) labelSpan.textContent = '▲ Ocultar Detalhes Avançados';
+                }
+            } else {
+                pane.classList.add('hidden');
+                pane.style.display = 'none';
+                if (btn) {
+                    btn.classList.remove('open');
+                    btn.setAttribute('aria-expanded', 'false');
+                    const labelSpan = btn.querySelector('.calc-toggle-text') || btn.querySelector('span:first-child');
+                    if (labelSpan) labelSpan.textContent = '🔍 Ver Detalhes Avançados (IR, Dividendos, Fisher e Magic Number)';
+                }
             }
         }
+        window.toggleSnowDetails = toggleSnowDetails;
 
         function toggleRetroDetails() {
             const pane = document.getElementById('calc-retro-details-pane');
             const btn = document.getElementById('calc-retro-toggle-btn');
-            if (!pane || !btn) return;
-            const isHidden = pane.classList.contains('hidden');
-            pane.classList.toggle('hidden', !isHidden);
-            btn.classList.toggle('open', isHidden);
-            const labelSpan = btn.querySelector('span:first-child');
-            if (labelSpan) {
-                labelSpan.textContent = isHidden
-                    ? '▲ Ocultar Tabela Completa e Detalhes Técnicos'
-                    : '📊 Ver Tabela Completa e Detalhes Técnicos';
+            if (!pane) return;
+            const isCurrentlyHidden = pane.classList.contains('hidden') || pane.style.display === 'none' || (window.getComputedStyle && getComputedStyle(pane).display === 'none');
+            if (isCurrentlyHidden) {
+                pane.classList.remove('hidden');
+                pane.style.display = 'flex';
+                if (btn) {
+                    btn.classList.add('open');
+                    btn.setAttribute('aria-expanded', 'true');
+                    const labelSpan = btn.querySelector('.calc-toggle-text') || btn.querySelector('span:first-child');
+                    if (labelSpan) labelSpan.textContent = '▲ Ocultar Tabela Completa e Detalhes Técnicos';
+                }
+            } else {
+                pane.classList.add('hidden');
+                pane.style.display = 'none';
+                if (btn) {
+                    btn.classList.remove('open');
+                    btn.setAttribute('aria-expanded', 'false');
+                    const labelSpan = btn.querySelector('.calc-toggle-text') || btn.querySelector('span:first-child');
+                    if (labelSpan) labelSpan.textContent = '📊 Ver Tabela Completa e Detalhes Técnicos';
+                }
+            }
+        }
+        window.toggleRetroDetails = toggleRetroDetails;
+
+        // Garante registro de listeners assim que o DOM carregar
+        if (typeof document !== 'undefined') {
+            const attachToggleListeners = function() {
+                const sBtn = document.getElementById('calc-snow-toggle-btn');
+                if (sBtn) sBtn.onclick = toggleSnowDetails;
+                const rBtn = document.getElementById('calc-retro-toggle-btn');
+                if (rBtn) rBtn.onclick = toggleRetroDetails;
+            };
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', attachToggleListeners);
+            } else {
+                attachToggleListeners();
             }
         }
 
