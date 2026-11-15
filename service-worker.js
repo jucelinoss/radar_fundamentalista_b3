@@ -1,6 +1,6 @@
 /* Radar Fundamentalista B3 — Service Worker v1.2 */
 
-const CACHE = "radar-b3-v18";
+const CACHE = "radar-b3-v20";
 const STATIC_ASSETS = [
   "/manifest.json",
   "/icons/icon.svg",
