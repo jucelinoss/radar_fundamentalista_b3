@@ -23,7 +23,7 @@
     <!-- html2pdf.js for PDF export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-        <link rel="stylesheet" href="assets/dashboard.css?v=20">
+        <link rel="stylesheet" href="assets/dashboard.css?v=21">
 </head>
 
 <body>
@@ -614,9 +614,9 @@
                 </div>
 
                 <div class="calc-card">
-                    <h3 id="calc-snow-card-title" style="font-size: 0.95rem; font-weight: 700;">Resultado da Projeção (Acúmulo & Ganho Real)</h3>
+                    <h3 id="calc-snow-card-title" style="font-size: 0.95rem; font-weight: 700;">Resultado da Projeção — Visão Nominal vs Visão Real</h3>
 
-                    <!-- Visão Simplificada / Didática (Padrão): O Dinheiro em 3 Passos -->
+                    <!-- Visão Unificada: O Dinheiro em 3 Passos -->
                     <div class="calc-hero-flow" id="calc-snow-hero-flow">
                         <div class="calc-hero-card highlight-invested">
                             <span class="calc-hero-step-tag">1. Seu Bolso (Aportes)</span>
@@ -640,19 +640,73 @@
                         Carregando projeção didática...
                     </div>
 
+                    <!-- Bloco Educativo de Destaque: Preservação do Poder de Compra do Aporte -->
+                    <div class="calc-inflation-guard-card" id="calc-snow-inflation-guard">
+                        <div class="calc-guard-header">
+                            <div class="calc-guard-title">
+                                <span>🛡️ Preservação do Poder de Compra do seu Aporte</span>
+                            </div>
+                            <span class="calc-guard-badge" id="calc-guard-ipca-rate">IPCA 0,0% a.a.</span>
+                        </div>
+                        <div class="calc-guard-alert-box" id="calc-guard-alert-box">
+                            Calculando diagnóstico da inflação sobre o aporte mensal...
+                        </div>
+                        <div class="calc-guard-milestones" id="calc-guard-milestones">
+                            <!-- Metas dinâmicas de aporte futuro para manter poder de compra -->
+                        </div>
+                        <div class="calc-strategy-table-wrapper">
+                            <table class="calc-strategy-table">
+                                <thead>
+                                    <tr>
+                                        <th>Métrica de Longo Prazo</th>
+                                        <th>Cenário A: Aporte Fixo (Sofre Corrosão)</th>
+                                        <th style="color: #0284c7;">Cenário B: Aporte Protegido (Reajuste IPCA)</th>
+                                        <th style="color: var(--positive);">Diferença Real no Bolso</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="font-weight: 700;">Patrimônio Real (Moeda de Hoje)</td>
+                                        <td id="calc-comp-real-a" style="font-weight: 600;">R$ 0,00</td>
+                                        <td id="calc-comp-real-b" style="font-weight: 700; color: #0284c7;">R$ 0,00</td>
+                                        <td id="calc-comp-real-diff" style="font-weight: 700; color: var(--positive);">+R$ 0,00</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-weight: 700;">Renda Passiva Real (Hoje)</td>
+                                        <td id="calc-comp-income-a" style="font-weight: 600;">R$ 0,00/mês</td>
+                                        <td id="calc-comp-income-b" style="font-weight: 700; color: #0284c7;">R$ 0,00/mês</td>
+                                        <td id="calc-comp-income-diff" style="font-weight: 700; color: var(--positive);">+R$ 0,00/mês</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-weight: 700;">Saldo Bruto Corretora (Nominal)</td>
+                                        <td id="calc-comp-nom-a" style="color: var(--text-secondary);">R$ 0,00</td>
+                                        <td id="calc-comp-nom-b" style="color: var(--text-secondary);">R$ 0,00</td>
+                                        <td id="calc-comp-nom-diff" style="color: var(--text-secondary);">+R$ 0,00</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-weight: 700;">Poder Real do Aporte no Final</td>
+                                        <td id="calc-comp-effort-a" style="color: var(--negative, #ef4444); font-size: 0.74rem;">R$ 0,00/mês</td>
+                                        <td id="calc-comp-effort-b" style="color: #0284c7; font-weight: 700; font-size: 0.74rem;">R$ 0,00/mês (100% preservado)</td>
+                                        <td style="color: var(--text-muted); font-size: 0.74rem;">Preservação do esforço de poupança</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                     <!-- Gráfico Temporal de Evolução (Investido vs Real vs Nominal) -->
                     <div class="calc-chart-wrapper" style="margin-top: 0.4rem;">
                         <canvas id="snowball-chart"></canvas>
                     </div>
 
-                    <!-- Botão de Alternância para Visão Detalhada -->
-                    <button type="button" class="calc-details-toggle-btn" id="calc-snow-toggle-btn" onclick="toggleSnowDetails()" aria-expanded="false">
-                        <span class="calc-toggle-text">🔍 Ver Detalhes Avançados (IR, Dividendos, Fisher e Magic Number)</span>
+                    <!-- Botão de Alternância (Visão Unificada por padrão, recolhimento opcional) -->
+                    <button type="button" class="calc-details-toggle-btn open" id="calc-snow-toggle-btn" onclick="toggleSnowDetails()" aria-expanded="true">
+                        <span class="calc-toggle-text">⚙️ Recolher / Expandir Indicadores Técnicos Detalhados</span>
                         <span class="calc-toggle-icon">▼</span>
                     </button>
 
-                    <!-- Painel de Detalhes Técnicos (Oculto por padrão, expansível sob demanda) -->
-                    <div class="calc-details-pane hidden" id="calc-snow-details-pane">
+                    <!-- Painel de Detalhes Técnicos (Aberto por padrão na visão unificada) -->
+                    <div class="calc-details-pane" id="calc-snow-details-pane">
                         <div class="calc-magic-badge" id="calc-snow-magic-badge">
                             <div class="calc-magic-icon" id="calc-snow-magic-icon"></div>
                             <div class="calc-magic-text">
@@ -1448,14 +1502,14 @@
                         <canvas id="retro-chart"></canvas>
                     </div>
 
-                    <!-- Botão de Alternância para Visão Detalhada -->
-                    <button type="button" class="calc-details-toggle-btn" id="calc-retro-toggle-btn" onclick="toggleRetroDetails()" aria-expanded="false">
-                        <span class="calc-toggle-text">📊 Ver Tabela Completa e Detalhes Técnicos</span>
+                    <!-- Botão de Alternância (Visão Unificada por padrão, recolhimento opcional) -->
+                    <button type="button" class="calc-details-toggle-btn open" id="calc-retro-toggle-btn" onclick="toggleRetroDetails()" aria-expanded="true">
+                        <span class="calc-toggle-text">⚙️ Recolher / Expandir Tabela Completa de Horizontes</span>
                         <span class="calc-toggle-icon">▼</span>
                     </button>
 
-                    <!-- Painel de Detalhes Técnicos (Oculto por padrão, expansível sob demanda) -->
-                    <div class="calc-details-pane hidden" id="calc-retro-details-pane">
+                    <!-- Painel de Detalhes Técnicos (Aberto por padrão na visão unificada) -->
+                    <div class="calc-details-pane" id="calc-retro-details-pane">
                         <!-- Dica sutil de rolagem horizontal em telas móveis -->
                         <div class="calc-table-hint">
                             <span>👉 Deslize horizontalmente na tabela abaixo para ver todos os dados</span>
@@ -2709,7 +2763,7 @@
         </div>
     </footer>
 
-        <script src="assets/dashboard.js?v=20" defer></script>
+        <script src="assets/dashboard.js?v=21" defer></script>
 
     <!-- Inline Fallback Garantido para Alternadores de Detalhes das Calculadoras -->
     <script>
@@ -2725,7 +2779,7 @@
                     btn.classList.add('open');
                     btn.setAttribute('aria-expanded', 'true');
                     var span = btn.querySelector('.calc-toggle-text') || btn.querySelector('span:first-child');
-                    if (span) span.textContent = '▲ Ocultar Detalhes Avançados';
+                    if (span) span.textContent = '▲ Ocultar Indicadores Técnicos Detalhados';
                 }
             } else {
                 pane.classList.add('hidden');
@@ -2734,7 +2788,7 @@
                     btn.classList.remove('open');
                     btn.setAttribute('aria-expanded', 'false');
                     var span = btn.querySelector('.calc-toggle-text') || btn.querySelector('span:first-child');
-                    if (span) span.textContent = '🔍 Ver Detalhes Avançados (IR, Dividendos, Fisher e Magic Number)';
+                    if (span) span.textContent = '⚙️ Expandir Indicadores Técnicos Detalhados';
                 }
             }
         }
@@ -2752,7 +2806,7 @@
                     btn.classList.add('open');
                     btn.setAttribute('aria-expanded', 'true');
                     var span = btn.querySelector('.calc-toggle-text') || btn.querySelector('span:first-child');
-                    if (span) span.textContent = '▲ Ocultar Tabela Completa e Detalhes Técnicos';
+                    if (span) span.textContent = '▲ Ocultar Tabela Completa de Horizontes';
                 }
             } else {
                 pane.classList.add('hidden');
@@ -2761,7 +2815,7 @@
                     btn.classList.remove('open');
                     btn.setAttribute('aria-expanded', 'false');
                     var span = btn.querySelector('.calc-toggle-text') || btn.querySelector('span:first-child');
-                    if (span) span.textContent = '📊 Ver Tabela Completa e Detalhes Técnicos';
+                    if (span) span.textContent = '⚙️ Expandir Tabela Completa de Horizontes';
                 }
             }
         }

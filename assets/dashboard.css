@@ -2155,6 +2155,119 @@ body.is-col-resizing * {
         .calc-hero-narrative strong {
             color: var(--text-primary);
         }
+
+        /* ── Card Educativo: Preservação do Aporte & Comparativo Real vs Nominal ── */
+        .calc-inflation-guard-card {
+            background: var(--surface-2);
+            border: 1px solid rgba(14, 165, 233, 0.25);
+            border-radius: var(--radius-sm);
+            padding: 0.75rem 0.85rem;
+            margin: 0.6rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            box-sizing: border-box;
+        }
+        .calc-guard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+        .calc-guard-title {
+            font-size: 0.86rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .calc-guard-badge {
+            font-size: 0.68rem;
+            padding: 0.15rem 0.45rem;
+            border-radius: 4px;
+            background: rgba(14, 165, 233, 0.15);
+            color: #0284c7;
+            font-weight: 700;
+        }
+        .calc-guard-alert-box {
+            background: rgba(239, 68, 68, 0.08);
+            border-left: 3px solid #ef4444;
+            padding: 0.55rem 0.75rem;
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            font-size: 0.78rem;
+            line-height: 1.45;
+            color: var(--text-secondary);
+        }
+        .calc-guard-alert-box strong {
+            color: var(--text-primary);
+        }
+        .calc-guard-milestones {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.4rem;
+            margin: 0.2rem 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        @media (max-width: 640px) {
+            .calc-guard-milestones {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        .calc-guard-milestone-item {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            padding: 0.45rem 0.55rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+        }
+        .calc-guard-milestone-label {
+            font-size: 0.66rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        .calc-guard-milestone-target {
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+        .calc-guard-milestone-decay {
+            font-size: 0.68rem;
+            color: var(--negative, #ef4444);
+            font-weight: 600;
+        }
+        .calc-strategy-table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            background: var(--card);
+            margin-top: 0.35rem;
+            box-sizing: border-box;
+        }
+        .calc-strategy-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.78rem;
+            text-align: left;
+            min-width: 480px;
+        }
+        .calc-strategy-table th, .calc-strategy-table td {
+            padding: 0.5rem 0.65rem;
+            border-bottom: 1px solid var(--card-border);
+        }
+        .calc-strategy-table th {
+            background: var(--surface-2);
+            color: var(--text-secondary);
+            font-size: 0.70rem;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
         .calc-details-toggle-btn {
             width: 100%;
             display: flex;
