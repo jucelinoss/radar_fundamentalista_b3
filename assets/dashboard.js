@@ -5402,12 +5402,103 @@ const tableSortState = {};
                 const isPos = realNetGain >= 0;
                 const gainColor = isPos ? 'var(--positive)' : 'var(--negative, #ef4444)';
                 snowHeroNarrativeEl.innerHTML = `
-                    💡 <strong>Resumo do seu Dinheiro (${years} anos):</strong> Você aporta um total de <strong>R$ ${Math.round(totalInvested).toLocaleString('pt-BR')}</strong> do seu bolso.<br>
-                    • <strong>Na Corretora:</strong> seu saldo final estimado será de <strong>R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong> gerando cerca de <strong>R$ ${finalMonthlyNetIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mês</strong> em proventos líquidos.<br>
-                    • <strong>Efeito Inflação:</strong> o IPCA médio estimado em ${(annualInflation * 100).toFixed(1)}% a.a. corroerá ~R$ ${inflErosion.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} do saldo aparente. Seu poder de compra real será de <strong>R$ ${finalRealBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>.<br>
-                    • <strong>Seu Ganho Real Líquido no Bolso:</strong> <strong style="color: ${gainColor};">${isPos ? '+' : ''}R$ ${realNetGain.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${isPos ? '+' : ''}${realGainPct.toFixed(1)}% real acima da inflação)</strong>.
+                    💡 <strong>Diagnóstico do seu Patrimônio (${years} anos):</strong><br>
+                    • <strong>Na Corretora (Visão Nominal):</strong> seu saldo final estimado chegará a <strong>R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong> gerando <strong>R$ ${finalMonthlyNetIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mês</strong> em proventos líquidos aparentes.<br>
+                    • <strong>Efeito Inflação (IPCA ${(annualInflation * 100).toFixed(1)}% a.a.):</strong> corroerá R$ ${inflErosion.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} do saldo. Seu <strong>Poder de Compra Real</strong> será de <strong>R$ ${finalRealBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong> gerando <strong>R$ ${finalRealMonthlyIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mês</strong> em moeda de hoje.<br>
+                    • <strong>Ganho Real Líquido no Bolso:</strong> <strong style="color: ${gainColor};">${isPos ? '+' : ''}R$ ${realNetGain.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${isPos ? '+' : ''}${realGainPct.toFixed(1)}% real acima da inflação)</strong>.
                 `;
             }
+
+            // ── Diagnóstico de Preservação do Aporte (Inflação x Cenário A vs B) ──
+            const guardContainerEl = document.getElementById('calc-snow-inflation-guard');
+            if (guardContainerEl) {
+                guardContainerEl.style.display = monthlyContribution > 0 ? 'flex' : 'none';
+            }
+
+            const monthlyInflation = Math.pow(1 + annualInflation, 1 / 12) - 1;
+            const monthlyRealRate = ((1 + monthlyNetRate) / (1 + monthlyInflation)) - 1;
+
+            // Cenário B: Aporte reajustado mensalmente pela inflação para preservar o poder de compra real
+            let balanceRealB = initialCapital;
+            let totalInvestedRealB = initialCapital + (monthlyContribution * months);
+            let totalInvestedNominalB = initialCapital;
+
+            for (let m = 1; m <= months; m++) {
+                const realDiv = balanceRealB * monthlyRealRate;
+                balanceRealB = balanceRealB + realDiv + monthlyContribution;
+                const nomContribM = monthlyContribution * Math.pow(1 + monthlyInflation, m);
+                totalInvestedNominalB += nomContribM;
+            }
+            const balanceNominalB = balanceRealB * finalCumInflation;
+            const finalRealMonthlyIncomeB = balanceRealB * monthlyRealRate;
+            const finalMonthlyNominalIncomeB = balanceNominalB * monthlyNetRate;
+
+            const finalEffortA = monthlyContribution / finalCumInflation;
+            const decayPctA = Math.max(0, (1 - (1 / finalCumInflation)) * 100);
+            const finalTargetContribB = monthlyContribution * finalCumInflation;
+
+            const guardIpcaRateEl = document.getElementById('calc-guard-ipca-rate');
+            const guardAlertBoxEl = document.getElementById('calc-guard-alert-box');
+            const guardMilestonesEl = document.getElementById('calc-guard-milestones');
+
+            if (guardIpcaRateEl) {
+                guardIpcaRateEl.textContent = `IPCA ${(annualInflation * 100).toFixed(1)}% a.a.`;
+            }
+
+            if (guardAlertBoxEl) {
+                guardAlertBoxEl.innerHTML = `
+                    ⚠️ <strong>Alerta da Inflação sobre o seu Esforço Mensal:</strong> Guardar o mesmo valor fixo (<strong>R$ ${Math.round(monthlyContribution).toLocaleString('pt-BR')}/mês</strong>) por <strong>${years} anos</strong> significa que, no último ano, seu aporte comprará o equivalente a apenas <strong>R$ ${Math.round(finalEffortA).toLocaleString('pt-BR')}</strong> em moeda de hoje (uma perda silenciosa de <strong>-${decayPctA.toFixed(1)}% do seu esforço real</strong>). Para manter exatamente o mesmo ritmo de poupança, você precisará reajustar o aporte anualmente pelo IPCA para alcançar <strong>R$ ${Math.round(finalTargetContribB).toLocaleString('pt-BR')}/mês</strong> no último ano.
+                `;
+            }
+
+            if (guardMilestonesEl) {
+                const candidateYears = [1, 5, 10, 20, years].filter((y, idx, arr) => y <= years && arr.indexOf(y) === idx).sort((a,b)=>a-b);
+                guardMilestonesEl.innerHTML = candidateYears.map(y => {
+                    const cumInfY = Math.pow(1 + annualInflation, y);
+                    const targetContrib = monthlyContribution * cumInfY;
+                    const decayVal = monthlyContribution / cumInfY;
+                    const diffPct = ((cumInfY - 1) * 100).toFixed(0);
+                    return `
+                        <div class="calc-guard-milestone-item">
+                            <span class="calc-guard-milestone-label">Ano ${y}</span>
+                            <span class="calc-guard-milestone-target" title="Valor nominal necessário para manter poder de compra de hoje">R$ ${Math.round(targetContrib).toLocaleString('pt-BR')}/mês</span>
+                            <span class="calc-guard-milestone-decay" title="Se mantiver fixo em R$ ${Math.round(monthlyContribution).toLocaleString('pt-BR')}, comprará apenas isto">Fixo vale: R$ ${Math.round(decayVal).toLocaleString('pt-BR')} (+${diffPct}%)</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Tabela Comparativa Cenário A vs Cenário B
+            const compRealAEl = document.getElementById('calc-comp-real-a');
+            const compRealBEl = document.getElementById('calc-comp-real-b');
+            const compRealDiffEl = document.getElementById('calc-comp-real-diff');
+            const compIncomeAEl = document.getElementById('calc-comp-income-a');
+            const compIncomeBEl = document.getElementById('calc-comp-income-b');
+            const compIncomeDiffEl = document.getElementById('calc-comp-income-diff');
+            const compNomAEl = document.getElementById('calc-comp-nom-a');
+            const compNomBEl = document.getElementById('calc-comp-nom-b');
+            const compNomDiffEl = document.getElementById('calc-comp-nom-diff');
+            const compEffortAEl = document.getElementById('calc-comp-effort-a');
+            const compEffortBEl = document.getElementById('calc-comp-effort-b');
+
+            const diffRealBal = balanceRealB - finalRealBalance;
+            const diffIncome = finalRealMonthlyIncomeB - finalRealMonthlyIncome;
+            const diffNomBal = balanceNominalB - balance;
+
+            if (compRealAEl) compRealAEl.textContent = `R$ ${Math.round(finalRealBalance).toLocaleString('pt-BR')}`;
+            if (compRealBEl) compRealBEl.textContent = `R$ ${Math.round(balanceRealB).toLocaleString('pt-BR')}`;
+            if (compRealDiffEl) compRealDiffEl.textContent = `+R$ ${Math.round(diffRealBal).toLocaleString('pt-BR')} real`;
+
+            if (compIncomeAEl) compIncomeAEl.textContent = `R$ ${Math.round(finalRealMonthlyIncome).toLocaleString('pt-BR')}/mês`;
+            if (compIncomeBEl) compIncomeBEl.textContent = `R$ ${Math.round(finalRealMonthlyIncomeB).toLocaleString('pt-BR')}/mês`;
+            if (compIncomeDiffEl) compIncomeDiffEl.textContent = `+R$ ${Math.round(diffIncome).toLocaleString('pt-BR')}/mês (${finalRealMonthlyIncome > 0 ? '+' + ((diffIncome / finalRealMonthlyIncome) * 100).toFixed(0) + '%' : ''})`;
+
+            if (compNomAEl) compNomAEl.textContent = `R$ ${Math.round(balance).toLocaleString('pt-BR')}`;
+            if (compNomBEl) compNomBEl.textContent = `R$ ${Math.round(balanceNominalB).toLocaleString('pt-BR')}`;
+            if (compNomDiffEl) compNomDiffEl.textContent = `+R$ ${Math.round(diffNomBal).toLocaleString('pt-BR')} nominal`;
+
+            if (compEffortAEl) compEffortAEl.textContent = `R$ ${Math.round(finalEffortA).toLocaleString('pt-BR')}/mês (-${decayPctA.toFixed(0)}%)`;
+            if (compEffortBEl) compEffortBEl.textContent = `R$ ${Math.round(monthlyContribution).toLocaleString('pt-BR')}/mês (100% preservado)`;
 
             let price = 0;
             let cat = 'stocks';
@@ -5627,7 +5718,7 @@ const tableSortState = {};
                     btn.classList.add('open');
                     btn.setAttribute('aria-expanded', 'true');
                     const labelSpan = btn.querySelector('.calc-toggle-text') || btn.querySelector('span:first-child');
-                    if (labelSpan) labelSpan.textContent = '▲ Ocultar Detalhes Avançados';
+                    if (labelSpan) labelSpan.textContent = '▲ Ocultar Indicadores Técnicos Detalhados';
                 }
             } else {
                 pane.classList.add('hidden');
@@ -5636,7 +5727,7 @@ const tableSortState = {};
                     btn.classList.remove('open');
                     btn.setAttribute('aria-expanded', 'false');
                     const labelSpan = btn.querySelector('.calc-toggle-text') || btn.querySelector('span:first-child');
-                    if (labelSpan) labelSpan.textContent = '🔍 Ver Detalhes Avançados (IR, Dividendos, Fisher e Magic Number)';
+                    if (labelSpan) labelSpan.textContent = '⚙️ Expandir Indicadores Técnicos Detalhados';
                 }
             }
         }
@@ -5654,7 +5745,7 @@ const tableSortState = {};
                     btn.classList.add('open');
                     btn.setAttribute('aria-expanded', 'true');
                     const labelSpan = btn.querySelector('.calc-toggle-text') || btn.querySelector('span:first-child');
-                    if (labelSpan) labelSpan.textContent = '▲ Ocultar Tabela Completa e Detalhes Técnicos';
+                    if (labelSpan) labelSpan.textContent = '▲ Ocultar Tabela Completa de Horizontes';
                 }
             } else {
                 pane.classList.add('hidden');
@@ -5663,7 +5754,7 @@ const tableSortState = {};
                     btn.classList.remove('open');
                     btn.setAttribute('aria-expanded', 'false');
                     const labelSpan = btn.querySelector('.calc-toggle-text') || btn.querySelector('span:first-child');
-                    if (labelSpan) labelSpan.textContent = '📊 Ver Tabela Completa e Detalhes Técnicos';
+                    if (labelSpan) labelSpan.textContent = '⚙️ Expandir Tabela Completa de Horizontes';
                 }
             }
         }
