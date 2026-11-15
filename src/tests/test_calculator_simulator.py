@@ -611,4 +611,38 @@ class TestCalculatorDOMContract:
         assert '.calc-details-toggle-btn' in css_content
         assert '.calc-details-pane' in css_content
 
+    def test_inflation_guard_preservation_and_unified_views(self, html_content, css_content, js_content):
+        """Valida painel educativo de preservação do poder de compra do aporte e comparativo Cenário A vs B."""
+        # 1. Elementos HTML do Bloco de Preservação do Aporte
+        assert 'id="calc-snow-inflation-guard"' in html_content
+        assert 'id="calc-guard-ipca-rate"' in html_content
+        assert 'id="calc-guard-alert-box"' in html_content
+        assert 'id="calc-guard-milestones"' in html_content
+        assert 'id="calc-comp-real-a"' in html_content
+        assert 'id="calc-comp-real-b"' in html_content
+        assert 'id="calc-comp-real-diff"' in html_content
+        assert 'id="calc-comp-income-a"' in html_content
+        assert 'id="calc-comp-income-b"' in html_content
+        assert 'id="calc-comp-income-diff"' in html_content
+        assert 'id="calc-comp-nom-a"' in html_content
+        assert 'id="calc-comp-nom-b"' in html_content
+        assert 'id="calc-comp-nom-diff"' in html_content
+        assert 'id="calc-comp-effort-a"' in html_content
+        assert 'id="calc-comp-effort-b"' in html_content
+
+        # 2. Lógica em dashboard.js para cálculo de Aporte Reajustado e Alerta de Inflação
+        assert 'calc-snow-inflation-guard' in js_content
+        assert 'calc-guard-alert-box' in js_content
+        assert 'calc-guard-milestones' in js_content
+        assert 'calc-comp-real-b' in js_content
+        assert 'calc-comp-real-diff' in js_content
+        assert 'balanceRealB' in js_content
+
+        # 3. Classes CSS para card de preservação e tabela comparativa
+        assert '.calc-inflation-guard-card' in css_content
+        assert '.calc-guard-alert-box' in css_content
+        assert '.calc-guard-milestones' in css_content
+        assert '.calc-strategy-table' in css_content
+
+
 
