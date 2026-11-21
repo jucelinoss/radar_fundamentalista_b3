@@ -1,6 +1,6 @@
 {
   "meta": {
-    "exported_at": "2026-11-20T07:53:19.619570",
+    "exported_at": "2026-11-21T07:50:15.926871",
     "source": "Radar Fundamentalista B3 - Top Picks",
     "description": "Melhores ativos por score fundamentalista. Pronto para alimentar IA com sua carteira.",
     "suggested_prompt": "Analise minha carteira de investimentos comparando com estes top picks. Para cada ativo da minha carteira, sugira se devo manter, aumentar, reduzir ou vender, considerando os scores fundamentalistas, DY, P/L, P/VP, ROE e margem de seguranca de Graham."
@@ -25,42 +25,42 @@
       "name": "AXIA Energia SA",
       "sector": "Utilidade Pública",
       "price": 46.0,
-      "pe_ratio": 11.59,
+      "pe_ratio": 11.5,
       "pb_ratio": 1.1,
       "dividend_yield_pct": 30.0,
       "roe_pct": 16.36,
-      "graham_price": 61.19,
+      "graham_price": 61.42,
       "bazin_price": 31.5,
       "score": 5.0,
-      "upside_graham_pct": 33.0
+      "upside_graham_pct": 33.5
     },
     {
       "ticker": "BBDC4",
       "name": "Banco Bradesco S.A.",
       "sector": "Serviços Financeiros",
       "price": 13.83,
-      "pe_ratio": 5.76,
+      "pe_ratio": 5.86,
       "pb_ratio": 0.75,
       "dividend_yield_pct": 11.66,
       "roe_pct": 14.19,
-      "graham_price": 31.57,
+      "graham_price": 31.3,
       "bazin_price": 3.83,
       "score": 5.0,
-      "upside_graham_pct": 128.3
+      "upside_graham_pct": 126.3
     },
     {
       "ticker": "BBDC3",
       "name": "Banco Bradesco S.A.",
       "sector": "Serviços Financeiros",
       "price": 12.74,
-      "pe_ratio": 5.33,
+      "pe_ratio": 5.4,
       "pb_ratio": 0.69,
       "dividend_yield_pct": 11.51,
       "roe_pct": 14.19,
-      "graham_price": 31.5,
+      "graham_price": 31.3,
       "bazin_price": 3.5,
       "score": 5.0,
-      "upside_graham_pct": 147.3
+      "upside_graham_pct": 145.7
     },
     {
       "ticker": "CEAB3",
@@ -123,14 +123,14 @@
       "name": "Intelbras S.A. - Indústria de Telecomunicação Eletrônica Brasileira",
       "sector": "Bens Industriais",
       "price": 15.37,
-      "pe_ratio": 7.92,
+      "pe_ratio": 8.05,
       "pb_ratio": 1.49,
       "dividend_yield_pct": 8.22,
       "roe_pct": 19.08,
-      "graham_price": 21.19,
+      "graham_price": 21.03,
       "bazin_price": 21.0,
       "score": 5.0,
-      "upside_graham_pct": 37.9
+      "upside_graham_pct": 36.8
     },
     {
       "ticker": "KEPL3",
@@ -225,7 +225,7 @@
       "name": "Xp Industrial Fundo Investimento Imobiliario",
       "price": 62.04,
       "pb_ratio": 0.74,
-      "dividend_yield_pct": 13.41,
+      "dividend_yield_pct": 13.93,
       "score": 5.0,
       "dividend_rate": 10.8
     },
