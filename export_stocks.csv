@@ -1,93 +1,93 @@
 Ticker,Nome,Setor,Preço,P/L,P/VP,Dividend Yield,ROE,LPA,VPA,Preço Justo Graham,Preço Teto Bazin,Score (0-5)
-# Exportado em:,2026-11-26 06:01:26,,,,,,,,,,,
-AXIA3,AXIA Energia SA,Utilidade Pública,R$ 46.16,11.72,1.1,30.0%,16.36%,3.94,41.92,R$ 60.96,R$ 31.50,5.0
-ABCB4,Banco ABC Brasil S.A.,Serviços Financeiros,R$ 23.20,5.47,0.8,11.59%,14.74%,4.24,29.12,R$ 52.70,R$ 39.00,5.0
-BBDC4,Banco Bradesco S.A.,Serviços Financeiros,R$ 14.19,6.25,0.77,11.36%,14.19%,2.27,18.45,R$ 30.70,R$ 3.83,5.0
-BBDC3,Banco Bradesco S.A.,Serviços Financeiros,R$ 12.91,5.64,0.7,11.35%,14.19%,2.29,18.45,R$ 30.83,R$ 3.50,5.0
-BRSR6,Banco do Estado do Rio Grande do Sul S.A.,Serviços Financeiros,R$ 12.54,3.6,0.43,12.26%,14.48%,3.48,28.96,R$ 47.62,R$ 14.67,5.0
-CEAB3,C&A Modas S.A.,Consumo Cíclico,R$ 7.58,3.51,0.57,6.88%,17.74%,2.16,13.31,R$ 25.43,R$ 8.67,5.0
-CMIG4,Companhia Energética de Minas Gerais - CEMIG,Utilidade Pública,R$ 10.73,6.62,1.0,10.62%,18.56%,1.62,10.74,R$ 19.78,R$ 19.00,5.0
-CYRE3,Cyrela Brazil Realty S.A. Empreendimentos e Participações,Consumo Cíclico,R$ 19.66,5.07,0.73,13.89%,18.75%,3.88,26.84,R$ 48.41,R$ 45.50,5.0
-INTB3,Intelbras S.A. - Indústria de Telecomunicação Eletrônica Brasileira,Bens Industriais,R$ 14.38,7.53,1.4,8.79%,19.08%,1.91,10.29,R$ 21.03,R$ 21.00,5.0
-ITSA4,Itaúsa S.A.,Bens Industriais,R$ 13.09,7.84,1.5,8.62%,18.93%,1.67,8.74,R$ 18.12,R$ 1.67,5.0
-KEPL3,Kepler Weber S.A.,Bens Industriais,R$ 6.95,8.58,1.48,30.0%,12.96%,0.81,4.69,R$ 9.24,R$ 4.83,5.0
-LREN3,Lojas Renner S.A.,Consumo Cíclico,R$ 9.26,6.17,0.86,9.94%,14.35%,1.5,10.8,R$ 19.09,R$ 15.33,5.0
-PETR3,Petróleo Brasileiro S.A. - Petrobras,Energia,R$ 46.69,4.16,1.19,7.85%,30.24%,11.22,39.16,R$ 99.43,R$ 61.00,5.0
-POMO4,Marcopolo S.A.,Bens Industriais,R$ 3.43,4.08,1.0,6.27%,24.45%,0.84,3.44,R$ 8.06,R$ 15.33,5.0
-PETR4,Petroleo Brasileiro SA Pfd,Energia,R$ 41.36,3.8,1.06,8.86%,27.82%,10.89,39.16,R$ 97.97,R$ 61.07,5.0
-RECV3,Petroreconcavo S.A.,Energia,R$ 9.92,4.79,0.66,17.19%,13.65%,2.07,15.07,R$ 26.50,R$ 11.33,5.0
-RENT3,Localiza Rent a Car S.A.,Bens Industriais,R$ 29.32,7.42,1.18,7.26%,16.28%,3.95,24.95,R$ 47.09,R$ 37.17,5.0
-SANB11,Banco Santander (Brasil) S.A.,Serviços Financeiros,R$ 27.37,13.38,0.8,7.94%,10.2%,2.05,34.27,R$ 39.72,R$ 26.67,5.0
-TEND3,Construtora Tenda S.A.,Imobiliário,R$ 15.59,3.75,1.25,9.37%,36.36%,4.16,12.45,R$ 34.13,R$ 24.33,5.0
-SUZB3,Suzano S.A.,Materiais Básicos,R$ 55.40,8.12,1.32,24.26%,16.2%,6.82,41.92,R$ 80.20,R$ 18.67,5.0
-ISAE4,ISA Energía Brasil S.A.,Utilidade Pública,R$ 26.16,5.87,0.77,6.8%,13.19%,4.46,33.91,R$ 58.34,R$ 37.17,5.0
-VIVA3,Vivara Participações S.A.,Consumo Cíclico,R$ 15.86,7.21,1.13,30.0%,16.6%,2.2,14.0,R$ 26.33,R$ 11.67,5.0
-VLID3,Valid Soluções S.A.,Bens Industriais,R$ 14.95,5.28,0.67,13.68%,13.11%,2.83,22.3,R$ 37.69,R$ 34.17,5.0
-ASAI3,Sendas Distribuidora S.A.,Consumo Defensivo,R$ 9.84,10.81,1.96,12.2%,19.31%,0.91,5.01,R$ 10.13,R$ 1.67,4.0
-ALOS3,Allos S.A.,Imobiliário,R$ 26.23,11.98,1.03,13.36%,8.89%,2.19,25.43,R$ 35.40,R$ 58.33,4.0
-AZZA3,Azzas 2154 S.A.,Consumo Cíclico,R$ 15.33,9.35,0.38,10.34%,4.07%,1.64,40.67,R$ 38.74,R$ 26.33,4.0
-ALUP11,Alupar Investimento S.A.,Utilidade Pública,R$ 33.89,8.12,1.22,2.92%,13.18%,4.17,27.8,R$ 51.09,R$ 14.00,4.0
-BBAS3,Banco do Brasil S.A.,Serviços Financeiros,R$ 14.69,7.9,0.46,30.0%,,1.86,31.91,R$ 36.54,R$ 2.33,4.0
-BRAP4,Bradespar S.A.,Serviços Financeiros,R$ 16.33,11.66,0.84,14.61%,3.57%,1.4,19.45,R$ 24.76,R$ 53.33,4.0
-CMIG3,Companhia Energética de Minas Gerais - CEMIG,Utilidade Pública,R$ 16.68,10.17,1.55,7.52%,18.56%,1.64,10.74,R$ 19.91,R$ 20.83,4.0
-CPFE3,CPFL Energia S.A.,Utilidade Pública,R$ 42.89,8.38,2.07,6.58%,25.51%,5.12,20.75,R$ 48.89,R$ 62.17,4.0
-DIRR3,Direcional Engenharia S.A.,Imobiliário,R$ 9.33,5.91,1.93,16.61%,37.91%,1.58,4.83,R$ 13.11,R$ 25.83,4.0
-ECOR3,EcoRodovias Infraestrutura e Logística S.A.,Bens Industriais,R$ 6.67,8.44,1.03,4.53%,10.74%,0.79,6.5,R$ 10.75,R$ 5.00,4.0
-HYPE3,Hypera S.A.,Saúde,R$ 22.59,8.76,1.08,4.77%,13.41%,2.58,20.98,R$ 34.90,R$ 17.50,4.0
-JHSF3,JHSF Participações S.A.,Imobiliário,R$ 9.78,3.02,0.86,8.07%,,3.24,11.32,R$ 28.73,R$ 13.83,4.0
-ITUB4,Itau Unibanco Holding SA Pfd,Serviços Financeiros,R$ 40.01,9.24,1.92,7.75%,20.83%,4.33,20.79,R$ 45.01,R$ 51.68,4.0
-LWSA3,Locaweb Serviços de Internet S.A.,Tecnologia,R$ 3.20,14.55,0.73,9.29%,5.08%,0.22,4.36,R$ 4.65,R$ 0.67,4.0
-MDIA3,M. Dias Branco S.A. Indústria e Comércio de Alimentos,Consumo Defensivo,R$ 15.62,9.3,0.61,6.12%,6.98%,1.68,25.68,R$ 31.16,R$ 6.00,4.0
-PSSA3,Porto Seguro S.A.,Serviços Financeiros,R$ 41.88,0.0,1.6,7.16%,23.41%,43990.76,26.09,R$ 5082.09,R$ 34.67,4.0
-PRIO3,Prio S.A.,Energia,R$ 60.50,7.67,1.6,17.29%,21.68%,7.89,37.79,R$ 81.91,R$ 174.34,4.0
-SMTO3,São Martinho S.A.,Materiais Básicos,R$ 16.27,7.5,0.71,16.23%,9.57%,2.17,22.81,R$ 33.37,R$ 3.67,4.0
-USIM5,Usinas Siderúrgicas de Minas Gerais S.A.,Materiais Básicos,R$ 4.90,4.34,0.29,30.0%,7.13%,1.13,17.1,R$ 20.85,R$ 56.61,4.0
-VBBR3,Vibra Energia S.A.,Consumo Cíclico,R$ 32.47,5.62,1.53,6.09%,30.36%,5.78,21.21,R$ 52.52,R$ 33.00,4.0
-B3SA3,"B3 S.A. - Brasil, Bolsa, Balcão",Serviços Financeiros,R$ 14.58,13.38,3.84,6.19%,29.52%,1.09,3.79,R$ 9.65,R$ 12.50,3.0
-BBSE3,BB Seguridade Participações S.A.,Serviços Financeiros,R$ 36.52,7.58,5.26,12.57%,69.75%,4.82,6.94,R$ 27.44,R$ 76.50,3.0
-CPLE3,Companhia Paranaense de Energia - COPEL,Utilidade Pública,R$ 14.90,12.52,1.91,7.13%,13.77%,1.19,7.79,R$ 14.44,R$ 17.67,3.0
-CXSE3,Caixa Seguridade Participações S.A.,Serviços Financeiros,R$ 20.30,13.44,4.35,6.81%,33.16%,1.51,4.67,R$ 12.60,R$ 24.00,3.0
-EGIE3,Engie Brasil Energia S.A.,Utilidade Pública,R$ 24.94,7.72,1.66,4.47%,23.34%,3.23,15.05,R$ 33.07,R$ 18.67,3.0
-ENGI11,Energisa S.A.,Utilidade Pública,R$ 50.66,36.71,0.97,27.0%,10.66%,1.38,52.25,R$ 40.28,R$ 19.00,3.0
-EVEN3,Even Construtora e Incorporadora S.A.,Imobiliário,R$ 3.31,3.34,0.34,4.56%,7.75%,0.99,9.63,R$ 14.65,R$ 2.50,3.0
-EZTC3,EZTEC Empreendimentos e Participações S.A.,Imobiliário,R$ 9.41,6.4,0.49,2.87%,8.56%,1.47,19.08,R$ 25.12,R$ 4.83,3.0
-MULT3,Multiplan Empreendimentos Imobiliários S.A.,Imobiliário,R$ 26.64,8.46,1.87,4.36%,23.85%,3.15,14.24,R$ 31.77,R$ 19.00,3.0
-SAPR4,Companhia de Saneamento do Paraná - SANEPAR,Utilidade Pública,R$ 6.69,20.91,0.16,30.0%,4.18%,0.32,41.05,R$ 17.19,R$ 3.83,3.0
-TIMS3,TIM S.A.,Telecomunicações,R$ 21.83,12.77,2.06,6.74%,16.29%,1.71,10.62,R$ 20.21,R$ 24.50,3.0
-BPAC11,Banco BTG Pactual S.A.,Serviços Financeiros,R$ 52.95,86.24,3.16,21.08%,24.36%,0.61,16.74,R$ 15.21,R$ 15.50,2.0
-CSNA3,Companhia Siderúrgica Nacional,Materiais Básicos,R$ 3.45,,0.42,22.99%,-21.28%,-2.65,8.13,R$ 0.00,R$ 13.22,2.0
-DXCO3,Dexco S.A.,Materiais Básicos,R$ 4.89,,0.65,19.66%,-1.45%,-0.22,7.5,R$ 0.00,R$ 16.02,2.0
-GGBR4,Gerdau S.A.,Materiais Básicos,R$ 25.86,18.6,0.93,5.26%,5.02%,1.39,27.86,R$ 29.52,R$ 22.67,2.0
-GOAU4,Metalurgica Gerdau S.A.,Materiais Básicos,R$ 11.64,16.17,0.78,5.5%,5.0%,0.72,14.86,R$ 15.52,R$ 10.67,2.0
-IGTI11,Iguatemi S.A.,Imobiliário,R$ 22.10,135.58,1.22,3.05%,19.04%,0.16,18.13,R$ 8.15,R$ 11.33,2.0
-MGLU3,Magazine Luiza S.A.,Consumo Cíclico,R$ 9.29,,0.65,10.51%,-0.06%,-0.01,14.4,R$ 0.00,R$ 16.27,2.0
-MRVE3,MRV Engenharia e Participações S.A.,Imobiliário,R$ 4.62,,0.56,30.0%,-8.77%,-0.85,8.29,R$ 0.00,R$ 39.56,2.0
-NATU3,Natura Cosméticos S.A.,Consumo Defensivo,R$ 4.71,,0.51,30.0%,-1.36%,-0.18,9.15,R$ 0.00,R$ 25.57,2.0
-POSI3,Positivo Tecnologia S.A.,Tecnologia,R$ 3.25,36.11,0.29,5.53%,1.23%,0.09,11.32,R$ 4.79,R$ 3.00,2.0
-RAPT4,Randoncorp S.A.,Bens Industriais,R$ 3.78,,0.77,14.84%,-0.93%,-0.81,4.9,R$ 0.00,R$ 9.35,2.0
-SAPR11,Companhia de Saneamento do Paraná - SANEPAR,Utilidade Pública,R$ 34.53,42.68,0.84,30.0%,4.18%,0.81,41.05,R$ 27.33,R$ 18.33,2.0
-SBSP3,Companhia de Saneamento Básico do Estado de São Paulo - SABESP,Utilidade Pública,R$ 28.48,13.31,2.14,5.07%,16.3%,2.14,13.32,R$ 25.32,R$ 15.33,2.0
-TAEE11,Transmissora Aliança de Energia Elétrica S.A.,Utilidade Pública,R$ 39.76,36.48,1.8,7.86%,20.87%,1.09,22.09,R$ 23.27,R$ 52.00,2.0
-TUPY3,Tupy S.A.,Bens Industriais,R$ 21.20,,1.19,30.0%,-24.93%,-5.79,17.84,R$ 0.00,R$ 278.46,2.0
-VIVT3,Telefônica Brasil S.A.,Telecomunicações,R$ 34.80,15.4,1.67,7.08%,10.61%,2.26,20.89,R$ 32.59,R$ 28.17,2.0
-VALE3,Vale S.A.,Materiais Básicos,R$ 56.90,115.44,1.3,9.86%,1.12%,0.49,43.87,R$ 22.06,R$ 93.54,2.0
-YDUQ3,Yduqs Participações S.A.,Consumo Defensivo,R$ 10.04,20.08,0.84,5.67%,4.25%,0.5,11.94,R$ 11.59,R$ 9.50,2.0
-AURE3,Auren Energia S.A.,Utilidade Pública,R$ 11.92,,1.08,5.74%,-3.6%,-0.62,11.06,R$ 0.00,R$ 11.41,1.0
-ABEV3,Ambev S.A.,Consumo Defensivo,R$ 15.81,15.65,2.68,5.35%,17.65%,1.01,5.9,R$ 11.58,R$ 12.17,1.0
-BRKM5,Braskem S.A.,Materiais Básicos,R$ 2.24,,-0.13,9.09%,,-9.13,-17.09,R$ 0.00,R$ 3.39,1.0
-CMIN3,CSN Mineração S.A.,Materiais Básicos,R$ 4.85,21.09,3.94,4.53%,15.28%,0.23,1.23,R$ 2.52,R$ 3.67,1.0
-CSMG3,Companhia de Saneamento de Minas Gerais,Utilidade Pública,R$ 60.02,18.82,2.5,3.32%,14.32%,3.19,23.98,R$ 41.49,R$ 17.00,1.0
-CSAN3,Cosan S.A.,Energia,R$ 3.42,,2.61,19.02%,-22.27%,-2.1,1.31,R$ 0.00,R$ 10.84,1.0
-EMBJ3,Embraer S.A.,Bens Industriais,R$ 103.20,34.06,4.06,1.19%,10.25%,3.03,25.43,R$ 41.64,R$ 18.50,1.0
-ENEV3,Eneva S.A.,Utilidade Pública,R$ 27.53,28.68,2.55,30.0%,6.81%,0.96,10.78,R$ 15.26,R$ 329.40,1.0
-IRBR3,IRB-Brasil Resseguros S.A.,Serviços Financeiros,R$ 61.60,,0.94,2.56%,-5.87%,-3.35,65.28,R$ 0.00,R$ 26.33,1.0
-MBRF3,MBRF Global Foods Company S.A.,Consumo Defensivo,R$ 18.01,54.58,2.17,15.6%,1.42%,0.33,8.32,R$ 7.86,R$ 46.83,1.0
-MOTV3,Motiva Infraestrutura de Mobilidade S.A.,Bens Industriais,R$ 16.18,,1.73,5.76%,16.92%,-0.67,9.37,R$ 0.00,R$ 13.17,1.0
-RAIL3,Rumo S.A.,Bens Industriais,R$ 17.03,25.8,2.12,30.0%,8.72%,0.66,8.02,R$ 10.91,R$ 1.83,1.0
-RADL3,Raia Drogasil S.A.,Saúde,R$ 15.43,19.78,3.57,2.92%,19.73%,0.78,4.32,R$ 8.71,R$ 7.50,1.0
-TOTS3,TOTVS S.A.,Tecnologia,R$ 31.81,22.09,3.37,2.14%,16.66%,1.44,9.44,R$ 17.49,R$ 10.00,1.0
-UNIP6,Unipar Carbocloro S.A.,Materiais Básicos,R$ 49.29,39.43,2.75,13.14%,6.11%,1.25,17.9,R$ 22.44,R$ 108.00,1.0
-WEGE3,WEG S.A.,Bens Industriais,R$ 49.65,33.32,10.44,4.03%,29.88%,1.49,4.76,R$ 12.63,R$ 25.83,1.0
-BEEF3,Minerva S.A.,Consumo Defensivo,R$ 3.80,,5.21,5.15%,-21.85%,-0.39,0.73,R$ 0.00,R$ 2.00,0.0
-EQTL3,Equatorial S.A.,Utilidade Pública,R$ 34.87,59.1,1.62,4.54%,6.49%,0.59,21.46,R$ 16.88,R$ 26.33,0.0
-KLBN11,Klabin S.A.,Materiais Básicos,R$ 16.78,25.39,2.08,5.38%,2.9%,0.66,8.08,R$ 10.96,R$ 19.33,0.0
+# Exportado em:,2026-11-27 06:14:22,,,,,,,,,,,
+ABCB4,Banco ABC Brasil S.A.,Serviços Financeiros,R$ 24.28,5.81,0.83,11.07%,14.74%,4.18,29.12,R$ 52.33,R$ 39.00,5.0
+AXIA3,AXIA Energia SA,Utilidade Pública,R$ 48.77,12.38,1.16,30.0%,16.36%,3.94,41.92,R$ 60.96,R$ 31.50,5.0
+BBDC3,Banco Bradesco S.A.,Serviços Financeiros,R$ 14.15,6.58,0.77,10.36%,14.19%,2.15,18.45,R$ 29.88,R$ 3.50,5.0
+BBDC4,Banco Bradesco S.A.,Serviços Financeiros,R$ 15.83,7.47,0.86,10.19%,14.19%,2.12,18.45,R$ 29.67,R$ 3.83,5.0
+CEAB3,C&A Modas S.A.,Consumo Cíclico,R$ 8.47,3.92,0.64,6.16%,17.74%,2.16,13.31,R$ 25.43,R$ 8.67,5.0
+BRSR6,Banco do Estado do Rio Grande do Sul S.A.,Serviços Financeiros,R$ 13.17,3.78,0.45,11.68%,14.48%,3.48,28.96,R$ 47.62,R$ 14.67,5.0
+CMIG4,Companhia Energética de Minas Gerais - CEMIG,Utilidade Pública,R$ 11.29,6.97,1.05,10.09%,18.56%,1.62,10.74,R$ 19.78,R$ 19.00,5.0
+CYRE3,Cyrela Brazil Realty S.A. Empreendimentos e Participações,Consumo Cíclico,R$ 21.00,5.56,0.78,13.0%,18.75%,3.78,26.84,R$ 47.78,R$ 45.50,5.0
+ECOR3,EcoRodovias Infraestrutura e Logística S.A.,Bens Industriais,R$ 7.41,9.38,1.14,30.0%,10.74%,0.79,6.5,R$ 10.75,R$ 5.00,5.0
+LREN3,Lojas Renner S.A.,Consumo Cíclico,R$ 10.02,6.77,0.93,9.19%,14.35%,1.48,10.8,R$ 18.97,R$ 15.33,5.0
+PETR3,Petróleo Brasileiro S.A. - Petrobras,Energia,R$ 49.09,4.46,1.25,7.46%,30.24%,11.01,39.16,R$ 98.49,R$ 61.00,5.0
+PETR4,Petroleo Brasileiro SA Pfd,Energia,R$ 43.19,3.8,1.06,8.48%,27.82%,10.89,39.16,R$ 97.97,R$ 61.07,5.0
+RECV3,Petroreconcavo S.A.,Energia,R$ 10.58,5.4,0.7,16.12%,13.65%,1.96,15.07,R$ 25.78,R$ 11.33,5.0
+RENT3,Localiza Rent a Car S.A.,Bens Industriais,R$ 33.77,8.59,1.35,6.31%,16.28%,3.93,24.95,R$ 46.97,R$ 37.17,5.0
+SANB11,Banco Santander (Brasil) S.A.,Serviços Financeiros,R$ 27.63,13.5,0.81,7.86%,10.2%,2.05,34.27,R$ 39.72,R$ 26.67,5.0
+SUZB3,Suzano S.A.,Materiais Básicos,R$ 54.87,8.14,1.31,24.49%,16.2%,6.74,41.92,R$ 79.73,R$ 18.67,5.0
+TEND3,Construtora Tenda S.A.,Imobiliário,R$ 16.51,3.97,1.33,8.85%,36.36%,4.16,12.45,R$ 34.13,R$ 24.33,5.0
+ISAE4,ISA Energía Brasil S.A.,Utilidade Pública,R$ 27.14,6.37,0.8,7.25%,13.19%,4.26,33.91,R$ 57.01,R$ 40.33,5.0
+VIVA3,Vivara Participações S.A.,Consumo Cíclico,R$ 16.54,7.52,1.18,30.0%,16.6%,2.2,14.0,R$ 26.33,R$ 11.67,5.0
+VLID3,Valid Soluções S.A.,Bens Industriais,R$ 16.00,6.02,0.72,12.79%,13.11%,2.66,22.3,R$ 36.54,R$ 34.17,5.0
+ALUP11,Alupar Investimento S.A.,Utilidade Pública,R$ 35.00,8.39,1.26,2.83%,13.18%,4.17,27.8,R$ 51.09,R$ 14.00,4.0
+ALOS3,Allos S.A.,Imobiliário,R$ 27.80,13.24,1.09,12.61%,8.89%,2.1,25.43,R$ 34.66,R$ 58.33,4.0
+AZZA3,Azzas 2154 S.A.,Consumo Cíclico,R$ 16.94,10.39,0.42,9.35%,4.07%,1.63,40.67,R$ 38.62,R$ 26.33,4.0
+BBAS3,Banco do Brasil S.A.,Serviços Financeiros,R$ 16.54,8.53,0.52,30.0%,,1.94,31.91,R$ 37.32,R$ 2.33,4.0
+BRAP4,Bradespar S.A.,Serviços Financeiros,R$ 16.88,12.06,0.82,14.14%,3.57%,1.4,20.48,R$ 25.40,R$ 53.33,4.0
+CMIG3,Companhia Energética de Minas Gerais - CEMIG,Utilidade Pública,R$ 17.89,11.04,1.67,7.01%,18.56%,1.62,10.74,R$ 19.78,R$ 20.83,4.0
+CPFE3,CPFL Energia S.A.,Utilidade Pública,R$ 45.70,8.93,2.2,8.17%,25.51%,5.12,20.75,R$ 48.89,R$ 62.17,4.0
+DIRR3,Direcional Engenharia S.A.,Imobiliário,R$ 9.93,6.09,2.05,15.61%,37.91%,1.63,4.84,R$ 13.32,R$ 25.83,4.0
+EGIE3,Engie Brasil Energia S.A.,Utilidade Pública,R$ 26.56,8.15,1.76,30.0%,23.34%,3.26,15.05,R$ 33.23,R$ 18.67,4.0
+EVEN3,Even Construtora e Incorporadora S.A.,Imobiliário,R$ 3.47,3.51,0.36,30.0%,7.75%,0.99,9.63,R$ 14.65,R$ 2.50,4.0
+HYPE3,Hypera S.A.,Saúde,R$ 24.32,9.73,1.16,4.44%,13.41%,2.5,20.98,R$ 34.35,R$ 17.50,4.0
+INTB3,Intelbras S.A. - Indústria de Telecomunicação Eletrônica Brasileira,Bens Industriais,R$ 15.55,8.14,1.51,8.12%,19.08%,1.91,10.29,R$ 21.03,R$ 21.00,4.0
+JHSF3,JHSF Participações S.A.,Imobiliário,R$ 10.35,3.19,1.02,7.63%,,3.24,10.11,R$ 27.15,R$ 13.83,4.0
+ITUB4,Itau Unibanco Holding SA Pfd,Serviços Financeiros,R$ 42.56,9.24,1.92,7.29%,20.83%,4.33,20.79,R$ 45.01,R$ 51.68,4.0
+ITSA4,Itaúsa S.A.,Bens Industriais,R$ 13.99,8.28,1.6,8.06%,18.93%,1.69,8.74,R$ 18.23,R$ 1.67,4.0
+KEPL3,Kepler Weber S.A.,Bens Industriais,R$ 7.09,12.22,1.51,30.0%,12.96%,0.58,4.69,R$ 7.82,R$ 4.83,4.0
+PRIO3,Prio S.A.,Energia,R$ 62.45,8.18,1.6,16.75%,21.68%,7.63,38.95,R$ 81.77,R$ 174.34,4.0
+POMO4,Marcopolo S.A.,Bens Industriais,R$ 3.62,4.21,1.05,5.94%,24.45%,0.86,3.44,R$ 8.16,R$ 15.33,4.0
+PSSA3,Porto Seguro S.A.,Serviços Financeiros,R$ 43.06,0.0,1.65,6.97%,23.41%,42734.23,26.09,R$ 5008.98,R$ 34.67,4.0
+SMTO3,São Martinho S.A.,Materiais Básicos,R$ 16.79,7.74,0.74,15.72%,9.57%,2.17,22.81,R$ 33.37,R$ 3.67,4.0
+USIM5,Usinas Siderúrgicas de Minas Gerais S.A.,Materiais Básicos,R$ 5.15,4.56,0.3,30.0%,7.13%,1.13,17.1,R$ 20.85,R$ 56.61,4.0
+ASAI3,Sendas Distribuidora S.A.,Consumo Defensivo,R$ 10.73,12.06,2.14,30.0%,19.31%,0.89,5.01,R$ 10.02,R$ 1.67,3.0
+BBSE3,BB Seguridade Participações S.A.,Serviços Financeiros,R$ 37.56,7.92,5.41,12.22%,69.75%,4.74,6.94,R$ 27.21,R$ 76.50,3.0
+CXSE3,Caixa Seguridade Participações S.A.,Serviços Financeiros,R$ 21.07,14.43,4.51,6.56%,33.16%,1.46,4.67,R$ 12.39,R$ 24.00,3.0
+CPLE3,Companhia Paranaense de Energia - COPEL,Utilidade Pública,R$ 16.09,14.76,2.07,6.6%,13.77%,1.09,7.79,R$ 13.82,R$ 17.67,3.0
+ENGI11,Energisa S.A.,Utilidade Pública,R$ 53.59,38.83,1.03,25.53%,10.66%,1.38,52.25,R$ 40.28,R$ 19.00,3.0
+EZTC3,EZTEC Empreendimentos e Participações S.A.,Imobiliário,R$ 10.29,7.4,0.54,2.63%,8.56%,1.39,19.08,R$ 24.43,R$ 4.83,3.0
+LWSA3,Locaweb Serviços de Internet S.A.,Tecnologia,R$ 3.44,15.64,0.79,8.65%,5.08%,0.22,4.36,R$ 4.65,R$ 0.67,3.0
+MDIA3,M. Dias Branco S.A. Indústria e Comércio de Alimentos,Consumo Defensivo,R$ 16.30,9.76,0.63,5.87%,6.98%,1.67,25.68,R$ 31.06,R$ 6.00,3.0
+MULT3,Multiplan Empreendimentos Imobiliários S.A.,Imobiliário,R$ 28.99,9.2,2.04,4.01%,23.85%,3.15,14.24,R$ 31.77,R$ 19.00,3.0
+SAPR4,Companhia de Saneamento do Paraná - SANEPAR,Utilidade Pública,R$ 6.95,22.42,0.17,30.0%,4.18%,0.31,41.05,R$ 16.92,R$ 3.83,3.0
+TIMS3,TIM S.A.,Telecomunicações,R$ 22.99,14.19,2.16,6.4%,16.29%,1.62,10.62,R$ 19.68,R$ 24.50,3.0
+VBBR3,Vibra Energia S.A.,Consumo Cíclico,R$ 35.20,6.35,1.66,5.62%,30.36%,5.54,21.21,R$ 51.42,R$ 33.00,3.0
+B3SA3,"B3 S.A. - Brasil, Bolsa, Balcão",Serviços Financeiros,R$ 16.16,14.96,4.26,5.59%,29.52%,1.08,3.79,R$ 9.60,R$ 12.50,2.0
+BPAC11,Banco BTG Pactual S.A.,Serviços Financeiros,R$ 59.04,96.16,3.53,18.9%,24.36%,0.61,16.74,R$ 15.21,R$ 15.50,2.0
+CMIN3,CSN Mineração S.A.,Materiais Básicos,R$ 5.07,22.04,4.12,30.0%,15.28%,0.23,1.23,R$ 2.52,R$ 3.67,2.0
+CSNA3,Companhia Siderúrgica Nacional,Materiais Básicos,R$ 3.74,,0.46,21.21%,-21.28%,-2.6,8.13,R$ 0.00,R$ 13.22,2.0
+DXCO3,Dexco S.A.,Materiais Básicos,R$ 5.24,,0.7,18.34%,-1.45%,-0.23,7.5,R$ 0.00,R$ 16.02,2.0
+GGBR4,Gerdau S.A.,Materiais Básicos,R$ 26.50,19.49,0.95,5.13%,5.02%,1.36,27.86,R$ 29.20,R$ 22.67,2.0
+IGTI11,Iguatemi S.A.,Imobiliário,R$ 24.17,148.28,1.33,2.79%,19.04%,0.16,18.13,R$ 8.15,R$ 11.33,2.0
+GOAU4,Metalurgica Gerdau S.A.,Materiais Básicos,R$ 11.94,16.58,0.8,5.36%,5.0%,0.72,14.86,R$ 15.52,R$ 10.67,2.0
+MGLU3,Magazine Luiza S.A.,Outros,R$ 9.65,,0.65,10.11%,-0.06%,-0.01,14.4,R$ 0.00,R$ 16.27,2.0
+NATU3,Natura Cosméticos S.A.,Consumo Defensivo,R$ 5.20,,0.57,29.5%,-1.36%,-0.18,9.15,R$ 0.00,R$ 25.57,2.0
+MRVE3,MRV Engenharia e Participações S.A.,Imobiliário,R$ 5.33,,0.64,30.0%,-8.77%,-0.79,8.29,R$ 0.00,R$ 39.56,2.0
+POSI3,Positivo Tecnologia S.A.,Tecnologia,R$ 3.47,38.56,0.31,5.18%,1.23%,0.09,11.32,R$ 4.79,R$ 3.00,2.0
+RAPT4,Randoncorp S.A.,Bens Industriais,R$ 4.12,,0.84,13.61%,-0.93%,-0.81,4.9,R$ 0.00,R$ 9.35,2.0
+SAPR11,Companhia de Saneamento do Paraná - SANEPAR,Utilidade Pública,R$ 35.97,44.46,0.88,30.0%,4.18%,0.81,41.05,R$ 27.33,R$ 18.33,2.0
+SBSP3,Companhia de Saneamento Básico do Estado de São Paulo - SABESP,Utilidade Pública,R$ 30.35,14.18,2.28,4.76%,16.3%,2.14,13.32,R$ 25.32,R$ 15.33,2.0
+TAEE11,Transmissora Aliança de Energia Elétrica S.A.,Utilidade Pública,R$ 41.46,38.04,1.88,7.54%,20.87%,1.09,22.09,R$ 23.27,R$ 52.00,2.0
+TUPY3,Tupy S.A.,Bens Industriais,R$ 21.37,,1.2,30.0%,-24.93%,-5.8,17.84,R$ 0.00,R$ 278.46,2.0
+VALE3,Vale S.A.,Materiais Básicos,R$ 58.73,115.44,1.3,9.56%,1.12%,0.49,43.87,R$ 22.06,R$ 93.54,2.0
+VIVT3,Telefônica Brasil S.A.,Telecomunicações,R$ 36.05,16.09,1.73,6.83%,10.61%,2.24,20.89,R$ 32.45,R$ 28.17,2.0
+YDUQ3,Yduqs Participações S.A.,Consumo Defensivo,R$ 11.05,21.25,0.93,5.15%,4.25%,0.52,11.94,R$ 11.82,R$ 9.50,2.0
+AURE3,Auren Energia S.A.,Utilidade Pública,R$ 12.85,,1.16,5.33%,-3.6%,-0.58,11.06,R$ 0.00,R$ 11.41,1.0
+ABEV3,Ambev S.A.,Consumo Defensivo,R$ 16.43,16.27,2.79,5.15%,17.65%,1.01,5.9,R$ 11.58,R$ 12.17,1.0
+BRKM5,Braskem S.A.,Materiais Básicos,R$ 2.17,,-0.13,9.38%,,-8.44,-17.09,R$ 0.00,R$ 3.39,1.0
+CSAN3,Cosan S.A.,Energia,R$ 3.84,,2.93,16.94%,-22.27%,-2.22,1.31,R$ 0.00,R$ 10.84,1.0
+CSMG3,Companhia de Saneamento de Minas Gerais,Utilidade Pública,R$ 63.41,18.99,2.64,3.14%,14.32%,3.34,23.98,R$ 42.45,R$ 17.00,1.0
+ENEV3,Eneva S.A.,Utilidade Pública,R$ 28.72,29.92,2.66,30.0%,6.81%,0.96,10.78,R$ 15.26,R$ 329.40,1.0
+EMBJ3,Embraer S.A.,Bens Industriais,R$ 106.05,37.47,4.17,1.15%,10.25%,2.83,25.43,R$ 40.24,R$ 18.50,1.0
+EQTL3,Equatorial S.A.,Utilidade Pública,R$ 37.73,67.38,1.76,30.0%,6.49%,0.56,21.46,R$ 16.44,R$ 26.33,1.0
+IRBR3,IRB-Brasil Resseguros S.A.,Serviços Financeiros,R$ 64.53,,1.08,2.45%,-5.87%,-3.35,59.55,R$ 0.00,R$ 26.33,1.0
+MBRF3,MBRF Global Foods Company S.A.,Consumo Defensivo,R$ 18.30,55.45,2.2,15.36%,1.42%,0.33,8.32,R$ 7.86,R$ 46.83,1.0
+MOTV3,Motiva Infraestrutura de Mobilidade S.A.,Bens Industriais,R$ 17.43,,1.86,5.34%,16.92%,-0.64,9.37,R$ 0.00,R$ 13.17,1.0
+RADL3,Raia Drogasil S.A.,Saúde,R$ 17.46,22.38,4.04,2.58%,19.73%,0.78,4.32,R$ 8.71,R$ 7.50,1.0
+RAIL3,Rumo S.A.,Bens Industriais,R$ 17.90,27.97,2.23,30.0%,8.72%,0.64,8.02,R$ 10.74,R$ 1.83,1.0
+TOTS3,TOTVS S.A.,Tecnologia,R$ 35.40,24.58,3.75,1.92%,16.66%,1.44,9.44,R$ 17.49,R$ 10.00,1.0
+UNIP6,Unipar Carbocloro S.A.,Materiais Básicos,R$ 51.80,41.44,2.89,12.5%,6.11%,1.25,17.9,R$ 22.44,R$ 108.00,1.0
+WEGE3,WEG S.A.,Bens Industriais,R$ 51.36,34.47,10.8,3.9%,29.88%,1.49,4.76,R$ 12.63,R$ 25.83,1.0
+BEEF3,Minerva S.A.,Consumo Defensivo,R$ 3.89,,5.34,5.03%,-21.85%,-0.39,0.73,R$ 0.00,R$ 2.00,0.0
+KLBN11,Klabin S.A.,Materiais Básicos,R$ 16.95,25.64,2.1,5.33%,2.9%,0.66,8.08,R$ 10.96,R$ 19.33,0.0
